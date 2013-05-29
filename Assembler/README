@@ -1,0 +1,4 @@
+A testbench here is a Verilog file which when run under Modelsim, generates the
+I/A/B memory images for the particular CPU.  This way the code can make use of
+the macro definitions from Octavo_raw/Misc/params.v and look natural.
+

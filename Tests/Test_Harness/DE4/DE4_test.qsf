@@ -1,0 +1,144 @@
+# -------------------------------------------------------------------------- #
+#
+# Copyright (C) 1991-2010 Altera Corporation
+# Your use of Altera Corporation's design tools, logic functions 
+# and other software and tools, and its AMPP partner logic 
+# functions, and any output files from any of the foregoing 
+# (including device programming or simulation files), and any 
+# associated documentation or information are expressly subject 
+# to the terms and conditions of the Altera Program License 
+# Subscription Agreement, Altera MegaCore Function License 
+# Agreement, or other applicable license agreement, including, 
+# without limitation, that your use is for the sole purpose of 
+# programming logic devices manufactured by Altera and sold by 
+# Altera or its authorized distributors.  Please refer to the 
+# applicable agreement for further details.
+#
+# -------------------------------------------------------------------------- #
+#
+# Quartus II
+# Version 10.0 Build 218 06/27/2010 SJ Full Version
+# Date created = 13:50:06  July 11, 2011
+#
+# -------------------------------------------------------------------------- #
+#
+# Notes:
+#
+# 1) The default values for assignments are stored in the file:
+#		DE4_test_assignment_defaults.qdf
+#    If this file doesn't exist, see file:
+#		assignment_defaults.qdf
+#
+# 2) Altera recommends that you do not modify this file. This
+#    file is updated automatically by the Quartus II software
+#    and any changes you make may be lost or overwritten.
+#
+# -------------------------------------------------------------------------- #
+
+
+set_global_assignment -name FAMILY "Stratix IV"
+set_global_assignment -name DEVICE EP4SGX530KH40C2
+set_global_assignment -name TOP_LEVEL_ENTITY DE4_test
+set_global_assignment -name ORIGINAL_QUARTUS_VERSION 10.0
+set_global_assignment -name PROJECT_CREATION_TIME_DATE "13:50:06  JULY 11, 2011"
+set_global_assignment -name LAST_QUARTUS_VERSION 10.1
+set_global_assignment -name MIN_CORE_JUNCTION_TEMP 0
+set_global_assignment -name MAX_CORE_JUNCTION_TEMP 85
+set_global_assignment -name DEVICE_FILTER_SPEED_GRADE FASTEST
+set_global_assignment -name FLOW_DISABLE_ASSEMBLER OFF
+set_global_assignment -name SMART_RECOMPILE ON
+set_global_assignment -name NUM_PARALLEL_PROCESSORS ALL
+set_global_assignment -name POWER_PRESET_COOLING_SOLUTION "23 MM HEAT SINK WITH 200 LFPM AIRFLOW"
+set_global_assignment -name POWER_BOARD_THERMAL_MODEL "NONE (CONSERVATIVE)"
+set_global_assignment -name PHYSICAL_SYNTHESIS_COMBO_LOGIC ON
+set_global_assignment -name PHYSICAL_SYNTHESIS_REGISTER_RETIMING ON
+set_global_assignment -name PHYSICAL_SYNTHESIS_REGISTER_DUPLICATION ON
+set_global_assignment -name PHYSICAL_SYNTHESIS_EFFORT EXTRA
+set_global_assignment -name OPTIMIZATION_TECHNIQUE SPEED
+set_global_assignment -name ADV_NETLIST_OPT_SYNTH_WYSIWYG_REMAP ON
+set_global_assignment -name AUTO_SHIFT_REGISTER_RECOGNITION OFF
+set_global_assignment -name MAX_RAM_BLOCKS_MRAM 0
+set_global_assignment -name FITTER_EFFORT "STANDARD FIT"
+set_global_assignment -name OPTIMIZE_IOC_REGISTER_PLACEMENT_FOR_TIMING OFF
+set_global_assignment -name TIMEQUEST_MULTICORNER_ANALYSIS OFF
+set_global_assignment -name TIMEQUEST_DO_REPORT_TIMING ON
+set_global_assignment -name ENABLE_DA_RULE "C101, C102, C103, C104, C105, C106, R101, R102, R103, R104, R105, T101, T102, A101, A102, A103, A104, A105, A106, A107, A108, A109, A110, S101, S102, S103, S104, D101, D102, D103, M101, M102, M103, M104, M105"
+set_global_assignment -name ENABLE_DRC_SETTINGS ON
+set_global_assignment -name LL_ROOT_REGION ON -section_id "Root Region"
+set_global_assignment -name LL_MEMBER_STATE LOCKED -section_id "Root Region"
+set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
+set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
+set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
+set_global_assignment -name PARTITION_NETLIST_TYPE POST_SYNTH -section_id "cpu:cpu"
+set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id "cpu:cpu"
+set_global_assignment -name PARTITION_COLOR 39423 -section_id "cpu:cpu"
+set_global_assignment -name LL_ENABLED ON -section_id "cpu:cpu"
+set_global_assignment -name LL_AUTO_SIZE ON -section_id "cpu:cpu"
+set_global_assignment -name LL_STATE FLOATING -section_id "cpu:cpu"
+set_global_assignment -name LL_RESERVED ON -section_id "cpu:cpu"
+set_global_assignment -name LL_SECURITY_ROUTING_INTERFACE OFF -section_id "cpu:cpu"
+set_global_assignment -name LL_MEMBER_STATE LOCKED -section_id "cpu:cpu"
+set_global_assignment -name LL_WIDTH 1 -section_id "cpu:cpu"
+set_global_assignment -name LL_HEIGHT 1 -section_id "cpu:cpu"
+set_global_assignment -name LL_ORIGIN X1_Y1 -section_id "cpu:cpu"
+set_instance_assignment -name LL_MEMBER_OF "cpu:cpu" -to "cpu:cpu" -section_id "cpu:cpu"
+set_global_assignment -name REMOVE_REDUNDANT_LOGIC_CELLS ON
+set_global_assignment -name ALLOW_ANY_RAM_SIZE_FOR_RECOGNITION ON
+set_global_assignment -name ALLOW_ANY_ROM_SIZE_FOR_RECOGNITION ON
+set_global_assignment -name AUTO_DELAY_CHAINS OFF
+set_global_assignment -name ROUTER_TIMING_OPTIMIZATION_LEVEL MAXIMUM
+set_global_assignment -name ROUTER_LCELL_INSERTION_AND_LOGIC_DUPLICATION ON
+set_global_assignment -name STRATIX_DEVICE_IO_STANDARD "2.5 V"
+set_global_assignment -name MISC_FILE /autofs/seth.eecg/steffan.r.r0/laforest/Doc/personal/laforest/Datapaths/Processor/DE4/DE4_test.dpf
+set_global_assignment -name OPTIMIZE_HOLD_TIMING "ALL PATHS"
+set_global_assignment -name PLACEMENT_EFFORT_MULTIPLIER 4
+set_global_assignment -name ROUTER_EFFORT_MULTIPLIER 4
+set_location_assignment PIN_AA35 -to input_clock
+set_location_assignment PIN_AH5 -to push_button[0]
+set_location_assignment PIN_AG5 -to push_button[1]
+set_location_assignment PIN_AB13 -to dip_switch[0]
+set_location_assignment PIN_AB12 -to dip_switch[1]
+set_location_assignment PIN_AB11 -to dip_switch[2]
+set_location_assignment PIN_AB10 -to dip_switch[3]
+set_location_assignment PIN_AB9 -to dip_switch[4]
+set_location_assignment PIN_AC8 -to dip_switch[5]
+set_location_assignment PIN_AH6 -to dip_switch[6]
+set_location_assignment PIN_AG6 -to dip_switch[7]
+set_location_assignment PIN_V28 -to led[0]
+set_location_assignment PIN_W28 -to led[1]
+set_location_assignment PIN_R29 -to led[2]
+set_location_assignment PIN_P29 -to led[3]
+set_location_assignment PIN_N29 -to led[4]
+set_location_assignment PIN_M29 -to led[5]
+set_location_assignment PIN_M30 -to led[6]
+set_location_assignment PIN_N30 -to led[7]
+set_location_assignment PIN_AR8 -to A_dummy_in
+set_location_assignment PIN_AN9 -to A_dummy_out
+set_location_assignment PIN_AP9 -to A_dummy_wren
+set_location_assignment PIN_AV5 -to B_dummy_in
+set_location_assignment PIN_AW6 -to B_dummy_out
+set_location_assignment PIN_AV7 -to B_dummy_wren
+set_global_assignment -name RAPID_RECOMPILE_MODE OFF
+set_global_assignment -name LL_IGNORE_IO_BANK_SECURITY_CONSTRAINT OFF -section_id "cpu:cpu"
+set_global_assignment -name VERILOG_FILE ../ALU/Multiplier/Mult_Even_Odd.v
+set_global_assignment -name VERILOG_FILE ../ALU/Multiplier/Mult_ALU_WORD.v
+set_global_assignment -name VERILOG_FILE "../ALU/Add-Sub-Carry-Select/AddSub_RC_ALU_HALF_WORD.v"
+set_global_assignment -name VERILOG_FILE "../ALU/Add-Sub-Carry-Select/AddSub_CS_ALU_WORD.v"
+set_global_assignment -name VERILOG_FILE ../shift_register.v
+set_global_assignment -name VERILOG_FILE ../registered_reducer.v
+set_global_assignment -name VERILOG_FILE ../delay_line.v
+set_global_assignment -name VERILOG_FILE ../timescale.v
+set_global_assignment -name VERILOG_FILE ../params.v
+set_global_assignment -name VERILOG_FILE ../Memory/I_mem.v
+set_global_assignment -name VERILOG_FILE ../Memory/B_mem.v
+set_global_assignment -name VERILOG_FILE ../Memory/A_mem.v
+set_global_assignment -name VERILOG_FILE ../Datapath/datapath.v
+set_global_assignment -name VERILOG_FILE ../CPU/cpu.v
+set_global_assignment -name VERILOG_FILE ../Controller/controller.v
+set_global_assignment -name VERILOG_FILE ../ALU/alu.v
+set_global_assignment -name SDC_FILE timing.sdc
+set_global_assignment -name VERILOG_FILE PLL_clock.v
+set_global_assignment -name VERILOG_FILE DE4_test.v
+set_global_assignment -name QIP_FILE PLL_clock.qip
+set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
+set_instance_assignment -name PARTITION_HIERARCHY cpu_89b41 -to "cpu:cpu" -section_id "cpu:cpu"
