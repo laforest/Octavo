@@ -127,35 +127,36 @@ module Mesh_Node_Line
 
 );
     // Widths of ports, for later brevity
-    localparam  MESH_NODE_COUNT                                                                                                                                                 I_wren_other_WIDTH; 
-    localparam  (((SIMD_LAYER_COUNT * SIMD_LANES_PER_LAYER) + 1) * MESH_NODE_COUNT)                                                                                             A_wren_other_WIDTH;
-    localparam  (((SIMD_LAYER_COUNT * SIMD_LANES_PER_LAYER) + 1) * MESH_NODE_COUNT)                                                                                             B_wren_other_WIDTH;
-    localparam  (((SIMD_LAYER_COUNT * SIMD_LANES_PER_LAYER) + 1) * MESH_NODE_COUNT)                                                                                             ALU_c_in_WIDTH;
-    localparam  (((SIMD_LAYER_COUNT * SIMD_LANES_PER_LAYER) + 1) * MESH_NODE_COUNT)                                                                                             ALU_c_out_WIDTH;
+    localparam  SIMD_LAYER_COUNT * SIMD_LANES_PER_LAYER                                                                                             SIMD_LANE_COUNT;
 
-    localparam  (((               A_IO_READ_PORT_COUNT)  + (                    SIMD_A_IO_READ_PORT_COUNT  * (SIMD_LAYER_COUNT * SIMD_LANES_PER_LAYER))) * MESH_NODE_COUNT)     A_rden_WIDTH;
-    localparam  (((A_WORD_WIDTH * A_IO_READ_PORT_COUNT)  + (SIMD_A_WORD_WIDTH * SIMD_A_IO_READ_PORT_COUNT  * (SIMD_LAYER_COUNT * SIMD_LANES_PER_LAYER))) * MESH_NODE_COUNT)     A_in_WIDTH;
-    localparam  (((               A_IO_WRITE_PORT_COUNT) + (                    SIMD_A_IO_WRITE_PORT_COUNT * (SIMD_LAYER_COUNT * SIMD_LANES_PER_LAYER))) * MESH_NODE_COUNT)     A_out_WIDTH;
-    localparam  ( (A_WORD_WIDTH * A_IO_WRITE_PORT_COUNT) + (SIMD_A_WORD_WIDTH * SIMD_A_IO_WRITE_PORT_COUNT * (SIMD_LAYER_COUNT * SIMD_LANES_PER_LAYER))) * MESH_NODE_COUNT)     A_wren_WIDTH;
+    localparam  MESH_NODE_COUNT                                                                                                                     I_wren_other_WIDTH; 
+    localparam  (SIMD_LANE_COUNT + 1) * MESH_NODE_COUNT                                                                                             A_wren_other_WIDTH;
+    localparam  (SIMD_LANE_COUNT + 1) * MESH_NODE_COUNT                                                                                             B_wren_other_WIDTH;
+    localparam  (SIMD_LANE_COUNT + 1) * MESH_NODE_COUNT                                                                                             ALU_c_in_WIDTH;
+    localparam  (SIMD_LANE_COUNT + 1) * MESH_NODE_COUNT                                                                                             ALU_c_out_WIDTH;
 
-    localparam    (               B_IO_READ_PORT_COUNT)  + (                    SIMD_B_IO_READ_PORT_COUNT  * (SIMD_LAYER_COUNT * SIMD_LANES_PER_LAYER))                         B_rden_WIDTH;
-    localparam    (B_WORD_WIDTH * B_IO_READ_PORT_COUNT)  + (SIMD_B_WORD_WIDTH * SIMD_B_IO_READ_PORT_COUNT  * (SIMD_LAYER_COUNT * SIMD_LANES_PER_LAYER))                         B_in_WIDTH;
-    localparam    (               B_IO_WRITE_PORT_COUNT) + (                    SIMD_B_IO_WRITE_PORT_COUNT * (SIMD_LAYER_COUNT * SIMD_LANES_PER_LAYER))                         B_out_WIDTH;
-    localparam    (B_WORD_WIDTH * B_IO_WRITE_PORT_COUNT) + (SIMD_B_WORD_WIDTH * SIMD_B_IO_WRITE_PORT_COUNT * (SIMD_LAYER_COUNT * SIMD_LANES_PER_LAYER))                         B_wren_WIDTH;
+    localparam  ((               A_IO_READ_PORT_COUNT)  + (                    SIMD_A_IO_READ_PORT_COUNT  * SIMD_LANE_COUNT)) * MESH_NODE_COUNT     A_rden_WIDTH;
+    localparam  ((A_WORD_WIDTH * A_IO_READ_PORT_COUNT)  + (SIMD_A_WORD_WIDTH * SIMD_A_IO_READ_PORT_COUNT  * SIMD_LANE_COUNT)) * MESH_NODE_COUNT     A_in_WIDTH;
+    localparam  ((               A_IO_WRITE_PORT_COUNT) + (                    SIMD_A_IO_WRITE_PORT_COUNT * SIMD_LANE_COUNT)) * MESH_NODE_COUNT     A_out_WIDTH;
+    localparam  ((A_WORD_WIDTH * A_IO_WRITE_PORT_COUNT) + (SIMD_A_WORD_WIDTH * SIMD_A_IO_WRITE_PORT_COUNT * SIMD_LANE_COUNT)) * MESH_NODE_COUNT     A_wren_WIDTH;
 
-    localparam  (SIMD_LAYER_COUNT * SIMD_LANES_PER_LAYER)                                                                                                                       SIMD_LANE_COUNT;
+    localparam   (               B_IO_READ_PORT_COUNT)  + (                    SIMD_B_IO_READ_PORT_COUNT  * SIMD_LANE_COUNT)                        B_rden_WIDTH;
+    localparam   (B_WORD_WIDTH * B_IO_READ_PORT_COUNT)  + (SIMD_B_WORD_WIDTH * SIMD_B_IO_READ_PORT_COUNT  * SIMD_LANE_COUNT)                        B_in_WIDTH;
+    localparam   (               B_IO_WRITE_PORT_COUNT) + (                    SIMD_B_IO_WRITE_PORT_COUNT * SIMD_LANE_COUNT)                        B_out_WIDTH;
+    localparam   (B_WORD_WIDTH * B_IO_WRITE_PORT_COUNT) + (SIMD_B_WORD_WIDTH * SIMD_B_IO_WRITE_PORT_COUNT * SIMD_LANE_COUNT)                        B_wren_WIDTH;
+
 
     // The "Mesh_Node_" wires populate the ports of the Octavo instances (see below).
-    wire    [I_wren_other_WIDTH-1:0]    Mesh_Node_I_wren_other; 
-    wire    [A_wren_other_WIDTH-1:0]    Mesh_Node_A_wren_other;
-    wire    [B_wren_other_WIDTH-1:0]    Mesh_Node_B_wren_other;
-    wire    [ALU_c_in_WIDTH-1:0]        Mesh_Node_ALU_c_in;
-    wire    [ALU_c_out_WIDTH-1:0]       Mesh_Node_ALU_c_out;
+    wire    [I_wren_other_WIDTH-1:0]                Mesh_Node_I_wren_other; 
+    wire    [A_wren_other_WIDTH-1:0]                Mesh_Node_A_wren_other;
+    wire    [B_wren_other_WIDTH-1:0]                Mesh_Node_B_wren_other;
+    wire    [ALU_c_in_WIDTH-1:0]                    Mesh_Node_ALU_c_in;
+    wire    [ALU_c_out_WIDTH-1:0]                   Mesh_Node_ALU_c_out;
 
-    wire    [A_rden_WIDTH-1:0]          Mesh_Node_A_rden;
-    wire    [A_in_WIDTH-1:0]            Mesh_Node_A_in;
-    wire    [A_out_WIDTH-1:0]           Mesh_Node_A_out;
-    wire    [A_wren_WIDTH-1:0]          Mesh_Node_A_wren;
+    wire    [A_rden_WIDTH-1:0]                      Mesh_Node_A_rden;
+    wire    [A_in_WIDTH-1:0]                        Mesh_Node_A_in;
+    wire    [A_out_WIDTH-1:0]                       Mesh_Node_A_out;
+    wire    [A_wren_WIDTH-1:0]                      Mesh_Node_A_wren;
 
     wire    [(B_rden_WIDTH * MESH_NODE_COUNT)-1:0]  Mesh_Node_B_rden;
     wire    [(B_in_WIDTH   * MESH_NODE_COUNT)-1:0]  Mesh_Node_B_in;
@@ -180,61 +181,95 @@ module Mesh_Node_Line
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // Second, we unpack the remaining Mesh_Node_Line and Mesh_Node array vectors into wire arrays
+    // Second, 
 
-    // The "Line_" wires unpack the Mesh_Node_Line instance ports.
-    wire                            Line_B_rden         [MESH_NODE_COUNT-1:0][B_IO_READ_PORT_COUNT-1:0];
-    wire    [B_WORD_WIDTH-1:0]      Line_B_in           [MESH_NODE_COUNT-1:0][B_IO_READ_PORT_COUNT-1:0];
-    wire    [B_WORD_WIDTH-1:0]      Line_B_out          [MESH_NODE_COUNT-1:0][B_IO_WRITE_PORT_COUNT-1:0];
-    wire                            Line_B_wren         [MESH_NODE_COUNT-1:0][B_IO_WRITE_PORT_COUNT-1:0];
+    function reg rden ( 
+        input integer                                        node, 
+        input integer                                        port, 
+        input reg     [(B_rden_WIDTH * MESH_NODE_COUNT)-1:0] rden_vector
+    );
+        integer nodes = B_rden_WIDTH * node;
+        rden = rden_vector[(nodes + port) +: 1];
+    endfunction
 
-    generate
-        if (SIMD_LANE_COUNT > 0) begin
-            wire                            Line_SIMD_B_rden    [MESH_NODE_COUNT-1:0][SIMD_LANE_COUNT-1:0][SIMD_B_IO_READ_PORT_COUNT-1:0];
-            wire    [SIMD_B_WORD_WIDTH-1:0] Line_SIMD_B_in      [MESH_NODE_COUNT-1:0][SIMD_LANE_COUNT-1:0][SIMD_B_IO_READ_PORT_COUNT-1:0];
-            wire    [SIMD_B_WORD_WIDTH-1:0] Line_SIMD_B_out     [MESH_NODE_COUNT-1:0][SIMD_LANE_COUNT-1:0][SIMD_B_IO_WRITE_PORT_COUNT-1:0];
-            wire                            Line_SIMD_B_wren    [MESH_NODE_COUNT-1:0][SIMD_LANE_COUNT-1:0][SIMD_B_IO_WRITE_PORT_COUNT-1:0];
-        end
-    endgenerate
+    function reg SIMD_rden ( 
+        input integer                                        node, 
+        input integer                                        lane,
+        input integer                                        port, 
+        input reg     [(B_rden_WIDTH * MESH_NODE_COUNT)-1:0] rden_vector
+    );
+        integer nodes        = B_rden_WIDTH * node;
+        integer scalar_ports = B_IO_READ_PORT_COUNT;
+        integer simd_ports   = SIMD_B_IO_READ_PORT_COUNT * lane;
+        rden = rden_vector[(nodes + scalar_ports + simd_ports + port) +: 1];
+    endfunction
 
-    // The "Node_" wires unpack the Mesh_Node_Array instance ports.
-    wire                            Node_B_rden         [MESH_NODE_COUNT-1:0][B_IO_READ_PORT_COUNT-1:0];
-    wire    [B_WORD_WIDTH-1:0]      Node_B_in           [MESH_NODE_COUNT-1:0][B_IO_READ_PORT_COUNT-1:0];
-    wire    [B_WORD_WIDTH-1:0]      Node_B_out          [MESH_NODE_COUNT-1:0][B_IO_WRITE_PORT_COUNT-1:0];
-    wire                            Node_B_wren         [MESH_NODE_COUNT-1:0][B_IO_WRITE_PORT_COUNT-1:0];
+    function reg [B_WORD_WIDTH-1:0] in ( 
+        input integer                                      node, 
+        input integer                                      port, 
+        input reg     [(B_in_WIDTH * MESH_NODE_COUNT)-1:0] in_vector
+    );
+        integer nodes        = B_in_WIDTH * node;
+        integer port_offset  = B_WORD_WIDTH * port;
+        in = in_vector[(nodes + port_offset +: B_WORD_WIDTH];
+    endfunction
 
-    generate
-        if (SIMD_LANE_COUNT > 0) begin
-            wire                            Node_SIMD_B_rden    [MESH_NODE_COUNT-1:0][SIMD_LANE_COUNT-1:0][SIMD_B_IO_READ_PORT_COUNT-1:0];
-            wire    [SIMD_B_WORD_WIDTH-1:0] Node_SIMD_B_in      [MESH_NODE_COUNT-1:0][SIMD_LANE_COUNT-1:0][SIMD_B_IO_READ_PORT_COUNT-1:0];
-            wire    [SIMD_B_WORD_WIDTH-1:0] Node_SIMD_B_out     [MESH_NODE_COUNT-1:0][SIMD_LANE_COUNT-1:0][SIMD_B_IO_WRITE_PORT_COUNT-1:0];
-            wire                            Node_SIMD_B_wren    [MESH_NODE_COUNT-1:0][SIMD_LANE_COUNT-1:0][SIMD_B_IO_WRITE_PORT_COUNT-1:0];
-        end
-    endgenerate
+    function reg [SIMD_B_WORD_WIDTH-1:0] SIMD_in ( 
+        input integer                                      node, 
+        input integer                                      lane,
+        input integer                                      port, 
+        input reg     [(B_in_WIDTH * MESH_NODE_COUNT)-1:0] in_vector
+    );
+        integer nodes        = B_in_WIDTH * node;
+        integer scalar_ports = B_WORD_WIDTH * B_IO_READ_PORT_COUNT;
+        integer lanes        = SIMD_B_WORD_WIDTH * SIMD_B_IO_READ_PORT_COUNT * lane;
+        integer port_offset  = SIMD_B_WORD_WIDTH * port;
+        in = in_vector[(nodes + scalar_ports + lanes + port_offset) +: SIMD_B_WORD_WIDTH];
+    endfunction
 
-    // Unpack Mesh_Node_Array vector into array
-    integer i, j, k;
-    for(i=0; i < MESH_NODE_COUNT; i=i+1) begin
-        for(k=0; k < B_IO_READ_PORT_COUNT; k=k+1) begin
-            assign Node_B_rden[i][k] = Mesh_Node_B_rden[((B_rden_WIDTH * i) + (1            * k)) +: 1           ];
-            assign Node_B_in  [i][k] = Mesh_Node_B_in  [((B_in_WIDTH   * i) + (B_WORD_WIDTH * k)) +: B_WORD_WIDTH];
-            assign Node_B_out [i][k] = Mesh_Node_B_out [((B_out_WIDTH  * i) + (B_WORD_WIDTH * k)) +: B_WORD_WIDTH];
-            assign Node_B_wren[i][k] = Mesh_Node_B_wren[((B_wren_WIDTH * i) + (1            * k)) +: 1           ];
-        end
-    end
+    function reg [B_WORD_WIDTH-1:0] out ( 
+        input integer                                       node, 
+        input integer                                       port, 
+        input reg     [(B_out_WIDTH * MESH_NODE_COUNT)-1:0] out_vector
+    );
+        integer nodes        = B_out_WIDTH * node;
+        integer port_offset  = B_WORD_WIDTH * port;
+        out = out_vector[(nodes + port_offset +: B_WORD_WIDTH];
+    endfunction
 
-    if (SIMD_LANE_COUNT > 0) begin
-        for(i=0; i < MESH_NODE_COUNT; i=i+1) begin
-            for(j=0; j < SIMD_LANE_COUNT; j=j+1) begin
-                for(k=0; k < SIMD_B_IO_READ_PORT_COUNT; k=k+1) begin
-                    assign Node_B_rden[i][j][k] = Mesh_Node_B_rden[((B_rden_WIDTH * i) + (B_IO_READ_PORT_COUNT)  + (SIMD_B_IO_READ_PORT_COUNT * j) + (1            * k)) +: 1           ];
-                    assign Node_B_in  [i][j][k] = Mesh_Node_B_in  [((B_in_WIDTH   * i) + (B_WORD_WIDTH * B_IO_READ_PORT_COUNT) + (SIMD_B_WORD_WIDTH * SIMD_B_IO_READ_PORT_COUNT) + (SIMD_B_WORD_WIDTH * k)) +: SIMD_B_WORD_WIDTH];
-                    assign Node_B_out [i][j][k] = Mesh_Node_B_out [((B_in_WIDTH   * i) + (B_WORD_WIDTH * B_IO_WRITE_PORT_COUNT) + (SIMD_B_WORD_WIDTH * SIMD_B_IO_WRITE_PORT_COUNT) + (SIMD_B_WORD_WIDTH * k)) +: SIMD_B_WORD_WIDTH];
-                    assign Node_B_wren[i][j][k] = Mesh_Node_B_wren[((B_wren_WIDTH * i) + (B_IO_READ_PORT_COUNT)  + (SIMD_B_IO_READ_PORT_COUNT * j) + (1            * k)) +: 1           ];
-                end
-            end
-        end
-    end
+    function reg [SIMD_B_WORD_WIDTH-1:0] SIMD_out ( 
+        input integer                                       node, 
+        input integer                                       lane,
+        input integer                                       port, 
+        input reg     [(B_out_WIDTH * MESH_NODE_COUNT)-1:0] out_vector
+    );
+        integer nodes        = B_out_WIDTH * node;
+        integer scalar_ports = B_WORD_WIDTH * B_IO_WRITE_PORT_COUNT;
+        integer lanes        = SIMD_B_WORD_WIDTH * SIMD_B_IO_WRITE_PORT_COUNT * lane;
+        integer port_offset  = SIMD_B_WORD_WIDTH * port;
+        out = out_vector[(nodes + scalar_ports + lanes + port_offset) +: SIMD_B_WORD_WIDTH];
+    endfunction
+
+    function reg wren ( 
+        input integer                                        node, 
+        input integer                                        port, 
+        input reg     [(B_wren_WIDTH * MESH_NODE_COUNT)-1:0] wren_vector
+    );
+        integer nodes = B_wren_WIDTH * node;
+        wren = wren_vector[(nodes + port) +: 1];
+    endfunction
+
+    function reg SIMD_wren ( 
+        input integer                                        node, 
+        input integer                                        lane,
+        input integer                                        port, 
+        input reg     [(B_wren_WIDTH * MESH_NODE_COUNT)-1:0] wren_vector
+    );
+        integer nodes        = B_wren_WIDTH * node;
+        integer scalar_ports = B_IO_WRITE_PORT_COUNT;
+        integer simd_ports   = SIMD_B_IO_WRITE_PORT_COUNT * lane;
+        wren = wren_vector[(nodes + scalar_ports + simd_ports + port) +: 1];
+    endfunction
 
 
 
