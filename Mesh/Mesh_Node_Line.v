@@ -145,7 +145,6 @@ module Mesh_Node_Line
     localparam   (               B_IO_WRITE_PORT_COUNT) + (                    SIMD_B_IO_WRITE_PORT_COUNT * SIMD_LANE_COUNT)                        B_out_WIDTH;
     localparam   (B_WORD_WIDTH * B_IO_WRITE_PORT_COUNT) + (SIMD_B_WORD_WIDTH * SIMD_B_IO_WRITE_PORT_COUNT * SIMD_LANE_COUNT)                        B_wren_WIDTH;
 
-
     // The "Mesh_Node_" wires populate the ports of the Octavo instances (see below).
     wire    [I_wren_other_WIDTH-1:0]                Mesh_Node_I_wren_other; 
     wire    [A_wren_other_WIDTH-1:0]                Mesh_Node_A_wren_other;
@@ -164,7 +163,7 @@ module Mesh_Node_Line
     wire    [(B_wren_WIDTH * MESH_NODE_COUNT)-1:0]  Mesh_Node_B_wren;
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // First, we connect all the wires left as vectors.
+    // First, we connect all the wires left as vectors and later connected higher-up in the hierarchy.
 
     // Propagate special-purpose signals up the hierarchy.
     assign Mesh_Node_I_wren_other = I_wren_other;
@@ -181,274 +180,268 @@ module Mesh_Node_Line
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // Second, 
+    // Second, we create some function to index into the remaining B port vectors.
 
-    function reg rden ( 
-        input integer                                        node, 
-        input integer                                        port, 
-        input reg     [(B_rden_WIDTH * MESH_NODE_COUNT)-1:0] rden_vector
+    function integer rden ( 
+        input integer node, 
+        input integer port 
     );
         integer nodes = B_rden_WIDTH * node;
-        rden = rden_vector[(nodes + port) +: 1];
+        rden = nodes + port;
     endfunction
 
-    function reg SIMD_rden ( 
-        input integer                                        node, 
-        input integer                                        lane,
-        input integer                                        port, 
-        input reg     [(B_rden_WIDTH * MESH_NODE_COUNT)-1:0] rden_vector
+    function integer SIMD_rden ( 
+        input integer node, 
+        input integer lane,
+        input integer port 
     );
         integer nodes        = B_rden_WIDTH * node;
         integer scalar_ports = B_IO_READ_PORT_COUNT;
         integer simd_ports   = SIMD_B_IO_READ_PORT_COUNT * lane;
-        rden = rden_vector[(nodes + scalar_ports + simd_ports + port) +: 1];
+        SIMD_rden = nodes + scalar_ports + simd_ports + port;
     endfunction
 
-    function reg [B_WORD_WIDTH-1:0] in ( 
-        input integer                                      node, 
-        input integer                                      port, 
-        input reg     [(B_in_WIDTH * MESH_NODE_COUNT)-1:0] in_vector
+    function reg integer in ( 
+        input integer node, 
+        input integer port 
     );
         integer nodes        = B_in_WIDTH * node;
         integer port_offset  = B_WORD_WIDTH * port;
-        in = in_vector[(nodes + port_offset +: B_WORD_WIDTH];
+        in = nodes + port_offset;
     endfunction
 
-    function reg [SIMD_B_WORD_WIDTH-1:0] SIMD_in ( 
-        input integer                                      node, 
-        input integer                                      lane,
-        input integer                                      port, 
-        input reg     [(B_in_WIDTH * MESH_NODE_COUNT)-1:0] in_vector
+    function reg integer SIMD_in ( 
+        input integer node, 
+        input integer lane,
+        input integer port 
     );
         integer nodes        = B_in_WIDTH * node;
         integer scalar_ports = B_WORD_WIDTH * B_IO_READ_PORT_COUNT;
         integer lanes        = SIMD_B_WORD_WIDTH * SIMD_B_IO_READ_PORT_COUNT * lane;
         integer port_offset  = SIMD_B_WORD_WIDTH * port;
-        in = in_vector[(nodes + scalar_ports + lanes + port_offset) +: SIMD_B_WORD_WIDTH];
+        SIMD_in = nodes + scalar_ports + lanes + port_offset;
     endfunction
 
-    function reg [B_WORD_WIDTH-1:0] out ( 
-        input integer                                       node, 
-        input integer                                       port, 
-        input reg     [(B_out_WIDTH * MESH_NODE_COUNT)-1:0] out_vector
+    function reg integer out ( 
+        input integer node, 
+        input integer port 
     );
         integer nodes        = B_out_WIDTH * node;
         integer port_offset  = B_WORD_WIDTH * port;
-        out = out_vector[(nodes + port_offset +: B_WORD_WIDTH];
+        out = nodes + port_offset;
     endfunction
 
-    function reg [SIMD_B_WORD_WIDTH-1:0] SIMD_out ( 
-        input integer                                       node, 
-        input integer                                       lane,
-        input integer                                       port, 
-        input reg     [(B_out_WIDTH * MESH_NODE_COUNT)-1:0] out_vector
+    function reg integer SIMD_out ( 
+        input integer node, 
+        input integer lane,
+        input integer port 
     );
         integer nodes        = B_out_WIDTH * node;
         integer scalar_ports = B_WORD_WIDTH * B_IO_WRITE_PORT_COUNT;
         integer lanes        = SIMD_B_WORD_WIDTH * SIMD_B_IO_WRITE_PORT_COUNT * lane;
         integer port_offset  = SIMD_B_WORD_WIDTH * port;
-        out = out_vector[(nodes + scalar_ports + lanes + port_offset) +: SIMD_B_WORD_WIDTH];
+        SIMD_out = nodes + scalar_ports + lanes + port_offset;
     endfunction
 
-    function reg wren ( 
-        input integer                                        node, 
-        input integer                                        port, 
-        input reg     [(B_wren_WIDTH * MESH_NODE_COUNT)-1:0] wren_vector
+    function integer wren ( 
+        input integer node, 
+        input integer port 
     );
         integer nodes = B_wren_WIDTH * node;
-        wren = wren_vector[(nodes + port) +: 1];
+        wren = nodes + port;
     endfunction
 
-    function reg SIMD_wren ( 
-        input integer                                        node, 
-        input integer                                        lane,
-        input integer                                        port, 
-        input reg     [(B_wren_WIDTH * MESH_NODE_COUNT)-1:0] wren_vector
+    function integer SIMD_wren ( 
+        input integer node, 
+        input integer lane,
+        input integer port 
     );
         integer nodes        = B_wren_WIDTH * node;
         integer scalar_ports = B_IO_WRITE_PORT_COUNT;
         integer simd_ports   = SIMD_B_IO_WRITE_PORT_COUNT * lane;
-        wren = wren_vector[(nodes + scalar_ports + simd_ports + port) +: 1];
+        SIMD_wren = nodes + scalar_ports + simd_ports + port;
     endfunction
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Now, let's wire the B ports through pipeline stages.
+
+    // One extra pipe stage needed for inputs to Line
+    localparam  PIPE_ARRAY_SIZE  MESH_NODE_COUNT + 1;
+    integer i;
+
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Port B0 goes LSB to MSB (right to left), and thus wired straight-through.
+    wire [(B_WORD_WIDTH * PIPE_ARRAY_SIZE)-1:0] B0_pipe_in;
+    wire [(B_WORD_WIDTH * PIPE_ARRAY_SIZE)-1:0] B0_pipe_out;
+
+    Mesh_Pipe_Array
+    #(
+        .LSB_PIPE_DEPTH     (MESH_EDGE_PIPE_DEPTH),
+        .MID_PIPE_DEPTH     (MESH_NODE_PIPE_DEPTH),
+        .MSB_PIPE_DEPTH     (MESH_EDGE_PIPE_DEPTH),
+        .WIDTH              (B_WORD_WIDTH),
+        .PIPE_ARRAY_SIZE    (PIPE_ARRAY_SIZE) 
+    )
+    B0_pipe
+    (
+        .clock              (clock),
+        .in                 (B0_pipe_in),
+        .out                (B0_pipe_out)
+    );
+    
+    assign B0_pipe_in[in(0,0) +: B_WORD_WIDTH] = B_in[in(0,0) +: B_WORD_WIDTH];
+    for (i=0; i < MESH_NODE_COUNT; i=i+1;) begin
+        assign Mesh_Node_B_in[in(i,0) +: B_WORD_WIDTH] = B0_pipe_out[out(i,0) +: B_WORD_WIDTH];
+        assign B0_pipe_in[in(i+1,0) +: B_WORD_WIDTH]   = Mesh_Node_B_out[out(i,0) +: B_WORD_WIDTH];
+    end
+    assign B_out[out(0,0) +: B_WORD_WIDTH] = B0_pipe_out[out(PIPE_ARRAY_SIZE-1,0) +: B_WORD_WIDTH];
+
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Port B1 goes the other way, wired in a sort of backwards whip-stitch.
+    wire [(B_WORD_WIDTH * PIPE_ARRAY_SIZE)-1:0] B1_pipe_in;
+    wire [(B_WORD_WIDTH * PIPE_ARRAY_SIZE)-1:0] B1_pipe_out;
+
+    Mesh_Pipe_Array
+    #(
+        .LSB_PIPE_DEPTH     (MESH_EDGE_PIPE_DEPTH),
+        .MID_PIPE_DEPTH     (MESH_NODE_PIPE_DEPTH),
+        .MSB_PIPE_DEPTH     (MESH_EDGE_PIPE_DEPTH),
+        .WIDTH              (B_WORD_WIDTH),
+        .PIPE_ARRAY_SIZE    (PIPE_ARRAY_SIZE) 
+    )
+    B1_pipe
+    (
+        .clock              (clock),
+        .in                 (B1_pipe_in),
+        .out                (B1_pipe_out)
+    );
+    
+    assign B_out[out(0,1) +: B_WORD_WIDTH] = B1_pipe_out[out(0,0) +: B_WORD_WIDTH];
+    for (i=0; i < MESH_NODE_COUNT; i=i+1;) begin
+        assign B0_pipe_in[in(i,0) +: B_WORD_WIDTH]     = Mesh_Node_B_out[out(i,1) +: B_WORD_WIDTH];
+        assign Mesh_Node_B_in[in(i,1) +: B_WORD_WIDTH] = B0_pipe_out[out(i+1,0) +: B_WORD_WIDTH];
+    end
+    assign B1_pipe_in[in(PIPE_ARRAY_SIZE-1,0) +: B_WORD_WIDTH] = B_in[in(0,1) +: B_WORD_WIDTH];
 
 
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // And here's the array of Octavo cores.
+    Octavo
+    #(
+        .ALU_WORD_WIDTH                     (ALU_WORD_WIDTH),                 
+        .SIMD_ALU_WORD_WIDTH                (SIMD_ALU_WORD_WIDTH),                 
+        
+        .INSTR_WIDTH                        (INSTR_WIDTH),                       
+        .OPCODE_WIDTH                       (OPCODE_WIDTH),                     
+        .D_OPERAND_WIDTH                    (D_OPERAND_WIDTH),
+        .A_OPERAND_WIDTH                    (A_OPERAND_WIDTH),
+        .B_OPERAND_WIDTH                    (B_OPERAND_WIDTH),
+        
+        .A_WORD_WIDTH                       (A_WORD_WIDTH),
+        .A_ADDR_WIDTH                       (A_ADDR_WIDTH),
+        .A_DEPTH                            (A_DEPTH),
+        .A_RAMSTYLE                         (A_RAMSTYLE),
+        .A_INIT_FILE                        (A_INIT_FILE),
+        .A_IO_READ_PORT_COUNT               (A_IO_READ_PORT_COUNT),
+        .A_IO_READ_PORT_BASE_ADDR           (A_IO_READ_PORT_BASE_ADDR),
+        .A_IO_READ_PORT_ADDR_WIDTH          (A_IO_READ_PORT_ADDR_WIDTH),
+        .A_IO_WRITE_PORT_COUNT              (A_IO_WRITE_PORT_COUNT),
+        .A_IO_WRITE_PORT_BASE_ADDR          (A_IO_WRITE_PORT_BASE_ADDR),
+        .A_IO_WRITE_PORT_ADDR_WIDTH         (A_IO_WRITE_PORT_ADDR_WIDTH),
+        
+        .SIMD_A_WORD_WIDTH                  (SIMD_A_WORD_WIDTH),
+        .SIMD_A_ADDR_WIDTH                  (SIMD_A_ADDR_WIDTH),
+        .SIMD_A_DEPTH                       (SIMD_A_DEPTH),
+        .SIMD_A_RAMSTYLE                    (SIMD_A_RAMSTYLE),
+        .SIMD_A_INIT_FILE                   (SIMD_A_INIT_FILE),
+        .SIMD_A_IO_READ_PORT_COUNT          (SIMD_A_IO_READ_PORT_COUNT),
+        .SIMD_A_IO_READ_PORT_BASE_ADDR      (SIMD_A_IO_READ_PORT_BASE_ADDR),
+        .SIMD_A_IO_READ_PORT_ADDR_WIDTH     (SIMD_A_IO_READ_PORT_ADDR_WIDTH),
+        .SIMD_A_IO_WRITE_PORT_COUNT         (SIMD_A_IO_WRITE_PORT_COUNT),
+        .SIMD_A_IO_WRITE_PORT_BASE_ADDR     (SIMD_A_IO_WRITE_PORT_BASE_ADDR),
+        .SIMD_A_IO_WRITE_PORT_ADDR_WIDTH    (SIMD_A_IO_WRITE_PORT_ADDR_WIDTH),
+        
+        .B_WORD_WIDTH                       (B_WORD_WIDTH),
+        .B_ADDR_WIDTH                       (B_ADDR_WIDTH),
+        .B_DEPTH                            (B_DEPTH),
+        .B_RAMSTYLE                         (B_RAMSTYLE),
+        .B_INIT_FILE                        (B_INIT_FILE),
+        .B_IO_READ_PORT_COUNT               (B_IO_READ_PORT_COUNT),
+        .B_IO_READ_PORT_BASE_ADDR           (B_IO_READ_PORT_BASE_ADDR),
+        .B_IO_READ_PORT_ADDR_WIDTH          (B_IO_READ_PORT_ADDR_WIDTH),
+        .B_IO_WRITE_PORT_COUNT              (B_IO_WRITE_PORT_COUNT),
+        .B_IO_WRITE_PORT_BASE_ADDR          (B_IO_WRITE_PORT_BASE_ADDR),
+        .B_IO_WRITE_PORT_ADDR_WIDTH         (B_IO_WRITE_PORT_ADDR_WIDTH),
+        
+        .SIMD_B_WORD_WIDTH                  (SIMD_B_WORD_WIDTH),
+        .SIMD_B_ADDR_WIDTH                  (SIMD_B_ADDR_WIDTH),
+        .SIMD_B_DEPTH                       (SIMD_B_DEPTH),
+        .SIMD_B_RAMSTYLE                    (SIMD_B_RAMSTYLE),
+        .SIMD_B_INIT_FILE                   (SIMD_B_INIT_FILE),
+        .SIMD_B_IO_READ_PORT_COUNT          (SIMD_B_IO_READ_PORT_COUNT),
+        .SIMD_B_IO_READ_PORT_BASE_ADDR      (SIMD_B_IO_READ_PORT_BASE_ADDR),
+        .SIMD_B_IO_READ_PORT_ADDR_WIDTH     (SIMD_B_IO_READ_PORT_ADDR_WIDTH),
+        .SIMD_B_IO_WRITE_PORT_COUNT         (SIMD_B_IO_WRITE_PORT_COUNT),
+        .SIMD_B_IO_WRITE_PORT_BASE_ADDR     (SIMD_B_IO_WRITE_PORT_BASE_ADDR),
+        .SIMD_B_IO_WRITE_PORT_ADDR_WIDTH    (SIMD_B_IO_WRITE_PORT_ADDR_WIDTH),
+        
+        .I_WORD_WIDTH                       (I_WORD_WIDTH),
+        .I_ADDR_WIDTH                       (I_ADDR_WIDTH),
+        .I_DEPTH                            (I_DEPTH),
+        .I_RAMSTYLE                         (I_RAMSTYLE),
+        .I_INIT_FILE                        (I_INIT_FILE),
+        
+        .PC_RAMSTYLE                        (PC_RAMSTYLE),
+        .PC_INIT_FILE                       (PC_INIT_FILE),
+        .THREAD_COUNT                       (THREAD_COUNT),
+        .THREAD_ADDR_WIDTH                  (THREAD_ADDR_WIDTH),
+        
+        .PC_PIPELINE_DEPTH                  (PC_PIPELINE_DEPTH),
+        .I_TAP_PIPELINE_DEPTH               (I_TAP_PIPELINE_DEPTH),
+        .TAP_AB_PIPELINE_DEPTH              (TAP_AB_PIPELINE_DEPTH),
+        .I_PASSTHRU_PIPELINE_DEPTH          (I_PASSTHRU_PIPELINE_DEPTH),
+        .AB_READ_PIPELINE_DEPTH             (AB_READ_PIPELINE_DEPTH),
 
+        .SIMD_I_PASSTHRU_PIPELINE_DEPTH     (SIMD_I_PASSTHRU_PIPELINE_DEPTH),
+        .SIMD_TAP_AB_PIPELINE_DEPTH         (SIMD_TAP_AB_PIPELINE_DEPTH),
 
+        .AB_ALU_PIPELINE_DEPTH              (AB_ALU_PIPELINE_DEPTH),
+        .LOGIC_OPCODE_WIDTH                 (LOGIC_OPCODE_WIDTH),
 
+        .ADDSUB_CARRY_SELECT                (ADDSUB_CARRY_SELECT),
+        .MULT_DOUBLE_PIPE                   (MULT_DOUBLE_PIPE),
+        .MULT_HETEROGENEOUS                 (MULT_HETEROGENEOUS),
+        .MULT_USE_DSP                       (MULT_USE_DSP),
 
+        .SIMD_ADDSUB_CARRY_SELECT           (SIMD_ADDSUB_CARRY_SELECT),
+        .SIMD_MULT_DOUBLE_PIPE              (SIMD_MULT_DOUBLE_PIPE),
+        .SIMD_MULT_HETEROGENEOUS            (SIMD_MULT_HETEROGENEOUS),
+        .SIMD_MULT_USE_DSP                  (SIMD_MULT_USE_DSP),
 
+        .SIMD_LAYER_COUNT                   (SIMD_LAYER_COUNT),
+        .SIMD_LANES_PER_LAYER               (SIMD_LANES_PER_LAYER)
+    )
+    Mesh_Node_Array                         [MESH_NODE_COUNT-1:0]
+    (
+        .clock                              (clock),
+        .half_clock                         (half_clock),
 
+        .I_wren_other                       (Mesh_Node_I_wren_other),        
+        .A_wren_other                       (Mesh_Node_A_wren_other),        
+        .B_wren_other                       (Mesh_Node_B_wren_other),        
 
-    // Connect B ports to nearest linear neighbours, via pipelining, bow to stern.
-    generate
-        genvar node;
+        .ALU_c_in                           (Mesh_Node_ALU_c_in),
+        .ALU_c_out                          (Mesh_Node_ALU_c_out),
 
-        Mesh_Pipe_Array
-        #(
-            .LSB_PIPE_DEPTH     (MESH_EDGE_PIPE_DEPTH),
-            .MID_PIPE_DEPTH     (MESH_NODE_PIPE_DEPTH),
-            .MSB_PIPE_DEPTH     (MESH_EDGE_PIPE_DEPTH),
-            .WIDTH              (B_out_WIDTH),
-            .PIPE_ARRAY_SIZE    (MESH_NODE_COUNT) 
-        )
-        B_out_pipe
-        (
-            .clock              (clock),
-            .in                 (B_in),
-            .out                (Pipe_B_out[MESH_NODE_COUNT-1])
-
-        );
-
-        for(node=1; node < MESH_NODE_COUNT-1; node = node + 1) begin
-
-        Mesh_Pipe_Array
-        #(
-            .LSB_PIPE_DEPTH     (MESH_EDGE_PIPE_DEPTH),
-            .MID_PIPE_DEPTH     (MESH_NODE_PIPE_DEPTH),
-            .MSB_PIPE_DEPTH     (MESH_EDGE_PIPE_DEPTH),
-            .WIDTH              (B_out_WIDTH),
-            .PIPE_ARRAY_SIZE    (MESH_NODE_COUNT) 
-        )
-        B_out_pipe
-        (
-            .clock              (clock),
-            .in                 (),
-            .out                (Mesh_Node_B_out_pipe)
-
-        );
-
-        Mesh_Pipe_Array
-        #(
-            .LSB_PIPE_DEPTH     (MESH_EDGE_PIPE_DEPTH),
-            .MID_PIPE_DEPTH     (MESH_NODE_PIPE_DEPTH),
-            .MSB_PIPE_DEPTH     (MESH_EDGE_PIPE_DEPTH),
-            .WIDTH              (B_out_WIDTH),
-            .PIPE_ARRAY_SIZE    (MESH_NODE_COUNT) 
-        )
-        B_out_pipe
-        (
-            .clock              (clock),
-            .in                 (B_in),
-            .out                (Pipe_B_out[MESH_NODE_COUNT-1])
-
-        );
-
-        Octavo
-        #(
-            .ALU_WORD_WIDTH                     (ALU_WORD_WIDTH),                 
-            .SIMD_ALU_WORD_WIDTH                (SIMD_ALU_WORD_WIDTH),                 
-            
-            .INSTR_WIDTH                        (INSTR_WIDTH),                       
-            .OPCODE_WIDTH                       (OPCODE_WIDTH),                     
-            .D_OPERAND_WIDTH                    (D_OPERAND_WIDTH),
-            .A_OPERAND_WIDTH                    (A_OPERAND_WIDTH),
-            .B_OPERAND_WIDTH                    (B_OPERAND_WIDTH),
-            
-            .A_WORD_WIDTH                       (A_WORD_WIDTH),
-            .A_ADDR_WIDTH                       (A_ADDR_WIDTH),
-            .A_DEPTH                            (A_DEPTH),
-            .A_RAMSTYLE                         (A_RAMSTYLE),
-            .A_INIT_FILE                        (A_INIT_FILE),
-            .A_IO_READ_PORT_COUNT               (A_IO_READ_PORT_COUNT),
-            .A_IO_READ_PORT_BASE_ADDR           (A_IO_READ_PORT_BASE_ADDR),
-            .A_IO_READ_PORT_ADDR_WIDTH          (A_IO_READ_PORT_ADDR_WIDTH),
-            .A_IO_WRITE_PORT_COUNT              (A_IO_WRITE_PORT_COUNT),
-            .A_IO_WRITE_PORT_BASE_ADDR          (A_IO_WRITE_PORT_BASE_ADDR),
-            .A_IO_WRITE_PORT_ADDR_WIDTH         (A_IO_WRITE_PORT_ADDR_WIDTH),
-            
-            .SIMD_A_WORD_WIDTH                  (SIMD_A_WORD_WIDTH),
-            .SIMD_A_ADDR_WIDTH                  (SIMD_A_ADDR_WIDTH),
-            .SIMD_A_DEPTH                       (SIMD_A_DEPTH),
-            .SIMD_A_RAMSTYLE                    (SIMD_A_RAMSTYLE),
-            .SIMD_A_INIT_FILE                   (SIMD_A_INIT_FILE),
-            .SIMD_A_IO_READ_PORT_COUNT          (SIMD_A_IO_READ_PORT_COUNT),
-            .SIMD_A_IO_READ_PORT_BASE_ADDR      (SIMD_A_IO_READ_PORT_BASE_ADDR),
-            .SIMD_A_IO_READ_PORT_ADDR_WIDTH     (SIMD_A_IO_READ_PORT_ADDR_WIDTH),
-            .SIMD_A_IO_WRITE_PORT_COUNT         (SIMD_A_IO_WRITE_PORT_COUNT),
-            .SIMD_A_IO_WRITE_PORT_BASE_ADDR     (SIMD_A_IO_WRITE_PORT_BASE_ADDR),
-            .SIMD_A_IO_WRITE_PORT_ADDR_WIDTH    (SIMD_A_IO_WRITE_PORT_ADDR_WIDTH),
-            
-            .B_WORD_WIDTH                       (B_WORD_WIDTH),
-            .B_ADDR_WIDTH                       (B_ADDR_WIDTH),
-            .B_DEPTH                            (B_DEPTH),
-            .B_RAMSTYLE                         (B_RAMSTYLE),
-            .B_INIT_FILE                        (B_INIT_FILE),
-            .B_IO_READ_PORT_COUNT               (B_IO_READ_PORT_COUNT),
-            .B_IO_READ_PORT_BASE_ADDR           (B_IO_READ_PORT_BASE_ADDR),
-            .B_IO_READ_PORT_ADDR_WIDTH          (B_IO_READ_PORT_ADDR_WIDTH),
-            .B_IO_WRITE_PORT_COUNT              (B_IO_WRITE_PORT_COUNT),
-            .B_IO_WRITE_PORT_BASE_ADDR          (B_IO_WRITE_PORT_BASE_ADDR),
-            .B_IO_WRITE_PORT_ADDR_WIDTH         (B_IO_WRITE_PORT_ADDR_WIDTH),
-            
-            .SIMD_B_WORD_WIDTH                  (SIMD_B_WORD_WIDTH),
-            .SIMD_B_ADDR_WIDTH                  (SIMD_B_ADDR_WIDTH),
-            .SIMD_B_DEPTH                       (SIMD_B_DEPTH),
-            .SIMD_B_RAMSTYLE                    (SIMD_B_RAMSTYLE),
-            .SIMD_B_INIT_FILE                   (SIMD_B_INIT_FILE),
-            .SIMD_B_IO_READ_PORT_COUNT          (SIMD_B_IO_READ_PORT_COUNT),
-            .SIMD_B_IO_READ_PORT_BASE_ADDR      (SIMD_B_IO_READ_PORT_BASE_ADDR),
-            .SIMD_B_IO_READ_PORT_ADDR_WIDTH     (SIMD_B_IO_READ_PORT_ADDR_WIDTH),
-            .SIMD_B_IO_WRITE_PORT_COUNT         (SIMD_B_IO_WRITE_PORT_COUNT),
-            .SIMD_B_IO_WRITE_PORT_BASE_ADDR     (SIMD_B_IO_WRITE_PORT_BASE_ADDR),
-            .SIMD_B_IO_WRITE_PORT_ADDR_WIDTH    (SIMD_B_IO_WRITE_PORT_ADDR_WIDTH),
-            
-            .I_WORD_WIDTH                       (I_WORD_WIDTH),
-            .I_ADDR_WIDTH                       (I_ADDR_WIDTH),
-            .I_DEPTH                            (I_DEPTH),
-            .I_RAMSTYLE                         (I_RAMSTYLE),
-            .I_INIT_FILE                        (I_INIT_FILE),
-            
-            .PC_RAMSTYLE                        (PC_RAMSTYLE),
-            .PC_INIT_FILE                       (PC_INIT_FILE),
-            .THREAD_COUNT                       (THREAD_COUNT),
-            .THREAD_ADDR_WIDTH                  (THREAD_ADDR_WIDTH),
-            
-            .PC_PIPELINE_DEPTH                  (PC_PIPELINE_DEPTH),
-            .I_TAP_PIPELINE_DEPTH               (I_TAP_PIPELINE_DEPTH),
-            .TAP_AB_PIPELINE_DEPTH              (TAP_AB_PIPELINE_DEPTH),
-            .I_PASSTHRU_PIPELINE_DEPTH          (I_PASSTHRU_PIPELINE_DEPTH),
-            .AB_READ_PIPELINE_DEPTH             (AB_READ_PIPELINE_DEPTH),
-
-            .SIMD_I_PASSTHRU_PIPELINE_DEPTH     (SIMD_I_PASSTHRU_PIPELINE_DEPTH),
-            .SIMD_TAP_AB_PIPELINE_DEPTH         (SIMD_TAP_AB_PIPELINE_DEPTH),
-
-            .AB_ALU_PIPELINE_DEPTH              (AB_ALU_PIPELINE_DEPTH),
-            .LOGIC_OPCODE_WIDTH                 (LOGIC_OPCODE_WIDTH),
-
-            .ADDSUB_CARRY_SELECT                (ADDSUB_CARRY_SELECT),
-            .MULT_DOUBLE_PIPE                   (MULT_DOUBLE_PIPE),
-            .MULT_HETEROGENEOUS                 (MULT_HETEROGENEOUS),
-            .MULT_USE_DSP                       (MULT_USE_DSP),
-
-            .SIMD_ADDSUB_CARRY_SELECT           (SIMD_ADDSUB_CARRY_SELECT),
-            .SIMD_MULT_DOUBLE_PIPE              (SIMD_MULT_DOUBLE_PIPE),
-            .SIMD_MULT_HETEROGENEOUS            (SIMD_MULT_HETEROGENEOUS),
-            .SIMD_MULT_USE_DSP                  (SIMD_MULT_USE_DSP),
-
-            .SIMD_LAYER_COUNT                   (SIMD_LAYER_COUNT),
-            .SIMD_LANES_PER_LAYER               (SIMD_LANES_PER_LAYER)
-        )
-        Mesh_Node_Array                         [MESH_NODE_COUNT-1:0]
-        (
-            .clock                              (clock),
-            .half_clock                         (half_clock),
-
-            .I_wren_other                       (Mesh_Node_I_wren_other),        
-            .A_wren_other                       (Mesh_Node_A_wren_other),        
-            .B_wren_other                       (Mesh_Node_B_wren_other),        
-
-            .ALU_c_in                           (Mesh_Node_ALU_c_in),
-            .ALU_c_out                          (Mesh_Node_ALU_c_out),
-
-            .A_io_rden                          (Mesh_Node_A_rden),
-            .A_io_in                            (Mesh_Node_A_in),
-            .A_io_out                           (Mesh_Node_A_out),
-            .A_io_wren                          (Mesh_Node_A_wren),
-            
-            .B_io_rden                          (Mesh_Node_B_rden),
-            .B_io_in                            (Mesh_Node_B_in),
-            .B_io_out                           (Mesh_Node_B_out),
-            .B_io_wren                          (Mesh_Node_B_wren)
-        );
-    endgenerate
+        .A_io_rden                          (Mesh_Node_A_rden),
+        .A_io_in                            (Mesh_Node_A_in),
+        .A_io_out                           (Mesh_Node_A_out),
+        .A_io_wren                          (Mesh_Node_A_wren),
+        
+        .B_io_rden                          (Mesh_Node_B_rden),
+        .B_io_in                            (Mesh_Node_B_in),
+        .B_io_out                           (Mesh_Node_B_out),
+        .B_io_wren                          (Mesh_Node_B_wren)
+    );
 endmodule
