@@ -23,6 +23,6 @@ Features
 You can go read the original paper and slides from FPGA'2012 here:
 http://www.eecg.utoronto.ca/~laforest/octavo/ (The design has evolved since publication.)
 
-This repository contains the entire Verilog-2001 source and comes with Quartus project generators and Modelsim scripts. There's a very simple test bench provided.
+This repository contains the entire Verilog-2001 source and comes with Quartus project generators and Modelsim scripts. There's a very simple test bench provided. Check the [Quick Start Guide](https://github.com/laforest/Octavo/wiki/Quick-Start-Guide) to see how to create a ready-to-use Octavo instance.
 
 By default, and unless explicitly specified otherwise, all work falls under the BSD 2-Clause License. See LICENSE file. (Summary: just go ahead and use it, but give credit.)
