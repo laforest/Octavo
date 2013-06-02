@@ -26,3 +26,5 @@ http://www.eecg.utoronto.ca/~laforest/octavo/ (The design has evolved since publ
 This repository contains the entire Verilog-2001 source and comes with Quartus project generators and Modelsim scripts. There's a very simple test bench provided. Check the [Quick Start Guide](https://github.com/laforest/Octavo/wiki/Quick-Start-Guide) to see how to create a ready-to-use Octavo instance.
 
 By default, and unless explicitly specified otherwise, all work falls under the BSD 2-Clause License. See [LICENSE](https://github.com/laforest/Octavo/blob/master/LICENSE) file. (Summary: just go ahead and use it, but give credit.)
+
+If you have any questions, please contact me: eric.laforest@gmail.com
