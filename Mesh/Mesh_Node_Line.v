@@ -268,7 +268,7 @@ module Mesh_Node_Line
 
     // One extra pipe stage needed for inputs to Line
     localparam  PIPE_ARRAY_SIZE  MESH_NODE_COUNT + 1;
-    integer i;
+    integer i, j;
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Port B0 goes LSB to MSB (right to left), and thus wired straight-through.
@@ -298,6 +298,51 @@ module Mesh_Node_Line
     assign B_out[out(0,0) +: B_WORD_WIDTH] = B0_pipe_out[out(PIPE_ARRAY_SIZE-1,0) +: B_WORD_WIDTH];
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Now do port B0 again, but for SIMD lanes.
+    
+    // XXX ECL FIXME
+    // XXX ECL FIXME
+    // XXX ECL FIXME
+
+    // Wrong approach again: iterating over SIMD port per lane instead of per node, like the scalar ports
+    // Factor out the addressing functions into node, scalar_port, and SIMD_port variants
+    // Do scalar ports as usual, but place structurally identical code in a generate for loop, to create the same structures
+    // over the array of nodes, but once per SIMD lane, so the generate for loop index counts the SIMD lanes.
+    // The goal here is that each port gets its own pipe instance, so the RTL diagram is human-readable. :)
+
+    // XXX ECL FIXME
+    // XXX ECL FIXME
+    // XXX ECL FIXME
+
+    if (SIMD_LANE_COUNT > 0) begin
+        wire [(SIMD_B_WORD_WIDTH * SIMD_LANE_COUNT * PIPE_ARRAY_SIZE)-1:0] SIMD_B0_pipe_in;
+        wire [(SIMD_B_WORD_WIDTH * SIMD_LANE_COUNT * PIPE_ARRAY_SIZE)-1:0] SIMD_B0_pipe_out;
+
+        Mesh_Pipe_Array
+        #(
+            .LSB_PIPE_DEPTH     (MESH_EDGE_PIPE_DEPTH),
+            .MID_PIPE_DEPTH     (MESH_NODE_PIPE_DEPTH),
+            .MSB_PIPE_DEPTH     (MESH_EDGE_PIPE_DEPTH),
+            .WIDTH              (SIMD_B_WORD_WIDTH),
+            .PIPE_ARRAY_SIZE    (PIPE_ARRAY_SIZE) 
+        )
+        SIMD_B0_pipe            [SIMD_LANE_COUNT-1:0]
+        (
+            .clock              (clock),
+            .in                 (SIMD_B0_pipe_in),
+            .out                (SIMD_B0_pipe_out)
+        );
+        
+        assign SIMD_B0_pipe_in[SIMD_in(0,0,0) +: SIMD_B_WORD_WIDTH] = B_in[SIMD_in(0,0,0) +: SIMD_B_WORD_WIDTH];
+        for (i=0; i < MESH_NODE_COUNT; i=i+1;) begin
+            for (j=0; j < SIMD_LANE_COUNT; j=j+1;) begin
+                assign Mesh_Node_B_in[SIMD_in(i,j,0) +: SIMD_B_WORD_WIDTH]    = SIMD_B0_pipe_out[SIMD_out(i,j,0) +: SIMD_B_WORD_WIDTH];
+                assign SIMD_B0_pipe_in[SIMD_in(i+1,j,0) +: SIMD_B_WORD_WIDTH] = Mesh_Node_B_out[SIMD_out(i,j,0) +: SIMD_B_WORD_WIDTH];
+            end
+        end
+        assign SIMD_B_out[SIMD_out(0,0) +: B_WORD_WIDTH] = SIMD_B0_pipe_out[SIMD_out(PIPE_ARRAY_SIZE-1,0) +: B_WORD_WIDTH];
+    end
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Port B1 goes the other way, wired in a sort of backwards whip-stitch.
     wire [(B_WORD_WIDTH * PIPE_ARRAY_SIZE)-1:0] B1_pipe_in;
     wire [(B_WORD_WIDTH * PIPE_ARRAY_SIZE)-1:0] B1_pipe_out;
@@ -317,6 +362,7 @@ module Mesh_Node_Line
         .out                (B1_pipe_out)
     );
     
+    // Easier to follow if you read this one bottom-up
     assign B_out[out(0,1) +: B_WORD_WIDTH] = B1_pipe_out[out(0,0) +: B_WORD_WIDTH];
     for (i=0; i < MESH_NODE_COUNT; i=i+1;) begin
         assign B0_pipe_in[in(i,0) +: B_WORD_WIDTH]     = Mesh_Node_B_out[out(i,1) +: B_WORD_WIDTH];
