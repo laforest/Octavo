@@ -180,95 +180,41 @@ module Mesh_Node_Line
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // Second, we create some function to index into the remaining B port vectors.
+    // Second, we create some function to index into the B port vectors and their subsets.
 
-    function integer rden ( 
-        input integer node, 
-        input integer port 
-    );
-        integer nodes = B_rden_WIDTH * node;
-        rden = nodes + port;
-    endfunction
+    function integer B_rden_node        (input integer node); B_rden_node        = b_rden_WIDTH * node;                              endfunction
+    function integer B_rden_port        (input integer port); rden               = port;                                             endfunction
+    function integer B_rden_skip_scalar (                  ); B_rden_skip_scalar = B_rden_port(B_IO_READ_PORT_COUNT);                endfunction
+    function integer SIMD_B_rden_port   (input integer port); SIMD_b_rden_port   = port;                                             endfunction 
+    function integer SIMD_B_rden_lane   (input integer lane); SIMD_B_rden_lane = SIMD_B_rden_port(SIMD_B_IO_READ_PORT_COUNT) * lane; endfunction
 
-    function integer SIMD_rden ( 
-        input integer node, 
-        input integer lane,
-        input integer port 
-    );
-        integer nodes        = B_rden_WIDTH * node;
-        integer scalar_ports = B_IO_READ_PORT_COUNT;
-        integer simd_ports   = SIMD_B_IO_READ_PORT_COUNT * lane;
-        SIMD_rden = nodes + scalar_ports + simd_ports + port;
-    endfunction
+    function integer B_in_node        (input integer node); B_in_node        = B_in_WIDTH * node;                                endfunction 
+    function integer B_in_port        (input integer port); B_in_port        = B_WORD_WIDTH * port;                              endfunction
+    function integer B_in_skip_scalar (                  ); B_in_skip_scalar = B_in_port(B_IO_READ_PORT_COUNT);                  endfunction
+    function integer SIMd_B_in_port   (input integer port); SIMD_B_in_port   = SIMD_B_WORD_WIDTH * port;                         endfunction
+    function integer SIMD_B_in_lane   (input integer lane); SIMD_B_in_lane   = SIMD_B_in_port(SIMD_B_IO_READ_PORT_COUNT) * lane; endfunction
 
-    function reg integer in ( 
-        input integer node, 
-        input integer port 
-    );
-        integer nodes        = B_in_WIDTH * node;
-        integer port_offset  = B_WORD_WIDTH * port;
-        in = nodes + port_offset;
-    endfunction
+    function integer B_out_node        (input integer node); B_out_node        = B_out_WIDTH * node;                                 endfunction 
+    function integer B_out_port        (input integer port); B_out_port        = B_WORD_WIDTH * port;                                endfunction
+    function integer B_out_skip_scalar (                  ); B_out_skip_scalar = B_out_port(B_IO_WRITE_PORT_COUNT);                  endfunction
+    function integer SIMd_B_out_port   (input integer port); SIMD_B_out_port   = SIMD_B_WORD_WIDTH * port;                           endfunction
+    function integer SIMD_B_out_lane   (input integer lane); SIMD_B_out_lane   = SIMD_B_out_port(SIMD_B_IO_WRITE_PORT_COUNT) * lane; endfunction
 
-    function reg integer SIMD_in ( 
-        input integer node, 
-        input integer lane,
-        input integer port 
-    );
-        integer nodes        = B_in_WIDTH * node;
-        integer scalar_ports = B_WORD_WIDTH * B_IO_READ_PORT_COUNT;
-        integer lanes        = SIMD_B_WORD_WIDTH * SIMD_B_IO_READ_PORT_COUNT * lane;
-        integer port_offset  = SIMD_B_WORD_WIDTH * port;
-        SIMD_in = nodes + scalar_ports + lanes + port_offset;
-    endfunction
-
-    function reg integer out ( 
-        input integer node, 
-        input integer port 
-    );
-        integer nodes        = B_out_WIDTH * node;
-        integer port_offset  = B_WORD_WIDTH * port;
-        out = nodes + port_offset;
-    endfunction
-
-    function reg integer SIMD_out ( 
-        input integer node, 
-        input integer lane,
-        input integer port 
-    );
-        integer nodes        = B_out_WIDTH * node;
-        integer scalar_ports = B_WORD_WIDTH * B_IO_WRITE_PORT_COUNT;
-        integer lanes        = SIMD_B_WORD_WIDTH * SIMD_B_IO_WRITE_PORT_COUNT * lane;
-        integer port_offset  = SIMD_B_WORD_WIDTH * port;
-        SIMD_out = nodes + scalar_ports + lanes + port_offset;
-    endfunction
-
-    function integer wren ( 
-        input integer node, 
-        input integer port 
-    );
-        integer nodes = B_wren_WIDTH * node;
-        wren = nodes + port;
-    endfunction
-
-    function integer SIMD_wren ( 
-        input integer node, 
-        input integer lane,
-        input integer port 
-    );
-        integer nodes        = B_wren_WIDTH * node;
-        integer scalar_ports = B_IO_WRITE_PORT_COUNT;
-        integer simd_ports   = SIMD_B_IO_WRITE_PORT_COUNT * lane;
-        SIMD_wren = nodes + scalar_ports + simd_ports + port;
-    endfunction
+    function integer B_wren_node        (input integer node); B_wren_node        = b_wren_WIDTH * node;                               endfunction
+    function integer B_wren_port        (input integer port); rden               = port;                                              endfunction
+    function integer B_wren_skip_scalar (                  ); B_wren_skip_scalar = B_wren_port(B_IO_WRITE_PORT_COUNT);                endfunction
+    function integer SIMD_B_wren_port   (input integer port); SIMD_b_wren_port   = port;                                              endfunction
+    function integer SIMD_B_wren_lane   (input integer lane); SIMD_B_wren_lane = SIMD_B_wren_port(SIMD_B_IO_WRITE_PORT_COUNT) * lane; endfunction
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // Now, let's wire the B ports through pipeline stages.
+    // Now, let's wire the B ports through pipeline stages. The trick to keep it simple is to always iterate and connect by node.
+    // The goal here is that each port gets its own pipe instance, so the RTL diagram stays human-readable. :)
 
     // One extra pipe stage needed for inputs to Line
     localparam  PIPE_ARRAY_SIZE  MESH_NODE_COUNT + 1;
-    integer i, j;
+    integer node;
+    genvar  lane;
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Port B0 goes LSB to MSB (right to left), and thus wired straight-through.
@@ -300,48 +246,34 @@ module Mesh_Node_Line
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Now do port B0 again, but for SIMD lanes.
     
-    // XXX ECL FIXME
-    // XXX ECL FIXME
-    // XXX ECL FIXME
+    generate
+        for (lane=0; lane < SIMD_LANE_COUNT; lane=lane+1) begin
+            wire [(SIMD_B_WORD_WIDTH * PIPE_ARRAY_SIZE)-1:0] SIMD_B0_pipe_in;
+            wire [(SIMD_B_WORD_WIDTH * PIPE_ARRAY_SIZE)-1:0] SIMD_B0_pipe_out;
 
-    // Wrong approach again: iterating over SIMD port per lane instead of per node, like the scalar ports
-    // Factor out the addressing functions into node, scalar_port, and SIMD_port variants
-    // Do scalar ports as usual, but place structurally identical code in a generate for loop, to create the same structures
-    // over the array of nodes, but once per SIMD lane, so the generate for loop index counts the SIMD lanes.
-    // The goal here is that each port gets its own pipe instance, so the RTL diagram is human-readable. :)
-
-    // XXX ECL FIXME
-    // XXX ECL FIXME
-    // XXX ECL FIXME
-
-    if (SIMD_LANE_COUNT > 0) begin
-        wire [(SIMD_B_WORD_WIDTH * SIMD_LANE_COUNT * PIPE_ARRAY_SIZE)-1:0] SIMD_B0_pipe_in;
-        wire [(SIMD_B_WORD_WIDTH * SIMD_LANE_COUNT * PIPE_ARRAY_SIZE)-1:0] SIMD_B0_pipe_out;
-
-        Mesh_Pipe_Array
-        #(
-            .LSB_PIPE_DEPTH     (MESH_EDGE_PIPE_DEPTH),
-            .MID_PIPE_DEPTH     (MESH_NODE_PIPE_DEPTH),
-            .MSB_PIPE_DEPTH     (MESH_EDGE_PIPE_DEPTH),
-            .WIDTH              (SIMD_B_WORD_WIDTH),
-            .PIPE_ARRAY_SIZE    (PIPE_ARRAY_SIZE) 
-        )
-        SIMD_B0_pipe            [SIMD_LANE_COUNT-1:0]
-        (
-            .clock              (clock),
-            .in                 (SIMD_B0_pipe_in),
-            .out                (SIMD_B0_pipe_out)
-        );
-        
-        assign SIMD_B0_pipe_in[SIMD_in(0,0,0) +: SIMD_B_WORD_WIDTH] = B_in[SIMD_in(0,0,0) +: SIMD_B_WORD_WIDTH];
-        for (i=0; i < MESH_NODE_COUNT; i=i+1;) begin
-            for (j=0; j < SIMD_LANE_COUNT; j=j+1;) begin
+            Mesh_Pipe_Array
+            #(
+                .LSB_PIPE_DEPTH     (MESH_EDGE_PIPE_DEPTH),
+                .MID_PIPE_DEPTH     (MESH_NODE_PIPE_DEPTH),
+                .MSB_PIPE_DEPTH     (MESH_EDGE_PIPE_DEPTH),
+                .WIDTH              (SIMD_B_WORD_WIDTH),
+                .PIPE_ARRAY_SIZE    (PIPE_ARRAY_SIZE) 
+            )
+            SIMD_B0_pipe
+            (
+                .clock              (clock),
+                .in                 (SIMD_B0_pipe_in),
+                .out                (SIMD_B0_pipe_out)
+            );
+            
+            assign SIMD_B0_pipe_in[SIMD_in(0,0,0) +: SIMD_B_WORD_WIDTH] = B_in[SIMD_in(0,0,0) +: SIMD_B_WORD_WIDTH];
+            for (i=0; i < MESH_NODE_COUNT; i=i+1;) begin
                 assign Mesh_Node_B_in[SIMD_in(i,j,0) +: SIMD_B_WORD_WIDTH]    = SIMD_B0_pipe_out[SIMD_out(i,j,0) +: SIMD_B_WORD_WIDTH];
                 assign SIMD_B0_pipe_in[SIMD_in(i+1,j,0) +: SIMD_B_WORD_WIDTH] = Mesh_Node_B_out[SIMD_out(i,j,0) +: SIMD_B_WORD_WIDTH];
             end
+            assign SIMD_B_out[SIMD_out(0,0) +: B_WORD_WIDTH] = SIMD_B0_pipe_out[SIMD_out(PIPE_ARRAY_SIZE-1,0) +: B_WORD_WIDTH];
         end
-        assign SIMD_B_out[SIMD_out(0,0) +: B_WORD_WIDTH] = SIMD_B0_pipe_out[SIMD_out(PIPE_ARRAY_SIZE-1,0) +: B_WORD_WIDTH];
-    end
+    endgenerate
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Port B1 goes the other way, wired in a sort of backwards whip-stitch.
     wire [(B_WORD_WIDTH * PIPE_ARRAY_SIZE)-1:0] B1_pipe_in;
