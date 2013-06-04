@@ -1,8 +1,11 @@
-// A Mesh_Node_Array interconnected with Mesh_Pipes_Array(s) 
-// For now, just do a linear nearest-neighbour line with port B0 going forward, and B1 backwards, for bidirectional communication.
-// This code assumes that each Octavo instance has exactly two A and B scalar ports (A0, A1, B0, B1), ditto for each SIMD lane.
+// A Mesh_Page, connecting a number of Mesh_Lines transversally.
+// This code assumes a Line has two B ports (B0, B1) at each end, and pairs of A ports (A0, A1) along the edge, one pair per Mesh node.
+// The number of read and write ports, and their widths, must match.
+// Based on Mesh_Node_Line.v
+// Ports B0,B1 go right-to-left,left-to-right respectively, and ports A0,A1 follow the same convention but rotated clockwise 90deg: bottom-to-top,top-to-bottom.
+// Note the directions have no actual spatial meaning. They only exist relative to eachother and denote direction of data communications between nodes.
 
-module Mesh_Node_Line
+module Mesh_Page
 #(
     parameter       ALU_WORD_WIDTH                  = 0,
     parameter       SIMD_ALU_WORD_WIDTH             = 0,
@@ -99,117 +102,124 @@ module Mesh_Node_Line
 
     parameter       MESH_LINE_NODE_COUNT            = 0,
     parameter       MESH_LINE_EDGE_PIPE_DEPTH       = 0,
-    parameter       MESH_LINE_NODE_PIPE_DEPTH       = 0
+    parameter       MESH_LINE_NODE_PIPE_DEPTH       = 0,
+
+    parameter       MESH_PAGE_LINE_COUNT            = 0,
+    parameter       MESH_PAGE_EDGE_PIPE_DEPTH       = 0,
+    parameter       MESH_PAGE_NODE_PIPE_DEPTH       = 0
 )
 (
     input   wire                                                                                                                                                                       clock,
     input   wire                                                                                                                                                                       half_clock,
 
     // Memory write enables for external control by accelerators
-    input   wire    [MESH_LINE_NODE_COUNT-1:0]                                                                                                                                              I_wren_other,
-    input   wire    [(((SIMD_LAYER_COUNT * SIMD_LANES_PER_LAYER) + 1) * MESH_LINE_NODE_COUNT)-1:0]                                                                                          A_wren_other,
-    input   wire    [(((SIMD_LAYER_COUNT * SIMD_LANES_PER_LAYER) + 1) * MESH_LINE_NODE_COUNT)-1:0]                                                                                          B_wren_other,
+    input   wire    [(MESH_LINE_NODE_COUNT * MESH_PAGE_LINE_COUNT)-1:0]                                                                                                                I_wren_other,
+    input   wire    [(((SIMD_LAYER_COUNT * SIMD_LANES_PER_LAYER) + 1) * (MESH_LINE_NODE_COUNT * MESH_PAGE_LINE_COUNT))-1:0]                                                            A_wren_other,
+    input   wire    [(((SIMD_LAYER_COUNT * SIMD_LANES_PER_LAYER) + 1) * (MESH_LINE_NODE_COUNT * MESH_PAGE_LINE_COUNT))-1:0]                                                            B_wren_other,
 
     // ALU AddSub carry-in/out for external control by accelerators
-    input   wire    [(((SIMD_LAYER_COUNT * SIMD_LANES_PER_LAYER) + 1) * MESH_LINE_NODE_COUNT)-1:0]                                                                                          ALU_c_in,
-    output  wire    [(((SIMD_LAYER_COUNT * SIMD_LANES_PER_LAYER) + 1) * MESH_LINE_NODE_COUNT)-1:0]                                                                                          ALU_c_out,
+    input   wire    [(((SIMD_LAYER_COUNT * SIMD_LANES_PER_LAYER) + 1) * (MESH_LINE_NODE_COUNT * MESH_PAGE_LINE_COUNT))-1:0]                                                            ALU_c_in,
+    output  wire    [(((SIMD_LAYER_COUNT * SIMD_LANES_PER_LAYER) + 1) * (MESH_LINE_NODE_COUNT * MESH_PAGE_LINE_COUNT))-1:0]                                                            ALU_c_out,
 
-    // Interconnected at the Page level, leave as vector for now.
+    // Only along the top/bottom edges of a Page
     output  wire    [(((               A_IO_READ_PORT_COUNT)  + (                    SIMD_A_IO_READ_PORT_COUNT  * (SIMD_LAYER_COUNT * SIMD_LANES_PER_LAYER))) * MESH_LINE_NODE_COUNT)-1:0]  A_rden,
     input   wire    [(((A_WORD_WIDTH * A_IO_READ_PORT_COUNT)  + (SIMD_A_WORD_WIDTH * SIMD_A_IO_READ_PORT_COUNT  * (SIMD_LAYER_COUNT * SIMD_LANES_PER_LAYER))) * MESH_LINE_NODE_COUNT)-1:0]  A_in,
     output  wire    [(((               A_IO_WRITE_PORT_COUNT) + (                    SIMD_A_IO_WRITE_PORT_COUNT * (SIMD_LAYER_COUNT * SIMD_LANES_PER_LAYER))) * MESH_LINE_NODE_COUNT)-1:0]  A_wren,
     output  wire    [(((A_WORD_WIDTH * A_IO_WRITE_PORT_COUNT) + (SIMD_A_WORD_WIDTH * SIMD_A_IO_WRITE_PORT_COUNT * (SIMD_LAYER_COUNT * SIMD_LANES_PER_LAYER))) * MESH_LINE_NODE_COUNT)-1:0]  A_out,
 
-    // Only at the ends of the Line
-    output  wire    [ ((               B_IO_READ_PORT_COUNT)  + (                    SIMD_B_IO_READ_PORT_COUNT  * (SIMD_LAYER_COUNT * SIMD_LANES_PER_LAYER)))                   -1:0]  B_rden,
-    input   wire    [ ((B_WORD_WIDTH * B_IO_READ_PORT_COUNT)  + (SIMD_B_WORD_WIDTH * SIMD_B_IO_READ_PORT_COUNT  * (SIMD_LAYER_COUNT * SIMD_LANES_PER_LAYER)))                   -1:0]  B_in,
-    output  wire    [ ((               B_IO_WRITE_PORT_COUNT) + (                    SIMD_B_IO_WRITE_PORT_COUNT * (SIMD_LAYER_COUNT * SIMD_LANES_PER_LAYER)))                   -1:0]  B_wren,
-    output  wire    [ ((B_WORD_WIDTH * B_IO_WRITE_PORT_COUNT) + (SIMD_B_WORD_WIDTH * SIMD_B_IO_WRITE_PORT_COUNT * (SIMD_LAYER_COUNT * SIMD_LANES_PER_LAYER)))                   -1:0]  B_out
+    // Only at the ends of the Lines
+    output  wire    [(((               B_IO_READ_PORT_COUNT)  + (                    SIMD_B_IO_READ_PORT_COUNT  * (SIMD_LAYER_COUNT * SIMD_LANES_PER_LAYER))) * MESH_PAGE_LINE_COUNT)-1:0]  B_rden,
+    input   wire    [(((B_WORD_WIDTH * B_IO_READ_PORT_COUNT)  + (SIMD_B_WORD_WIDTH * SIMD_B_IO_READ_PORT_COUNT  * (SIMD_LAYER_COUNT * SIMD_LANES_PER_LAYER))) * MESH_PAGE_LINE_COUNT)-1:0]  B_in,
+    output  wire    [(((               B_IO_WRITE_PORT_COUNT) + (                    SIMD_B_IO_WRITE_PORT_COUNT * (SIMD_LAYER_COUNT * SIMD_LANES_PER_LAYER))) * MESH_PAGE_LINE_COUNT)-1:0]  B_wren,
+    output  wire    [(((B_WORD_WIDTH * B_IO_WRITE_PORT_COUNT) + (SIMD_B_WORD_WIDTH * SIMD_B_IO_WRITE_PORT_COUNT * (SIMD_LAYER_COUNT * SIMD_LANES_PER_LAYER))) * MESH_PAGE_LINE_COUNT)-1:0]  B_out
 
 );
     // Widths of ports, for later brevity
+    localparam  PAGE_NODE_COUNT    = MESH_LINE_NODE_COUNT * MESH_PAGE_LINE_COUNT;
     localparam  SIMD_LANE_COUNT    = SIMD_LAYER_COUNT * SIMD_LANES_PER_LAYER;
 
-    localparam  I_wren_other_WIDTH = MESH_LINE_NODE_COUNT                        
-    localparam  A_wren_other_WIDTH = (SIMD_LANE_COUNT + 1) * MESH_LINE_NODE_COUNT;
-    localparam  B_wren_other_WIDTH = (SIMD_LANE_COUNT + 1) * MESH_LINE_NODE_COUNT;
-    localparam  ALU_c_in_WIDTH     = (SIMD_LANE_COUNT + 1) * MESH_LINE_NODE_COUNT;
-    localparam  ALU_c_out_WIDTH    = (SIMD_LANE_COUNT + 1) * MESH_LINE_NODE_COUNT;
+    localparam  I_wren_other_WIDTH = PAGE_NODE_COUNT;                        
+    localparam  A_wren_other_WIDTH = (SIMD_LANE_COUNT + 1) * PAGE_NODE_COUNT;
+    localparam  B_wren_other_WIDTH = (SIMD_LANE_COUNT + 1) * PAGE_NODE_COUNT;
+    localparam  ALU_c_in_WIDTH     = (SIMD_LANE_COUNT + 1) * PAGE_NODE_COUNT;
+    localparam  ALU_c_out_WIDTH    = (SIMD_LANE_COUNT + 1) * PAGE_NODE_COUNT;
 
     localparam  A_rden_WIDTH       = ((               A_IO_READ_PORT_COUNT)  + (                    SIMD_A_IO_READ_PORT_COUNT  * SIMD_LANE_COUNT)) * MESH_LINE_NODE_COUNT;
     localparam  A_in_WIDTH         = ((A_WORD_WIDTH * A_IO_READ_PORT_COUNT)  + (SIMD_A_WORD_WIDTH * SIMD_A_IO_READ_PORT_COUNT  * SIMD_LANE_COUNT)) * MESH_LINE_NODE_COUNT;
     localparam  A_out_WIDTH        = ((               A_IO_WRITE_PORT_COUNT) + (                    SIMD_A_IO_WRITE_PORT_COUNT * SIMD_LANE_COUNT)) * MESH_LINE_NODE_COUNT;
     localparam  A_wren_WIDTH       = ((A_WORD_WIDTH * A_IO_WRITE_PORT_COUNT) + (SIMD_A_WORD_WIDTH * SIMD_A_IO_WRITE_PORT_COUNT * SIMD_LANE_COUNT)) * MESH_LINE_NODE_COUNT;
 
-    localparam  B_rden_WIDTH       =  (               B_IO_READ_PORT_COUNT)  + (                    SIMD_B_IO_READ_PORT_COUNT  * SIMD_LANE_COUNT);
-    localparam  B_in_WIDTH         =  (B_WORD_WIDTH * B_IO_READ_PORT_COUNT)  + (SIMD_B_WORD_WIDTH * SIMD_B_IO_READ_PORT_COUNT  * SIMD_LANE_COUNT);
-    localparam  B_out_WIDTH        =  (               B_IO_WRITE_PORT_COUNT) + (                    SIMD_B_IO_WRITE_PORT_COUNT * SIMD_LANE_COUNT);
-    localparam  B_wren_WIDTH       =  (B_WORD_WIDTH * B_IO_WRITE_PORT_COUNT) + (SIMD_B_WORD_WIDTH * SIMD_B_IO_WRITE_PORT_COUNT * SIMD_LANE_COUNT);
+    localparam  B_rden_WIDTH       = ((               B_IO_READ_PORT_COUNT)  + (                    SIMD_B_IO_READ_PORT_COUNT  * SIMD_LANE_COUNT)) * MESH_PAGE_LINE_COUNT;
+    localparam  B_in_WIDTH         = ((B_WORD_WIDTH * B_IO_READ_PORT_COUNT)  + (SIMD_B_WORD_WIDTH * SIMD_B_IO_READ_PORT_COUNT  * SIMD_LANE_COUNT)) * MESH_PAGE_LINE_COUNT;
+    localparam  B_out_WIDTH        = ((               B_IO_WRITE_PORT_COUNT) + (                    SIMD_B_IO_WRITE_PORT_COUNT * SIMD_LANE_COUNT)) * MESH_PAGE_LINE_COUNT;
+    localparam  B_wren_WIDTH       = ((B_WORD_WIDTH * B_IO_WRITE_PORT_COUNT) + (SIMD_B_WORD_WIDTH * SIMD_B_IO_WRITE_PORT_COUNT * SIMD_LANE_COUNT)) * MESH_PAGE_LINE_COUNT;
 
-    // The "Mesh_Node_" wires populate the ports of the Octavo instances (see below).
-    wire    [I_wren_other_WIDTH-1:0]                Mesh_Node_I_wren_other; 
-    wire    [A_wren_other_WIDTH-1:0]                Mesh_Node_A_wren_other;
-    wire    [B_wren_other_WIDTH-1:0]                Mesh_Node_B_wren_other;
-    wire    [ALU_c_in_WIDTH-1:0]                    Mesh_Node_ALU_c_in;
-    wire    [ALU_c_out_WIDTH-1:0]                   Mesh_Node_ALU_c_out;
+    // The "Mesh_Node_Line_" wires populate the ports of the Mesh_Node_Line instances (see below).
+    wire    [I_wren_other_WIDTH-1:0]                    Mesh_Node_Line_I_wren_other; 
+    wire    [A_wren_other_WIDTH-1:0]                    Mesh_Node_Line_A_wren_other;
+    wire    [B_wren_other_WIDTH-1:0]                    Mesh_Node_Line_B_wren_other;
+    wire    [ALU_c_in_WIDTH    -1:0]                    Mesh_Node_Line_ALU_c_in;
+    wire    [ALU_c_out_WIDTH   -1:0]                    Mesh_Node_Line_ALU_c_out;
 
-    wire    [A_rden_WIDTH-1:0]                      Mesh_Node_A_rden;
-    wire    [A_in_WIDTH-1:0]                        Mesh_Node_A_in;
-    wire    [A_out_WIDTH-1:0]                       Mesh_Node_A_out;
-    wire    [A_wren_WIDTH-1:0]                      Mesh_Node_A_wren;
+    wire    [(A_rden_WIDTH * MESH_PAGE_LINE_COUNT)-1:0] Mesh_Node_Line_A_rden;
+    wire    [(A_in_WIDTH   * MESH_PAGE_LINE_COUNT)-1:0] Mesh_Node_Line_A_in;
+    wire    [(A_out_WIDTH  * MESH_PAGE_LINE_COUNT)-1:0] Mesh_Node_Line_A_out;
+    wire    [(A_wren_WIDTH * MESH_PAGE_LINE_COUNT)-1:0] Mesh_Node_Line_A_wren;
 
-    wire    [(B_rden_WIDTH * MESH_LINE_NODE_COUNT)-1:0]  Mesh_Node_B_rden;
-    wire    [(B_in_WIDTH   * MESH_LINE_NODE_COUNT)-1:0]  Mesh_Node_B_in;
-    wire    [(B_out_WIDTH  * MESH_LINE_NODE_COUNT)-1:0]  Mesh_Node_B_out;
-    wire    [(B_wren_WIDTH * MESH_LINE_NODE_COUNT)-1:0]  Mesh_Node_B_wren;
+    wire    [B_rden_WIDTH-1:0]                          Mesh_Node_Line_B_rden;
+    wire    [B_in_WIDTH  -1:0]                          Mesh_Node_Line_B_in;
+    wire    [B_out_WIDTH -1:0]                          Mesh_Node_Line_B_out;
+    wire    [B_wren_WIDTH-1:0]                          Mesh_Node_Line_B_wren;
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // First, we connect all the wires left as vectors and later connected higher-up in the hierarchy.
 
     // Propagate special-purpose signals up the hierarchy.
-    assign Mesh_Node_I_wren_other = I_wren_other;
-    assign Mesh_Node_A_wren_other = A_wren_other;
-    assign Mesh_Node_B_wren_other = B_wren_other;
-    assign Mesh_Node_ALU_c_in     = ALU_c_in;
-    assign ALU_c_out              = Mesh_Node_ALU_c_out;
+    assign Mesh_Node_Line_I_wren_other = I_wren_other;
+    assign Mesh_Node_Line_A_wren_other = A_wren_other;
+    assign Mesh_Node_Line_B_wren_other = B_wren_other;
+    assign Mesh_Node_Line_ALU_c_in     = ALU_c_in;
+    assign ALU_c_out                   = Mesh_Node_Line_ALU_c_out;
     
-    // Connect A ports directly broadside, like ships' cannons. Any pipelining comes later, when grouping Lines into a Page.
-    assign A_rden                 = Mesh_Node_A_rden;
-    assign Mesh_Node_A_in         = A_in;
-    assign A_out                  = Mesh_Node_A_out;
-    assign A_wren                 = Mesh_Node_A_wren;
+    // Connect B ports directly to the edges. Already pipelined in Mesh_Node_Line.
+    assign B_rden               = Mesh_Node_Line_B_rden;
+    assign Mesh_Node_Line_B_in  = B_in;
+    assign B_out                = Mesh_Node_Line_B_out;
+    assign B_wren               = Mesh_Node_Line_B_wren;
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // Now, let's wire the B ports through pipeline stages. 
+    // Now, let's wire the A ports through pipeline stages. 
     // Code like this shows the Verilog-2001 limitations of modules that cannot pass/accept arrays through ports, and of the lack of structures.
-    // The top-level ports, Mesh_Node_* ports, and the *_pipe_* ports all have regular structures, but you have to manually calculate the indices into each vector, and no two are alike.
+    // The top-level ports, Mesh_Node_Line_* ports, and the *_pipe_* ports all have regular structures, but you have to manually calculate the indices into each vector, and no two are alike.
     // The scalar and SIMD calculations are split since the width of SIMD ports may not equal that of scalar ports.
 
     // One extra pipe stage needed for inputs to Line
-    localparam  PIPE_ARRAY_SIZE = (MESH_LINE_NODE_COUNT + 1);
+    localparam  PIPE_ARRAY_SIZE = (MESH_PAGE_LINE_COUNT + 1);
+    // Shown in loop nesting order
+    integer line;
     integer node;
     genvar  lane;
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // Port B0 goes LSB to MSB (right to left), and thus wired straight-through.
+    // Port A0 goes LSB to MSB (bottom to top), and thus wired straight-through.
     
-    wire [(B_WORD_WIDTH * PIPE_ARRAY_SIZE)-1:0] B0_pipe_in;
-    wire [(B_WORD_WIDTH * PIPE_ARRAY_SIZE)-1:0] B0_pipe_out;
+    wire [(B_WORD_WIDTH * PIPE_ARRAY_SIZE * MESH_LINE_NODE_COUNT)-1:0] A0_pipe_in;
+    wire [(B_WORD_WIDTH * PIPE_ARRAY_SIZE * MESH_LINE_NODE_COUNT)-1:0] A0_pipe_out;
 
     Mesh_Pipe_Array
     #(
-        .LSB_PIPE_DEPTH     (MESH_LINE_EDGE_PIPE_DEPTH),
-        .MID_PIPE_DEPTH     (MESH_LINE_NODE_PIPE_DEPTH),
-        .MSB_PIPE_DEPTH     (MESH_LINE_EDGE_PIPE_DEPTH),
-        .WIDTH              (B_WORD_WIDTH),
+        .LSB_PIPE_DEPTH     (MESH_EDGE_PIPE_DEPTH),
+        .MID_PIPE_DEPTH     (MESH_NODE_PIPE_DEPTH),
+        .MSB_PIPE_DEPTH     (MESH_EDGE_PIPE_DEPTH),
+        .WIDTH              (B_WORD_WIDTH * MESH_LINE_NODE_COUNT),
         .PIPE_ARRAY_SIZE    (PIPE_ARRAY_SIZE) 
     )
-    B0_pipe
+    A0_pipe
     (
         .clock              (clock),
-        .in                 (B0_pipe_in),
-        .out                (B0_pipe_out)
+        .in                 (A0_pipe_in),
+        .out                (A0_pipe_out)
     );
     
     assign B0_pipe_in[0 +: B_WORD_WIDTH] = B_in[0 +: B_WORD_WIDTH];
@@ -232,9 +242,9 @@ module Mesh_Node_Line
 
             Mesh_Pipe_Array
             #(
-                .LSB_PIPE_DEPTH     (MESH_LINE_EDGE_PIPE_DEPTH),
-                .MID_PIPE_DEPTH     (MESH_LINE_NODE_PIPE_DEPTH),
-                .MSB_PIPE_DEPTH     (MESH_LINE_EDGE_PIPE_DEPTH),
+                .LSB_PIPE_DEPTH     (MESH_EDGE_PIPE_DEPTH),
+                .MID_PIPE_DEPTH     (MESH_NODE_PIPE_DEPTH),
+                .MSB_PIPE_DEPTH     (MESH_EDGE_PIPE_DEPTH),
                 .WIDTH              (SIMD_B_WORD_WIDTH),
                 .PIPE_ARRAY_SIZE    (PIPE_ARRAY_SIZE) 
             )
@@ -263,9 +273,9 @@ module Mesh_Node_Line
 
     Mesh_Pipe_Array
     #(
-        .LSB_PIPE_DEPTH     (MESH_LINE_EDGE_PIPE_DEPTH),
-        .MID_PIPE_DEPTH     (MESH_LINE_NODE_PIPE_DEPTH),
-        .MSB_PIPE_DEPTH     (MESH_LINE_EDGE_PIPE_DEPTH),
+        .LSB_PIPE_DEPTH     (MESH_EDGE_PIPE_DEPTH),
+        .MID_PIPE_DEPTH     (MESH_NODE_PIPE_DEPTH),
+        .MSB_PIPE_DEPTH     (MESH_EDGE_PIPE_DEPTH),
         .WIDTH              (B_WORD_WIDTH),
         .PIPE_ARRAY_SIZE    (PIPE_ARRAY_SIZE) 
     )
@@ -297,9 +307,9 @@ module Mesh_Node_Line
 
             Mesh_Pipe_Array
             #(
-                .LSB_PIPE_DEPTH     (MESH_LINE_EDGE_PIPE_DEPTH),
-                .MID_PIPE_DEPTH     (MESH_LINE_NODE_PIPE_DEPTH),
-                .MSB_PIPE_DEPTH     (MESH_LINE_EDGE_PIPE_DEPTH),
+                .LSB_PIPE_DEPTH     (MESH_EDGE_PIPE_DEPTH),
+                .MID_PIPE_DEPTH     (MESH_NODE_PIPE_DEPTH),
+                .MSB_PIPE_DEPTH     (MESH_EDGE_PIPE_DEPTH),
                 .WIDTH              (SIMD_B_WORD_WIDTH),
                 .PIPE_ARRAY_SIZE    (PIPE_ARRAY_SIZE) 
             )
@@ -323,8 +333,8 @@ module Mesh_Node_Line
 
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // And here's the array of Octavo cores.
-    Octavo
+    // And here's the array of Mesh_Node_Lines.
+    Mesh_Node_Line
     #(
         .ALU_WORD_WIDTH                     (ALU_WORD_WIDTH),                 
         .SIMD_ALU_WORD_WIDTH                (SIMD_ALU_WORD_WIDTH),                 
@@ -417,28 +427,32 @@ module Mesh_Node_Line
         .SIMD_MULT_USE_DSP                  (SIMD_MULT_USE_DSP),
 
         .SIMD_LAYER_COUNT                   (SIMD_LAYER_COUNT),
-        .SIMD_LANES_PER_LAYER               (SIMD_LANES_PER_LAYER)
+        .SIMD_LANES_PER_LAYER               (SIMD_LANES_PER_LAYER),
+
+        .MESH_LINE_NODE_COUNT               (MESH_LINE_NODE_COUNT),
+        .MESH_LINE_EDGE_PIPE_DEPTH          (MESH_LINE_EDGE_PIPE_DEPTH),
+        .MESH_LINE_NODE_PIPE_DEPTH          (MESH_LINE_NODE_PIPE_DEPTH)
     )
-    Mesh_Node_Array                         [MESH_LINE_NODE_COUNT-1:0]
+    Mesh_Node_Line_Array                    [MESH_PAGE_LINE_COUNT-1:0]
     (
         .clock                              (clock),
         .half_clock                         (half_clock),
 
-        .I_wren_other                       (Mesh_Node_I_wren_other),        
-        .A_wren_other                       (Mesh_Node_A_wren_other),        
-        .B_wren_other                       (Mesh_Node_B_wren_other),        
+        .I_wren_other                       (Mesh_Node_Line_I_wren_other),        
+        .A_wren_other                       (Mesh_Node_Line_A_wren_other),        
+        .B_wren_other                       (Mesh_Node_Line_B_wren_other),        
 
-        .ALU_c_in                           (Mesh_Node_ALU_c_in),
-        .ALU_c_out                          (Mesh_Node_ALU_c_out),
+        .ALU_c_in                           (Mesh_Node_Line_ALU_c_in),
+        .ALU_c_out                          (Mesh_Node_Line_ALU_c_out),
 
-        .A_io_rden                          (Mesh_Node_A_rden),
-        .A_io_in                            (Mesh_Node_A_in),
-        .A_io_out                           (Mesh_Node_A_out),
-        .A_io_wren                          (Mesh_Node_A_wren),
+        .A_io_rden                          (Mesh_Node_Line_A_rden),
+        .A_io_in                            (Mesh_Node_Line_A_in),
+        .A_io_out                           (Mesh_Node_Line_A_out),
+        .A_io_wren                          (Mesh_Node_Line_A_wren),
         
-        .B_io_rden                          (Mesh_Node_B_rden),
-        .B_io_in                            (Mesh_Node_B_in),
-        .B_io_out                           (Mesh_Node_B_out),
-        .B_io_wren                          (Mesh_Node_B_wren)
+        .B_io_rden                          (Mesh_Node_Line_B_rden),
+        .B_io_in                            (Mesh_Node_Line_B_in),
+        .B_io_out                           (Mesh_Node_Line_B_out),
+        .B_io_wren                          (Mesh_Node_Line_B_wren)
     );
 endmodule
