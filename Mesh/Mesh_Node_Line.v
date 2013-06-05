@@ -223,7 +223,7 @@ module Mesh_Node_Line
     // And again the same for each SIMD lanes' port B0.
     
     // Skip the scalar ports, then skip to the right lane, port 0 is the first port
-    function integer SIMD_B0_port (integer lane); SIMD_B0_port = ((B_WORD_WIDTH * B_IO_READ_PORT_COUNT) + (SIMD_B_WORD_WIDTH * SIMD_B_IO_READ_PORT_COUNT * lane)); endfunction
+    function integer SIMD_B0_port (input integer lane); SIMD_B0_port = ((B_WORD_WIDTH * B_IO_READ_PORT_COUNT) + (SIMD_B_WORD_WIDTH * SIMD_B_IO_READ_PORT_COUNT * lane)); endfunction
 
     generate
         for (lane=0; lane < SIMD_LANE_COUNT; lane=lane+1) begin
@@ -288,7 +288,9 @@ module Mesh_Node_Line
     // And again the same for each SIMD lanes' port B1.
     
     // Skip the scalar ports, then skip to the right lane, port B1 is the second port of width SIMD_B_WORD_WIDTH
-    function integer SIMD_B1_port (integer lane); SIMD_B1_port = ((B_WORD_WIDTH * B_IO_WRITE_PORT_COUNT) + (SIMD_B_WORD_WIDTH * SIMD_B_IO_WRITE_PORT_COUNT * lane) + SIMD_B_WORD_WIDTH); endfunction
+    function integer SIMD_B1_port (input integer lane); 
+        SIMD_B1_port = ((B_WORD_WIDTH * B_IO_WRITE_PORT_COUNT) + (SIMD_B_WORD_WIDTH * SIMD_B_IO_WRITE_PORT_COUNT * lane) + SIMD_B_WORD_WIDTH);
+    endfunction
 
     generate
         for (lane=0; lane < SIMD_LANE_COUNT; lane=lane+1) begin
