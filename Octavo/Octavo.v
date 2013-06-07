@@ -209,103 +209,103 @@ module Octavo
     );
 
     generate
-        localparam SIMD_LANES   = SIMD_LAYER_COUNT * SIMD_LANES_PER_LAYER;
-        localparam PLAIN_LAYERS = SIMD_LAYER_COUNT - 1;
-        localparam PLAIN_LANES  = PLAIN_LAYERS * SIMD_LANES_PER_LAYER;
-        localparam LAST_LAYER_BASE = SIMD_LANES - SIMD_LANES_PER_LAYER + 1;
-        
-        // Instruction pipeline wiring for all layers but the last
-        // Plus one stage for output to last layer wiring
-        localparam SIMD_I_read_data_Layers_WIDTH = ((INSTR_WIDTH * PLAIN_LAYERS) + INSTR_WIDTH);
-        wire [SIMD_I_read_data_Layers_WIDTH-1:0] SIMD_I_read_data_Layers;
-        // Connect instruction distribution to the first layer
-        assign SIMD_I_read_data_Layers[INSTR_WIDTH-1:0] = I_read_data;
-
-        // Instruction pipeline wiring for last layer
-        wire [INSTR_WIDTH-1:0] SIMD_I_read_data_Layer_last;
-        // Connect instruction distribution to the last layer
-        assign SIMD_I_read_data_Layer_last = SIMD_I_read_data_Layers[SIMD_I_read_data_Layers_WIDTH - INSTR_WIDTH +: INSTR_WIDTH];
-
-
-        if (SIMD_LAYER_COUNT > 1 && SIMD_LANES_PER_LAYER > 0) begin : SIMD_Layers
-            // All but the last layer
-            SIMD
-            #(
-                .SIMD_ALU_WORD_WIDTH                (SIMD_ALU_WORD_WIDTH),
-
-                .INSTR_WIDTH                        (INSTR_WIDTH),
-                .OPCODE_WIDTH                       (OPCODE_WIDTH),
-                .D_OPERAND_WIDTH                    (D_OPERAND_WIDTH),
-                .A_OPERAND_WIDTH                    (A_OPERAND_WIDTH),
-                .B_OPERAND_WIDTH                    (B_OPERAND_WIDTH),
-
-                .A_ADDR_WIDTH                       (A_ADDR_WIDTH),
-                .B_ADDR_WIDTH                       (B_ADDR_WIDTH),
-
-                .SIMD_A_WORD_WIDTH                  (SIMD_A_WORD_WIDTH),
-                .SIMD_A_ADDR_WIDTH                  (SIMD_A_ADDR_WIDTH),
-                .SIMD_A_DEPTH                       (SIMD_A_DEPTH),
-                .SIMD_A_RAMSTYLE                    (SIMD_A_RAMSTYLE),
-                .SIMD_A_INIT_FILE                   (SIMD_A_INIT_FILE),
-                .SIMD_A_IO_READ_PORT_COUNT          (SIMD_A_IO_READ_PORT_COUNT),
-                .SIMD_A_IO_READ_PORT_BASE_ADDR      (SIMD_A_IO_READ_PORT_BASE_ADDR),
-                .SIMD_A_IO_READ_PORT_ADDR_WIDTH     (SIMD_A_IO_READ_PORT_ADDR_WIDTH),
-                .SIMD_A_IO_WRITE_PORT_COUNT         (SIMD_A_IO_WRITE_PORT_COUNT),
-                .SIMD_A_IO_WRITE_PORT_BASE_ADDR     (SIMD_A_IO_WRITE_PORT_BASE_ADDR),
-                .SIMD_A_IO_WRITE_PORT_ADDR_WIDTH    (SIMD_A_IO_WRITE_PORT_ADDR_WIDTH),
-
-                .SIMD_B_WORD_WIDTH                  (SIMD_B_WORD_WIDTH),
-                .SIMD_B_ADDR_WIDTH                  (SIMD_B_ADDR_WIDTH),
-                .SIMD_B_DEPTH                       (SIMD_B_DEPTH),
-                .SIMD_B_RAMSTYLE                    (SIMD_B_RAMSTYLE),
-                .SIMD_B_INIT_FILE                   (SIMD_B_INIT_FILE),
-                .SIMD_B_IO_READ_PORT_COUNT          (SIMD_B_IO_READ_PORT_COUNT),
-                .SIMD_B_IO_READ_PORT_BASE_ADDR      (SIMD_B_IO_READ_PORT_BASE_ADDR),
-                .SIMD_B_IO_READ_PORT_ADDR_WIDTH     (SIMD_B_IO_READ_PORT_ADDR_WIDTH),
-                .SIMD_B_IO_WRITE_PORT_COUNT         (SIMD_B_IO_WRITE_PORT_COUNT),
-                .SIMD_B_IO_WRITE_PORT_BASE_ADDR     (SIMD_B_IO_WRITE_PORT_BASE_ADDR),
-                .SIMD_B_IO_WRITE_PORT_ADDR_WIDTH    (SIMD_B_IO_WRITE_PORT_ADDR_WIDTH),
-
-                .SIMD_I_PASSTHRU_PIPELINE_DEPTH     (SIMD_I_PASSTHRU_PIPELINE_DEPTH),
-                .SIMD_TAP_AB_PIPELINE_DEPTH         (SIMD_TAP_AB_PIPELINE_DEPTH),
-                .AB_READ_PIPELINE_DEPTH             (AB_READ_PIPELINE_DEPTH),
-                .AB_ALU_PIPELINE_DEPTH              (AB_ALU_PIPELINE_DEPTH),
-
-                .LOGIC_OPCODE_WIDTH                 (LOGIC_OPCODE_WIDTH),
-                .SIMD_ADDSUB_CARRY_SELECT           (SIMD_ADDSUB_CARRY_SELECT),
-                .SIMD_MULT_DOUBLE_PIPE              (SIMD_MULT_DOUBLE_PIPE),
-                .SIMD_MULT_HETEROGENEOUS            (SIMD_MULT_HETEROGENEOUS),    
-                .SIMD_MULT_USE_DSP                  (SIMD_MULT_USE_DSP), 
-
-                .SIMD_LANE_COUNT                    (SIMD_LANES_PER_LAYER)
-            )
-            Layers                                  [PLAIN_LAYERS-1:0]
-            (
-                .clock                              (clock),
-                .half_clock                         (half_clock),
-
-                .A_wren_other                       (A_wren_other[PLAIN_LANES:1]),
-                .B_wren_other                       (B_wren_other[PLAIN_LANES:1]),
-
-                .ALU_c_in                           (ALU_c_in [PLAIN_LANES:1]),
-                .ALU_c_out                          (ALU_c_out[PLAIN_LANES:1]),
-
-                .I_read_data_in                     (SIMD_I_read_data_Layers[(SIMD_I_read_data_Layers_WIDTH - INSTR_WIDTH)-1 : 0          ]),
-                .I_read_data_out                    (SIMD_I_read_data_Layers[ SIMD_I_read_data_Layers_WIDTH               -1 : INSTR_WIDTH]),
-
-                .A_io_rden                          (A_io_rden[(                    SIMD_A_IO_READ_PORT_COUNT  * PLAIN_LANES) + (               A_IO_READ_PORT_COUNT)  -1 : (               A_IO_READ_PORT_COUNT)]),
-                .A_io_in                            (A_io_in  [(SIMD_A_WORD_WIDTH * SIMD_A_IO_READ_PORT_COUNT  * PLAIN_LANES) + (A_WORD_WIDTH * A_IO_READ_PORT_COUNT)  -1 : (A_WORD_WIDTH * A_IO_READ_PORT_COUNT)]),
-                .A_io_wren                          (A_io_wren[(                    SIMD_A_IO_WRITE_PORT_COUNT * PLAIN_LANES) + (               A_IO_WRITE_PORT_COUNT) -1 : (               A_IO_WRITE_PORT_COUNT)]),
-                .A_io_out                           (A_io_out [(SIMD_A_WORD_WIDTH * SIMD_A_IO_WRITE_PORT_COUNT * PLAIN_LANES) + (A_WORD_WIDTH * A_IO_WRITE_PORT_COUNT) -1 : (A_WORD_WIDTH * A_IO_WRITE_PORT_COUNT)]),
-
-                .B_io_rden                          (B_io_rden[(                    SIMD_B_IO_READ_PORT_COUNT  * PLAIN_LANES) + (               B_IO_READ_PORT_COUNT)  -1 : (               B_IO_READ_PORT_COUNT)]),
-                .B_io_in                            (B_io_in  [(SIMD_B_WORD_WIDTH * SIMD_B_IO_READ_PORT_COUNT  * PLAIN_LANES) + (B_WORD_WIDTH * B_IO_READ_PORT_COUNT)  -1 : (B_WORD_WIDTH * B_IO_READ_PORT_COUNT)]),
-                .B_io_wren                          (B_io_wren[(                    SIMD_B_IO_WRITE_PORT_COUNT * PLAIN_LANES) + (               B_IO_WRITE_PORT_COUNT) -1 : (               B_IO_WRITE_PORT_COUNT)]),
-                .B_io_out                           (B_io_out [(SIMD_B_WORD_WIDTH * SIMD_B_IO_WRITE_PORT_COUNT * PLAIN_LANES) + (B_WORD_WIDTH * B_IO_WRITE_PORT_COUNT) -1 : (B_WORD_WIDTH * B_IO_WRITE_PORT_COUNT)])
-            );
-        end
-
         if (SIMD_LAYER_COUNT > 0 && SIMD_LANES_PER_LAYER > 0) begin : SIMD_Layer_last
+            localparam SIMD_LANES   = SIMD_LAYER_COUNT * SIMD_LANES_PER_LAYER;
+            localparam PLAIN_LAYERS = SIMD_LAYER_COUNT - 1;
+            localparam PLAIN_LANES  = PLAIN_LAYERS * SIMD_LANES_PER_LAYER;
+            localparam LAST_LAYER_BASE = SIMD_LANES - SIMD_LANES_PER_LAYER + 1;
+            
+            // Instruction pipeline wiring for all layers but the last
+            // Plus one stage for output to last layer wiring
+            localparam SIMD_I_read_data_Layers_WIDTH = ((INSTR_WIDTH * PLAIN_LAYERS) + INSTR_WIDTH);
+            wire [SIMD_I_read_data_Layers_WIDTH-1:0] SIMD_I_read_data_Layers;
+            // Connect instruction distribution to the first layer
+            assign SIMD_I_read_data_Layers[INSTR_WIDTH-1:0] = I_read_data;
+
+            // Instruction pipeline wiring for last layer
+            wire [INSTR_WIDTH-1:0] SIMD_I_read_data_Layer_last;
+            // Connect instruction distribution to the last layer
+            assign SIMD_I_read_data_Layer_last = SIMD_I_read_data_Layers[SIMD_I_read_data_Layers_WIDTH - INSTR_WIDTH +: INSTR_WIDTH];
+
+
+            if (SIMD_LAYER_COUNT > 1 && SIMD_LANES_PER_LAYER > 0) begin : SIMD_Layers
+                // All but the last layer
+                SIMD
+                #(
+                    .SIMD_ALU_WORD_WIDTH                (SIMD_ALU_WORD_WIDTH),
+
+                    .INSTR_WIDTH                        (INSTR_WIDTH),
+                    .OPCODE_WIDTH                       (OPCODE_WIDTH),
+                    .D_OPERAND_WIDTH                    (D_OPERAND_WIDTH),
+                    .A_OPERAND_WIDTH                    (A_OPERAND_WIDTH),
+                    .B_OPERAND_WIDTH                    (B_OPERAND_WIDTH),
+
+                    .A_ADDR_WIDTH                       (A_ADDR_WIDTH),
+                    .B_ADDR_WIDTH                       (B_ADDR_WIDTH),
+
+                    .SIMD_A_WORD_WIDTH                  (SIMD_A_WORD_WIDTH),
+                    .SIMD_A_ADDR_WIDTH                  (SIMD_A_ADDR_WIDTH),
+                    .SIMD_A_DEPTH                       (SIMD_A_DEPTH),
+                    .SIMD_A_RAMSTYLE                    (SIMD_A_RAMSTYLE),
+                    .SIMD_A_INIT_FILE                   (SIMD_A_INIT_FILE),
+                    .SIMD_A_IO_READ_PORT_COUNT          (SIMD_A_IO_READ_PORT_COUNT),
+                    .SIMD_A_IO_READ_PORT_BASE_ADDR      (SIMD_A_IO_READ_PORT_BASE_ADDR),
+                    .SIMD_A_IO_READ_PORT_ADDR_WIDTH     (SIMD_A_IO_READ_PORT_ADDR_WIDTH),
+                    .SIMD_A_IO_WRITE_PORT_COUNT         (SIMD_A_IO_WRITE_PORT_COUNT),
+                    .SIMD_A_IO_WRITE_PORT_BASE_ADDR     (SIMD_A_IO_WRITE_PORT_BASE_ADDR),
+                    .SIMD_A_IO_WRITE_PORT_ADDR_WIDTH    (SIMD_A_IO_WRITE_PORT_ADDR_WIDTH),
+
+                    .SIMD_B_WORD_WIDTH                  (SIMD_B_WORD_WIDTH),
+                    .SIMD_B_ADDR_WIDTH                  (SIMD_B_ADDR_WIDTH),
+                    .SIMD_B_DEPTH                       (SIMD_B_DEPTH),
+                    .SIMD_B_RAMSTYLE                    (SIMD_B_RAMSTYLE),
+                    .SIMD_B_INIT_FILE                   (SIMD_B_INIT_FILE),
+                    .SIMD_B_IO_READ_PORT_COUNT          (SIMD_B_IO_READ_PORT_COUNT),
+                    .SIMD_B_IO_READ_PORT_BASE_ADDR      (SIMD_B_IO_READ_PORT_BASE_ADDR),
+                    .SIMD_B_IO_READ_PORT_ADDR_WIDTH     (SIMD_B_IO_READ_PORT_ADDR_WIDTH),
+                    .SIMD_B_IO_WRITE_PORT_COUNT         (SIMD_B_IO_WRITE_PORT_COUNT),
+                    .SIMD_B_IO_WRITE_PORT_BASE_ADDR     (SIMD_B_IO_WRITE_PORT_BASE_ADDR),
+                    .SIMD_B_IO_WRITE_PORT_ADDR_WIDTH    (SIMD_B_IO_WRITE_PORT_ADDR_WIDTH),
+
+                    .SIMD_I_PASSTHRU_PIPELINE_DEPTH     (SIMD_I_PASSTHRU_PIPELINE_DEPTH),
+                    .SIMD_TAP_AB_PIPELINE_DEPTH         (SIMD_TAP_AB_PIPELINE_DEPTH),
+                    .AB_READ_PIPELINE_DEPTH             (AB_READ_PIPELINE_DEPTH),
+                    .AB_ALU_PIPELINE_DEPTH              (AB_ALU_PIPELINE_DEPTH),
+
+                    .LOGIC_OPCODE_WIDTH                 (LOGIC_OPCODE_WIDTH),
+                    .SIMD_ADDSUB_CARRY_SELECT           (SIMD_ADDSUB_CARRY_SELECT),
+                    .SIMD_MULT_DOUBLE_PIPE              (SIMD_MULT_DOUBLE_PIPE),
+                    .SIMD_MULT_HETEROGENEOUS            (SIMD_MULT_HETEROGENEOUS),    
+                    .SIMD_MULT_USE_DSP                  (SIMD_MULT_USE_DSP), 
+
+                    .SIMD_LANE_COUNT                    (SIMD_LANES_PER_LAYER)
+                )
+                Layers                                  [PLAIN_LAYERS-1:0]
+                (
+                    .clock                              (clock),
+                    .half_clock                         (half_clock),
+
+                    .A_wren_other                       (A_wren_other[PLAIN_LANES:1]),
+                    .B_wren_other                       (B_wren_other[PLAIN_LANES:1]),
+
+                    .ALU_c_in                           (ALU_c_in [PLAIN_LANES:1]),
+                    .ALU_c_out                          (ALU_c_out[PLAIN_LANES:1]),
+
+                    .I_read_data_in                     (SIMD_I_read_data_Layers[(SIMD_I_read_data_Layers_WIDTH - INSTR_WIDTH)-1 : 0          ]),
+                    .I_read_data_out                    (SIMD_I_read_data_Layers[ SIMD_I_read_data_Layers_WIDTH               -1 : INSTR_WIDTH]),
+
+                    .A_io_rden                          (A_io_rden[(                    SIMD_A_IO_READ_PORT_COUNT  * PLAIN_LANES) + (               A_IO_READ_PORT_COUNT)  -1 : (               A_IO_READ_PORT_COUNT)]),
+                    .A_io_in                            (A_io_in  [(SIMD_A_WORD_WIDTH * SIMD_A_IO_READ_PORT_COUNT  * PLAIN_LANES) + (A_WORD_WIDTH * A_IO_READ_PORT_COUNT)  -1 : (A_WORD_WIDTH * A_IO_READ_PORT_COUNT)]),
+                    .A_io_wren                          (A_io_wren[(                    SIMD_A_IO_WRITE_PORT_COUNT * PLAIN_LANES) + (               A_IO_WRITE_PORT_COUNT) -1 : (               A_IO_WRITE_PORT_COUNT)]),
+                    .A_io_out                           (A_io_out [(SIMD_A_WORD_WIDTH * SIMD_A_IO_WRITE_PORT_COUNT * PLAIN_LANES) + (A_WORD_WIDTH * A_IO_WRITE_PORT_COUNT) -1 : (A_WORD_WIDTH * A_IO_WRITE_PORT_COUNT)]),
+
+                    .B_io_rden                          (B_io_rden[(                    SIMD_B_IO_READ_PORT_COUNT  * PLAIN_LANES) + (               B_IO_READ_PORT_COUNT)  -1 : (               B_IO_READ_PORT_COUNT)]),
+                    .B_io_in                            (B_io_in  [(SIMD_B_WORD_WIDTH * SIMD_B_IO_READ_PORT_COUNT  * PLAIN_LANES) + (B_WORD_WIDTH * B_IO_READ_PORT_COUNT)  -1 : (B_WORD_WIDTH * B_IO_READ_PORT_COUNT)]),
+                    .B_io_wren                          (B_io_wren[(                    SIMD_B_IO_WRITE_PORT_COUNT * PLAIN_LANES) + (               B_IO_WRITE_PORT_COUNT) -1 : (               B_IO_WRITE_PORT_COUNT)]),
+                    .B_io_out                           (B_io_out [(SIMD_B_WORD_WIDTH * SIMD_B_IO_WRITE_PORT_COUNT * PLAIN_LANES) + (B_WORD_WIDTH * B_IO_WRITE_PORT_COUNT) -1 : (B_WORD_WIDTH * B_IO_WRITE_PORT_COUNT)])
+                );
+            end
+
             // The last layer, which has no I_PASSTHRU pipeline (the registers would be wasted)
             SIMD
             #(
