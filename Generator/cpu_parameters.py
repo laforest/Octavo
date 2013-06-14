@@ -246,6 +246,18 @@ def adjust_I_pipelines(all_parameters):
         all_parameters["SIMD_I_PASSTHRU_PIPELINE_DEPTH"] = 1
     return all_parameters
 
+def generate_logiclock_parameters(parameters = {}):
+    logiclock_options = {
+        "LL_ENABLED"   : "OFF",
+        "LL_ORIGIN"    : "X66_Y46", # Some value chosen to fit well on DE4 230
+        "LL_HEIGHT"    : "20",      # Not useful, but sure to fit a single Scalar Octavo
+        "LL_WIDTH"     : "20",
+        "LL_RESERVED"  : "OFF",
+        "LL_AUTO_SIZE" : "OFF",
+    }
+    parameters_misc.override(logiclock_options, parameters)
+    return logiclock_options
+
 def all_parameters(parameters = {}):
     pipeline_depths = generate_pipeline_depths(parameters)
     common_values   = generate_common_values(parameters)
@@ -261,6 +273,7 @@ def all_parameters(parameters = {}):
     all_parameters.update(generate_resource_diversity_options(parameters))
     all_parameters.update(generate_partition_options(parameters))
     all_parameters.update(generate_quartus_options(parameters))
+    all_parameters.update(generate_logiclock_parameters(parameters))
     all_parameters.update(generate_cpu_name(all_parameters))
     return all_parameters
 

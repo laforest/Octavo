@@ -91,14 +91,14 @@ def create_Scalar_partition(all_parameters):
     color = random_color()
     partition_id = random_20bit_hex()
     dp_template = string.Template(
-"""	       # start DESIGN_PARTITION(Scalar:Scalar)
-	# -------------------------------------
-		set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id "Scalar:Scalar"
-		set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id "Scalar:Scalar"
-		set_global_assignment -name PARTITION_COLOR ${COLOR} -section_id "Scalar:Scalar"
-		set_instance_assignment -name PARTITION_HIERARCHY scala_${ID} -to "${CPU_NAME}:DUT|Octavo:Octavo|Scalar:Scalar" -section_id "Scalar:Scalar"
-	# end DESIGN_PARTITION(Scalar:Scalar)
-	# -----------------------------------
+"""        # start DESIGN_PARTITION(Scalar:Scalar)
+    # -------------------------------------
+        set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id "Scalar:Scalar"
+        set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id "Scalar:Scalar"
+        set_global_assignment -name PARTITION_COLOR ${COLOR} -section_id "Scalar:Scalar"
+        set_instance_assignment -name PARTITION_HIERARCHY scala_${ID} -to "${CPU_NAME}:DUT|Octavo:Octavo|Scalar:Scalar" -section_id "Scalar:Scalar"
+    # end DESIGN_PARTITION(Scalar:Scalar)
+    # -----------------------------------
 """)
     all_parameters.update({"COLOR"  : color,
                            "ID"     : partition_id})
@@ -208,62 +208,65 @@ set_global_assignment -name RTLV_GROUP_COMB_LOGIC_IN_CLOUD_TMV OFF
 # -----------------------------------
 # start ENTITY(${PROJECT_NAME})
 
-#	# start LOGICLOCK_REGION(${CPU_NAME}:DUT)
-#	# ------------------------------------
-#
-#		# LogicLock Region Assignments
-#		# ============================
-#		set_global_assignment -name LL_ENABLED ON -section_id "${CPU_NAME}:DUT"
-#		set_global_assignment -name LL_RESERVED ON -section_id "${CPU_NAME}:DUT"
-#		set_global_assignment -name LL_SECURITY_ROUTING_INTERFACE OFF -section_id "${CPU_NAME}:DUT"
-#		set_global_assignment -name LL_IGNORE_IO_BANK_SECURITY_CONSTRAINT OFF -section_id "${CPU_NAME}:DUT"
-#		set_instance_assignment -name LL_MEMBER_OF "${CPU_NAME}:DUT" -to "${CPU_NAME}:DUT" -section_id "${CPU_NAME}:DUT"
-#		set_global_assignment -name LL_PR_REGION OFF -section_id "${CPU_NAME}:DUT"
-#		set_global_assignment -name LL_HEIGHT 14 -section_id "${CPU_NAME}:DUT"
-#		set_global_assignment -name LL_WIDTH 16 -section_id "${CPU_NAME}:DUT"
-#		set_global_assignment -name LL_ORIGIN X66_Y46 -section_id "${CPU_NAME}:DUT"
-#		set_global_assignment -name LL_STATE FLOATING -section_id "${CPU_NAME}:DUT"
-#		set_global_assignment -name LL_AUTO_SIZE ON -section_id "${CPU_NAME}:DUT"
-#
-#	# end LOGICLOCK_REGION(${CPU_NAME}:DUT)
-#	# ----------------------------------
-#
-#	# start LOGICLOCK_REGION(Root Region)
-#	# -----------------------------------
-#
-#		# LogicLock Region Assignments
-#		# ============================
-#		set_global_assignment -name LL_ROOT_REGION ON -section_id "Root Region"
-#		set_global_assignment -name LL_MEMBER_STATE LOCKED -section_id "Root Region"
-#
-#	# end LOGICLOCK_REGION(Root Region)
-#	# ---------------------------------
+    # start LOGICLOCK_REGION(${CPU_NAME}:DUT)
+    # ------------------------------------
 
-	# start DESIGN_PARTITION(Top)
-	# ---------------------------
+        # LogicLock Region Assignments
+        # ============================
+        set_global_assignment -name LL_ENABLED ${LL_ENABLED} -section_id "${CPU_NAME}:DUT"
+        set_global_assignment -name LL_RESERVED ${LL_RESERVED} -section_id "${CPU_NAME}:DUT"
+        set_global_assignment -name LL_SECURITY_ROUTING_INTERFACE OFF -section_id "${CPU_NAME}:DUT"
+        set_global_assignment -name LL_IGNORE_IO_BANK_SECURITY_CONSTRAINT OFF -section_id "${CPU_NAME}:DUT"
+        set_global_assignment -name LL_PR_REGION OFF -section_id "${CPU_NAME}:DUT"
+        set_global_assignment -name LL_HEIGHT ${LL_HEIGHT} -section_id "${CPU_NAME}:DUT"
+        set_global_assignment -name LL_WIDTH ${LL_WIDTH} -section_id "${CPU_NAME}:DUT"
+        set_global_assignment -name LL_ORIGIN ${LL_ORIGIN} -section_id "${CPU_NAME}:DUT"
+        set_global_assignment -name LL_STATE FLOATING -section_id "${CPU_NAME}:DUT"
+        set_global_assignment -name LL_AUTO_SIZE ON -section_id "${CPU_NAME}:DUT"
+        set_global_assignment -name LL_ROUGH OFF -section_id "${CPU_NAME}:DUT"
+        set_instance_assignment -name LL_MEMBER_OF "${CPU_NAME}:DUT" -to "${CPU_NAME}:DUT" -section_id "${CPU_NAME}:DUT"
+        set_instance_assignment -name LL_MEMBER_EXCEPTIONS "MEMORY:DSP" -to "${CPU_NAME}:DUT" -section_id "${CPU_NAME}:DUT"
+		set_instance_assignment -name LL_MEMBER_OF "${CPU_NAME}:DUT" -to "${CPU_NAME}:DUT|Octavo:Octavo|Scalar:Scalar|ControlPath:ControlPath|Controller:Controller|Controller_threads:threads_pc" -section_id "${CPU_NAME}:DUT"
 
-		# Incremental Compilation Assignments
-		# ===================================
-		set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
-		set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
-		set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
-		set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
+    # end LOGICLOCK_REGION(${CPU_NAME}:DUT)
+    # ----------------------------------
 
-	# end DESIGN_PARTITION(Top)
-	# -------------------------
+    # start LOGICLOCK_REGION(Root Region)
+    # -----------------------------------
 
-	# start DESIGN_PARTITION(${CPU_NAME}:DUT)
-	# ------------------------------------
+        # LogicLock Region Assignments
+        # ============================
+        set_global_assignment -name LL_ROOT_REGION ON -section_id "Root Region"
+        set_global_assignment -name LL_MEMBER_STATE LOCKED -section_id "Root Region"
 
-		# Incremental Compilation Assignments
-		# ===================================
-		set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id "${CPU_NAME}:DUT"
-		set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id "${CPU_NAME}:DUT"
-		set_global_assignment -name PARTITION_COLOR 39423 -section_id "${CPU_NAME}:DUT"
-		set_instance_assignment -name PARTITION_HIERARCHY dut_2ae21 -to "${CPU_NAME}:DUT" -section_id "${CPU_NAME}:DUT"
+    # end LOGICLOCK_REGION(Root Region)
+    # ---------------------------------
 
-	# end DESIGN_PARTITION(${CPU_NAME}:DUT)
-	# ----------------------------------
+    # start DESIGN_PARTITION(Top)
+    # ---------------------------
+
+        # Incremental Compilation Assignments
+        # ===================================
+        set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
+        set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
+        set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
+        set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
+
+    # end DESIGN_PARTITION(Top)
+    # -------------------------
+
+    # start DESIGN_PARTITION(${CPU_NAME}:DUT)
+    # ------------------------------------
+
+        # Incremental Compilation Assignments
+        # ===================================
+        set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id "${CPU_NAME}:DUT"
+        set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id "${CPU_NAME}:DUT"
+        set_global_assignment -name PARTITION_COLOR 39423 -section_id "${CPU_NAME}:DUT"
+        set_instance_assignment -name PARTITION_HIERARCHY dut_2ae21 -to "${CPU_NAME}:DUT" -section_id "${CPU_NAME}:DUT"
+
+    # end DESIGN_PARTITION(${CPU_NAME}:DUT)
+    # ----------------------------------
 
 
 ${SCALAR_PARTITION}

@@ -59,6 +59,10 @@ def parse_cmdline(entries):
         parts = entry.split('=')
         assert len(parts) == 2, "Incorrect parameter formating for {0}. Use 'key=value'.".format(entry)
         key, value = tuple(parts)
-        value = ast.literal_eval(value)
+        try:
+            value = ast.literal_eval(value)
+        except ValueError:
+            if not (value == "ON" or value == "OFF"):
+                raise ValueError, value
         parameters.update({key:value})
     return parameters
