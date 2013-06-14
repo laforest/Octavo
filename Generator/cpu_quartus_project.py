@@ -222,7 +222,7 @@ set_global_assignment -name RTLV_GROUP_COMB_LOGIC_IN_CLOUD_TMV OFF
         set_global_assignment -name LL_WIDTH ${LL_WIDTH} -section_id "${CPU_NAME}:DUT"
         set_global_assignment -name LL_ORIGIN ${LL_ORIGIN} -section_id "${CPU_NAME}:DUT"
         set_global_assignment -name LL_STATE FLOATING -section_id "${CPU_NAME}:DUT"
-        set_global_assignment -name LL_AUTO_SIZE ON -section_id "${CPU_NAME}:DUT"
+        set_global_assignment -name LL_AUTO_SIZE ${LL_AUTO_SIZE} -section_id "${CPU_NAME}:DUT"
         set_global_assignment -name LL_ROUGH OFF -section_id "${CPU_NAME}:DUT"
         set_instance_assignment -name LL_MEMBER_OF "${CPU_NAME}:DUT" -to "${CPU_NAME}:DUT" -section_id "${CPU_NAME}:DUT"
         set_instance_assignment -name LL_MEMBER_EXCEPTIONS "MEMORY:DSP" -to "${CPU_NAME}:DUT" -section_id "${CPU_NAME}:DUT"
