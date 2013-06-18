@@ -372,15 +372,15 @@ module Octavo
                 .I_read_data_in                     (SIMD_I_read_data_Layer_last),
                 .I_read_data_out                    (),
 
-                .A_io_rden                          (A_io_rden[(                    SIMD_A_IO_READ_PORT_COUNT   * LAST_LAYER_BASE) +: (1 * SIMD_LANES_PER_LAYER)]),
-                .A_io_in                            (A_io_in  [(SIMD_A_WORD_WIDTH * SIMD_A_IO_READ_PORT_COUNT   * LAST_LAYER_BASE) +: (SIMD_A_WORD_WIDTH * SIMD_LANES_PER_LAYER)]),
-                .A_io_wren                          (A_io_wren[(                    SIMD_A_IO_WRITE_PORT_COUNT  * LAST_LAYER_BASE) +: (1 * SIMD_LANES_PER_LAYER)]),
-                .A_io_out                           (A_io_out [(SIMD_A_WORD_WIDTH * SIMD_A_IO_WRITE_PORT_COUNT  * LAST_LAYER_BASE) +: (SIMD_A_WORD_WIDTH * SIMD_LANES_PER_LAYER)]),
+                .A_io_rden                          (A_io_rden[(                    SIMD_A_IO_READ_PORT_COUNT   * LAST_LAYER_BASE) +: (1 * SIMD_LANES_PER_LAYER * SIMD_A_IO_READ_PORT_COUNT)]),
+                .A_io_in                            (A_io_in  [(SIMD_A_WORD_WIDTH * SIMD_A_IO_READ_PORT_COUNT   * LAST_LAYER_BASE) +: (SIMD_A_WORD_WIDTH * SIMD_LANES_PER_LAYER * SIMD_A_IO_READ_PORT_COUNT)]),
+                .A_io_wren                          (A_io_wren[(                    SIMD_A_IO_WRITE_PORT_COUNT  * LAST_LAYER_BASE) +: (1 * SIMD_LANES_PER_LAYER * SIMD_A_IO_WRITE_PORT_COUNT)]),
+                .A_io_out                           (A_io_out [(SIMD_A_WORD_WIDTH * SIMD_A_IO_WRITE_PORT_COUNT  * LAST_LAYER_BASE) +: (SIMD_A_WORD_WIDTH * SIMD_LANES_PER_LAYER *SIMD_A_IO_WRITE_PORT_COUNT)]),
 
-                .B_io_rden                          (B_io_rden[(                    SIMD_B_IO_READ_PORT_COUNT   * LAST_LAYER_BASE) +: (1 * SIMD_LANES_PER_LAYER)]),
-                .B_io_in                            (B_io_in  [(SIMD_B_WORD_WIDTH * SIMD_B_IO_READ_PORT_COUNT   * LAST_LAYER_BASE) +: (SIMD_B_WORD_WIDTH * SIMD_LANES_PER_LAYER)]),
-                .B_io_wren                          (B_io_wren[(                    SIMD_B_IO_WRITE_PORT_COUNT  * LAST_LAYER_BASE) +: (1 * SIMD_LANES_PER_LAYER)]),
-                .B_io_out                           (B_io_out [(SIMD_B_WORD_WIDTH * SIMD_B_IO_WRITE_PORT_COUNT  * LAST_LAYER_BASE) +: (SIMD_B_WORD_WIDTH * SIMD_LANES_PER_LAYER)])
+                .B_io_rden                          (B_io_rden[(                    SIMD_B_IO_READ_PORT_COUNT   * LAST_LAYER_BASE) +: (1 * SIMD_LANES_PER_LAYER * SIMD_B_IO_READ_PORT_COUNT)]),
+                .B_io_in                            (B_io_in  [(SIMD_B_WORD_WIDTH * SIMD_B_IO_READ_PORT_COUNT   * LAST_LAYER_BASE) +: (SIMD_B_WORD_WIDTH * SIMD_LANES_PER_LAYER * SIMD_B_IO_READ_PORT_COUNT)]),
+                .B_io_wren                          (B_io_wren[(                    SIMD_B_IO_WRITE_PORT_COUNT  * LAST_LAYER_BASE) +: (1 * SIMD_LANES_PER_LAYER * SIMD_B_IO_WRITE_PORT_COUNT)]),
+                .B_io_out                           (B_io_out [(SIMD_B_WORD_WIDTH * SIMD_B_IO_WRITE_PORT_COUNT  * LAST_LAYER_BASE) +: (SIMD_B_WORD_WIDTH * SIMD_LANES_PER_LAYER * SIMD_B_IO_WRITE_PORT_COUNT)])
             );
         end
     endgenerate
