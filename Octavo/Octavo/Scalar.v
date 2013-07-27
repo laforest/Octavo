@@ -1,6 +1,6 @@
 
 // Scalar part of raw Octavo CPU. I/O lines are flat vectors of words.
-// See Octavo.v for invocation and configuration.
+// Wrap as necessary to break-out I/O ports and set parameters.
 
 module Scalar
 #(
