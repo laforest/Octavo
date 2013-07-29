@@ -20,7 +20,7 @@ module Memory
     input   wire    [WORD_WIDTH-1:0]                            write_data,
     input   wire    [ADDR_WIDTH-1:0]                            read_addr,
     output  wire    [WORD_WIDTH-1:0]                            read_data,
-    output  wire    [IO_READ_PORT_COUNT-1:0]                    io_req,
+    output  wire    [IO_READ_PORT_COUNT-1:0]                    io_rden,
     input   wire    [(WORD_WIDTH * IO_READ_PORT_COUNT)-1:0]     io_in,
     output  wire    [IO_WRITE_PORT_COUNT-1:0]                   io_wren,
     output  wire    [(WORD_WIDTH * IO_WRITE_PORT_COUNT)-1:0]    io_out
@@ -88,7 +88,7 @@ module Memory
         .read_addr                  (read_addr),
         .read_data_ram_in           (read_data_ram),
         .read_data_io_in            (io_in),
-        .read_data_io_req_out       (io_req),
+        .read_data_io_rden_out      (io_rden),
         .read_data_out              (read_data)
     );
 endmodule
