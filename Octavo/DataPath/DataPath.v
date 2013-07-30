@@ -157,11 +157,11 @@ module DataPath
 
     wire    A_wren;
 
-    Memory_wren 
+    Write_Enable 
     #(
         .OPCODE_WIDTH   (OPCODE_WIDTH)
     )
-    A_mem_wren 
+    A_mem_wren
     (
         .op             (mem_write_op),
         .wren_other     (A_wren_other),
@@ -198,7 +198,7 @@ module DataPath
 
     wire    B_wren;
 
-    Memory_wren 
+    Write_Enable 
     #(
         .OPCODE_WIDTH   (OPCODE_WIDTH)
     )

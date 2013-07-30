@@ -12,14 +12,14 @@ module IO_Read_Port
     input   wire    [ADDR_WIDTH-1:0]                            read_addr,         
     input   wire    [WORD_WIDTH-1:0]                            read_data_ram_in,
     input   wire    [(WORD_WIDTH * IO_READ_PORT_COUNT)-1:0]     read_data_io_in,
-    output  wire    [IO_READ_PORT_COUNT-1:0]                    read_data_io_req_out,
+    output  wire    [IO_READ_PORT_COUNT-1:0]                    read_data_io_rden_out,
     output  wire    [WORD_WIDTH-1:0]                            read_data_out  
 );
 
     wire    [IO_READ_PORT_ADDR_WIDTH-1:0]   port_addr;
     wire    [WORD_WIDTH-1:0]                read_data_io_out;
 
-    IO_Port_Read_Select
+    IO_Read_Port_Select
     #(
         .WORD_WIDTH                 (WORD_WIDTH), 
         .ADDR_WIDTH                 (ADDR_WIDTH),
@@ -62,7 +62,7 @@ module IO_Read_Port
         .read_data                  (read_data_out)
     );
 
-    IO_Read_Port_Req
+    IO_Read_Port_Rden
     #(
         .IO_READ_PORT_COUNT         (IO_READ_PORT_COUNT), 
         .IO_READ_PORT_ADDR_WIDTH    (IO_READ_PORT_ADDR_WIDTH)
@@ -72,7 +72,7 @@ module IO_Read_Port
         .clock                      (clock),
         .addr_in_io_range           (addr_in_io_range),
         .port_addr                  (port_addr),
-        .req                        (read_data_io_req_out)
+        .rden                       (read_data_io_rden_out)
     );
 endmodule
 

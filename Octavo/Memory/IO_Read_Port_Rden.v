@@ -1,5 +1,5 @@
 
-module IO_Read_Port_Req
+module IO_Read_Port_Rden
 #(
     parameter       IO_READ_PORT_COUNT              = 0, 
     parameter       IO_READ_PORT_ADDR_WIDTH         = 0 

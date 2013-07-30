@@ -15,7 +15,7 @@ harness_name        = "test_harness"
 
 def base_install_path():
     """Returns the base path of the installation. Adjust to match installation."""
-    depth_from_base = 1
+    depth_from_base = 2
     raw_path = os.path.dirname(os.path.realpath(__file__))
     return os.path.join(os.sep, *raw_path.split(os.sep)[:-depth_from_base])
 

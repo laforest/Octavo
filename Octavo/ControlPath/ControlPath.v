@@ -45,11 +45,11 @@ module ControlPath
 
     wire    I_wren;
 
-    Memory_wren 
+    Write_Enable 
     #(
         .OPCODE_WIDTH   (OPCODE_WIDTH)
     )
-    I_mem_wren 
+    I_mem_wren
     (
         .op             (I_write_op),
         .wren_other     (I_wren_other),
@@ -58,7 +58,7 @@ module ControlPath
 
     wire    [INSTR_WIDTH-1:0]       I_read_data_bram;
 
-    Memory_bram
+    RAM_SDP
     #(
         .WORD_WIDTH     (I_WORD_WIDTH),
         .ADDR_WIDTH     (I_ADDR_WIDTH),
