@@ -4,10 +4,9 @@ import string
 import os
 import sys
 
-import misc
-import parameters_misc
+from Misc import misc, parameters_misc
 
-default_bench = "hailstone_numbers"
+default_bench = "Hailstone/hailstone_numbers"
 install_base = misc.base_install_path()
 
 def test_bench(parameters, default_bench = default_bench, install_base = install_base):
@@ -40,15 +39,25 @@ def test_bench(parameters, default_bench = default_bench, install_base = install
     parameter       SIMD_B_INIT_FILE            = "${assembler_base}/${SIMD_MEM_INIT_FILE_PREFIX}${default_bench}.mem"
 )
 (
-    output  reg     [((A_WORD_WIDTH * A_IO_READ_PORT_COUNT)  + (SIMD_A_WORD_WIDTH * SIMD_A_IO_READ_PORT_COUNT  * SIMD_LANE_COUNT))-1:0] A_in,
-    output  wire    [((               A_IO_READ_PORT_COUNT)  + (                    SIMD_A_IO_READ_PORT_COUNT  * SIMD_LANE_COUNT))-1:0] A_rden,
-    output  wire    [((A_WORD_WIDTH * A_IO_WRITE_PORT_COUNT) + (SIMD_A_WORD_WIDTH * SIMD_A_IO_WRITE_PORT_COUNT * SIMD_LANE_COUNT))-1:0] A_out, 
-    output  wire    [((               A_IO_WRITE_PORT_COUNT) + (                    SIMD_A_IO_WRITE_PORT_COUNT * SIMD_LANE_COUNT))-1:0] A_wren,
+    output  reg     [(A_WORD_WIDTH * A_IO_READ_PORT_COUNT)-1:0]                                 A_in,
+    output  wire    [(               A_IO_READ_PORT_COUNT)-1:0]                                 A_rden,
+    output  wire    [(A_WORD_WIDTH * A_IO_WRITE_PORT_COUNT)-1:0]                                A_out, 
+    output  wire    [(               A_IO_WRITE_PORT_COUNT)-1:0]                                A_wren,
     
-    output  reg     [((B_WORD_WIDTH * B_IO_READ_PORT_COUNT)  + (SIMD_B_WORD_WIDTH * SIMD_B_IO_READ_PORT_COUNT  * SIMD_LANE_COUNT))-1:0] B_in,
-    output  wire    [((               B_IO_READ_PORT_COUNT)  + (                    SIMD_B_IO_READ_PORT_COUNT  * SIMD_LANE_COUNT))-1:0] B_rden,
-    output  wire    [((B_WORD_WIDTH * B_IO_WRITE_PORT_COUNT) + (SIMD_B_WORD_WIDTH * SIMD_B_IO_WRITE_PORT_COUNT * SIMD_LANE_COUNT))-1:0] B_out, 
-    output  wire    [((               B_IO_WRITE_PORT_COUNT) + (                    SIMD_B_IO_WRITE_PORT_COUNT * SIMD_LANE_COUNT))-1:0] B_wren    
+    output  reg     [(B_WORD_WIDTH * B_IO_READ_PORT_COUNT)-1:0]                                 B_in,
+    output  wire    [(               B_IO_READ_PORT_COUNT)-1:0]                                 B_rden,
+    output  wire    [(B_WORD_WIDTH * B_IO_WRITE_PORT_COUNT)-1:0]                                B_out, 
+    output  wire    [(               B_IO_WRITE_PORT_COUNT)-1:0]                                B_wren,
+
+    output  reg     [(SIMD_A_WORD_WIDTH * SIMD_A_IO_READ_PORT_COUNT  * SIMD_LANE_COUNT)-1:0]    SIMD_A_in,
+    output  wire    [(                    SIMD_A_IO_READ_PORT_COUNT  * SIMD_LANE_COUNT)-1:0]    SIMD_A_rden,
+    output  wire    [(SIMD_A_WORD_WIDTH * SIMD_A_IO_WRITE_PORT_COUNT * SIMD_LANE_COUNT)-1:0]    SIMD_A_out, 
+    output  wire    [(                    SIMD_A_IO_WRITE_PORT_COUNT * SIMD_LANE_COUNT)-1:0]    SIMD_A_wren,
+    
+    output  reg     [(SIMD_B_WORD_WIDTH * SIMD_B_IO_READ_PORT_COUNT  * SIMD_LANE_COUNT)-1:0]    SIMD_B_in,
+    output  wire    [(                    SIMD_B_IO_READ_PORT_COUNT  * SIMD_LANE_COUNT)-1:0]    SIMD_B_rden,
+    output  wire    [(SIMD_B_WORD_WIDTH * SIMD_B_IO_WRITE_PORT_COUNT * SIMD_LANE_COUNT)-1:0]    SIMD_B_out, 
+    output  wire    [(                    SIMD_B_IO_WRITE_PORT_COUNT * SIMD_LANE_COUNT)-1:0]    SIMD_B_wren    
 );
     integer     cycle;
     reg         clock;
@@ -87,8 +96,10 @@ def test_bench(parameters, default_bench = default_bench, install_base = install
         B_in        = -1;
     end
 
-    localparam WREN_OTHER_DEFAULT = {(SIMD_LANE_COUNT+1){`HIGH}};
-    localparam ALU_C_IN_DEFAULT   = {(SIMD_LANE_COUNT+1){`LOW}};
+    localparam SIMD_WREN_OTHER_DEFAULT  = {(SIMD_LANE_COUNT){`HIGH}};
+    localparam SIMD_ALU_C_IN_DEFAULT    = {(SIMD_LANE_COUNT){`LOW}};
+    localparam WREN_OTHER_DEFAULT       = `HIGH;
+    localparam ALU_C_IN_DEFAULT         = `LOW;
 
     ${CPU_NAME} 
     #(
@@ -107,9 +118,13 @@ def test_bench(parameters, default_bench = default_bench, install_base = install
         .I_wren_other       (`HIGH),
         .A_wren_other       (WREN_OTHER_DEFAULT),
         .B_wren_other       (WREN_OTHER_DEFAULT),
+        .SIMD_A_wren_other  (SIMD_WREN_OTHER_DEFAULT),
+        .SIMD_B_wren_other  (SIMD_WREN_OTHER_DEFAULT),
 
         .ALU_c_in           (ALU_C_IN_DEFAULT),
+        .SIMD_ALU_c_in      (SIMD_ALU_C_IN_DEFAULT),
         .ALU_c_out          (),
+        .SIMD_ALU_c_out     (),
 
         .A_in               (A_in),
         .A_rden             (A_rden),
@@ -120,6 +135,16 @@ def test_bench(parameters, default_bench = default_bench, install_base = install
         .B_rden             (B_rden),
         .B_out              (B_out),
         .B_wren             (B_wren)
+
+        .SIMD_A_in          (SIMD_A_in),
+        .SIMD_A_rden        (SIMD_A_rden),
+        .SIMD_A_out         (SIMD_A_out),
+        .SIMD_A_wren        (SIMD_A_wren),
+        
+        .SIMD_B_in          (SIMD_B_in),
+        .SIMD_B_rden        (SIMD_B_rden),
+        .SIMD_B_out         (SIMD_B_out),
+        .SIMD_B_wren        (SIMD_B_wren)
     );
 endmodule
 """)
@@ -136,25 +161,33 @@ INSTALL_BASE="${install_base}"
 TOP_LEVEL_MODULE="${CPU_NAME}_test_bench"
 TESTBENCH="./$${TOP_LEVEL_MODULE}.v"
 
-LPM_LIBRARY="/pkgs/altera/quartus/quartus12.0/linux/quartus/eda/sim_lib/220model.v"
-ALT_LIBRARY="/pkgs/altera/quartus/quartus12.0/linux/quartus/eda/sim_lib/altera_mf.v"
+LPM_LIBRARY="/pkgs/altera/quartus/quartus12.1/linux/quartus/eda/sim_lib/220model.v"
+ALT_LIBRARY="/pkgs/altera/quartus/quartus12.1/linux/quartus/eda/sim_lib/altera_mf.v"
 
 OCTAVO="$$INSTALL_BASE/Octavo/Misc/params.v \\
         $$INSTALL_BASE/Octavo/Misc/delay_line.v \\
-        $$INSTALL_BASE/Octavo/Memory/Memory.v \\
-        $$INSTALL_BASE/Octavo/ControlPath/Instr_Decoder/Instr_Decoder.v \\
-        $$INSTALL_BASE/Octavo/ControlPath/Controller/Controller.v \\
-        $$INSTALL_BASE/Octavo/ControlPath/ControlPath.v \\
-        $$INSTALL_BASE/Octavo/DataPath/ALU/Multiplier/Mult.v \\
-        $$INSTALL_BASE/Octavo/DataPath/ALU/AddSub/AddSub_Carry_Select.v \\
-        $$INSTALL_BASE/Octavo/DataPath/ALU/AddSub/AddSub_Ripple_Carry.v \\
-        $$INSTALL_BASE/Octavo/DataPath/ALU/Bitwise/Bitwise.v \\
+        $$INSTALL_BASE/Octavo/DataPath/ALU/AddSub_Carry_Select.v \\
+        $$INSTALL_BASE/Octavo/DataPath/ALU/AddSub_Ripple_Carry.v \\
+        $$INSTALL_BASE/Octavo/DataPath/ALU/Mult.v \\
+        $$INSTALL_BASE/Octavo/DataPath/ALU/Bitwise.v \\
         $$INSTALL_BASE/Octavo/DataPath/ALU/ALU.v \\
         $$INSTALL_BASE/Octavo/DataPath/DataPath.v \\
-        $$INSTALL_BASE/Octavo/Octavo.v \\
-        $$INSTALL_BASE/Octavo/Scalar.v \\
-        $$INSTALL_BASE/Octavo/SIMD.v \\
-        ../${CPU_NAME}.v
+        $$INSTALL_BASE/Octavo/ControlPath/Controller.v \\
+        $$INSTALL_BASE/Octavo/ControlPath/Instr_Decoder.v \\
+        $$INSTALL_BASE/Octavo/ControlPath/ControlPath.v \\
+        $$INSTALL_BASE/Octavo/Memory/Address_Decoder.v \\
+        $$INSTALL_BASE/Octavo/Memory/Address_Translator.v \\
+        $$INSTALL_BASE/Octavo/Memory/IO_Read_Data_Select.v \\
+        $$INSTALL_BASE/Octavo/Memory/IO_Read_Port_Rden.v \\
+        $$INSTALL_BASE/Octavo/Memory/IO_Read_Port_Select.v \\
+        $$INSTALL_BASE/Octavo/Memory/IO_Read_Port.v \\
+        $$INSTALL_BASE/Octavo/Memory/IO_Write_Port.v \\
+        $$INSTALL_BASE/Octavo/Memory/RAM_SDP.v \\
+        $$INSTALL_BASE/Octavo/Memory/Write_Enable.v \\
+        $$INSTALL_BASE/Octavo/Memory/Memory.v \\
+        $$INSTALL_BASE/Octavo/Octavo/Scalar.v \\
+        $$INSTALL_BASE/Octavo/Octavo/SIMD.v \\
+        ../${CPU_NAME}.v \\
 "
 
 VLIB="work"

@@ -2,7 +2,7 @@
 import string
 import random
 
-import misc
+from Misc import misc
 
 install_base = misc.base_install_path()
 
@@ -15,31 +15,6 @@ PROJECT_REVISION = "${PROJECT_NAME}"
     qpf = qpf_template.substitute(all_parameters)
     project_name = all_parameters["PROJECT_NAME"]
     misc.write_file(path, project_name + ".qpf", qpf)
-
-
-def create_SIMD_lane_partition(all_parameters, layer_number, lane_number, path_color, path_id, is_last_layer = False):
-    """Creates one design partition entry for a lane in the last layer."""
-    dp_template = string.Template(
-"""        # start DESIGN_PARTITION(DataPath:Lanes_${LAYER}_${LANE}
-        # -------------------------------------------------------
-        set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id "DataPath:Lanes_${LAYER}_${LANE}" 
-        set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id "DataPath:Lanes_${LAYER}_${LANE}" 
-        set_global_assignment -name PARTITION_COLOR ${PATH_COLOR} -section_id "DataPath:Lanes_${LAYER}_${LANE}" 
-        set_instance_assignment -name PARTITION_HIERARCHY lanes_${PATH_ID} -to "${CPU_NAME}:DUT|Octavo:Octavo|${LAYER_TYPE}|DataPath:Lanes[${LANE}]" -section_id "DataPath:Lanes_${LAYER}_${LANE}"
-        # end DESIGN_PARTITION(DataPath:Lanes_${LAYER}_${LANE})
-        # -----------------------------------------------------
-""")
-    if (is_last_layer == False):
-        layer_type = "SIMD:SIMD_Layers.Layers[" + str(layer_number) + "]"
-    else:
-        layer_type = "SIMD:SIMD_Layer_last.Layer_last"
-    all_parameters.update({"LAYER"      : layer_number,
-                           "LAYER_TYPE" : layer_type,
-                           "LANE"       : lane_number,
-                           "PATH_COLOR" : path_color,
-                           "PATH_ID"    : path_id})
-    dp = dp_template.substitute(all_parameters)
-    return dp
 
 def create_SIMD_passthru_lane_partition(all_parameters, layer_number, path_color, path_id, is_last_layer = False):
     """Creates one design partition entry for the passthru lane in the last layer."""
@@ -96,7 +71,7 @@ def create_Scalar_partition(all_parameters):
         set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id "Scalar:Scalar"
         set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id "Scalar:Scalar"
         set_global_assignment -name PARTITION_COLOR ${COLOR} -section_id "Scalar:Scalar"
-        set_instance_assignment -name PARTITION_HIERARCHY scala_${ID} -to "${CPU_NAME}:DUT|Octavo:Octavo|Scalar:Scalar" -section_id "Scalar:Scalar"
+        set_instance_assignment -name PARTITION_HIERARCHY scala_${ID} -to "${CPU_NAME}:DUT|Scalar:Scalar" -section_id "Scalar:Scalar"
     # end DESIGN_PARTITION(Scalar:Scalar)
     # -----------------------------------
 """)
@@ -118,19 +93,27 @@ set_global_assignment -name NUM_PARALLEL_PROCESSORS ${QUARTUS_NUM_PARALLEL_PROCE
 set_global_assignment -name SDC_FILE ${install_base}/Octavo/Misc/timing.sdc
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Misc/params.v
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Misc/delay_line.v
-set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/DataPath/ALU/AddSub/AddSub_Carry_Select.v
-set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/DataPath/ALU/AddSub/AddSub_Ripple_Carry.v
-set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/DataPath/ALU/Multiplier/Mult.v
-set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/DataPath/ALU/Bitwise/Bitwise.v
+set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/DataPath/ALU/AddSub_Carry_Select.v
+set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/DataPath/ALU/AddSub_Ripple_Carry.v
+set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/DataPath/ALU/Mult.v
+set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/DataPath/ALU/Bitwise.v
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/DataPath/ALU/ALU.v
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/DataPath/DataPath.v
-set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/ControlPath/Controller/Controller.v
-set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/ControlPath/Instr_Decoder/Instr_Decoder.v
+set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/ControlPath/Controller.v
+set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/ControlPath/Instr_Decoder.v
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/ControlPath/ControlPath.v
+set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Memory/Address_Decoder.v
+set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Memory/Address_Translator.v
+set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Memory/IO_Read_Data_Select.v
+set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Memory/IO_Read_Port_Rden.v
+set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Memory/IO_Read_Port_Select.v
+set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Memory/IO_Read_Port.v
+set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Memory/IO_Write_Port.v
+set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Memory/RAM_SDP.v
+set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Memory/Write_Enable.v
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Memory/Memory.v
-set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Octavo.v
-set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/SIMD.v
-set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Scalar.v
+set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Octavo/Scalar.v
+set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Octavo/SIMD.v
 set_global_assignment -name VERILOG_FILE ${install_base}/Harness/output_register.v
 set_global_assignment -name VERILOG_FILE ${install_base}/Harness/shift_register.v
 set_global_assignment -name VERILOG_FILE ${install_base}/Harness/registered_reducer.v
@@ -226,7 +209,7 @@ set_global_assignment -name RTLV_GROUP_COMB_LOGIC_IN_CLOUD_TMV OFF
         set_global_assignment -name LL_ROUGH OFF -section_id "${CPU_NAME}:DUT"
         set_instance_assignment -name LL_MEMBER_OF "${CPU_NAME}:DUT" -to "${CPU_NAME}:DUT" -section_id "${CPU_NAME}:DUT"
         set_instance_assignment -name LL_MEMBER_EXCEPTIONS "MEMORY:DSP" -to "${CPU_NAME}:DUT" -section_id "${CPU_NAME}:DUT"
-		set_instance_assignment -name LL_MEMBER_OF "${CPU_NAME}:DUT" -to "${CPU_NAME}:DUT|Octavo:Octavo|Scalar:Scalar|ControlPath:ControlPath|Controller:Controller|Controller_threads:threads_pc" -section_id "${CPU_NAME}:DUT"
+		set_instance_assignment -name LL_MEMBER_OF "${CPU_NAME}:DUT" -to "${CPU_NAME}:DUT|Scalar:Scalar|ControlPath:ControlPath|Controller:Controller|Controller_threads:threads_pc" -section_id "${CPU_NAME}:DUT"
 
     # end LOGICLOCK_REGION(${CPU_NAME}:DUT)
     # ----------------------------------
@@ -283,10 +266,7 @@ ${SIMD_PARTITIONS}
         scalar_module_partition = ""
 
     # Matches conditional generation in Octavo.v
-    SIMD_layer_count     = all_parameters["SIMD_LAYER_COUNT"]
-    SIMD_lanes_per_layer = all_parameters["SIMD_LANES_PER_LAYER"]
-    SIMD_lanes           = all_parameters["SIMD_LANE_COUNT"]
-    if all_parameters["PARTITION_SIMD_LANES"] == True and SIMD_lanes > 0:
+    if all_parameters["PARTITION_SIMD_LANES"] == True:
         simd_partitions = create_SIMD_partitions_all(all_parameters, SIMD_layer_count, SIMD_lanes_per_layer)
     else:
         simd_partitions = ""

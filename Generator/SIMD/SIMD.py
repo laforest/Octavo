@@ -3,16 +3,15 @@
 import os
 import sys
 
-import misc
-import parameters_misc
-import cpu_parameters 
-import cpu_definition
-import cpu_test_harness
-import cpu_test_bench
+from Misc import misc, parameters_misc
+import SIMD_parameters 
+import SIMD_definition
+import SIMD_test_harness
+import SIMD_test_bench
 
-def cpu(parameters = {}):
-    all_parameters = cpu_parameters.all_parameters(parameters)
-    definition     = cpu_definition.definition(all_parameters)
+def do_build(parameters = {}):
+    all_parameters = SIMD_parameters.all_parameters(parameters)
+    definition     = SIMD_definition.definition(all_parameters)
     name           = all_parameters["CPU_NAME"]
     cpu_dir        = os.path.join(os.getcwd(), name)
     misc.write_file(cpu_dir, name + ".v", definition)
@@ -20,12 +19,12 @@ def cpu(parameters = {}):
                                          name, 
                                          all_parameters)
     os.chdir(cpu_dir)
-    cpu_test_harness.main(all_parameters)
-    cpu_test_bench.main(all_parameters)
+    SIMD_test_harness.main(all_parameters)
+    SIMD_test_bench.main(all_parameters)
     return name
 
-if __name__ == "__main__":
+def build():
     parameters = parameters_misc.parse_cmdline(sys.argv[1:])
-    instance = cpu(parameters)
+    instance = do_build(parameters)
     print instance
 

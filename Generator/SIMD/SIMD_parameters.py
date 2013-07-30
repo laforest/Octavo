@@ -1,14 +1,14 @@
 #! /usr/bin/python
 
 """
-Generates a dict of all Verilog parameters for a specific Octavo instance.
+Generates a dict of all Verilog parameters for a specific SIMD Octavo instance.
 Many parameters are calculated from others.
 """
 
 import string
 
-import parameters_misc
-import misc
+from Misc import parameters_misc
+from Misc import misc
 
 def generate_pipeline_depths(parameters = {}):
     EXTRA_STAGES = parameters.get("EXTRA_STAGES", 0)
@@ -44,7 +44,7 @@ def generate_common_values(parameters = {}):
     common_values = { 
         "FAMILY"          : "Stratix IV",
         "DEVICE"          : "EP4SE230F29C2",
-        "CPU_NAME"        : "Octavo",
+        "CPU_NAME"        : "SIMD",
         # This normally NEVER changes. If you do change it, update the ALU and decoders to match.
         "OPCODE_WIDTH"    : 4,
 
@@ -94,9 +94,8 @@ def generate_SIMD_common_values(common_values, parameters = {}):
                     "TAP_AB_PIPELINE_DEPTH"]
 
     SIMD_base_parameters = {
-        ## Make product of these > 0 to get a SIMD core
-        "SIMD_LAYER_COUNT"               :   0,
-        "SIMD_LANES_PER_LAYER"           :   0,
+        ## Won't build with < 1 Lane, use Scalar instance instead.
+        "SIMD_LANE_COUNT"               :   1,
         ## Contrary to main path, default to 0 since it doesn't get optimized away when partitioning.
         ## and would significantly affect computational density.
         "SIMD_I_PASSTHRU_PIPELINE_DEPTH" :   0,
@@ -144,8 +143,6 @@ def generate_SIMD_common_values(common_values, parameters = {}):
     }
     SIMD_parameters.update(SIMD_base_parameters)
     parameters_misc.override(SIMD_parameters, parameters)
-    ## Convenience parameter, replaces SIMD_DATAPATH_COUNT
-    SIMD_parameters.update({"SIMD_LANE_COUNT" : (SIMD_parameters["SIMD_LAYER_COUNT"] * SIMD_parameters["SIMD_LANES_PER_LAYER"])})
     return SIMD_parameters
 
 def generate_main_parameters(common_values, parameters = {}):
@@ -208,7 +205,6 @@ def generate_resource_diversity_options(parameters = {}):
         "MULT_DOUBLE_PIPE"    : "`TRUE",
         "MULT_HETEROGENEOUS"  : "`FALSE",
         "MULT_USE_DSP"        : "`TRUE",
-        
         "SIMD_ADDSUB_CARRY_SELECT" : "`FALSE",
         "SIMD_MULT_DOUBLE_PIPE"    : "`TRUE",
         "SIMD_MULT_HETEROGENEOUS"  : "`FALSE",
@@ -217,8 +213,9 @@ def generate_resource_diversity_options(parameters = {}):
     return resource_diversity_options
 
 def generate_partition_options(parameters = {}):
+    # Partition by default: grants higher performance
     partition_options = {
-        "PARTITION_SCALAR" : False,
+        "PARTITION_SCALAR"     : False,
         "PARTITION_SIMD_LANES" : False}
     parameters_misc.override(partition_options, parameters)
     return partition_options
@@ -234,16 +231,13 @@ def generate_quartus_options(parameters = {}):
 
 def generate_cpu_name(all_parameters):
     """You can do fancy naming here by refering to parameter names in the template: e.g. ${WORD_WIDTH}"""
-    name_template = string.Template("${CPU_NAME}x${WORD_WIDTH}_A${A_IO_READ_PORT_COUNT}i${A_IO_WRITE_PORT_COUNT}o_B${B_IO_READ_PORT_COUNT}i${B_IO_WRITE_PORT_COUNT}o_SIMD${SIMD_LAYER_COUNT}x${SIMD_LANES_PER_LAYER}x${SIMD_WORD_WIDTH}")
+    name_template = string.Template("${CPU_NAME}x${WORD_WIDTH}_A${A_IO_READ_PORT_COUNT}i${A_IO_WRITE_PORT_COUNT}o_B${B_IO_READ_PORT_COUNT}i${B_IO_WRITE_PORT_COUNT}o_Lanes${SIMD_LANE_COUNT}x${SIMD_WORD_WIDTH}_A${SIMD_A_IO_READ_PORT_COUNT}i${SIMD_A_IO_WRITE_PORT_COUNT}o_B${SIMD_B_IO_READ_PORT_COUNT}i${SIMD_B_IO_WRITE_PORT_COUNT}o")
     name = name_template.substitute(all_parameters)
     return {"CPU_NAME":name}
 
 def adjust_I_pipelines(all_parameters):
     if (all_parameters["SIMD_LANE_COUNT"] > 0):
         all_parameters["I_PASSTHRU_PIPELINE_DEPTH"] = 1
-    ## Add a pipeline stage 
-    if(all_parameters["SIMD_LAYER_COUNT"] > 1):
-        all_parameters["SIMD_I_PASSTHRU_PIPELINE_DEPTH"] = 1
     return all_parameters
 
 def generate_logiclock_parameters(parameters = {}):

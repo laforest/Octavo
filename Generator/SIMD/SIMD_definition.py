@@ -1,7 +1,7 @@
 #! /usr/bin/python
 
 """
-Generates a parametrized cpu definition around a raw Octavo instance.
+Generates a parametrized SIMD instance.
 """
 
 import string
@@ -100,34 +100,48 @@ def definition(all_parameters):
     parameter       SIMD_MULT_HETEROGENEOUS         = ${SIMD_MULT_HETEROGENEOUS},    
     parameter       SIMD_MULT_USE_DSP               = ${SIMD_MULT_USE_DSP},
 
-    parameter       SIMD_LAYER_COUNT                = ${SIMD_LAYER_COUNT},
-    parameter       SIMD_LANES_PER_LAYER            = ${SIMD_LANES_PER_LAYER}
+    parameter       SIMD_LANE_COUNT                 = ${SIMD_LANE_COUNT}
 )
 (
-    input   wire                                                                                                                                                    clock,
-    input   wire                                                                                                                                                    half_clock,
+    input   wire                                                                               clock,
+    input   wire                                                                               half_clock,
 
     // Memory write enables for external control by accelerators
-    input   wire                                                                                                                                                    I_wren_other,
-    input   wire    [(SIMD_LAYER_COUNT * SIMD_LANES_PER_LAYER):0]                                                                                                   A_wren_other,
-    input   wire    [(SIMD_LAYER_COUNT * SIMD_LANES_PER_LAYER):0]                                                                                                   B_wren_other,
+    input   wire                                                                               I_wren_other,
+    input   wire                                                                               A_wren_other,
+    input   wire                                                                               B_wren_other,
+    input   wire    [SIMD_LANE_COUNT-1:0]                                                      SIMD_A_wren_other,
+    input   wire    [SIMD_LANE_COUNT-1:0]                                                      SIMD_B_wren_other,
 
-    // ALU AddSub carry-in/out for external control by accelerators
-    input   wire    [(SIMD_LAYER_COUNT * SIMD_LANES_PER_LAYER):0]                                                                                                   ALU_c_in,
-    output  wire    [(SIMD_LAYER_COUNT * SIMD_LANES_PER_LAYER):0]                                                                                                   ALU_c_out,
+    // ALU AddSub carry-in/out for external control by accelerators                            
+    input   wire                                                                               ALU_c_in,
+    output  wire                                                                               ALU_c_out,
+    input   wire    [SIMD_LANE_COUNT-1:0]                                                      SIMD_ALU_c_in,
+    output  wire    [SIMD_LANE_COUNT-1:0]                                                      SIMD_ALU_c_out,
 
-    output  wire    [((               A_IO_READ_PORT_COUNT)  + (                    SIMD_A_IO_READ_PORT_COUNT  * (SIMD_LAYER_COUNT * SIMD_LANES_PER_LAYER)))-1:0]   A_rden,
-    input   wire    [((A_WORD_WIDTH * A_IO_READ_PORT_COUNT)  + (SIMD_A_WORD_WIDTH * SIMD_A_IO_READ_PORT_COUNT  * (SIMD_LAYER_COUNT * SIMD_LANES_PER_LAYER)))-1:0]   A_in,
-    output  wire    [((               A_IO_WRITE_PORT_COUNT) + (                    SIMD_A_IO_WRITE_PORT_COUNT * (SIMD_LAYER_COUNT * SIMD_LANES_PER_LAYER)))-1:0]   A_wren,
-    output  wire    [((A_WORD_WIDTH * A_IO_WRITE_PORT_COUNT) + (SIMD_A_WORD_WIDTH * SIMD_A_IO_WRITE_PORT_COUNT * (SIMD_LAYER_COUNT * SIMD_LANES_PER_LAYER)))-1:0]   A_out,
+    // Scalar I/O
+    output  wire    [(               A_IO_READ_PORT_COUNT)-1:0]                                A_io_rden,
+    input   wire    [(A_WORD_WIDTH * A_IO_READ_PORT_COUNT)-1:0]                                A_io_in,
+    output  wire    [(               A_IO_WRITE_PORT_COUNT)-1:0]                               A_io_wren,
+    output  wire    [(A_WORD_WIDTH * A_IO_WRITE_PORT_COUNT)-1:0]                               A_io_out,
 
-    output  wire    [((               B_IO_READ_PORT_COUNT)  + (                    SIMD_B_IO_READ_PORT_COUNT  * (SIMD_LAYER_COUNT * SIMD_LANES_PER_LAYER)))-1:0]   B_rden,
-    input   wire    [((B_WORD_WIDTH * B_IO_READ_PORT_COUNT)  + (SIMD_B_WORD_WIDTH * SIMD_B_IO_READ_PORT_COUNT  * (SIMD_LAYER_COUNT * SIMD_LANES_PER_LAYER)))-1:0]   B_in,
-    output  wire    [((               B_IO_WRITE_PORT_COUNT) + (                    SIMD_B_IO_WRITE_PORT_COUNT * (SIMD_LAYER_COUNT * SIMD_LANES_PER_LAYER)))-1:0]   B_wren,
-    output  wire    [((B_WORD_WIDTH * B_IO_WRITE_PORT_COUNT) + (SIMD_B_WORD_WIDTH * SIMD_B_IO_WRITE_PORT_COUNT * (SIMD_LAYER_COUNT * SIMD_LANES_PER_LAYER)))-1:0]   B_out
+    output  wire    [(               B_IO_READ_PORT_COUNT)-1:0]                                B_io_rden,
+    input   wire    [(B_WORD_WIDTH * B_IO_READ_PORT_COUNT)-1:0]                                B_io_in,
+    output  wire    [(               B_IO_WRITE_PORT_COUNT)-1:0]                               B_io_wren,
+    output  wire    [(B_WORD_WIDTH * B_IO_WRITE_PORT_COUNT)-1:0]                               B_io_out,
 
+    // SIMD I/O
+    output  wire    [(                    SIMD_A_IO_READ_PORT_COUNT  * SIMD_LANE_COUNT)-1:0]   SIMD_A_io_rden,
+    input   wire    [(SIMD_A_WORD_WIDTH * SIMD_A_IO_READ_PORT_COUNT  * SIMD_LANE_COUNT)-1:0]   SIMD_A_io_in,
+    output  wire    [(                    SIMD_A_IO_WRITE_PORT_COUNT * SIMD_LANE_COUNT)-1:0]   SIMD_A_io_wren,
+    output  wire    [(SIMD_A_WORD_WIDTH * SIMD_A_IO_WRITE_PORT_COUNT * SIMD_LANE_COUNT)-1:0]   SIMD_A_io_out,
+
+    output  wire    [(                    SIMD_B_IO_READ_PORT_COUNT  * SIMD_LANE_COUNT)-1:0]   SIMD_B_io_rden,
+    input   wire    [(SIMD_B_WORD_WIDTH * SIMD_B_IO_READ_PORT_COUNT  * SIMD_LANE_COUNT)-1:0]   SIMD_B_io_in,
+    output  wire    [(                    SIMD_B_IO_WRITE_PORT_COUNT * SIMD_LANE_COUNT)-1:0]   SIMD_B_io_wren,
+    output  wire    [(SIMD_B_WORD_WIDTH * SIMD_B_IO_WRITE_PORT_COUNT * SIMD_LANE_COUNT)-1:0]   SIMD_B_io_out
 );
-    Octavo
+    SIMD
     #(
         .ALU_WORD_WIDTH                     (ALU_WORD_WIDTH),                 
         .SIMD_ALU_WORD_WIDTH                (SIMD_ALU_WORD_WIDTH),                 
@@ -202,13 +216,9 @@ def definition(all_parameters):
         .TAP_AB_PIPELINE_DEPTH              (TAP_AB_PIPELINE_DEPTH),
         .I_PASSTHRU_PIPELINE_DEPTH          (I_PASSTHRU_PIPELINE_DEPTH),
         .AB_READ_PIPELINE_DEPTH             (AB_READ_PIPELINE_DEPTH),
-
-        .SIMD_I_PASSTHRU_PIPELINE_DEPTH     (SIMD_I_PASSTHRU_PIPELINE_DEPTH),
-        .SIMD_TAP_AB_PIPELINE_DEPTH         (SIMD_TAP_AB_PIPELINE_DEPTH),
-
         .AB_ALU_PIPELINE_DEPTH              (AB_ALU_PIPELINE_DEPTH),
-        .LOGIC_OPCODE_WIDTH                 (LOGIC_OPCODE_WIDTH),
 
+        .LOGIC_OPCODE_WIDTH                 (LOGIC_OPCODE_WIDTH),
         .ADDSUB_CARRY_SELECT                (ADDSUB_CARRY_SELECT),
         .MULT_DOUBLE_PIPE                   (MULT_DOUBLE_PIPE),
         .MULT_HETEROGENEOUS                 (MULT_HETEROGENEOUS),
@@ -219,30 +229,43 @@ def definition(all_parameters):
         .SIMD_MULT_HETEROGENEOUS            (SIMD_MULT_HETEROGENEOUS),
         .SIMD_MULT_USE_DSP                  (SIMD_MULT_USE_DSP),
 
-        .SIMD_LAYER_COUNT                   (SIMD_LAYER_COUNT),
-        .SIMD_LANES_PER_LAYER               (SIMD_LANES_PER_LAYER)
+        .SIMD_LANE_COUNT                    (SIMD_LANE_COUNT)
     )
-    Octavo
+    SIMD
     (
         .clock                              (clock),
         .half_clock                         (half_clock),
-
-        .I_wren_other                       (I_wren_other),        
-        .A_wren_other                       (A_wren_other),        
-        .B_wren_other                       (B_wren_other),        
-
+        
+        .I_wren_other                       (I_wren_other),
+        .A_wren_other                       (A_wren_other),
+        .B_wren_other                       (B_wren_other),
+        .SIMD_A_wren_other                  (SIMD_A_wren_other),
+        .SIMD_B_wren_other                  (SIMD_B_wren_other),
+        
         .ALU_c_in                           (ALU_c_in),
         .ALU_c_out                          (ALU_c_out),
-
-        .A_io_rden                          (A_rden),
-        .A_io_in                            (A_in),
-        .A_io_out                           (A_out),
-        .A_io_wren                          (A_wren),
+        .SIMD_ALU_c_in                      (SIMD_ALU_c_in),
+        .SIMD_ALU_c_out                     (SIMD_ALU_c_out),
         
-        .B_io_rden                          (B_rden),
-        .B_io_in                            (B_in),
-        .B_io_out                           (B_out),
-        .B_io_wren                          (B_wren)
+        .A_io_rden                          (A_io_rden),
+        .A_io_in                            (A_io_in),
+        .A_io_wren                          (A_io_wren),
+        .A_io_out                           (A_io_out),
+
+        .B_io_rden                          (B_io_rden),
+        .B_io_in                            (B_io_in),
+        .B_io_wren                          (B_io_wren),
+        .B_io_out                           (B_io_out),
+        
+        .SIMD_A_io_rden                     (SIMD_A_io_rden),
+        .SIMD_A_io_in                       (SIMD_A_io_in),
+        .SIMD_A_io_wren                     (SIMD_A_io_wren),
+        .SIMD_A_io_out                      (SIMD_A_io_out),
+
+        .SIMD_B_io_rden                     (SIMD_B_io_rden),
+        .SIMD_B_io_in                       (SIMD_B_io_in),
+        .SIMD_B_io_wren                     (SIMD_B_io_wren),
+        .SIMD_B_io_out                      (SIMD_B_io_out)
     );
 endmodule
 """)
@@ -251,8 +274,8 @@ endmodule
 
 
 if __name__ == "__main__":
-    import cpu_parameters as cp
-    all_parameters = cp.all_parameters()
+    import SIMD_parameters as sp
+    all_parameters = sp.all_parameters()
     this_cpu = definition(all_parameters)
     print this_cpu
 
