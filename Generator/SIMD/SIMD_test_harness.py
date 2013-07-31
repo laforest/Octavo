@@ -119,25 +119,25 @@ def test_harness(parameters, default_memory_init = default_memory_init, install_
         .SIMD_ALU_c_in      (SIMD_ALU_C_IN_DEFAULT),
         .SIMD_ALU_c_out     (),
 
-        .A_io_rden             (dut_A_rden),
-        .A_io_in               (dut_A_in),
-        .A_io_wren             (dut_A_wren),
-        .A_io_out              (dut_A_out),
+        .A_rden             (dut_A_rden),
+        .A_in               (dut_A_in),
+        .A_wren             (dut_A_wren),
+        .A_out              (dut_A_out),
 
-        .B_io_rden             (dut_B_rden),
-        .B_io_in               (dut_B_in),
-        .B_io_wren             (dut_B_wren),
-        .B_io_out              (dut_B_out),
+        .B_rden             (dut_B_rden),
+        .B_in               (dut_B_in),
+        .B_wren             (dut_B_wren),
+        .B_out              (dut_B_out),
 
-        .SIMD_A_io_rden        (dut_SIMD_A_rden),
-        .SIMD_A_io_in          (dut_SIMD_A_in),
-        .SIMD_A_io_wren        (dut_SIMD_A_wren),
-        .SIMD_A_io_out         (dut_SIMD_A_out),
+        .SIMD_A_rden        (dut_SIMD_A_rden),
+        .SIMD_A_in          (dut_SIMD_A_in),
+        .SIMD_A_wren        (dut_SIMD_A_wren),
+        .SIMD_A_out         (dut_SIMD_A_out),
 
-        .SIMD_B_io_rden        (dut_SIMD_B_rden),
-        .SIMD_B_io_in          (dut_SIMD_B_in),
-        .SIMD_B_io_wren        (dut_SIMD_B_wren),
-        .SIMD_B_io_out         (dut_SIMD_B_out)
+        .SIMD_B_rden        (dut_SIMD_B_rden),
+        .SIMD_B_in          (dut_SIMD_B_in),
+        .SIMD_B_wren        (dut_SIMD_B_wren),
+        .SIMD_B_out         (dut_SIMD_B_out)
     );
 
 

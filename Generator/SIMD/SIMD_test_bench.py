@@ -6,10 +6,11 @@ import sys
 
 from Misc import misc, parameters_misc
 
-default_bench = "Hailstone/hailstone_numbers"
-install_base = misc.base_install_path()
+default_bench       = "Hailstone/hailstone_numbers"
+SIMD_default_bench  = "Hailstone/${SIMD_MEM_INIT_FILE_PREFIX}hailstone_numbers"
+install_base        = misc.base_install_path()
 
-def test_bench(parameters, default_bench = default_bench, install_base = install_base):
+def test_bench(parameters, default_bench = default_bench, SIMD_default_bench = SIMD_default_bench, install_base = install_base):
     assembler_base = os.path.join(install_base, "Assembler")
     test_bench_template = string.Template(
 """module ${CPU_NAME}_test_bench
@@ -35,8 +36,8 @@ def test_bench(parameters, default_bench = default_bench, install_base = install
     parameter       B_INIT_FILE                 = "${assembler_base}/${default_bench}.mem",
     parameter       I_INIT_FILE                 = "${assembler_base}/${default_bench}.mem",
     parameter       PC_INIT_FILE                = "${assembler_base}/${default_bench}.pc",
-    parameter       SIMD_A_INIT_FILE            = "${assembler_base}/${SIMD_MEM_INIT_FILE_PREFIX}${default_bench}.mem",
-    parameter       SIMD_B_INIT_FILE            = "${assembler_base}/${SIMD_MEM_INIT_FILE_PREFIX}${default_bench}.mem"
+    parameter       SIMD_A_INIT_FILE            = "${assembler_base}/${SIMD_default_bench}.mem",
+    parameter       SIMD_B_INIT_FILE            = "${assembler_base}/${SIMD_default_bench}.mem"
 )
 (
     output  reg     [(A_WORD_WIDTH * A_IO_READ_PORT_COUNT)-1:0]                                 A_in,
@@ -69,6 +70,8 @@ def test_bench(parameters, default_bench = default_bench, install_base = install
         half_clock  = 0;
         A_in        = 0;
         B_in        = 0;
+        SIMD_A_in   = 0;
+        SIMD_B_in   = 0;
         `DELAY_CLOCK_CYCLES(1000) $$stop;
     end
 
@@ -88,12 +91,18 @@ def test_bench(parameters, default_bench = default_bench, install_base = install
         `DELAY_CLOCK_CYCLES(300)
         A_in        = -1;
         B_in        = -1;
+        SIMD_A_in   = -1;
+        SIMD_B_in   = -1;
         `DELAY_CLOCK_CYCLES(300)
         A_in        = 0;
         B_in        = 0;
+        SIMD_A_in   = 0;
+        SIMD_B_in   = 0;
         `DELAY_CLOCK_CYCLES(300)
         A_in        = -1;
         B_in        = -1;
+        SIMD_A_in   = -1;
+        SIMD_B_in   = -1;
     end
 
     localparam SIMD_WREN_OTHER_DEFAULT  = {(SIMD_LANE_COUNT){`HIGH}};
@@ -134,7 +143,7 @@ def test_bench(parameters, default_bench = default_bench, install_base = install
         .B_in               (B_in),
         .B_rden             (B_rden),
         .B_out              (B_out),
-        .B_wren             (B_wren)
+        .B_wren             (B_wren),
 
         .SIMD_A_in          (SIMD_A_in),
         .SIMD_A_rden        (SIMD_A_rden),
@@ -148,11 +157,12 @@ def test_bench(parameters, default_bench = default_bench, install_base = install
     );
 endmodule
 """)
-    parameters["default_bench"] = default_bench
-    parameters["assembler_base"] = assembler_base
+    parameters["default_bench"]         = default_bench
+    parameters["SIMD_default_bench"]    = SIMD_default_bench
+    parameters["assembler_base"]        = assembler_base
     return test_bench_template.substitute(parameters)
 
-def test_bench_script(parameters, default_bench = default_bench, install_base = install_base):
+def test_bench_script(parameters, default_bench = default_bench, SIMD_default_bench = SIMD_default_bench, install_base = install_base):
     test_bench_script_template = string.Template(
 """#! /bin/bash
 
@@ -160,6 +170,7 @@ INSTALL_BASE="${install_base}"
 
 TOP_LEVEL_MODULE="${CPU_NAME}_test_bench"
 TESTBENCH="./$${TOP_LEVEL_MODULE}.v"
+LOG_FILE="LOG_MODELSIM"
 
 LPM_LIBRARY="/pkgs/altera/quartus/quartus12.1/linux/quartus/eda/sim_lib/220model.v"
 ALT_LIBRARY="/pkgs/altera/quartus/quartus12.1/linux/quartus/eda/sim_lib/altera_mf.v"
@@ -195,14 +206,15 @@ VLIB="work"
 VSIM_ACTIONS="vcd file $$TOP_LEVEL_MODULE.vcd ; vcd add -r /* ; run -all ; quit"
 
 rm $$TOP_LEVEL_MODULE.wlf $$TOP_LEVEL_MODULE.vcd
-vlib $$VLIB 2>&1 > /dev/null
-vlog -mfcu -incr -lint $$LPM_LIBRARY $$ALT_LIBRARY $$OCTAVO $$TESTBENCH 2>&1 > /dev/null
-vsim -voptargs="+acc" -c -do "$$VSIM_ACTIONS" $$TOP_LEVEL_MODULE 2>&1 > /dev/null
-vcd2wlf $$TOP_LEVEL_MODULE.vcd $$TOP_LEVEL_MODULE.wlf 2>&1 > /dev/null
+vlib $$VLIB 2>&1 > $$LOG_FILE
+vlog -mfcu -incr -lint $$LPM_LIBRARY $$ALT_LIBRARY $$OCTAVO $$TESTBENCH 2>&1 > $$LOG_FILE
+vsim -voptargs="+acc" -c -do "$$VSIM_ACTIONS" $$TOP_LEVEL_MODULE 2>&1 > $$LOG_FILE
+vcd2wlf $$TOP_LEVEL_MODULE.vcd $$TOP_LEVEL_MODULE.wlf 2>&1 > $$LOG_FILE
 rm vsim.wlf
 """)
-    parameters["default_bench"] = default_bench
-    parameters["install_base"] = install_base
+    parameters["default_bench"]         = default_bench
+    parameters["SIMD_default_bench"]    = SIMD_default_bench
+    parameters["install_base"]          = install_base
     return test_bench_script_template.substitute(parameters)
 
 def main(parameters = {}):

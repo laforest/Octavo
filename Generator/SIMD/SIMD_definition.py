@@ -120,26 +120,26 @@ def definition(all_parameters):
     output  wire    [SIMD_LANE_COUNT-1:0]                                                      SIMD_ALU_c_out,
 
     // Scalar I/O
-    output  wire    [(               A_IO_READ_PORT_COUNT)-1:0]                                A_io_rden,
-    input   wire    [(A_WORD_WIDTH * A_IO_READ_PORT_COUNT)-1:0]                                A_io_in,
-    output  wire    [(               A_IO_WRITE_PORT_COUNT)-1:0]                               A_io_wren,
-    output  wire    [(A_WORD_WIDTH * A_IO_WRITE_PORT_COUNT)-1:0]                               A_io_out,
+    output  wire    [(               A_IO_READ_PORT_COUNT)-1:0]                                A_rden,
+    input   wire    [(A_WORD_WIDTH * A_IO_READ_PORT_COUNT)-1:0]                                A_in,
+    output  wire    [(               A_IO_WRITE_PORT_COUNT)-1:0]                               A_wren,
+    output  wire    [(A_WORD_WIDTH * A_IO_WRITE_PORT_COUNT)-1:0]                               A_out,
 
-    output  wire    [(               B_IO_READ_PORT_COUNT)-1:0]                                B_io_rden,
-    input   wire    [(B_WORD_WIDTH * B_IO_READ_PORT_COUNT)-1:0]                                B_io_in,
-    output  wire    [(               B_IO_WRITE_PORT_COUNT)-1:0]                               B_io_wren,
-    output  wire    [(B_WORD_WIDTH * B_IO_WRITE_PORT_COUNT)-1:0]                               B_io_out,
+    output  wire    [(               B_IO_READ_PORT_COUNT)-1:0]                                B_rden,
+    input   wire    [(B_WORD_WIDTH * B_IO_READ_PORT_COUNT)-1:0]                                B_in,
+    output  wire    [(               B_IO_WRITE_PORT_COUNT)-1:0]                               B_wren,
+    output  wire    [(B_WORD_WIDTH * B_IO_WRITE_PORT_COUNT)-1:0]                               B_out,
 
     // SIMD I/O
-    output  wire    [(                    SIMD_A_IO_READ_PORT_COUNT  * SIMD_LANE_COUNT)-1:0]   SIMD_A_io_rden,
-    input   wire    [(SIMD_A_WORD_WIDTH * SIMD_A_IO_READ_PORT_COUNT  * SIMD_LANE_COUNT)-1:0]   SIMD_A_io_in,
-    output  wire    [(                    SIMD_A_IO_WRITE_PORT_COUNT * SIMD_LANE_COUNT)-1:0]   SIMD_A_io_wren,
-    output  wire    [(SIMD_A_WORD_WIDTH * SIMD_A_IO_WRITE_PORT_COUNT * SIMD_LANE_COUNT)-1:0]   SIMD_A_io_out,
+    output  wire    [(                    SIMD_A_IO_READ_PORT_COUNT  * SIMD_LANE_COUNT)-1:0]   SIMD_A_rden,
+    input   wire    [(SIMD_A_WORD_WIDTH * SIMD_A_IO_READ_PORT_COUNT  * SIMD_LANE_COUNT)-1:0]   SIMD_A_in,
+    output  wire    [(                    SIMD_A_IO_WRITE_PORT_COUNT * SIMD_LANE_COUNT)-1:0]   SIMD_A_wren,
+    output  wire    [(SIMD_A_WORD_WIDTH * SIMD_A_IO_WRITE_PORT_COUNT * SIMD_LANE_COUNT)-1:0]   SIMD_A_out,
 
-    output  wire    [(                    SIMD_B_IO_READ_PORT_COUNT  * SIMD_LANE_COUNT)-1:0]   SIMD_B_io_rden,
-    input   wire    [(SIMD_B_WORD_WIDTH * SIMD_B_IO_READ_PORT_COUNT  * SIMD_LANE_COUNT)-1:0]   SIMD_B_io_in,
-    output  wire    [(                    SIMD_B_IO_WRITE_PORT_COUNT * SIMD_LANE_COUNT)-1:0]   SIMD_B_io_wren,
-    output  wire    [(SIMD_B_WORD_WIDTH * SIMD_B_IO_WRITE_PORT_COUNT * SIMD_LANE_COUNT)-1:0]   SIMD_B_io_out
+    output  wire    [(                    SIMD_B_IO_READ_PORT_COUNT  * SIMD_LANE_COUNT)-1:0]   SIMD_B_rden,
+    input   wire    [(SIMD_B_WORD_WIDTH * SIMD_B_IO_READ_PORT_COUNT  * SIMD_LANE_COUNT)-1:0]   SIMD_B_in,
+    output  wire    [(                    SIMD_B_IO_WRITE_PORT_COUNT * SIMD_LANE_COUNT)-1:0]   SIMD_B_wren,
+    output  wire    [(SIMD_B_WORD_WIDTH * SIMD_B_IO_WRITE_PORT_COUNT * SIMD_LANE_COUNT)-1:0]   SIMD_B_out
 );
     SIMD
     #(
@@ -247,25 +247,25 @@ def definition(all_parameters):
         .SIMD_ALU_c_in                      (SIMD_ALU_c_in),
         .SIMD_ALU_c_out                     (SIMD_ALU_c_out),
         
-        .A_io_rden                          (A_io_rden),
-        .A_io_in                            (A_io_in),
-        .A_io_wren                          (A_io_wren),
-        .A_io_out                           (A_io_out),
+        .A_io_rden                          (A_rden),
+        .A_io_in                            (A_in),
+        .A_io_wren                          (A_wren),
+        .A_io_out                           (A_out),
 
-        .B_io_rden                          (B_io_rden),
-        .B_io_in                            (B_io_in),
-        .B_io_wren                          (B_io_wren),
-        .B_io_out                           (B_io_out),
+        .B_io_rden                          (B_rden),
+        .B_io_in                            (B_in),
+        .B_io_wren                          (B_wren),
+        .B_io_out                           (B_out),
         
-        .SIMD_A_io_rden                     (SIMD_A_io_rden),
-        .SIMD_A_io_in                       (SIMD_A_io_in),
-        .SIMD_A_io_wren                     (SIMD_A_io_wren),
-        .SIMD_A_io_out                      (SIMD_A_io_out),
+        .SIMD_A_io_rden                     (SIMD_A_rden),
+        .SIMD_A_io_in                       (SIMD_A_in),
+        .SIMD_A_io_wren                     (SIMD_A_wren),
+        .SIMD_A_io_out                      (SIMD_A_out),
 
-        .SIMD_B_io_rden                     (SIMD_B_io_rden),
-        .SIMD_B_io_in                       (SIMD_B_io_in),
-        .SIMD_B_io_wren                     (SIMD_B_io_wren),
-        .SIMD_B_io_out                      (SIMD_B_io_out)
+        .SIMD_B_io_rden                     (SIMD_B_rden),
+        .SIMD_B_io_in                       (SIMD_B_in),
+        .SIMD_B_io_wren                     (SIMD_B_wren),
+        .SIMD_B_io_out                      (SIMD_B_out)
     );
 endmodule
 """)
