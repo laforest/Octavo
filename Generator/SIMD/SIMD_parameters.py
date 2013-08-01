@@ -215,8 +215,8 @@ def generate_resource_diversity_options(parameters = {}):
 def generate_partition_options(parameters = {}):
     # Partition by default: grants higher performance
     partition_options = {
-        "PARTITION_SCALAR"     : False,
-        "PARTITION_SIMD_LANES" : False}
+        "PARTITION_SCALAR"     : True,
+        "PARTITION_SIMD_LANES" : True}
     parameters_misc.override(partition_options, parameters)
     return partition_options
 

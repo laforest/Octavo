@@ -16,64 +16,51 @@ PROJECT_REVISION = "${PROJECT_NAME}"
     project_name = all_parameters["PROJECT_NAME"]
     misc.write_file(path, project_name + ".qpf", qpf)
 
-def create_SIMD_passthru_lane_partition(all_parameters, layer_number, path_color, path_id, is_last_layer = False):
-    """Creates one design partition entry for the passthru lane in the last layer."""
+def create_SIMD_lane_partition(all_parameters, lane_number, path_color, path_id):
+    """Creates one design partition entry for a SIMD Lane."""
     dp_template = string.Template(
-"""        # start DESIGN_PARTITION(DataPath:Lane_Passthru_${LAYER}
-        # -------------------------------------------------------
-        set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id "DataPath:Lane_Passthru_${LAYER}" 
-        set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id "DataPath:Lane_Passthru_${LAYER}" 
-        set_global_assignment -name PARTITION_COLOR ${PATH_COLOR} -section_id "DataPath:Lane_Passthru_${LAYER}" 
-        set_instance_assignment -name PARTITION_HIERARCHY lanes_${PATH_ID} -to "${CPU_NAME}:DUT|Octavo:Octavo|${LAYER_TYPE}|DataPath:Lane_Passthru" -section_id "DataPath:Lane_Passthru_${LAYER}"
-        # end DESIGN_PARTITION(DataPath:Lane_Passthru_${LAYER})
-        # -----------------------------------------------------
+"""# start DESIGN_PARTITION(DataPath:SIMD_Lane_${LANE}_)
+# -------------------------------------------------------
+set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id "DataPath:SIMD_Lane_${LANE}_" 
+set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id "DataPath:SIMD_Lane_${LANE}_" 
+set_global_assignment -name PARTITION_COLOR ${PATH_COLOR} -section_id "DataPath:SIMD_Lane_${LANE}_" 
+set_instance_assignment -name PARTITION_HIERARCHY simdl_${PATH_ID} -to "${CPU_NAME}:DUT|SIMD:SIMD|DataPath:SIMD_Lane[${LANE}]" -section_id "DataPath:SIMD_Lane_${LANE}_"
+# end DESIGN_PARTITION(DataPath:SIMD_Lane_${LANE}_)
+# -----------------------------------------------------
 """)
-    if (is_last_layer == False):
-        layer_type = "SIMD:SIMD_Layers.Layers[" + str(layer_number) + "]"
-    else:
-        layer_type = "SIMD:SIMD_Layer_last.Layer_last"
-    all_parameters.update({"LAYER"      : layer_number,
-                           "LAYER_TYPE" : layer_type,
+    all_parameters.update({"LANE"       : lane_number,
                            "PATH_COLOR" : path_color,
                            "PATH_ID"    : path_id})
     dp = dp_template.substitute(all_parameters)
     return dp
 
-def random_20bit_hex():
+def random_id():
     rnd = random.getrandbits(20)
     return hex(rnd)[2:-1] # chop '0x' and 'L', leaving bare number
 
 def random_color():
     return abs(int(random.getrandbits(24)))
 
-def create_SIMD_partitions_all(all_parameters, layer_count, lanes_per_layer):
+def create_SIMD_lane_partition_all(all_parameters, lane_count):
     partitions = []
-    layers = range(0, layer_count)
-    lanes = range(0, lanes_per_layer-1)
-    for layer in layers:
-        if(layer == layer_count-1):
-            is_last_layer = True
-        else:
-            is_last_layer = False
-        partition = create_SIMD_passthru_lane_partition(all_parameters, layer, random_color(), random_20bit_hex(), is_last_layer)
+    lanes = range(0, lane_count)
+    for lane in lanes:
+        partition = create_SIMD_lane_partition(all_parameters, lane, random_color(), random_id())
         partitions.append(partition)
-        for lane in lanes:
-            partition = create_SIMD_lane_partition(all_parameters, layer, lane, random_color(), random_20bit_hex(), is_last_layer)
-            partitions.append(partition)
     return "\n".join(partitions)
 
 def create_Scalar_partition(all_parameters):
     color = random_color()
-    partition_id = random_20bit_hex()
+    partition_id = random_id()
     dp_template = string.Template(
-"""        # start DESIGN_PARTITION(Scalar:Scalar)
-    # -------------------------------------
-        set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id "Scalar:Scalar"
-        set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id "Scalar:Scalar"
-        set_global_assignment -name PARTITION_COLOR ${COLOR} -section_id "Scalar:Scalar"
-        set_instance_assignment -name PARTITION_HIERARCHY scala_${ID} -to "${CPU_NAME}:DUT|Scalar:Scalar" -section_id "Scalar:Scalar"
-    # end DESIGN_PARTITION(Scalar:Scalar)
-    # -----------------------------------
+"""# start DESIGN_PARTITION(Scalar:Scalar)
+# -------------------------------------
+set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id "Scalar:Scalar"
+set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id "Scalar:Scalar"
+set_global_assignment -name PARTITION_COLOR ${COLOR} -section_id "Scalar:Scalar"
+set_instance_assignment -name PARTITION_HIERARCHY scala_${ID} -to "${CPU_NAME}:DUT|SIMD:SIMD|Scalar:Scalar" -section_id "Scalar:Scalar"
+# end DESIGN_PARTITION(Scalar:Scalar)
+# -----------------------------------
 """)
     all_parameters.update({"COLOR"  : color,
                            "ID"     : partition_id})
@@ -191,66 +178,57 @@ set_global_assignment -name RTLV_GROUP_COMB_LOGIC_IN_CLOUD_TMV OFF
 # -----------------------------------
 # start ENTITY(${PROJECT_NAME})
 
-    # start LOGICLOCK_REGION(${CPU_NAME}:DUT)
-    # ------------------------------------
+# start LOGICLOCK_REGION(${CPU_NAME}:DUT)
+# ------------------------------------
+# LogicLock Region Assignments
+# ============================
+set_global_assignment -name LL_ENABLED ${LL_ENABLED} -section_id "${CPU_NAME}:DUT"
+set_global_assignment -name LL_RESERVED ${LL_RESERVED} -section_id "${CPU_NAME}:DUT"
+set_global_assignment -name LL_SECURITY_ROUTING_INTERFACE OFF -section_id "${CPU_NAME}:DUT"
+set_global_assignment -name LL_IGNORE_IO_BANK_SECURITY_CONSTRAINT OFF -section_id "${CPU_NAME}:DUT"
+set_global_assignment -name LL_PR_REGION OFF -section_id "${CPU_NAME}:DUT"
+set_global_assignment -name LL_HEIGHT ${LL_HEIGHT} -section_id "${CPU_NAME}:DUT"
+set_global_assignment -name LL_WIDTH ${LL_WIDTH} -section_id "${CPU_NAME}:DUT"
+set_global_assignment -name LL_ORIGIN ${LL_ORIGIN} -section_id "${CPU_NAME}:DUT"
+set_global_assignment -name LL_STATE FLOATING -section_id "${CPU_NAME}:DUT"
+set_global_assignment -name LL_AUTO_SIZE ${LL_AUTO_SIZE} -section_id "${CPU_NAME}:DUT"
+set_global_assignment -name LL_ROUGH OFF -section_id "${CPU_NAME}:DUT"
+set_instance_assignment -name LL_MEMBER_OF "${CPU_NAME}:DUT" -to "${CPU_NAME}:DUT" -section_id "${CPU_NAME}:DUT"
+set_instance_assignment -name LL_MEMBER_EXCEPTIONS "MEMORY:DSP" -to "${CPU_NAME}:DUT" -section_id "${CPU_NAME}:DUT"
+set_instance_assignment -name LL_MEMBER_OF "${CPU_NAME}:DUT" -to "${CPU_NAME}:DUT|Scalar:Scalar|ControlPath:ControlPath|Controller:Controller|Controller_threads:threads_pc" -section_id "${CPU_NAME}:DUT"
+# end LOGICLOCK_REGION(${CPU_NAME}:DUT)
+# ----------------------------------
 
-        # LogicLock Region Assignments
-        # ============================
-        set_global_assignment -name LL_ENABLED ${LL_ENABLED} -section_id "${CPU_NAME}:DUT"
-        set_global_assignment -name LL_RESERVED ${LL_RESERVED} -section_id "${CPU_NAME}:DUT"
-        set_global_assignment -name LL_SECURITY_ROUTING_INTERFACE OFF -section_id "${CPU_NAME}:DUT"
-        set_global_assignment -name LL_IGNORE_IO_BANK_SECURITY_CONSTRAINT OFF -section_id "${CPU_NAME}:DUT"
-        set_global_assignment -name LL_PR_REGION OFF -section_id "${CPU_NAME}:DUT"
-        set_global_assignment -name LL_HEIGHT ${LL_HEIGHT} -section_id "${CPU_NAME}:DUT"
-        set_global_assignment -name LL_WIDTH ${LL_WIDTH} -section_id "${CPU_NAME}:DUT"
-        set_global_assignment -name LL_ORIGIN ${LL_ORIGIN} -section_id "${CPU_NAME}:DUT"
-        set_global_assignment -name LL_STATE FLOATING -section_id "${CPU_NAME}:DUT"
-        set_global_assignment -name LL_AUTO_SIZE ${LL_AUTO_SIZE} -section_id "${CPU_NAME}:DUT"
-        set_global_assignment -name LL_ROUGH OFF -section_id "${CPU_NAME}:DUT"
-        set_instance_assignment -name LL_MEMBER_OF "${CPU_NAME}:DUT" -to "${CPU_NAME}:DUT" -section_id "${CPU_NAME}:DUT"
-        set_instance_assignment -name LL_MEMBER_EXCEPTIONS "MEMORY:DSP" -to "${CPU_NAME}:DUT" -section_id "${CPU_NAME}:DUT"
-		set_instance_assignment -name LL_MEMBER_OF "${CPU_NAME}:DUT" -to "${CPU_NAME}:DUT|Scalar:Scalar|ControlPath:ControlPath|Controller:Controller|Controller_threads:threads_pc" -section_id "${CPU_NAME}:DUT"
+# start LOGICLOCK_REGION(Root Region)
+# -----------------------------------
+# LogicLock Region Assignments
+# ============================
+set_global_assignment -name LL_ROOT_REGION ON -section_id "Root Region"
+set_global_assignment -name LL_MEMBER_STATE LOCKED -section_id "Root Region"
+# end LOGICLOCK_REGION(Root Region)
+# ---------------------------------
 
-    # end LOGICLOCK_REGION(${CPU_NAME}:DUT)
-    # ----------------------------------
+# start DESIGN_PARTITION(Top)
+# ---------------------------
+# Incremental Compilation Assignments
+# ===================================
+set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
+set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
+set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
+set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
+# end DESIGN_PARTITION(Top)
+# -------------------------
 
-    # start LOGICLOCK_REGION(Root Region)
-    # -----------------------------------
-
-        # LogicLock Region Assignments
-        # ============================
-        set_global_assignment -name LL_ROOT_REGION ON -section_id "Root Region"
-        set_global_assignment -name LL_MEMBER_STATE LOCKED -section_id "Root Region"
-
-    # end LOGICLOCK_REGION(Root Region)
-    # ---------------------------------
-
-    # start DESIGN_PARTITION(Top)
-    # ---------------------------
-
-        # Incremental Compilation Assignments
-        # ===================================
-        set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
-        set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
-        set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
-        set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
-
-    # end DESIGN_PARTITION(Top)
-    # -------------------------
-
-    # start DESIGN_PARTITION(${CPU_NAME}:DUT)
-    # ------------------------------------
-
-        # Incremental Compilation Assignments
-        # ===================================
-        set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id "${CPU_NAME}:DUT"
-        set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id "${CPU_NAME}:DUT"
-        set_global_assignment -name PARTITION_COLOR 39423 -section_id "${CPU_NAME}:DUT"
-        set_instance_assignment -name PARTITION_HIERARCHY dut_2ae21 -to "${CPU_NAME}:DUT" -section_id "${CPU_NAME}:DUT"
-
-    # end DESIGN_PARTITION(${CPU_NAME}:DUT)
-    # ----------------------------------
-
+# start DESIGN_PARTITION(${CPU_NAME}:DUT)
+# ------------------------------------
+# Incremental Compilation Assignments
+# ===================================
+set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id "${CPU_NAME}:DUT"
+set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id "${CPU_NAME}:DUT"
+set_global_assignment -name PARTITION_COLOR 39423 -section_id "${CPU_NAME}:DUT"
+set_instance_assignment -name PARTITION_HIERARCHY dut_2ae21 -to "${CPU_NAME}:DUT" -section_id "${CPU_NAME}:DUT"
+# end DESIGN_PARTITION(${CPU_NAME}:DUT)
+# ----------------------------------
 
 ${SCALAR_PARTITION}
 ${SIMD_PARTITIONS}
@@ -265,9 +243,9 @@ ${SIMD_PARTITIONS}
     else:
         scalar_module_partition = ""
 
-    # Matches conditional generation in Octavo.v
     if all_parameters["PARTITION_SIMD_LANES"] == True:
-        simd_partitions = create_SIMD_partitions_all(all_parameters, SIMD_layer_count, SIMD_lanes_per_layer)
+        SIMD_lane_count = all_parameters["SIMD_LANE_COUNT"]
+        simd_partitions = create_SIMD_lane_partition_all(all_parameters, SIMD_lane_count)
     else:
         simd_partitions = ""
 
