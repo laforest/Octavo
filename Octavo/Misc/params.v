@@ -5,6 +5,9 @@
 `define TRUE  1
 `define FALSE 0
 
+`define FULL  `HIGH
+`define EMPTY `LOW
+
 // There should never be need to increase or reduce this.
 `define OPCODE_WIDTH    4
 
