@@ -5,25 +5,25 @@
 
 module IO_Ready
 #(
-    parameter   IO_READ_PORT_COUNT  = 0,
-    parameter   IO_WRITE_PORT_COUNT = 0,
-    parameter   REGISTERED          = `FALSE
+    parameter   READ_PORT_COUNT             = 0,
+    parameter   WRITE_PORT_COUNT            = 0,
+    parameter   REGISTERED                  = `FALSE
 )
 (
-    input   wire                                clock,
-    input   wire    [IO_READ_PORT_COUNT-1:0]    read_is_io,
-    input   wire    [IO_WRITE_PORT_COUNT-1:0]   write_is_io,
-    input   wire    [IO_READ_PORT_COUNT-1:0]    read_EF,
-    input   wire    [IO_WRITE_PORT_COUNT-1:0]   write_EF,
-    output  reg                                 all_io_ready
+    input   wire                            clock,
+    input   wire    [READ_PORT_COUNT-1:0]   read_is_io,
+    input   wire    [WRITE_PORT_COUNT-1:0]  write_is_io,
+    input   wire    [READ_PORT_COUNT-1:0]   read_EF,
+    input   wire    [WRITE_PORT_COUNT-1:0]  write_EF,
+    output  reg                             all_io_ready
 );
     integer i;
 
-    reg     [IO_READ_PORT_COUNT-1:0]    read_EF_masked;
-    reg     [IO_WRITE_PORT_COUNT-1:0]   write_EF_masked;
+    reg     [READ_PORT_COUNT-1:0]    read_EF_masked;
+    reg     [WRITE_PORT_COUNT-1:0]   write_EF_masked;
 
     always @(*) begin
-        for (i = 0; i < IO_READ_PORT_COUNT; i = i + 1) begin
+        for (i = 0; i < READ_PORT_COUNT; i = i + 1) begin
             if (read_is_io[i] === `HIGH) begin
                 read_EF_masked <= read_EF;
             end 
@@ -34,7 +34,7 @@ module IO_Ready
     end
 
     always @(*) begin
-        for (i = 0; i < IO_WRITE_PORT_COUNT; i = i + 1) begin
+        for (i = 0; i < WRITE_PORT_COUNT; i = i + 1) begin
             if (write_is_io[i] === `HIGH) begin
                 write_EF_masked <= write_EF;
             end 
