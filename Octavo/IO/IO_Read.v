@@ -21,6 +21,8 @@ module IO_Read
 
     output  wire                                            read_EF_masked,
     output  wire                                            IO_ready,
+
+    output  wire    [PORT_COUNT-1:0]                        active_read,
     output  wire    [WORD_WIDTH-1:0]                        read_data_out
 );
     wire read_EF_selected;
@@ -58,18 +60,78 @@ module IO_Read
 
     IO_Ready
     #(
-        .READY_STATE    (`FULL),
-        .REGISTERED     (`TRUE)
+        .READY_STATE        (`FULL)
     )
     Read
     (
-        .clock          (clock),
-        .addr_is_IO     (read_is_IO),
-        .port_EF        (read_EF_selected),
-        .other_port_EF  (other_port_EF),
-        .port_EF_masked (read_EF_masked),
-        .port_IO_ready  (IO_ready)
+        .clock              (clock),
+        .addr_is_IO         (read_is_IO),
+        .port_EF            (read_EF_selected),
+        .other_port_EF      (other_port_EF),
+        .port_IO_ready      (IO_ready)
+        .port_EF_masked     (read_EF_masked),
+        .port_IO_ready_reg  (IO_ready_reg)
     );
 
+    // Sync to next stage
+    reg [ADDR_WIDTH-1:0] addr_reg;
+    always @(posedge clock) begin
+        addr_reg <= addr;
+    end
+
+    IO_Active
+    #(
+        .ADDR_WIDTH         (ADDR_WIDTH),
+        .PORT_COUNT         (PORT_COUNT),
+        .PORT_BASE_ADDR     (PORT_BASE_ADDR),
+        .PORT_ADDR_WIDTH    (PORT_ADDR_WIDTH)
+    )
+    Active
+    (
+        .clock              (clock),
+        .is_IO              (read_is_IO),
+        .addr               (addr_reg),
+        .active             (active_read)
+    );
+
+    wire [WORD_WIDTH-1:0] read_data_IO_selected;
+
+    IO_Read_Select
+    #(
+        .WORD_WIDTH             (WORD_WIDTH),
+        .ADDR_WIDTH             (ADDR_WIDTH),
+        .READ_PORT_COUNT        (READ_PORT_COUNT),
+        .READ_PORT_BASE_ADDR    (READ_PORT_BASE_ADDR),
+        .READ_PORT_ADDR_WIDTH   (READ_PORT_ADDR_WIDTH)
+    )
+    Data
+    (
+        .clock                  (clock),
+        .read_addr              (read_addr),
+        .read_data_in           (read_data_IO), 
+        .read_data_selected     (read_data_IO_selected)
+    );
+
+    reg read_is_IO_1;
+    reg read_is_IO_2;
+    always @(posedge clock) begin
+        read_is_IO_1 <= read_is_IO;
+        read_is_IO_2 <= read_is_IO_1;
+    end
+
+    Addressed_Mux
+    #(
+        .WORD_WIDTH     (WORD_WIDTH),
+        .ADDR_WIDTH     (1),
+        .INPUT_COUNT    (2),
+        .REGISTERED     (`TRUE)
+    )
+    Read_Select
+    (
+        .clock          (clock),
+        .addr           (read_is_IO_2),
+        .data_in        ({read_data_IO_selected, read_data_RAM}),
+        .data_out       (read_data_out)
+    );
 endmodule
 
