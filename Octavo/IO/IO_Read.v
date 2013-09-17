@@ -1,95 +1,75 @@
 
-// Selects the data input for the given read/write port address.
+// Selects I/O Empty/Full bits, generates I/O enables, decodes addresses,
+// generates an "I/O Ready" signal used later to predicate instructions,
+// and maps I/O ports onto memory reads.
 
 module IO_Read
 #(
-    parameter   A_WORD_WIDTH                                    = 0,
-    parameter   B_WORD_WIDTH                                    = 0,
-
-    parameter   A_ADDR_WIDTH                                    = 0,
-    parameter   B_ADDR_WIDTH                                    = 0,
-
-    parameter   A_READ_PORT_COUNT                               = 0,
-    parameter   A_READ_PORT_BASE_ADDR                           = 0,
-    parameter   A_READ_PORT_ADDR_WIDTH                          = 0,
-
-    parameter   B_READ_PORT_COUNT                               = 0,
-    parameter   B_READ_PORT_BASE_ADDR                           = 0,
-    parameter   B_READ_PORT_ADDR_WIDTH                          = 0
+    parameter   WORD_WIDTH                                  = 0,
+    parameter   ADDR_WIDTH                                  = 0,
+    parameter   READ_PORT_COUNT                             = 0,
+    parameter   READ_PORT_BASE_ADDR                         = 0,
+    parameter   READ_PORT_ADDR_WIDTH                        = 0
 )
 (
-    input   wire                                                clock,
+    input   wire                                            clock,
+    input   wire    [ADDR_WIDTH-1:0]                        read_addr,
+    input   wire    [READ_PORT_COUNT-1:0]                   read_EF,
+    input   wire                                            other_port_EF,
+    input   wire    [(READ_PORT_COUNT * WORD_WIDTH)-1:0]    read_data_IO,
+    input   wire    [WORD_WIDTH-1:0]                        read_data_RAM,
 
-    input   wire    [A_ADDR_WIDTH-1:0]                          A_read_addr,
-    input   wire    [B_ADDR_WIDTH-1:0]                          B_read_addr,
-
-    input   wire    [(A_READ_PORT_COUNT * A_WORD_WIDTH)-1:0]    A_read_data_in, 
-    input   wire    [(B_READ_PORT_COUNT * B_WORD_WIDTH)-1:0]    B_read_data_in, 
-
-    output  wire    [A_WORD_WIDTH-1:0]                          A_read_data_selected,
-    output  wire    [B_WORD_WIDTH-1:0                           B_read_data_selected,
+    output  wire                                            read_EF_masked,
+    output  wire                                            IO_ready,
+    output  wire    [WORD_WIDTH-1:0]                        read_data_out
 );
+    wire read_EF_selected;
 
-    wire [A_READ_PORT_ADDR_WIDTH-1:0] A_read_addr_translated;
-
-    Address_Translator 
+    IO_EmptyFull
     #(
-        .ADDR_COUNT             (A_READ_PORT_COUNT),
-        .ADDR_BASE              (A_READ_PORT_BASE_ADDR),
-        .ADDR_WIDTH             (A_READ_PORT_ADDR_WIDTH),
-        .REGISTERED             (`FALSE)
+        .ADDR_WIDTH         (ADDR_WIDTH),
+        .PORT_COUNT         (READ_PORT_COUNT),
+        .PORT_BASE_ADDR     (READ_PORT_BASE_ADDR),
+        .PORT_ADDR_WIDTH    (READ_PORT_ADDR_WIDTH)
     )
-    A_read_addr_Translator
+    Read_Port_EF_Selector
     (
-        .clock                  (clock),
-        .raw_address            (A_read_addr[A_READ_PORT_ADDR_WIDTH-1:0]),
-        .translated_address     (A_read_addr_translated)
-    );         
-
-    Addressed_Mux
-    #(
-        .WORD_WIDTH     (A_WORD_WIDTH),
-        .ADDR_WIDTH     (A_READ_PORT_ADDR_WIDTH),
-        .INPUT_COUNT    (A_READ_PORT_COUNT),
-        .REGISTERED     (`TRUE)
-    )
-    A_read_data_Selector
-    (
-        .clock          (clock),
-        .addr           (A_read_addr_translated),
-        .data_in        (A_read_data),
-        .data_out       (A_read_data_selected)
+        .clock              (clock),
+        .port_EF            (read_EF), 
+        .port_addr          (read_addr),
+        .port_EF_selected   (read_EF_selected)
     );
 
-    wire [B_READ_PORT_ADDR_WIDTH-1:0] B_read_addr_translated;
+    wire read_is_IO;
 
-    Address_Translator 
+    Address_Decoder
     #(
-        .ADDR_COUNT             (B_READ_PORT_COUNT),
-        .ADDR_BASE              (B_READ_PORT_BASE_ADDR),
-        .ADDR_WIDTH             (B_READ_PORT_ADDR_WIDTH),
-        .REGISTERED             (`FALSE)
+        .ADDR_COUNT (READ_PORT_COUNT),
+        .ADDR_BASE  (READ_PORT_BASE_ADDR),
+        .ADDR_WIDTH (READ_PORT_ADDR_WIDTH),
+        .REGISTERED (`TRUE)
     )
-    B_read_addr_Translator
+    Read_IO_Detect
     (
-        .clock                  (clock),
-        .raw_address            (B_read_addr[B_READ_PORT_ADDR_WIDTH-1:0]),
-        .translated_address     (B_read_addr_translated)
-    );         
+        .clock      (clock),
+        .addr       (read_addr),
+        .hit        (read_is_IO)
+    );
 
-    Addressed_Mux
+    IO_Ready
     #(
-        .WORD_WIDTH     (B_WORD_WIDTH),
-        .ADDR_WIDTH     (B_READ_PORT_ADDR_WIDTH),
-        .INPUT_COUNT    (B_READ_PORT_COUNT),
+        .READY_STATE    (`FULL),
         .REGISTERED     (`TRUE)
     )
-    B_read_EF_Selector
+    Read
     (
         .clock          (clock),
-        .addr           (B_read_addr_translated),
-        .data_in        (B_read_EF),
-        .data_out       (B_read_EF_selected)
+        .addr_is_IO     (read_is_IO),
+        .port_EF        (read_EF_selected),
+        .other_port_EF  (other_port_EF),
+        .port_EF_masked (read_EF_masked),
+        .port_IO_ready  (IO_ready)
     );
+
 endmodule
 
