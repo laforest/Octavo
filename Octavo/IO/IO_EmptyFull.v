@@ -5,7 +5,7 @@
 // write much later, so we can annul I/O and instruction side-effects
 // before they happen.
 
-module EmptyFullSelect
+module IO_EmptyFull
 #(
     parameter   A_ADDR_WIDTH                    = 0,
     parameter   B_ADDR_WIDTH                    = 0,

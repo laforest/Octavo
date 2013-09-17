@@ -1,7 +1,7 @@
 
 // Selects the data input for the given read/write port address.
 
-module IO_Read_Select
+module IO_Read
 #(
     parameter   A_WORD_WIDTH                                    = 0,
     parameter   B_WORD_WIDTH                                    = 0,
