@@ -10,7 +10,7 @@
 // construct a translation table that should hopefully optimize down to mere
 // rewiring of inputs or internal logic.
 
-// Typically, you'll need this to use the output of an Address_Decoder module.
+// Typically, you'll need this alongside an Address_Decoder module.
 
 module Address_Translator
 #(

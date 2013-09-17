@@ -5,42 +5,66 @@
 
 module IO_Ready
 #(
-    parameter   READ_PORT_COUNT             = 0,
-    parameter   WRITE_PORT_COUNT            = 0,
-    parameter   REGISTERED                  = `FALSE
+    parameter   REGISTERED  = `FALSE
 )
 (
-    input   wire                            clock,
-    input   wire    [READ_PORT_COUNT-1:0]   read_is_io,
-    input   wire    [WRITE_PORT_COUNT-1:0]  write_is_io,
-    input   wire    [READ_PORT_COUNT-1:0]   read_EF,
-    input   wire    [WRITE_PORT_COUNT-1:0]  write_EF,
-    output  reg                             all_io_ready
+    input   wire            clock,
+
+    input   wire            A_read_is_IO,
+    input   wire            A_write_is_IO,
+    input   wire            B_read_is_IO,
+    input   wire            B_write_is_IO,
+
+    input   wire            A_read_EF,
+    input   wire            A_write_EF,
+    input   wire            B_read_EF,
+    input   wire            B_write_EF,
+
+    output  reg             all_IO_ready
 );
     integer i;
 
-    reg     [READ_PORT_COUNT-1:0]    read_EF_masked;
-    reg     [WRITE_PORT_COUNT-1:0]   write_EF_masked;
+    reg     A_read_EF_masked;
 
     always @(*) begin
-        for (i = 0; i < READ_PORT_COUNT; i = i + 1) begin
-            if (read_is_io[i] === `HIGH) begin
-                read_EF_masked <= read_EF;
-            end 
-            else begin
-                read_EF_masked <= `FULL;
-            end
+        if (A_read_is_io === `HIGH) begin
+            A_read_EF_masked <= A_read_EF;
+        end 
+        else begin
+            A_read_EF_masked <= `FULL;
         end
     end
 
+    reg     A_write_EF_masked;
+
     always @(*) begin
-        for (i = 0; i < WRITE_PORT_COUNT; i = i + 1) begin
-            if (write_is_io[i] === `HIGH) begin
-                write_EF_masked <= write_EF;
-            end 
-            else begin
-                write_EF_masked <= `EMPTY;
-            end
+        if (A_write_is_io === `HIGH) begin
+            A_write_EF_masked <= A_write_EF;
+        end 
+        else begin
+            A_write_EF_masked <= `EMPTY;
+        end
+    end
+
+    reg     B_read_EF_masked;
+
+    always @(*) begin
+        if (B_read_is_io === `HIGH) begin
+            B_read_EF_masked <= B_read_EF;
+        end 
+        else begin
+            B_read_EF_masked <= `FULL;
+        end
+    end
+
+    reg     B_write_EF_masked;
+
+    always @(*) begin
+        if (B_write_is_io === `HIGH) begin
+            B_write_EF_masked <= B_write_EF;
+        end 
+        else begin
+            B_write_EF_masked <= `EMPTY;
         end
     end
 
@@ -48,8 +72,8 @@ module IO_Ready
     reg     all_writes_ready;
 
     always @(*) begin
-        all_reads_ready  <= & read_EF_masked;
-        all_writes_ready <= & ~write_EF_masked;
+        all_reads_ready  <= &  {A_read_EF_masked,  B_read_EF_masked};
+        all_writes_ready <= & ~{A_write_EF_masked, B_write_EF_masked};
     end
 
     generate
