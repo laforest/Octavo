@@ -39,15 +39,15 @@ module IO_Ready
     end
 
     always @(*) begin
-        port_io_ready <= ready;
+        port_IO_ready <= ready;
     end
 
     always @(posedge clock) begin
-        port_io_ready_reg <= ready;
+        port_IO_ready_reg <= ready;
     end
 
     initial begin
-        port_io_ready_reg = 0;
+        port_IO_ready_reg = 0;
     end
 endmodule
 
