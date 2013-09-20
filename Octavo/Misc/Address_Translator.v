@@ -19,7 +19,6 @@ module Address_Translator
     parameter       ADDR_WIDTH          = 0
 )
 (
-    input   wire                        clock,
     input   wire    [ADDR_WIDTH-1:0]    raw_address,
     output  reg     [ADDR_WIDTH-1:0]    translated_address
 );

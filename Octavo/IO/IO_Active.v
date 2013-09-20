@@ -10,7 +10,7 @@ module IO_Active
 )
 (
     input   wire                        clock,
-    input   wire                        is_IO,
+    input   wire                        enable,
     input   wire    [ADDR_WIDTH-1:0]    addr,
     output  wire    [PORT_COUNT-1:0]    active
 );
@@ -20,12 +20,10 @@ module IO_Active
     #(
         .ADDR_COUNT             (PORT_COUNT),
         .ADDR_BASE              (PORT_BASE_ADDR),
-        .ADDR_WIDTH             (PORT_ADDR_WIDTH),
-        .REGISTERED             (`FALSE)
+        .ADDR_WIDTH             (PORT_ADDR_WIDTH)
     )
     Address_Translator
     (
-        .clock                  (clock),
         .raw_address            (addr[PORT_ADDR_WIDTH-1:0]),
         .translated_address     (addr_translated)
     );         
@@ -39,7 +37,7 @@ module IO_Active
     Port_Active
     (
         .clock              (clock),
-        .enable             (is_IO),
+        .enable             (enable),
         .port_addr          (addr_translated),
         .active             (active)
     );

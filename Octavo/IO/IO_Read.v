@@ -62,7 +62,7 @@ module IO_Read
     Read
     (
         .clock              (clock),
-        .is_IO              (addr_is_IO),
+        .enable             (addr_is_IO),
         .addr               (addr_1_reg),
         .active             (active_IO_internal)
     );

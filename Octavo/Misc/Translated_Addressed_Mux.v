@@ -28,7 +28,6 @@ module Translated_Addressed_Mux
     )
     Address_Translator
     (
-        .clock                  (clock),
         .raw_address            (addr[INPUT_ADDR_WIDTH-1:0]),
         .translated_address     (addr_translated)
     );         

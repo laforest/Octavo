@@ -19,14 +19,16 @@ module IO_Write
     input   wire                                        IO_ready,
     input   wire    [ALU_WORD_WIDTH-1:0]                ALU_result,
     input   wire    [D_OPERAND_WIDTH-1:0]               ALU_addr,
-    input   wire                                        ALU_write_is_IO, // Carried around pipeline
+    input   wire                                        ALU_write_is_IO,
+    input   wire                                        ALU_wren,
 
-    output  reg                                         write_is_IO
+    output  reg                                         write_is_IO,    // Carried around pipeline, through ALU
     output  wire                                        EmptyFull_masked,
     output  wire    [PORT_COUNT-1:0]                    active_IO,
     output  reg     [(PORT_COUNT * WORD_WIDTH)-1:0]     data_IO,
     output  reg     [WORD_WIDTH-1:0]                    data_RAM,
-    output  reg     [D_OPERAND_WIDTH-1:0]               addr_RAM
+    output  reg     [D_OPERAND_WIDTH-1:0]               addr_RAM,
+    output  reg                                         wren_RAM
 );
 
     wire addr_is_IO_reg;
@@ -61,6 +63,7 @@ module IO_Write
     always @(posedge clock) begin
         data_RAM <= ALU_result;
         addr_RAM <= ALU_addr;
+        wren_RAM <= ALU_wren;
     end
 
     // ECL Done this way to explicitly replicate registers, rather than just
@@ -81,7 +84,7 @@ module IO_Write
     Write
     (
         .clock              (clock),
-        .is_IO              (ALU_write_is_IO),
+        .enable             (ALU_write_is_IO & ALU_wren),
         .addr               (ALU_addr),
         .active             (active_IO)
     );
