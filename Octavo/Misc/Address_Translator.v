@@ -16,8 +16,7 @@ module Address_Translator
 #(
     parameter       ADDR_COUNT          = 0,
     parameter       ADDR_BASE           = 0,
-    parameter       ADDR_WIDTH          = 0,
-    parameter       REGISTERED          = `FALSE
+    parameter       ADDR_WIDTH          = 0
 )
 (
     input   wire                        clock,
@@ -45,21 +44,8 @@ module Address_Translator
         end
     end
 
-    generate
-        if (REGISTERED == `TRUE) begin
-            always @(posedge clock) begin
-                translated_address <= translation_table[raw_address];
-            end
-
-            initial begin
-                translated_address = 0;
-            end
-        end
-        else begin
-            always @(*) begin
-                translated_address <= translation_table[raw_address];
-            end
-        end
-    endgenerate
+    always @(*) begin
+        translated_address <= translation_table[raw_address];
+    end
 endmodule
 

@@ -23,7 +23,7 @@ module IO_Active
         .ADDR_WIDTH             (PORT_ADDR_WIDTH),
         .REGISTERED             (`FALSE)
     )
-    Translator
+    Address_Translator
     (
         .clock                  (clock),
         .raw_address            (addr[PORT_ADDR_WIDTH-1:0]),
@@ -36,7 +36,7 @@ module IO_Active
         .PORT_ADDR_WIDTH    (PORT_ADDR_WIDTH),
         .REGISTERED         (`TRUE)
     )
-    Active
+    Port_Active
     (
         .clock              (clock),
         .enable             (is_IO),
