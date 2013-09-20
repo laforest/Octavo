@@ -1,7 +1,6 @@
 
-// Selects I/O Empty/Full bits, generates I/O enables, decodes addresses,
-// generates an "I/O Ready" signal used later to predicate instructions,
-// and maps I/O ports onto memory reads.
+// Selects I/O Empty/Full bits, generates I/O enables, decodes addresses, and
+// maps I/O ports onto memory reads.
 
 module IO_Read
 #(
@@ -13,125 +12,121 @@ module IO_Read
 )
 (
     input   wire                                            clock,
-    input   wire    [ADDR_WIDTH-1:0]                        read_addr,
-    input   wire    [READ_PORT_COUNT-1:0]                   read_EF,
-    input   wire                                            other_port_EF,
-    input   wire    [(READ_PORT_COUNT * WORD_WIDTH)-1:0]    read_data_IO,
-    input   wire    [WORD_WIDTH-1:0]                        read_data_RAM,
+    input   wire    [ADDR_WIDTH-1:0]                        addr_1,     // From raw instruction (Stage 1)
+    input   wire    [ADDR_WIDTH-1:0]                        addr_3,     // After optional translation (Stage 3)
+    input   wire    [READ_PORT_COUNT-1:0]                   EmptyFull,
+    input   wire    [(READ_PORT_COUNT * WORD_WIDTH)-1:0]    data_IO,
+    input   wire    [WORD_WIDTH-1:0]                        data_RAM,
+    input   wire                                            IO_ready,
 
-    output  wire                                            read_EF_masked,
-    output  wire                                            IO_ready,
-
-    output  wire    [PORT_COUNT-1:0]                        active_read,
-    output  wire    [WORD_WIDTH-1:0]                        read_data_out
+    output  wire                                            EmptyFull_masked,
+    output  wire    [PORT_COUNT-1:0]                        active_IO,
+    output  wire    [WORD_WIDTH-1:0]                        data_out
 );
-    wire read_EF_selected;
 
-    IO_EmptyFull
+    wire addr_is_IO;
+    wire addr_is_IO_reg;
+
+    IO_Check
+    #(
+        .READY_STATE        (`FULL)
+        .ADDR_WIDTH         (ADDR_WIDTH),
+        .PORT_COUNT         (READ_PORT_COUNT),
+        .PORT_BASE_ADDR     (READ_PORT_BASE_ADDR),
+        .PORT_ADDR_WIDTH    (READ_PORT_ADDR_WIDTH)
+    )
+    Read
+    (
+        .clock              (clock),
+        .addr               (addr_1),
+        .port_EF            (EmptyFull),
+        .port_EF_masked     (EmptyFull_masked),
+        .addr_is_IO         (addr_is_IO),
+        .addr_is_IO_reg     (addr_is_IO_reg)
+    );
+
+    reg addr_1_reg;
+    always @(posedge clock) begin
+        addr_1_reg <= addr_1;
+    end
+
+    wire active_IO_internal;
+
+    IO_Active
     #(
         .ADDR_WIDTH         (ADDR_WIDTH),
         .PORT_COUNT         (READ_PORT_COUNT),
         .PORT_BASE_ADDR     (READ_PORT_BASE_ADDR),
         .PORT_ADDR_WIDTH    (READ_PORT_ADDR_WIDTH)
     )
-    Read_Port_EF_Selector
-    (
-        .clock              (clock),
-        .port_EF            (read_EF), 
-        .port_addr          (read_addr),
-        .port_EF_selected   (read_EF_selected)
-    );
-
-    wire read_is_IO;
-
-    Address_Decoder
-    #(
-        .ADDR_COUNT (READ_PORT_COUNT),
-        .ADDR_BASE  (READ_PORT_BASE_ADDR),
-        .ADDR_WIDTH (READ_PORT_ADDR_WIDTH),
-        .REGISTERED (`TRUE)
-    )
-    Read_IO_Detect
-    (
-        .clock      (clock),
-        .addr       (read_addr),
-        .hit        (read_is_IO)
-    );
-
-    IO_Ready
-    #(
-        .READY_STATE        (`FULL)
-    )
     Read
     (
         .clock              (clock),
-        .addr_is_IO         (read_is_IO),
-        .port_EF            (read_EF_selected),
-        .other_port_EF      (other_port_EF),
-        .port_IO_ready      (IO_ready)
-        .port_EF_masked     (read_EF_masked),
-        .port_IO_ready_reg  (IO_ready_reg)
+        .is_IO              (addr_is_IO),
+        .addr               (addr_1_reg),
+        .active             (active_IO_internal)
     );
 
-    // Sync to next stage
-    reg [ADDR_WIDTH-1:0] addr_reg;
-    always @(posedge clock) begin
-        addr_reg <= addr;
+    always@(*) begin
+        active_IO <= active_IO_internal & {READ_PORT_COUNT{IO_ready}};
     end
 
-    IO_Active
+    wire [WORD_WIDTH-1:0] data_IO_selected;
+
+    Translated_Addressed_Mux
     #(
+        .WORD_WIDTH         (WORD_WIDTH),
         .ADDR_WIDTH         (ADDR_WIDTH),
-        .PORT_COUNT         (PORT_COUNT),
-        .PORT_BASE_ADDR     (PORT_BASE_ADDR),
-        .PORT_ADDR_WIDTH    (PORT_ADDR_WIDTH)
+        .INPUT_COUNT        (READ_PORT_COUNT),
+        .INPUT_BASE_ADDR    (READ_PORT_BASE_ADDR),
+        .INPUT_ADDR_WIDTH   (READ_PORT_ADDR_WIDTH),
+        .REGISTERED         (`TRUE)
     )
-    Active
+    IO
     (
         .clock              (clock),
-        .is_IO              (read_is_IO),
-        .addr               (addr_reg),
-        .active             (active_read)
+        .addr               (addr_3),
+        .data_in            (data_IO), 
+        .data_out           (data_IO_selected)
     );
 
-    wire [WORD_WIDTH-1:0] read_data_IO_selected;
-
-    IO_Read_Select
-    #(
-        .WORD_WIDTH             (WORD_WIDTH),
-        .ADDR_WIDTH             (ADDR_WIDTH),
-        .READ_PORT_COUNT        (READ_PORT_COUNT),
-        .READ_PORT_BASE_ADDR    (READ_PORT_BASE_ADDR),
-        .READ_PORT_ADDR_WIDTH   (READ_PORT_ADDR_WIDTH)
-    )
-    Data
-    (
-        .clock                  (clock),
-        .read_addr              (read_addr),
-        .read_data_in           (read_data_IO), 
-        .read_data_selected     (read_data_IO_selected)
-    );
-
-    reg read_is_IO_1;
-    reg read_is_IO_2;
+    reg addr_is_IO_reg_reg;
     always @(posedge clock) begin
-        read_is_IO_1 <= read_is_IO;
-        read_is_IO_2 <= read_is_IO_1;
+        addr_is_IO_reg_reg <= addr_is_IO_reg;
     end
+
+    wire [WORD_WIDTH-1:0] data_out_internal;
 
     Addressed_Mux
     #(
-        .WORD_WIDTH     (WORD_WIDTH),
-        .ADDR_WIDTH     (1),
-        .INPUT_COUNT    (2),
-        .REGISTERED     (`TRUE)
+        .WORD_WIDTH         (WORD_WIDTH),
+        .ADDR_WIDTH         (1),
+        .INPUT_COUNT        (2),
+        .REGISTERED         (`TRUE)
     )
-    Read_Select
+    Data
     (
-        .clock          (clock),
-        .addr           (read_is_IO_2),
-        .data_in        ({read_data_IO_selected, read_data_RAM}),
-        .data_out       (read_data_out)
+        .clock              (clock),
+        .addr               (addr_is_IO_reg_reg),
+        .data_in            ({data_IO_selected, data_RAM}), 
+        .data_out           (data_out_internal)
     );
+
+    // ECL Really IO_ready_reg should be a reset signal into above mux, but I
+    // don't want to create a one-use special mux module. Hopefully register
+    // retiming and logic optimization of the following code should end up the
+    // same.
+
+    reg IO_ready_reg;
+    reg IO_ready_reg_reg;
+    always @(posedge clock) begin
+        IO_ready_reg     <= IO_ready;
+        IO_ready_reg_reg <= IO_ready_reg;
+    end
+
+    always @(*) begin
+        data_out <= data_out_internal & {WORD_WIDTH{IO_ready_reg_reg};
+    end
+
 endmodule
 
