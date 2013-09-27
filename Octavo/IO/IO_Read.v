@@ -6,16 +6,16 @@ module IO_Read
 #(
     parameter   WORD_WIDTH                                  = 0,
     parameter   ADDR_WIDTH                                  = 0,
-    parameter   READ_PORT_COUNT                             = 0,
-    parameter   READ_PORT_BASE_ADDR                         = 0,
-    parameter   READ_PORT_ADDR_WIDTH                        = 0
+    parameter   IO_READ_PORT_COUNT                          = 0,
+    parameter   IO_READ_PORT_BASE_ADDR                      = 0,
+    parameter   IO_READ_PORT_ADDR_WIDTH                     = 0
 )
 (
     input   wire                                            clock,
-    input   wire    [ADDR_WIDTH-1:0]                        addr_1,     // From raw instruction (Stage 1)
-    input   wire    [ADDR_WIDTH-1:0]                        addr_3,     // After optional translation (Stage 3)
-    input   wire    [READ_PORT_COUNT-1:0]                   EmptyFull,
-    input   wire    [(READ_PORT_COUNT * WORD_WIDTH)-1:0]    data_IO,
+    input   wire    [ADDR_WIDTH-1:0]                        addr_raw,
+    input   wire    [ADDR_WIDTH-1:0]                        addr_translated,
+    input   wire    [IO_READ_PORT_COUNT-1:0]                EmptyFull,
+    input   wire    [(IO_READ_PORT_COUNT * WORD_WIDTH)-1:0] data_IO,
     input   wire    [WORD_WIDTH-1:0]                        data_RAM,
     input   wire                                            IO_ready,
 
@@ -31,23 +31,23 @@ module IO_Read
     #(
         .READY_STATE        (`FULL)
         .ADDR_WIDTH         (ADDR_WIDTH),
-        .PORT_COUNT         (READ_PORT_COUNT),
-        .PORT_BASE_ADDR     (READ_PORT_BASE_ADDR),
-        .PORT_ADDR_WIDTH    (READ_PORT_ADDR_WIDTH)
+        .PORT_COUNT         (IO_READ_PORT_COUNT),
+        .PORT_BASE_ADDR     (IO_READ_PORT_BASE_ADDR),
+        .PORT_ADDR_WIDTH    (IO_READ_PORT_ADDR_WIDTH)
     )
     Read
     (
         .clock              (clock),
-        .addr               (addr_1),
+        .addr               (addr_raw),
         .port_EF            (EmptyFull),
         .port_EF_masked     (EmptyFull_masked),
         .addr_is_IO         (addr_is_IO),
         .addr_is_IO_reg     (addr_is_IO_reg)
     );
 
-    reg addr_1_reg;
+    reg addr_raw_reg;
     always @(posedge clock) begin
-        addr_1_reg <= addr_1;
+        addr_raw_reg <= addr_raw;
     end
 
     wire active_IO_internal;
@@ -55,20 +55,20 @@ module IO_Read
     IO_Active
     #(
         .ADDR_WIDTH         (ADDR_WIDTH),
-        .PORT_COUNT         (READ_PORT_COUNT),
-        .PORT_BASE_ADDR     (READ_PORT_BASE_ADDR),
-        .PORT_ADDR_WIDTH    (READ_PORT_ADDR_WIDTH)
+        .PORT_COUNT         (IO_READ_PORT_COUNT),
+        .PORT_BASE_ADDR     (IO_READ_PORT_BASE_ADDR),
+        .PORT_ADDR_WIDTH    (IO_READ_PORT_ADDR_WIDTH)
     )
     Read
     (
         .clock              (clock),
         .enable             (addr_is_IO),
-        .addr               (addr_1_reg),
+        .addr               (addr_raw_reg),
         .active             (active_IO_internal)
     );
 
     always@(*) begin
-        active_IO <= active_IO_internal & {READ_PORT_COUNT{IO_ready}};
+        active_IO <= active_IO_internal & {IO_READ_PORT_COUNT{IO_ready}};
     end
 
     wire [WORD_WIDTH-1:0] data_IO_selected;
@@ -77,15 +77,15 @@ module IO_Read
     #(
         .WORD_WIDTH         (WORD_WIDTH),
         .ADDR_WIDTH         (ADDR_WIDTH),
-        .INPUT_COUNT        (READ_PORT_COUNT),
-        .INPUT_BASE_ADDR    (READ_PORT_BASE_ADDR),
-        .INPUT_ADDR_WIDTH   (READ_PORT_ADDR_WIDTH),
+        .INPUT_COUNT        (IO_READ_PORT_COUNT),
+        .INPUT_BASE_ADDR    (IO_READ_PORT_BASE_ADDR),
+        .INPUT_ADDR_WIDTH   (IO_READ_PORT_ADDR_WIDTH),
         .REGISTERED         (`TRUE)
     )
     IO
     (
         .clock              (clock),
-        .addr               (addr_3),
+        .addr               (addr_translated),
         .data_in            (data_IO), 
         .data_out           (data_IO_selected)
     );

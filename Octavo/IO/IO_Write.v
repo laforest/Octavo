@@ -6,19 +6,17 @@ module IO_Write
 #(
     parameter   WORD_WIDTH                              = 0,
     parameter   ADDR_WIDTH                              = 0,
-    parameter   ALU_WORD_WIDTH                          = 0,
-    parameter   D_OPERAND_WIDTH                         = 0,
-    parameter   WRITE_PORT_COUNT                        = 0,
-    parameter   WRITE_PORT_BASE_ADDR                    = 0,
-    parameter   WRITE_PORT_ADDR_WIDTH                   = 0
+    parameter   IO_WRITE_PORT_COUNT                     = 0,
+    parameter   IO_WRITE_PORT_BASE_ADDR                 = 0,
+    parameter   IO_WRITE_PORT_ADDR_WIDTH                = 0
 )
 (
     input   wire                                        clock,
-    input   wire    [ADDR_WIDTH-1:0]                    addr_1,     // From raw instruction (Stage 1)
-    input   wire    [WRITE_PORT_COUNT-1:0]              EmptyFull,
+    input   wire    [ADDR_WIDTH-1:0]                    addr_raw,     // From raw instruction (Stage 1)
+    input   wire    [IO_WRITE_PORT_COUNT-1:0]           EmptyFull,
     input   wire                                        IO_ready,
-    input   wire    [ALU_WORD_WIDTH-1:0]                ALU_result,
-    input   wire    [D_OPERAND_WIDTH-1:0]               ALU_addr,
+    input   wire    [WORD_WIDTH-1:0]                    ALU_result,
+    input   wire    [ADDR_WIDTH-1:0]                    ALU_addr,
     input   wire                                        ALU_write_is_IO,
     input   wire                                        ALU_wren,
 
@@ -27,7 +25,7 @@ module IO_Write
     output  wire    [PORT_COUNT-1:0]                    active_IO,
     output  reg     [(PORT_COUNT * WORD_WIDTH)-1:0]     data_IO,
     output  reg     [WORD_WIDTH-1:0]                    data_RAM,
-    output  reg     [D_OPERAND_WIDTH-1:0]               addr_RAM,
+    output  reg     [ADDR_WIDTH-1:0]                    addr_RAM,
     output  reg                                         wren_RAM
 );
 
@@ -37,14 +35,14 @@ module IO_Write
     #(
         .READY_STATE        (`EMPTY)
         .ADDR_WIDTH         (ADDR_WIDTH),
-        .PORT_COUNT         (WRITE_PORT_COUNT),
-        .PORT_BASE_ADDR     (WRITE_PORT_BASE_ADDR),
-        .PORT_ADDR_WIDTH    (WRITE_PORT_ADDR_WIDTH)
+        .PORT_COUNT         (IO_WRITE_PORT_COUNT),
+        .PORT_BASE_ADDR     (IO_WRITE_PORT_BASE_ADDR),
+        .PORT_ADDR_WIDTH    (IO_WRITE_PORT_ADDR_WIDTH)
     )
     Write
     (
         .clock              (clock),
-        .addr               (addr_1),
+        .addr               (addr_raw),
         .port_EF            (EmptyFull),
         .port_EF_masked     (EmptyFull_masked),
         .addr_is_IO         (),
@@ -71,15 +69,15 @@ module IO_Write
     // but it will de-duplicate heartily.
 
     always @(posedge clock) begin
-        data_IO <= {WRITE_PORT_COUNT{ALU_result}};
+        data_IO <= {IO_WRITE_PORT_COUNT{ALU_result}};
     end
 
     IO_Active
     #(
         .ADDR_WIDTH         (ADDR_WIDTH),
-        .PORT_COUNT         (WRITE_PORT_COUNT),
-        .PORT_BASE_ADDR     (WRITE_PORT_BASE_ADDR),
-        .PORT_ADDR_WIDTH    (WRITE_PORT_ADDR_WIDTH)
+        .PORT_COUNT         (IO_WRITE_PORT_COUNT),
+        .PORT_BASE_ADDR     (IO_WRITE_PORT_BASE_ADDR),
+        .PORT_ADDR_WIDTH    (IO_WRITE_PORT_ADDR_WIDTH)
     )
     Write
     (
