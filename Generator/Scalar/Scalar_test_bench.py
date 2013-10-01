@@ -6,7 +6,7 @@ import sys
 
 from Misc import misc, parameters_misc
 
-default_bench = "Hailstone/hailstone_numbers"
+default_bench = "Predication/simple_io_test"
 install_base = misc.base_install_path()
 
 def test_bench(parameters, default_bench = default_bench, install_base = install_base):
@@ -28,15 +28,21 @@ def test_bench(parameters, default_bench = default_bench, install_base = install
     parameter       PC_INIT_FILE                = "${assembler_base}/${default_bench}.pc"
 )
 (
+    output  wire                                                IO_ready,
+
     output  reg     [(A_WORD_WIDTH * A_IO_READ_PORT_COUNT)-1:0] A_in,
     output  wire    [(               A_IO_READ_PORT_COUNT)-1:0] A_rden,
+    output  reg     [(               A_IO_READ_PORT_COUNT)-1:0] A_in_EF,
     output  wire    [(A_WORD_WIDTH * A_IO_WRITE_PORT_COUNT)-1:0] A_out, 
     output  wire    [(               A_IO_WRITE_PORT_COUNT)-1:0] A_wren,
+    output  reg     [(               A_IO_WRITE_PORT_COUNT)-1:0] A_out_EF,
     
     output  reg     [(B_WORD_WIDTH * B_IO_READ_PORT_COUNT)-1:0] B_in,
     output  wire    [(               B_IO_READ_PORT_COUNT)-1:0] B_rden,
+    output  reg     [(               B_IO_READ_PORT_COUNT)-1:0] B_in_EF,
     output  wire    [(B_WORD_WIDTH * B_IO_WRITE_PORT_COUNT)-1:0] B_out, 
-    output  wire    [(               B_IO_WRITE_PORT_COUNT)-1:0] B_wren    
+    output  wire    [(               B_IO_WRITE_PORT_COUNT)-1:0] B_wren,    
+    output  reg     [(               B_IO_WRITE_PORT_COUNT)-1:0] B_out_EF
 );
     integer     cycle;
     reg         clock;
@@ -46,8 +52,12 @@ def test_bench(parameters, default_bench = default_bench, install_base = install
         cycle       = 0;
         clock       = 0;
         half_clock  = 0;
-        A_in        = 0;
-        B_in        = 0;
+        A_in        = -1;
+        B_in        = -1;
+        A_in_EF     = -1;
+        A_out_EF    = 0;
+        B_in_EF     = -1;
+        B_out_EF    = 0;
         `DELAY_CLOCK_CYCLES(1000) $$stop;
     end
 
@@ -64,15 +74,17 @@ def test_bench(parameters, default_bench = default_bench, install_base = install
     end
 
     always begin
-        `DELAY_CLOCK_CYCLES(300)
-        A_in        = -1;
-        B_in        = -1;
-        `DELAY_CLOCK_CYCLES(300)
-        A_in        = 0;
-        B_in        = 0;
-        `DELAY_CLOCK_CYCLES(300)
-        A_in        = -1;
-        B_in        = -1;
+        `DELAY_CLOCK_CYCLES(100)
+        A_in_EF  = 0;
+        A_out_EF = -1;
+        B_in_EF  = 0;
+        B_out_EF = -1;
+        
+        `DELAY_CLOCK_CYCLES(100)
+        A_in_EF  = -1;
+        A_out_EF = 0;
+        B_in_EF  = -1;
+        B_out_EF = 0;
     end
 
     localparam WREN_OTHER_DEFAULT = `HIGH;
@@ -97,15 +109,21 @@ def test_bench(parameters, default_bench = default_bench, install_base = install
         .ALU_c_in           (ALU_C_IN_DEFAULT),
         .ALU_c_out          (),
 
+        .IO_ready           (IO_ready),
+
         .A_in               (A_in),
         .A_rden             (A_rden),
+        .A_in_EF            (A_in_EF),
         .A_out              (A_out),
         .A_wren             (A_wren),
+        .A_out_EF           (A_out_EF),
         
         .B_in               (B_in),
         .B_rden             (B_rden),
+        .B_in_EF            (B_in_EF),
         .B_out              (B_out),
-        .B_wren             (B_wren)
+        .B_wren             (B_wren),
+        .B_out_EF           (B_out_EF)
     );
 endmodule
 """)
@@ -122,11 +140,15 @@ INSTALL_BASE="${install_base}"
 TOP_LEVEL_MODULE="${CPU_NAME}_test_bench"
 TESTBENCH="./$${TOP_LEVEL_MODULE}.v"
 
-LPM_LIBRARY="/pkgs/altera/quartus/quartus12.1/linux/quartus/eda/sim_lib/220model.v"
-ALT_LIBRARY="/pkgs/altera/quartus/quartus12.1/linux/quartus/eda/sim_lib/altera_mf.v"
+LPM_LIBRARY="/pkgs/altera/quartus/quartus13.0/linux/quartus/eda/sim_lib/220model.v"
+ALT_LIBRARY="/pkgs/altera/quartus/quartus13.0/linux/quartus/eda/sim_lib/altera_mf.v"
 
 OCTAVO="$$INSTALL_BASE/Octavo/Misc/params.v \\
         $$INSTALL_BASE/Octavo/Misc/delay_line.v \\
+        $$INSTALL_BASE/Octavo/Misc/Address_Decoder.v \\
+        $$INSTALL_BASE/Octavo/Misc/Address_Translator.v \\
+        $$INSTALL_BASE/Octavo/Misc/Addressed_Mux.v \\
+        $$INSTALL_BASE/Octavo/Misc/Translated_Addressed_Mux.v \\
         $$INSTALL_BASE/Octavo/DataPath/ALU/AddSub_Carry_Select.v \\
         $$INSTALL_BASE/Octavo/DataPath/ALU/AddSub_Ripple_Carry.v \\
         $$INSTALL_BASE/Octavo/DataPath/ALU/Mult.v \\
@@ -136,16 +158,16 @@ OCTAVO="$$INSTALL_BASE/Octavo/Misc/params.v \\
         $$INSTALL_BASE/Octavo/ControlPath/Controller.v \\
         $$INSTALL_BASE/Octavo/ControlPath/Instr_Decoder.v \\
         $$INSTALL_BASE/Octavo/ControlPath/ControlPath.v \\
-        $$INSTALL_BASE/Octavo/Memory/Address_Decoder.v \\
-        $$INSTALL_BASE/Octavo/Memory/Address_Translator.v \\
-        $$INSTALL_BASE/Octavo/Memory/IO_Read_Data_Select.v \\
-        $$INSTALL_BASE/Octavo/Memory/IO_Read_Port_Rden.v \\
-        $$INSTALL_BASE/Octavo/Memory/IO_Read_Port_Select.v \\
-        $$INSTALL_BASE/Octavo/Memory/IO_Read_Port.v \\
-        $$INSTALL_BASE/Octavo/Memory/IO_Write_Port.v \\
         $$INSTALL_BASE/Octavo/Memory/RAM_SDP.v \\
         $$INSTALL_BASE/Octavo/Memory/Write_Enable.v \\
         $$INSTALL_BASE/Octavo/Memory/Memory.v \\
+        $$INSTALL_BASE/Octavo/IO/EmptyFull_Bit.v \\
+        $$INSTALL_BASE/Octavo/IO/IO_Active.v \\
+        $$INSTALL_BASE/Octavo/IO/IO_All_Ready.v \\
+        $$INSTALL_BASE/Octavo/IO/IO_Check.v \\
+        $$INSTALL_BASE/Octavo/IO/IO_Read.v \\
+        $$INSTALL_BASE/Octavo/IO/IO_Write.v \\
+        $$INSTALL_BASE/Octavo/IO/Port_Active.v \\
         $$INSTALL_BASE/Octavo/Octavo/Scalar.v \\
         ../${CPU_NAME}.v \\
 "

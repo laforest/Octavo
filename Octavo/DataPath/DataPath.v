@@ -50,12 +50,9 @@ module DataPath
     input   wire    [INSTR_WIDTH-1:0]                               I_read_data_in,
     output  wire    [INSTR_WIDTH-1:0]                               I_read_data_out,
 
-    input   wire    [A_ADDR_WIDTH-1:0]                              A_write_addr,
-    input   wire    [B_ADDR_WIDTH-1:0]                              B_write_addr,
-    input   wire    [ALU_WORD_WIDTH-1:0]                            mem_write_data,
-    input   wire    [OPCODE_WIDTH-1:0]                              mem_write_op,
     input   wire                                                    A_wren_other,
     input   wire                                                    B_wren_other,
+
     output  wire    [A_WORD_WIDTH-1:0]                              A_read_data,
 
     input   wire                                                    ALU_c_in,
@@ -64,13 +61,19 @@ module DataPath
     output  wire    [D_OPERAND_WIDTH-1:0]                           ALU_D_out,
     output  wire                                                    ALU_c_out,
 
+    output  wire                                                    IO_ready,
+
+    input   wire    [A_IO_READ_PORT_COUNT-1:0]                      A_io_in_EF,
     output  wire    [A_IO_READ_PORT_COUNT-1:0]                      A_io_rden,
     input   wire    [(A_WORD_WIDTH * A_IO_READ_PORT_COUNT)-1:0]     A_io_in,
+    input   wire    [A_IO_WRITE_PORT_COUNT-1:0]                     A_io_out_EF,
     output  wire    [A_IO_WRITE_PORT_COUNT-1:0]                     A_io_wren,
     output  wire    [(A_WORD_WIDTH * A_IO_WRITE_PORT_COUNT)-1:0]    A_io_out,
 
+    input   wire    [B_IO_READ_PORT_COUNT-1:0]                      B_io_in_EF,
     output  wire    [B_IO_READ_PORT_COUNT-1:0]                      B_io_rden,
     input   wire    [(B_WORD_WIDTH * B_IO_READ_PORT_COUNT)-1:0]     B_io_in,
+    input   wire    [B_IO_WRITE_PORT_COUNT-1:0]                     B_io_out_EF,
     output  wire    [B_IO_WRITE_PORT_COUNT-1:0]                     B_io_wren,
     output  wire    [(B_WORD_WIDTH * B_IO_WRITE_PORT_COUNT)-1:0]    B_io_out
 
@@ -81,13 +84,32 @@ module DataPath
         .WIDTH  (INSTR_WIDTH)
     ) 
     I_passthru_pipeline
+    (    RAM_SDP
+    #(
+        .WORD_WIDTH     (I_WORD_WIDTH),
+        .ADDR_WIDTH     (I_ADDR_WIDTH),
+        .DEPTH          (I_DEPTH),
+        .RAMSTYLE       (I_RAMSTYLE),
+        .INIT_FILE      (I_INIT_FILE)
+    )
+    I_mem
     (
+        .clock          (clock),
+        .wren           (I_wren),
+        .write_addr     (I_write_addr),
+        .write_data     (I_write_data[I_WORD_WIDTH-1:0]),
+        .read_addr      (I_read_addr),
+        .read_data      (I_read_data_bram)
+    );
+
         .clock  (clock),
         .in     (I_read_data_in),
         .out    (I_read_data_out)
     );
 
     wire    [INSTR_WIDTH-1:0]   I_read_data_AB;
+
+    // ECL These two stages will optionally have address translation
 
     delay_line 
     #(
@@ -97,12 +119,13 @@ module DataPath
     TAP_AB_pipeline
     (
         .clock  (clock),
-        .in     (I_read_data_in),
-        .out    (I_read_data_AB)
+        .in     (I_read_data_in), // raw addr. stage 1
+        .out    (I_read_data_AB)  // "translated" addr stage 3
     );
 
-    wire    [A_OPERAND_WIDTH-1:0]  A_read_addr;
-    wire    [B_OPERAND_WIDTH-1:0]  B_read_addr;
+    wire    [A_OPERAND_WIDTH-1:0]  A_read_addr_in;
+    wire    [B_OPERAND_WIDTH-1:0]  B_read_addr_in;
+    wire    [D_OPERAND_WIDTH-1:0]  D_write_addr_in;
 
     Instr_Decoder
     #(
@@ -112,13 +135,262 @@ module DataPath
         .A_OPERAND_WIDTH    (A_OPERAND_WIDTH), 
         .B_OPERAND_WIDTH    (B_OPERAND_WIDTH)
     )
-    IAB_decoder
+    I_in_decoder
+    (
+        .instr              (I_read_data_in),
+        .op                 (),
+        .D                  (D_write_addr_in),
+        .A                  (A_read_addr_in),
+        .B                  (B_read_addr_in)
+    );
+
+    wire    [A_OPERAND_WIDTH-1:0]  A_read_addr_AB;
+    wire    [B_OPERAND_WIDTH-1:0]  B_read_addr_AB;
+    wire    [D_OPERAND_WIDTH-1:0]  D_write_addr_AB;
+
+    Instr_Decoder
+    #(
+        .OPCODE_WIDTH       (OPCODE_WIDTH),
+        .INSTR_WIDTH        (INSTR_WIDTH),
+        .D_OPERAND_WIDTH    (D_OPERAND_WIDTH),
+        .A_OPERAND_WIDTH    (A_OPERAND_WIDTH), 
+        .B_OPERAND_WIDTH    (B_OPERAND_WIDTH)
+    )
+    I_AB_decoder
     (
         .instr              (I_read_data_AB),
         .op                 (),
-        .D                  (),
-        .A                  (A_read_addr),
-        .B                  (B_read_addr)
+        .D                  (D_write_addr_AB),
+        .A                  (A_read_addr_AB),
+        .B                  (B_read_addr_AB)
+    );
+
+    wire    [A_WORD_WIDTH-1:0]      A_read_data_RAM;
+    wire                            A_io_in_EF_masked;
+
+    IO_Read
+    #(
+        .WORD_WIDTH                 (A_WORD_WIDTH),
+        .ADDR_WIDTH                 (A_ADDR_WIDTH),
+        .IO_READ_PORT_COUNT         (A_IO_READ_PORT_COUNT),
+        .IO_READ_PORT_BASE_ADDR     (A_IO_READ_PORT_BASE_ADDR),
+        .IO_READ_PORT_ADDR_WIDTH    (A_IO_READ_PORT_ADDR_WIDTH)
+    )
+    A
+    (
+        .clock                      (clock),
+        .addr_raw                   (A_read_addr_in),
+        .addr_translated            (A_read_addr_AB),
+        .EmptyFull                  (A_io_in_EF),
+        .data_IO                    (A_io_in),
+        .data_RAM                   (A_read_data_RAM),
+        .IO_ready                   (IO_ready),
+        .EmptyFull_masked           (A_io_in_EF_masked),
+        .active_IO                  (A_io_rden),
+        .data_out                   (A_read_data)
+    );
+
+    wire                A_wren;
+    wire                A_wren_ALU;
+
+    Write_Enable 
+    #(
+        .OPCODE_WIDTH   (OPCODE_WIDTH)
+    )
+    A
+    (
+        .op             (ALU_op_out),
+        .wren_other     (A_wren_other),
+        .wren           (A_wren_ALU)
+    );
+
+    wire        A_write_is_IO;
+    wire        A_write_is_IO_ALU;
+
+    // ECL FIXME This points to a magic number in the parameters. 
+    // The base and total depth of the ALU should be a parameter, 
+    // not calculated.
+
+    delay_line 
+    #(
+        .DEPTH  (4),
+        .WIDTH  (1)
+    ) 
+    A_write_is_io_pipeline
+    (
+        .clock  (clock),
+        .in     (A_write_is_IO),
+        .out    (A_write_is_IO_ALU)
+    );
+
+    wire    [A_WORD_WIDTH-1:0]      A_write_data;
+    wire    [A_WORD_WIDTH-1:0]      A_write_addr;
+    wire                            A_io_out_EF_masked;
+
+    IO_Write
+    #(
+        .WORD_WIDTH                 (A_WORD_WIDTH),
+        .ADDR_WIDTH                 (A_ADDR_WIDTH),
+        .IO_WRITE_PORT_COUNT        (A_IO_WRITE_PORT_COUNT),
+        .IO_WRITE_PORT_BASE_ADDR    (A_IO_WRITE_PORT_BASE_ADDR),
+        .IO_WRITE_PORT_ADDR_WIDTH   (A_IO_WRITE_PORT_ADDR_WIDTH)
+    )
+    A
+    (
+        .clock                      (clock),
+        .addr_raw                   (D_write_addr_in),
+        .EmptyFull                  (A_io_out_EF),
+        .IO_ready                   (IO_ready),
+        .ALU_results                (ALU_result_out),
+        .ALU_addr                   (ALU_D_out),
+        .ALU_write_is_IO            (A_write_is_IO_ALU),
+        .ALU_wren                   (A_wren_ALU),
+        .write_is_IO                (A_write_is_IO),
+        .EmptyFull_masked           (A_io_out_EF_masked),
+        .active_IO                  (A_io_wren),
+        .data_IO                    (A_io_out),
+        .data_RAM                   (A_write_data),
+        .addr_RAM                   (A_write_addr),
+        .wren_RAM                   (A_wren)
+    );
+
+    RAM_SDP
+    #(
+        .WORD_WIDTH     (A_WORD_WIDTH),
+        .ADDR_WIDTH     (A_ADDR_WIDTH),
+        .DEPTH          (A_DEPTH),
+        .RAMSTYLE       (A_RAMSTYLE),
+        .INIT_FILE      (A_INIT_FILE)
+    )
+    A
+    (
+        .clock          (clock),
+        .wren           (A_wren),
+        .write_addr     (A_write_addr),
+        .write_data     (A_write_data),
+        .read_addr      (A_read_addr_AB),
+        .read_data      (A_read_data_RAM)
+    );
+
+
+    wire    [B_WORD_WIDTH-1:0]      B_read_data_RAM;
+    wire                            B_io_in_EF_masked;
+
+    IO_Read
+    #(
+        .WORD_WIDTH                 (B_WORD_WIDTH),
+        .ADDR_WIDTH                 (B_ADDR_WIDTH),
+        .IO_READ_PORT_COUNT         (B_IO_READ_PORT_COUNT),
+        .IO_READ_PORT_BASE_ADDR     (B_IO_READ_PORT_BASE_ADDR),
+        .IO_READ_PORT_ADDR_WIDTH    (B_IO_READ_PORT_ADDR_WIDTH)
+    )
+    B
+    (
+        .clock                      (clock),
+        .addr_raw                   (B_read_addr_in),
+        .addr_translated            (B_read_addr_AB),
+        .EmptyFull                  (B_io_in_EF),
+        .data_IO                    (B_io_in),
+        .data_RAM                   (B_read_data_RAM),
+        .IO_ready                   (IO_ready),
+        .EmptyFull_masked           (B_io_in_EF_masked),
+        .active_IO                  (B_io_rden),
+        .data_out                   (B_read_data)
+    );
+
+    wire                B_wren;
+    wire                B_wren_ALU;
+
+    Write_Enable 
+    #(
+        .OPCODE_WIDTH   (OPCODE_WIDTH)
+    )
+    B
+    (
+        .op             (ALU_op_out),
+        .wren_other     (B_wren_other),
+        .wren           (B_wren_ALU)
+    );
+
+    wire        B_write_is_IO;
+    wire        B_write_is_IO_ALU;
+
+    // ECL FIXME This points to a magic number in the parameters. 
+    // The base and total depth of the ALU should be a parameter, 
+    // not calculated.
+
+    delay_line 
+    #(
+        .DEPTH  (4),
+        .WIDTH  (1)
+    ) 
+    B_write_is_io_pipeline
+    (
+        .clock  (clock),
+        .in     (B_write_is_IO),
+        .out    (B_write_is_IO_ALU)
+    );
+
+    wire    [B_WORD_WIDTH-1:0]      B_write_data;
+    wire    [B_WORD_WIDTH-1:0]      B_write_addr;
+    wire                            B_io_out_EF_masked;
+
+    IO_Write
+    #(
+        .WORD_WIDTH                 (B_WORD_WIDTH),
+        .ADDR_WIDTH                 (B_ADDR_WIDTH),
+        .IO_WRITE_PORT_COUNT        (B_IO_WRITE_PORT_COUNT),
+        .IO_WRITE_PORT_BASE_ADDR    (B_IO_WRITE_PORT_BASE_ADDR),
+        .IO_WRITE_PORT_ADDR_WIDTH   (B_IO_WRITE_PORT_ADDR_WIDTH)
+    )
+    B
+    (
+        .clock                      (clock),
+        .addr_raw                   (D_write_addr_in),
+        .EmptyFull                  (B_io_out_EF),
+        .IO_ready                   (IO_ready),
+        .ALU_results                (ALU_result_out),
+        .ALU_addr                   (ALU_D_out),
+        .ALU_write_is_IO            (B_write_is_IO_ALU),
+        .ALU_wren                   (B_wren_ALU),
+        .write_is_IO                (B_write_is_IO),
+        .EmptyFull_masked           (B_io_out_EF_masked),
+        .active_IO                  (B_io_wren),
+        .data_IO                    (B_io_out),
+        .data_RAM                   (B_write_data),
+        .addr_RAM                   (B_write_addr),
+        .wren_RAM                   (B_wren)
+    );
+
+    RAM_SDP
+    #(
+        .WORD_WIDTH     (B_WORD_WIDTH),
+        .ADDR_WIDTH     (B_ADDR_WIDTH),
+        .DEPTH          (B_DEPTH),
+        .RAMSTYLE       (B_RAMSTYLE),
+        .INIT_FILE      (B_INIT_FILE)
+    )
+    B
+    (
+        .clock          (clock),
+        .wren           (B_wren),
+        .write_addr     (B_write_addr),
+        .write_data     (mem_write_data),
+        .read_addr      (B_read_addr_AB),
+        .read_data      (B_read_data_RAM)
+    );
+
+    IO_All_Ready
+    #(
+        .READ_PORT_COUNT    (2),
+        .WRITE_PORT_COUNT   (2),
+    )
+    IO_All_Ready
+    (
+        .clock              (clock),
+        .read_EF            ({A_io_in_EF_masked,  B_io_in_EF_masked}),
+        .write_EF           ({A_io_out_EF_masked, B_io_out_EF_masked}),
+        .ready              (IO_ready)
     );
 
     wire    [INSTR_WIDTH-1:0]   AB_instr;
@@ -153,90 +425,6 @@ module DataPath
         .D                  (ALU_D_in),
         .A                  (),
         .B                  ()
-    );
-
-    wire    A_wren;
-
-    Write_Enable 
-    #(
-        .OPCODE_WIDTH   (OPCODE_WIDTH)
-    )
-    A_mem_wren
-    (
-        .op             (mem_write_op),
-        .wren_other     (A_wren_other),
-        .wren           (A_wren)
-    );
-
-    Memory 
-    #(
-        .WORD_WIDTH                 (A_WORD_WIDTH),
-        .ADDR_WIDTH                 (A_ADDR_WIDTH),
-        .DEPTH                      (A_DEPTH),
-        .RAMSTYLE                   (A_RAMSTYLE),
-        .INIT_FILE                  (A_INIT_FILE),
-        .IO_READ_PORT_COUNT         (A_IO_READ_PORT_COUNT),
-        .IO_READ_PORT_BASE_ADDR     (A_IO_READ_PORT_BASE_ADDR),
-        .IO_READ_PORT_ADDR_WIDTH    (A_IO_READ_PORT_ADDR_WIDTH),
-        .IO_WRITE_PORT_COUNT        (A_IO_WRITE_PORT_COUNT),
-        .IO_WRITE_PORT_BASE_ADDR    (A_IO_WRITE_PORT_BASE_ADDR),
-        .IO_WRITE_PORT_ADDR_WIDTH   (A_IO_WRITE_PORT_ADDR_WIDTH)
-    )
-    A_mem
-    (
-        .clock                      (clock),
-        .wren                       (A_wren),
-        .write_addr                 (A_write_addr),
-        .write_data                 (mem_write_data),
-        .read_addr                  (A_read_addr),
-        .read_data                  (A_read_data),
-        .io_rden                    (A_io_rden),
-        .io_in                      (A_io_in),
-        .io_wren                    (A_io_wren),
-        .io_out                     (A_io_out)
-    );
-
-    wire    B_wren;
-
-    Write_Enable 
-    #(
-        .OPCODE_WIDTH   (OPCODE_WIDTH)
-    )
-    B_mem_wren 
-    (
-        .op             (mem_write_op),
-        .wren_other     (B_wren_other),
-        .wren           (B_wren)
-    );
-
-    wire    [B_WORD_WIDTH-1:0]      B_read_data;
-
-    Memory 
-    #(
-        .WORD_WIDTH                 (B_WORD_WIDTH),
-        .ADDR_WIDTH                 (B_ADDR_WIDTH),
-        .DEPTH                      (B_DEPTH),
-        .RAMSTYLE                   (B_RAMSTYLE),
-        .INIT_FILE                  (B_INIT_FILE),
-        .IO_READ_PORT_COUNT         (B_IO_READ_PORT_COUNT),
-        .IO_READ_PORT_BASE_ADDR     (B_IO_READ_PORT_BASE_ADDR),
-        .IO_READ_PORT_ADDR_WIDTH    (B_IO_READ_PORT_ADDR_WIDTH),
-        .IO_WRITE_PORT_COUNT        (B_IO_WRITE_PORT_COUNT),
-        .IO_WRITE_PORT_BASE_ADDR    (B_IO_WRITE_PORT_BASE_ADDR),
-        .IO_WRITE_PORT_ADDR_WIDTH   (B_IO_WRITE_PORT_ADDR_WIDTH)
-    )
-    B_mem
-    (
-        .clock                      (clock),
-        .wren                       (B_wren),
-        .write_addr                 (B_write_addr),
-        .write_data                 (mem_write_data),
-        .read_addr                  (B_read_addr),
-        .read_data                  (B_read_data),
-        .io_rden                    (B_io_rden),
-        .io_in                      (B_io_in),
-        .io_wren                    (B_io_wren),
-        .io_out                     (B_io_out)
     );
 
     ALU 

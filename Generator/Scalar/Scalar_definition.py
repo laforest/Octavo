@@ -79,13 +79,19 @@ def definition(all_parameters):
     input   wire                                                    ALU_c_in,
     output  wire                                                    ALU_c_out,
 
+    output  wire                                                    IO_ready,
+
+    input   wire    [(               A_IO_READ_PORT_COUNT)-1:0]     A_in_EF,
     output  wire    [(               A_IO_READ_PORT_COUNT)-1:0]     A_rden,
     input   wire    [(A_WORD_WIDTH * A_IO_READ_PORT_COUNT)-1:0]     A_in,
+    input   wire    [(               A_IO_WRITE_PORT_COUNT)-1:0]    A_out_EF,
     output  wire    [(               A_IO_WRITE_PORT_COUNT)-1:0]    A_wren,
     output  wire    [(A_WORD_WIDTH * A_IO_WRITE_PORT_COUNT)-1:0]    A_out,
 
+    input   wire    [(               B_IO_READ_PORT_COUNT)-1:0]     B_in_EF,
     output  wire    [(               B_IO_READ_PORT_COUNT)-1:0]     B_rden,
     input   wire    [(B_WORD_WIDTH * B_IO_READ_PORT_COUNT)-1:0]     B_in,
+    input   wire    [(               B_IO_WRITE_PORT_COUNT)-1:0]    B_out_EF,
     output  wire    [(               B_IO_WRITE_PORT_COUNT)-1:0]    B_wren,
     output  wire    [(B_WORD_WIDTH * B_IO_WRITE_PORT_COUNT)-1:0]    B_out
 );
@@ -159,13 +165,19 @@ def definition(all_parameters):
         .ALU_c_in                           (ALU_c_in),
         .ALU_c_out                          (ALU_c_out),
 
+        .IO_ready                           (IO_ready),
+
+        .A_io_in_EF                         (A_in_EF),
         .A_io_rden                          (A_rden),
         .A_io_in                            (A_in),
+        .A_io_out_EF                        (A_out_EF),
         .A_io_out                           (A_out),
         .A_io_wren                          (A_wren),
         
+        .A_io_in_EF                         (B_in_EF),
         .B_io_rden                          (B_rden),
         .B_io_in                            (B_in),
+        .A_io_out_EF                        (B_out_EF),
         .B_io_out                           (B_out),
         .B_io_wren                          (B_wren)
     );
