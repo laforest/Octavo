@@ -16,7 +16,7 @@
 (
     // no inputs/outputs
 );
-    `include "../Octavo_raw/Misc/log2.v"
+    `include "../../Octavo/Misc/log2.v"
 
     // Counter to clear memory
     integer i;
