@@ -54,9 +54,16 @@ endmodule
 
 `define IO_PORT_TEST                                                                       \
     `I(`ADD, `A_IO_WRITE_PORT_BASE_ADDR, `A_IO_READ_PORT_BASE_ADDR, 0)  `N(read_port_test) \
-    `I(`ADD, `B_IO_WRITE_PORT_BASE_ADDR, 0, `B_IO_READ_PORT_BASE_ADDR)                     \
+//    `I(`ADD, `B_IO_WRITE_PORT_BASE_ADDR, 0, `B_IO_READ_PORT_BASE_ADDR)                     \
     `I(`JMP, read_port_test, 0, 0)                   
 
+`define DO_NOTHING                             \
+    `I(`JMP, do_nothing, 0, 0) `N(do_nothing) `RD(do_nothing)
+
+ // output a marker value: 3,735,928,559 in decimal
+`define DEADBEEF                                                          \
+    `I(`ADD, `B_IO_WRITE_PORT_BASE_ADDR, deadbeef, 0) `N(marker_deadbeef) \
+    `I(`JMP, marker_deadbeef, 0, 0)
 
 module test
     `include "../Assembler/Assembler_begin.v"
@@ -65,6 +72,7 @@ module test
     `DEF(deadbeef)    
     `DEF(marker_deadbeef)
     `DEF(read_port_test)
+    `DEF(do_nothing)
 
     `include "../Assembler/Assembler_mem_init.v"
 
@@ -74,21 +82,19 @@ module test
     // Store global constants here
     `L('hdeadbeef) `N(deadbeef)
     `ALIGN(`THREAD_1_START)
-    `IO_PORT_TEST
+    `DO_NOTHING
     `ALIGN(`THREAD_2_START)
-    `IO_PORT_TEST
+    `DO_NOTHING
     `ALIGN(`THREAD_3_START)
-    `IO_PORT_TEST
+    `DO_NOTHING
     `ALIGN(`THREAD_4_START)
-    `IO_PORT_TEST
+    `DO_NOTHING
     `ALIGN(`THREAD_5_START)
-    `IO_PORT_TEST
+    `DO_NOTHING
     `ALIGN(`THREAD_6_START)
-    `IO_PORT_TEST
-    // output a marker value: 3,735,928,559 in decimal
+    `DO_NOTHING
     `ALIGN(`THREAD_7_START)
-    `I(`ADD, `B_IO_WRITE_PORT_BASE_ADDR, deadbeef, 0)    `N(marker_deadbeef)
-    `I(`JMP, marker_deadbeef, 0, 0)
+    `DEADBEEF
 
     `include "../Assembler/Assembler_end.v"
 endmodule
