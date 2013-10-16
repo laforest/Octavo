@@ -8,6 +8,7 @@ from Misc import misc, parameters_misc
 
 default_bench = "Predication/simple_io_test"
 install_base = misc.base_install_path()
+quartus_base_path = misc.quartus_base_path
 
 def test_bench(parameters, default_bench = default_bench, install_base = install_base):
     assembler_base = os.path.join(install_base, "Assembler")
@@ -16,6 +17,8 @@ def test_bench(parameters, default_bench = default_bench, install_base = install
 #(
     parameter       A_WORD_WIDTH                = ${A_WORD_WIDTH},
     parameter       B_WORD_WIDTH                = ${B_WORD_WIDTH},
+
+    parameter       INSTR_WIDTH                 = ${INSTR_WIDTH},
 
     parameter       A_IO_READ_PORT_COUNT        = ${A_IO_READ_PORT_COUNT},
     parameter       A_IO_WRITE_PORT_COUNT       = ${A_IO_WRITE_PORT_COUNT},
@@ -29,6 +32,8 @@ def test_bench(parameters, default_bench = default_bench, install_base = install
 )
 (
     output  wire                                                IO_ready,
+
+    output  wire    [INSTR_WIDTH-1:0]                           I_read_data,
 
     output  reg     [(A_WORD_WIDTH * A_IO_READ_PORT_COUNT)-1:0] A_in,
     output  wire    [(               A_IO_READ_PORT_COUNT)-1:0] A_rden,
@@ -111,6 +116,8 @@ def test_bench(parameters, default_bench = default_bench, install_base = install
 
         .IO_ready           (IO_ready),
 
+        .I_read_data        (I_read_data),
+
         .A_in               (A_in),
         .A_rden             (A_rden),
         .A_in_EF            (A_in_EF),
@@ -131,7 +138,7 @@ endmodule
     parameters["assembler_base"] = assembler_base
     return test_bench_template.substitute(parameters)
 
-def test_bench_script(parameters, default_bench = default_bench, install_base = install_base):
+def test_bench_script(parameters, default_bench = default_bench, install_base = install_base, quartus_base_path = quartus_base_path):
     test_bench_script_template = string.Template(
 """#! /bin/bash
 
@@ -140,8 +147,8 @@ INSTALL_BASE="${install_base}"
 TOP_LEVEL_MODULE="${CPU_NAME}_test_bench"
 TESTBENCH="./$${TOP_LEVEL_MODULE}.v"
 
-LPM_LIBRARY="/pkgs/altera/quartus/quartus13.0/linux/quartus/eda/sim_lib/220model.v"
-ALT_LIBRARY="/pkgs/altera/quartus/quartus13.0/linux/quartus/eda/sim_lib/altera_mf.v"
+LPM_LIBRARY="${quartus_base_path}/eda/sim_lib/220model.v"
+ALT_LIBRARY="${quartus_base_path}/eda/sim_lib/altera_mf.v"
 
 OCTAVO="$$INSTALL_BASE/Octavo/Misc/params.v \\
         $$INSTALL_BASE/Octavo/Misc/delay_line.v \\
@@ -161,7 +168,7 @@ OCTAVO="$$INSTALL_BASE/Octavo/Misc/params.v \\
         $$INSTALL_BASE/Octavo/Memory/RAM_SDP.v \\
         $$INSTALL_BASE/Octavo/Memory/Write_Enable.v \\
         $$INSTALL_BASE/Octavo/Memory/Memory.v \\
-        $$INSTALL_BASE/Octavo/IO/EmptyFull_Bit.v \\
+        $$INSTALL_BASE/Octavo/IO/EmptyFullBit.v \\
         $$INSTALL_BASE/Octavo/IO/IO_Active.v \\
         $$INSTALL_BASE/Octavo/IO/IO_All_Ready.v \\
         $$INSTALL_BASE/Octavo/IO/IO_Check.v \\
@@ -177,14 +184,15 @@ VLIB="work"
 VSIM_ACTIONS="vcd file $$TOP_LEVEL_MODULE.vcd ; vcd add -r /* ; run -all ; quit"
 
 rm $$TOP_LEVEL_MODULE.wlf $$TOP_LEVEL_MODULE.vcd
-vlib $$VLIB 2>&1 > /dev/null
-vlog -mfcu -incr -lint $$LPM_LIBRARY $$ALT_LIBRARY $$OCTAVO $$TESTBENCH 2>&1 > /dev/null
-vsim -voptargs="+acc" -c -do "$$VSIM_ACTIONS" $$TOP_LEVEL_MODULE 2>&1 > /dev/null
-vcd2wlf $$TOP_LEVEL_MODULE.vcd $$TOP_LEVEL_MODULE.wlf 2>&1 > /dev/null
+vlib $$VLIB 2>&1 > LOG
+vlog -mfcu -incr -lint $$LPM_LIBRARY $$ALT_LIBRARY $$OCTAVO $$TESTBENCH 2>&1 >> LOG
+vsim -voptargs="+acc" -c -do "$$VSIM_ACTIONS" $$TOP_LEVEL_MODULE 2>&1 >> LOG
+vcd2wlf $$TOP_LEVEL_MODULE.vcd $$TOP_LEVEL_MODULE.wlf 2>&1 >> LOG
 rm vsim.wlf
 """)
-    parameters["default_bench"] = default_bench
-    parameters["install_base"] = install_base
+    parameters["default_bench"]     = default_bench
+    parameters["install_base"]      = install_base
+    parameters["quartus_base_path"] = quartus_base_path
     return test_bench_script_template.substitute(parameters)
 
 def main(parameters = {}):

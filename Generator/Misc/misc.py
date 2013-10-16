@@ -12,6 +12,7 @@ import math
 # Use these in the generators
 bench_name          = "test_bench"
 harness_name        = "test_harness"
+quartus_base_path   = "$QUARTUS"
 
 def base_install_path():
     """Returns the base path of the installation. Adjust to match installation."""
@@ -52,25 +53,27 @@ def make_file_executable(path, filename):
     os.chmod(filepath, os.stat(filepath).st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
     return
 
-def wire_name(port, part, column, row):
-    return "{0}_{1}[{2}][{3}]".format(port, part, column, row)
+# ECL I think this is no longer used.
 
-def port_name(port, part):
-    return "{0}_{1}".format(port, part)
-
-def port_string(port, wire):
-    return ".{0}    ({1}),\n".format(port, wire)
-
-def all_port_strings(column, row):
-    all_ports = []
-    ports = ["A", "B"]
-    parts = ["in", "out", "wren"]
-    for port in ports:
-        for part in parts:
-            wire = wire_name(port, part, column, row)
-            this_port = port_name(port, part)
-            this_port = port_string(this_port, wire)
-            all_ports.append(this_port)
-    all_ports = "".join(all_ports)
-    return all_ports.rstrip(',')
+#def wire_name(port, part, column, row):
+#    return "{0}_{1}[{2}][{3}]".format(port, part, column, row)
+#
+#def port_name(port, part):
+#    return "{0}_{1}".format(port, part)
+#
+#def port_string(port, wire):
+#    return ".{0}    ({1}),\n".format(port, wire)
+#
+#def all_port_strings(column, row):
+#    all_ports = []
+#    ports = ["A", "B"]
+#    parts = ["in", "out", "wren"]
+#    for port in ports:
+#        for part in parts:
+#            wire = wire_name(port, part, column, row)
+#            this_port = port_name(port, part)
+#            this_port = port_string(this_port, wire)
+#            all_ports.append(this_port)
+#    all_ports = "".join(all_ports)
+#    return all_ports.rstrip(',')
     
