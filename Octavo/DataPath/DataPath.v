@@ -84,24 +84,7 @@ module DataPath
         .WIDTH  (INSTR_WIDTH)
     ) 
     I_passthru_pipeline
-    (    RAM_SDP
-    #(
-        .WORD_WIDTH     (I_WORD_WIDTH),
-        .ADDR_WIDTH     (I_ADDR_WIDTH),
-        .DEPTH          (I_DEPTH),
-        .RAMSTYLE       (I_RAMSTYLE),
-        .INIT_FILE      (I_INIT_FILE)
-    )
-    I_mem
-    (
-        .clock          (clock),
-        .wren           (I_wren),
-        .write_addr     (I_write_addr),
-        .write_data     (I_write_data[I_WORD_WIDTH-1:0]),
-        .read_addr      (I_read_addr),
-        .read_data      (I_read_data_bram)
-    );
-
+    (    
         .clock  (clock),
         .in     (I_read_data_in),
         .out    (I_read_data_out)
@@ -190,14 +173,14 @@ module DataPath
         .data_out                   (A_read_data)
     );
 
-    wire                A_wren;
+    wire                A_wren_RAM;
     wire                A_wren_ALU;
 
     Write_Enable 
     #(
         .OPCODE_WIDTH   (OPCODE_WIDTH)
     )
-    A
+    A_wren
     (
         .op             (ALU_op_out),
         .wren_other     (A_wren_other),
@@ -224,7 +207,7 @@ module DataPath
     );
 
     wire    [A_WORD_WIDTH-1:0]      A_write_data;
-    wire    [A_WORD_WIDTH-1:0]      A_write_addr;
+    wire    [A_ADDR_WIDTH-1:0]      A_write_addr;
     wire                            A_io_out_EF_masked;
 
     IO_Write
@@ -235,13 +218,13 @@ module DataPath
         .IO_WRITE_PORT_BASE_ADDR    (A_IO_WRITE_PORT_BASE_ADDR),
         .IO_WRITE_PORT_ADDR_WIDTH   (A_IO_WRITE_PORT_ADDR_WIDTH)
     )
-    A
+    A_IO_Write
     (
         .clock                      (clock),
         .addr_raw                   (D_write_addr_in),
         .EmptyFull                  (A_io_out_EF),
         .IO_ready                   (IO_ready),
-        .ALU_results                (ALU_result_out),
+        .ALU_result                 (ALU_result_out),
         .ALU_addr                   (ALU_D_out),
         .ALU_write_is_IO            (A_write_is_IO_ALU),
         .ALU_wren                   (A_wren_ALU),
@@ -251,7 +234,7 @@ module DataPath
         .data_IO                    (A_io_out),
         .data_RAM                   (A_write_data),
         .addr_RAM                   (A_write_addr),
-        .wren_RAM                   (A_wren)
+        .wren_RAM                   (A_wren_RAM)
     );
 
     RAM_SDP
@@ -262,10 +245,10 @@ module DataPath
         .RAMSTYLE       (A_RAMSTYLE),
         .INIT_FILE      (A_INIT_FILE)
     )
-    A
+    A_RAM
     (
         .clock          (clock),
-        .wren           (A_wren),
+        .wren           (A_wren_RAM),
         .write_addr     (A_write_addr),
         .write_data     (A_write_data),
         .read_addr      (A_read_addr_AB),
@@ -274,6 +257,7 @@ module DataPath
 
 
     wire    [B_WORD_WIDTH-1:0]      B_read_data_RAM;
+    wire    [B_WORD_WIDTH-1:0]      B_read_data;
     wire                            B_io_in_EF_masked;
 
     IO_Read
@@ -298,14 +282,14 @@ module DataPath
         .data_out                   (B_read_data)
     );
 
-    wire                B_wren;
+    wire                B_wren_RAM;
     wire                B_wren_ALU;
 
     Write_Enable 
     #(
         .OPCODE_WIDTH   (OPCODE_WIDTH)
     )
-    B
+    B_wren
     (
         .op             (ALU_op_out),
         .wren_other     (B_wren_other),
@@ -332,7 +316,7 @@ module DataPath
     );
 
     wire    [B_WORD_WIDTH-1:0]      B_write_data;
-    wire    [B_WORD_WIDTH-1:0]      B_write_addr;
+    wire    [B_ADDR_WIDTH-1:0]      B_write_addr;
     wire                            B_io_out_EF_masked;
 
     IO_Write
@@ -343,13 +327,13 @@ module DataPath
         .IO_WRITE_PORT_BASE_ADDR    (B_IO_WRITE_PORT_BASE_ADDR),
         .IO_WRITE_PORT_ADDR_WIDTH   (B_IO_WRITE_PORT_ADDR_WIDTH)
     )
-    B
+    B_IO_Write
     (
         .clock                      (clock),
         .addr_raw                   (D_write_addr_in),
         .EmptyFull                  (B_io_out_EF),
         .IO_ready                   (IO_ready),
-        .ALU_results                (ALU_result_out),
+        .ALU_result                 (ALU_result_out),
         .ALU_addr                   (ALU_D_out),
         .ALU_write_is_IO            (B_write_is_IO_ALU),
         .ALU_wren                   (B_wren_ALU),
@@ -359,7 +343,7 @@ module DataPath
         .data_IO                    (B_io_out),
         .data_RAM                   (B_write_data),
         .addr_RAM                   (B_write_addr),
-        .wren_RAM                   (B_wren)
+        .wren_RAM                   (B_wren_RAM)
     );
 
     RAM_SDP
@@ -370,12 +354,12 @@ module DataPath
         .RAMSTYLE       (B_RAMSTYLE),
         .INIT_FILE      (B_INIT_FILE)
     )
-    B
+    B_RAM
     (
         .clock          (clock),
-        .wren           (B_wren),
+        .wren           (B_wren_RAM),
         .write_addr     (B_write_addr),
-        .write_data     (mem_write_data),
+        .write_data     (B_write_data),
         .read_addr      (B_read_addr_AB),
         .read_data      (B_read_data_RAM)
     );
@@ -383,7 +367,7 @@ module DataPath
     IO_All_Ready
     #(
         .READ_PORT_COUNT    (2),
-        .WRITE_PORT_COUNT   (2),
+        .WRITE_PORT_COUNT   (2)
     )
     IO_All_Ready
     (

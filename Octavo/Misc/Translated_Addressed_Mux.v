@@ -8,13 +8,13 @@ module Translated_Addressed_Mux
     parameter       ADDR_WIDTH                          = 0,
     parameter       INPUT_COUNT                         = 0,
     parameter       INPUT_BASE_ADDR                     = 0,
-    parameter       INPUT_ADDR_WIDTH                    = 0
-    parameter       REGISTERED                          = `FALSE,
+    parameter       INPUT_ADDR_WIDTH                    = 0,
+    parameter       REGISTERED                          = `FALSE
 )
 (
     input   wire                                        clock,
     input   wire    [ADDR_WIDTH-1:0]                    addr,
-    input   wire    [(PORT_COUNT * WORD_WIDTH)-1:0]     data_in, 
+    input   wire    [(INPUT_COUNT * WORD_WIDTH)-1:0]    data_in, 
     output  wire    [WORD_WIDTH-1:0]                    data_out
 );
 

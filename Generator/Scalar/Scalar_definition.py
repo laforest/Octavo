@@ -81,6 +81,8 @@ def definition(all_parameters):
 
     output  wire                                                    IO_ready,
 
+    output  wire    [INSTR_WIDTH-1:0]                               I_read_data,
+
     input   wire    [(               A_IO_READ_PORT_COUNT)-1:0]     A_in_EF,
     output  wire    [(               A_IO_READ_PORT_COUNT)-1:0]     A_rden,
     input   wire    [(A_WORD_WIDTH * A_IO_READ_PORT_COUNT)-1:0]     A_in,
@@ -167,6 +169,8 @@ def definition(all_parameters):
 
         .IO_ready                           (IO_ready),
 
+        .I_read_data                        (I_read_data),
+
         .A_io_in_EF                         (A_in_EF),
         .A_io_rden                          (A_rden),
         .A_io_in                            (A_in),
@@ -174,10 +178,10 @@ def definition(all_parameters):
         .A_io_out                           (A_out),
         .A_io_wren                          (A_wren),
         
-        .A_io_in_EF                         (B_in_EF),
+        .B_io_in_EF                         (B_in_EF),
         .B_io_rden                          (B_rden),
         .B_io_in                            (B_in),
-        .A_io_out_EF                        (B_out_EF),
+        .B_io_out_EF                        (B_out_EF),
         .B_io_out                           (B_out),
         .B_io_wren                          (B_wren)
     );

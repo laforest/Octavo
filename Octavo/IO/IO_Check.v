@@ -5,7 +5,7 @@
 
 module IO_Check
 #(
-    parameter   READY_STATE             = `FULL
+    parameter   READY_STATE             = `FULL,
     parameter   ADDR_WIDTH              = 0,
     parameter   PORT_COUNT              = 0,
     parameter   PORT_BASE_ADDR          = 0,

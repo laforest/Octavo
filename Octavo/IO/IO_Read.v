@@ -20,8 +20,8 @@ module IO_Read
     input   wire                                            IO_ready,
 
     output  wire                                            EmptyFull_masked,
-    output  wire    [PORT_COUNT-1:0]                        active_IO,
-    output  wire    [WORD_WIDTH-1:0]                        data_out
+    output  reg     [IO_READ_PORT_COUNT-1:0]                active_IO,
+    output  reg     [WORD_WIDTH-1:0]                        data_out
 );
 
     wire addr_is_IO;
@@ -29,13 +29,13 @@ module IO_Read
 
     IO_Check
     #(
-        .READY_STATE        (`FULL)
+        .READY_STATE        (`FULL),
         .ADDR_WIDTH         (ADDR_WIDTH),
         .PORT_COUNT         (IO_READ_PORT_COUNT),
         .PORT_BASE_ADDR     (IO_READ_PORT_BASE_ADDR),
         .PORT_ADDR_WIDTH    (IO_READ_PORT_ADDR_WIDTH)
     )
-    Read
+    Read_IO_Check
     (
         .clock              (clock),
         .addr               (addr_raw),
@@ -45,7 +45,7 @@ module IO_Read
         .addr_is_IO_reg     (addr_is_IO_reg)
     );
 
-    reg addr_raw_reg;
+    reg [ADDR_WIDTH-1:0] addr_raw_reg;
     always @(posedge clock) begin
         addr_raw_reg <= addr_raw;
     end
@@ -59,7 +59,7 @@ module IO_Read
         .PORT_BASE_ADDR     (IO_READ_PORT_BASE_ADDR),
         .PORT_ADDR_WIDTH    (IO_READ_PORT_ADDR_WIDTH)
     )
-    Read
+    Read_IO_Active
     (
         .clock              (clock),
         .enable             (addr_is_IO),
@@ -125,7 +125,7 @@ module IO_Read
     end
 
     always @(*) begin
-        data_out <= data_out_internal & {WORD_WIDTH{IO_ready_reg_reg};
+        data_out <= data_out_internal & {WORD_WIDTH{IO_ready_reg_reg}};
     end
 
 endmodule

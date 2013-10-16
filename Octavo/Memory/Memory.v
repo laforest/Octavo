@@ -48,7 +48,7 @@ module Memory
         .IO_READ_PORT_COUNT         (IO_READ_PORT_COUNT),
         .IO_READ_PORT_ADDR_WIDTH    (IO_READ_PORT_ADDR_WIDTH)
     )
-    Port
+    IO_Read
     (
         .clock                      (clock),
         .read_addr_raw              (read_addr_raw),
@@ -74,10 +74,10 @@ module Memory
         .IO_WRITE_PORT_BASE_ADDR    (IO_WRITE_PORT_BASE_ADDR),
         .IO_WRITE_PORT_ADDR_WIDTH   (IO_WRITE_PORT_ADDR_WIDTH)
     )
-    Port 
+    IO_Write
     (
         .clock                      (clock),
-        .addr_raw                   (addr_raw),
+        .addr_raw                   (read_addr_raw),
         .EmptyFull                  (write_EF_in),
         .IO_ready                   (IO_ready),
         .ALU_result                 (write_data),

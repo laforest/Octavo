@@ -14,11 +14,13 @@ module IO_All_Ready
     input   wire    [WRITE_PORT_COUNT-1:0]  write_EF,
     output  reg                             ready
 );
-    wire read_ready;
-    wire write_ready;
+    reg read_ready;
+    reg write_ready;
 
-    read_ready  <= &  read_EF;
-    write_ready <= & ~write_EF;
+    always @(*) begin
+        read_ready  <= &read_EF;
+        write_ready <= &(~write_EF);
+    end
 
     always @(posedge clock) begin
         ready <= read_ready & write_ready;
