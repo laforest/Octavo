@@ -55,7 +55,7 @@ module Address_Decoder
             end
 
             initial begin
-                match = 0;
+                hit = 0;
             end
         end
         else begin

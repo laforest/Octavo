@@ -86,5 +86,15 @@ module IO_Write
         .addr               (ALU_addr),
         .active             (active_IO)
     );
+
+    initial begin
+        write_is_IO_internal    = 0;
+        write_is_IO             = 0;
+        data_IO                 = 0;
+        data_RAM                = 0;
+        addr_RAM                = 0;
+        wren_RAM                = 0;
+    end
+
 endmodule
 

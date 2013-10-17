@@ -128,5 +128,12 @@ module IO_Read
         data_out <= data_out_internal & {WORD_WIDTH{IO_ready_reg_reg}};
     end
 
+    initial begin
+        addr_raw_reg        = 0;
+        addr_is_IO_reg_reg  = 0;
+        IO_ready_reg        = 0;
+        IO_ready_reg_reg    = 0;
+    end
+
 endmodule
 

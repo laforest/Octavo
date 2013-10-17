@@ -74,5 +74,9 @@ module IO_Check
         .data_in            ({port_EF_selected, READY_STATE}), 
         .data_out           (port_EF_masked)
     );
+
+    initial begin
+        addr_is_IO_reg = 0;
+    end
 endmodule
 
