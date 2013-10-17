@@ -39,6 +39,8 @@ module ControlPath
 
     input   wire    [A_WORD_WIDTH-1:0]      A_read_data, 
 
+    input   wire                            IO_ready,
+
     output  reg     [INSTR_WIDTH-1:0]       I_read_data,
     output  wire    [I_ADDR_WIDTH-1:0]      pc
 );
@@ -95,7 +97,7 @@ module ControlPath
         I_read_data <= I_read_data_tap;
     end
 
-    wire    [INSTR_WIDTH-1:0]       I_read_data_AB;
+    wire    [INSTR_WIDTH-1:0]   I_read_data_AB;
 
     delay_line 
     #(
@@ -109,7 +111,35 @@ module ControlPath
         .out    (I_read_data_AB)
     );
 
+    reg     [INSTR_WIDTH-1:0]   I_read_data_AB_masked;
     wire    [INSTR_WIDTH-1:0]   AB_instr;
+
+    // ECL Annuling the instruction using logic instead of synchronous clear
+    // since it would require changing the delay_line, and might not be as
+    // portable.
+
+    // See http://www.altera.com/literature/hb/qts/qts_qii51007.pdf (page 14-49):
+
+    // Creating many registers with different sload and sclr signals can make
+    // packing the registers into LABs difficult for the Quartus II Fitter
+    // because the sclr and sload signals are LAB-wide signals. In addition,
+    // using the LAB-wide sload signal prevents the Fitter from packing
+    // registers using the quick feedback path in the device architecture,
+    // which means that some registers cannot be packed with other logic.
+
+    // Synthesis tools typically restrict use of sload and sclr signals to
+    // cases in which there are enough registers with common signals to allow
+    // good LAB packing. Using the look-up table (LUT) to implement the signals
+    // is always more flexible if it is available.  Because different device
+    // families offer different numbers of control signals, inference of these
+    // signals is also device-specific. For example, because Stratix II devices
+    // have more flexibility than Stratix devices with respect to secondary
+    // control signals, synthesis tools might infer more sload and sclr signals
+    // for Stratix II devices.
+ 
+    always @(*) begin
+        I_read_data_AB_masked <= I_read_data_AB & {INSTR_WIDTH{IO_ready}};
+    end
 
     delay_line 
     #(
@@ -119,8 +149,22 @@ module ControlPath
     AB_read_pipeline
     (
         .clock  (clock),
-        .in     (I_read_data_AB),
+        .in     (I_read_data_AB_masked),
         .out    (AB_instr)
+    );
+
+    wire    IO_ready_ctrl;
+
+    delay_line 
+    #(
+        .DEPTH  (AB_READ_PIPELINE_DEPTH),
+        .WIDTH  (1)
+    ) 
+    AB_IO_ready_pipeline
+    (
+        .clock  (clock),
+        .in     (IO_ready),
+        .out    (IO_ready_ctrl)
     );
 
     wire    [OPCODE_WIDTH-1:0]      AB_op;
@@ -161,6 +205,7 @@ module ControlPath
         .A                  (A_read_data),
         .op                 (AB_op),
         .D                  (AB_D),
+        .IO_ready           (IO_ready_ctrl),
         .pc                 (Ctrl_pc) 
     );
 

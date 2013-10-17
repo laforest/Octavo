@@ -145,6 +145,8 @@ module Scalar
 
         .A_read_data                (A_read_data_Controller), 
 
+        .IO_ready                   (IO_ready),
+
         .I_read_data                (I_read_data_DataPath),
         .pc                         (Controller_pc_I)
     );

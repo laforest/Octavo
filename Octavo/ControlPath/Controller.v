@@ -119,11 +119,11 @@ module Controller
     input   wire    [A_WORD_WIDTH-1:0]  A,
     input   wire    [OPCODE_WIDTH-1:0]  op,
     input   wire    [PC_WIDTH-1:0]      D,
+    input   wire                        IO_ready,
     output  reg     [PC_WIDTH-1:0]      pc 
 );
 
     wire    [OPCODE_WIDTH-1:0]  op_pipelined;
-    wire    [PC_WIDTH-1:0]      D_pipelined;
 
     delay_line 
     #(
@@ -137,6 +137,8 @@ module Controller
         .out    (op_pipelined)
     );
  
+    wire    [PC_WIDTH-1:0]      D_pipelined;
+
     delay_line 
     #(
         .DEPTH  (2), 
@@ -149,6 +151,20 @@ module Controller
         .out    (D_pipelined)
     );
 
+    wire        IO_ready_pipelined;
+
+    delay_line 
+    #(
+        .DEPTH  (2), 
+        .WIDTH  (1)
+    ) 
+    IO_ready_pipeline
+    (
+        .clock  (clock),
+        .in     (IO_ready),
+        .out    (IO_ready_pipelined)
+    );
+ 
     wire    A_zero;
 
     Controller_A_zero 
@@ -190,6 +206,8 @@ module Controller
         .jump           (jump)
     );
 
+    // ECL FIXME The following should be put into a Thread Number module.
+    // -----------------------------------------------------------------
     reg     [THREAD_ADDR_WIDTH-1:0] current_thread;
     reg     [THREAD_ADDR_WIDTH-1:0] next_thread;
 
@@ -213,6 +231,7 @@ module Controller
     always @(posedge clock) begin
         current_thread  <= next_thread;
     end
+    // -----------------------------------------------------------------
 
     wire    [PC_WIDTH-1:0]  thread_pc;
     reg     [PC_WIDTH-1:0]  thread_pc_next;
@@ -239,11 +258,12 @@ module Controller
             pc <= D_pipelined;
         end
         else begin
-            pc <= thread_pc;
+            // ECL FIXME Yick...better way? Signed values?
+            pc <= thread_pc - {{PC_WIDTH-1{1'b0}},~IO_ready_pipelined};
         end
     end
 
     always @(*) begin
-        thread_pc_next <= pc + one[PC_WIDTH-1:0];
+        thread_pc_next <= pc + IO_ready_pipelined;
     end
 endmodule
