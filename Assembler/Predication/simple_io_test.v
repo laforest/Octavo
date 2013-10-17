@@ -2,22 +2,23 @@
 // Moves data from input to output, should hang if I/O not ready
 // Test by making input EMPTY and output FULL
 
+// Make addresses multiples of a power of 2: easy to track in the hex instruction word
 `define THREAD_0_START 1
-`define THREAD_1_START 20
-`define THREAD_2_START 40
-`define THREAD_3_START 60
-`define THREAD_4_START 80
-`define THREAD_5_START 100
-`define THREAD_6_START 120
-`define THREAD_7_START 140
+`define THREAD_1_START 16
+`define THREAD_2_START 32
+`define THREAD_3_START 48
+`define THREAD_4_START 64
+`define THREAD_5_START 80
+`define THREAD_6_START 96
+`define THREAD_7_START 112
 
-`define PC_FILE    "simple_io_test.pc"
-`define MEM_FILE   "simple_io_test.mem"
+`define PC_FILE         "simple_io_test.pc"
+`define MEM_FILE        "simple_io_test.mem"
 `define SIMD_MEM_FILE   "SIMD_simple_io_test.mem"
 `define SIMD_WORD_WIDTH 36
-`define THREADS    8
-`define ADDR_WIDTH 10
-`define MEM_DEPTH  2**10
+`define THREADS         8
+`define ADDR_WIDTH      10
+`define MEM_DEPTH       2**10
 
 module thread_pc
     `include "../Assembler/Assembler_begin.v"
@@ -52,9 +53,12 @@ endmodule
 `define B_IO_WRITE_PORT_BASE_ADDR 1023
 `define B_IO_READ_PORT_BASE_ADDR  1023
 
-`define IO_PORT_TEST                                                                       \
+`define IO_PORT_TEST_A                                                                     \
     `I(`ADD, `A_IO_WRITE_PORT_BASE_ADDR, `A_IO_READ_PORT_BASE_ADDR, 0)  `N(read_port_test) \
-//    `I(`ADD, `B_IO_WRITE_PORT_BASE_ADDR, 0, `B_IO_READ_PORT_BASE_ADDR)                     \
+    `I(`JMP, read_port_test, 0, 0)
+
+`define IO_PORT_TEST_B                                                                     \
+    `I(`ADD, `B_IO_WRITE_PORT_BASE_ADDR, 0, `B_IO_READ_PORT_BASE_ADDR)  `N(read_port_test) \
     `I(`JMP, read_port_test, 0, 0)                   
 
 `define DO_NOTHING                             \
@@ -68,7 +72,7 @@ endmodule
 module test
     `include "../Assembler/Assembler_begin.v"
 
-    // Thread entry points
+    // Named values
     `DEF(deadbeef)    
     `DEF(marker_deadbeef)
     `DEF(read_port_test)
@@ -76,25 +80,33 @@ module test
 
     `include "../Assembler/Assembler_mem_init.v"
 
-    // Test the read ports by passing input to matching write port.
+    // Threads 1-7 get a NOP to align their execution with Thread 0
+    // Thread 0 necessarily starts with a NOP (initial I mem output register after reset)
     `ALIGN(`THREAD_0_START)
-    `IO_PORT_TEST
+    `IO_PORT_TEST_A
     // Store global constants here
     `L('hdeadbeef) `N(deadbeef)
     `ALIGN(`THREAD_1_START)
-    `DO_NOTHING
+    `NOP
+    `IO_PORT_TEST_A
     `ALIGN(`THREAD_2_START)
-    `DO_NOTHING
+    `NOP
+    `IO_PORT_TEST_A
     `ALIGN(`THREAD_3_START)
-    `DO_NOTHING
+    `NOP
+    `IO_PORT_TEST_A
     `ALIGN(`THREAD_4_START)
-    `DO_NOTHING
+    `NOP
+    `IO_PORT_TEST_B
     `ALIGN(`THREAD_5_START)
-    `DO_NOTHING
+    `NOP
+    `IO_PORT_TEST_B
     `ALIGN(`THREAD_6_START)
-    `DO_NOTHING
+    `NOP
+    `IO_PORT_TEST_B
     `ALIGN(`THREAD_7_START)
-    `DEADBEEF
+    `NOP
+    `IO_PORT_TEST_B
 
     `include "../Assembler/Assembler_end.v"
 endmodule
