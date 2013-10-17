@@ -159,7 +159,7 @@ module DataPath
         .IO_READ_PORT_BASE_ADDR     (A_IO_READ_PORT_BASE_ADDR),
         .IO_READ_PORT_ADDR_WIDTH    (A_IO_READ_PORT_ADDR_WIDTH)
     )
-    A
+    A_IO_Read
     (
         .clock                      (clock),
         .addr_raw                   (A_read_addr_in),
@@ -268,7 +268,7 @@ module DataPath
         .IO_READ_PORT_BASE_ADDR     (B_IO_READ_PORT_BASE_ADDR),
         .IO_READ_PORT_ADDR_WIDTH    (B_IO_READ_PORT_ADDR_WIDTH)
     )
-    B
+    B_IO_Read
     (
         .clock                      (clock),
         .addr_raw                   (B_read_addr_in),
