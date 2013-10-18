@@ -12,9 +12,9 @@
 `define THREAD_6_START 96
 `define THREAD_7_START 112
 
-`define PC_FILE         "simple_io_test.pc"
-`define MEM_FILE        "simple_io_test.mem"
-`define SIMD_MEM_FILE   "SIMD_simple_io_test.mem"
+`define PC_FILE         "simple_io_test_ab.pc"
+`define MEM_FILE        "simple_io_test_ab.mem"
+`define SIMD_MEM_FILE   "SIMD_simple_io_test_ab.mem"
 `define SIMD_WORD_WIDTH 36
 `define THREADS         8
 `define ADDR_WIDTH      10
