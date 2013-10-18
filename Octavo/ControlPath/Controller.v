@@ -253,17 +253,23 @@ module Controller
         .thread_read_data   (thread_pc)
     );
 
+    reg     [PC_WIDTH-1:0]  pc_raw;
+
     always @(*) begin
         if (jump === `HIGH) begin
-            pc <= D_pipelined;
+            pc_raw <= D_pipelined;
         end
         else begin
-            // ECL FIXME Yick...better way? Signed values?
-            pc <= thread_pc - {{PC_WIDTH-1{1'b0}},~IO_ready_pipelined};
+            pc_raw <= thread_pc;
         end
     end
 
     always @(*) begin
-        thread_pc_next <= pc + IO_ready_pipelined;
+        // ECL FIXME Yick...better way? Signed values?
+        pc <= pc_raw - {{PC_WIDTH-1{1'b0}},~IO_ready_pipelined};
+    end
+
+    always @(*) begin
+        thread_pc_next <= pc_raw + IO_ready_pipelined;
     end
 endmodule
