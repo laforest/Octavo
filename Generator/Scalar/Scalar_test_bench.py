@@ -31,8 +31,6 @@ def test_bench(parameters, default_bench = default_bench, install_base = install
     parameter       PC_INIT_FILE                = "${assembler_base}/${default_bench}.pc"
 )
 (
-    output  wire                                                IO_ready,
-
     output  wire    [INSTR_WIDTH-1:0]                           I_read_data,
 
     output  reg     [(A_WORD_WIDTH * A_IO_READ_PORT_COUNT)-1:0] A_in,
@@ -130,8 +128,6 @@ def test_bench(parameters, default_bench = default_bench, install_base = install
 
         .ALU_c_in           (ALU_C_IN_DEFAULT),
         .ALU_c_out          (),
-
-        .IO_ready           (IO_ready),
 
         .I_read_data        (I_read_data),
 

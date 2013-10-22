@@ -79,8 +79,6 @@ def definition(all_parameters):
     input   wire                                                    ALU_c_in,
     output  wire                                                    ALU_c_out,
 
-    output  wire                                                    IO_ready,
-
     output  wire    [INSTR_WIDTH-1:0]                               I_read_data,
 
     input   wire    [(               A_IO_READ_PORT_COUNT)-1:0]     A_in_EF,
@@ -166,8 +164,6 @@ def definition(all_parameters):
 
         .ALU_c_in                           (ALU_c_in),
         .ALU_c_out                          (ALU_c_out),
-
-        .IO_ready                           (IO_ready),
 
         .I_read_data                        (I_read_data),
 

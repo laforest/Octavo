@@ -73,8 +73,6 @@ module Scalar
     input   wire                                                    ALU_c_in,
     output  wire                                                    ALU_c_out,
 
-    output  wire                                                    IO_ready,
-
     // Instruction sent to SIMD lanes
     output  wire    [INSTR_WIDTH-1:0]                               I_read_data,
 
