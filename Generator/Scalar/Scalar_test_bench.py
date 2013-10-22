@@ -6,7 +6,7 @@ import sys
 
 from Misc import misc, parameters_misc
 
-default_bench = "Predication/simple_io_test"
+default_bench = "Predication/simple_io_test_ab"
 install_base = misc.base_install_path()
 quartus_base_path = misc.quartus_base_path
 
@@ -63,7 +63,7 @@ def test_bench(parameters, default_bench = default_bench, install_base = install
         A_out_EF    = 0;
         B_in_EF     = -1;
         B_out_EF    = 0;
-        `DELAY_CLOCK_CYCLES(1000) $$stop;
+        `DELAY_CLOCK_CYCLES(2000) $$stop;
     end
 
     always begin
@@ -79,17 +79,34 @@ def test_bench(parameters, default_bench = default_bench, install_base = install
     end
 
     always begin
+        // Read Empty, Write Full
         `DELAY_CLOCK_CYCLES(100)
         A_in_EF  = 0;
         A_out_EF = -1;
         B_in_EF  = 0;
         B_out_EF = -1;
         
+        // Read Full, Write Empty
         `DELAY_CLOCK_CYCLES(100)
         A_in_EF  = -1;
         A_out_EF = 0;
         B_in_EF  = -1;
         B_out_EF = 0;
+
+        // Read Empty, Write Empty
+        `DELAY_CLOCK_CYCLES(100)
+        A_in_EF  = 0;
+        A_out_EF = 0;
+        B_in_EF  = 0;
+        B_out_EF = 0;
+
+        // Read Full, Write Full
+        `DELAY_CLOCK_CYCLES(100)
+        A_in_EF  = -1;
+        A_out_EF = -1;
+        B_in_EF  = -1;
+        B_out_EF = -1;
+
     end
 
     localparam WREN_OTHER_DEFAULT = `HIGH;
