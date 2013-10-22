@@ -39,19 +39,27 @@ def test_harness(parameters, default_memory_init = default_memory_init, install_
     input   wire                                    half_clock,
     
     input   wire    [A_IO_READ_PORT_COUNT-1:0]      A_in,
+    input   wire    [A_IO_READ_PORT_COUNT-1:0]      A_in_EF,
     output  wire    [A_IO_WRITE_PORT_COUNT-1:0]     A_out,
+    input   wire    [A_IO_READ_PORT_COUNT-1:0]      A_out_EF,
     
     input   wire    [B_IO_READ_PORT_COUNT-1:0]      B_in,
-    output  wire    [B_IO_WRITE_PORT_COUNT-1:0]     B_out
+    input   wire    [B_IO_READ_PORT_COUNT-1:0]      B_in_EF,
+    output  wire    [B_IO_WRITE_PORT_COUNT-1:0]     B_out,
+    input   wire    [B_IO_READ_PORT_COUNT-1:0]      B_out_EF
 );
     wire    [A_IO_READ_PORT_WIDTH-1:0]      dut_A_in;
+    wire    [A_IO_READ_PORT_COUNT-1:0]      dut_A_in_EF;
     wire    [A_IO_READ_PORT_COUNT-1:0]      dut_A_rden;
     wire    [A_IO_WRITE_PORT_WIDTH-1:0]     dut_A_out;
+    wire    [A_IO_WRITE_PORT_COUNT-1:0]     dut_A_out_EF;
     wire    [A_IO_WRITE_PORT_COUNT-1:0]     dut_A_wren;
 
     wire    [B_IO_READ_PORT_WIDTH-1:0]      dut_B_in;
+    wire    [B_IO_READ_PORT_COUNT-1:0]      dut_B_in_EF;
     wire    [B_IO_READ_PORT_COUNT-1:0]      dut_B_rden;
     wire    [B_IO_WRITE_PORT_WIDTH-1:0]     dut_B_out;
+    wire    [B_IO_WRITE_PORT_COUNT-1:0]     dut_B_out_EF;
     wire    [B_IO_WRITE_PORT_COUNT-1:0]     dut_B_wren;
 
     localparam WREN_OTHER_DEFAULT = `HIGH;
@@ -76,13 +84,17 @@ def test_harness(parameters, default_memory_init = default_memory_init, install_
         .ALU_c_in           (ALU_C_IN_DEFAULT),
         .ALU_c_out          (),
 
+        .A_in_EF            (dut_A_in_EF),
         .A_rden             (dut_A_rden),
         .A_in               (dut_A_in),
+        .A_out_EF           (dut_A_out_EF),
         .A_wren             (dut_A_wren),
         .A_out              (dut_A_out),
 
+        .B_in_EF            (dut_B_in_EF),
         .B_rden             (dut_B_rden),
         .B_in               (dut_B_in),
+        .B_out_EF           (dut_B_out_EF),
         .B_wren             (dut_B_wren),
         .B_out              (dut_B_out)
     );
@@ -103,6 +115,19 @@ def test_harness(parameters, default_memory_init = default_memory_init, install_
         .output_port    (dut_A_in   [0 +: A_IO_READ_PORT_WIDTH])
     );
 
+    shift_register
+    #(
+        .WIDTH          (1)
+    )
+    input_harness_A_EF  [A_IO_READ_PORT_COUNT-1:0]
+    (
+        .clock          (clock),
+        .input_port     (A_in_EF     [0 +: A_IO_READ_PORT_COUNT]),
+        .read_enable    ({A_IO_READ_PORT_COUNT{`HIGH}}),
+        .output_port    (dut_A_in_EF [0 +: A_IO_READ_PORT_COUNT])
+    );
+
+
 
     // ****** B PORT INPUT ******
     shift_register
@@ -115,6 +140,18 @@ def test_harness(parameters, default_memory_init = default_memory_init, install_
         .input_port     (B_in       [0 +: B_IO_READ_PORT_COUNT]),
         .read_enable    (dut_B_rden [0 +: B_IO_READ_PORT_COUNT]),
         .output_port    (dut_B_in   [0 +: B_IO_READ_PORT_WIDTH])
+    );
+
+    shift_register
+    #(
+        .WIDTH          (1)
+    )
+    input_harness_B_EF  [B_IO_READ_PORT_COUNT-1:0]
+    (
+        .clock          (clock),
+        .input_port     (B_in_EF     [0 +: B_IO_READ_PORT_COUNT]),
+        .read_enable    ({B_IO_READ_PORT_COUNT{`HIGH}}),
+        .output_port    (dut_B_in_EF [0 +: B_IO_READ_PORT_COUNT])
     );
 
 
@@ -145,6 +182,18 @@ def test_harness(parameters, default_memory_init = default_memory_init, install_
         .output_port    (A_out[0 +: A_IO_WRITE_PORT_COUNT])
     );
 
+    shift_register
+    #(
+        .WIDTH          (1)
+    )
+    output_harness_A_EF [A_IO_WRITE_PORT_COUNT-1:0]
+    (
+        .clock          (clock),
+        .input_port     (A_out_EF     [0 +: A_IO_WRITE_PORT_COUNT]),
+        .read_enable    ({A_IO_WRITE_PORT_COUNT{`HIGH}}),
+        .output_port    (dut_A_out_EF [0 +: A_IO_WRITE_PORT_COUNT])
+    );
+
 
     // ****** B PORT OUTPUT ******
     wire    [B_IO_WRITE_PORT_WIDTH-1:0]     out_B;
@@ -171,6 +220,19 @@ def test_harness(parameters, default_memory_init = default_memory_init, install_
         .input_port     (out_B),
         .output_port    (B_out[0 +: B_IO_WRITE_PORT_COUNT])
     );
+
+    shift_register
+    #(
+        .WIDTH          (1)
+    )
+    output_harness_B_EF [B_IO_WRITE_PORT_COUNT-1:0]
+    (
+        .clock          (clock),
+        .input_port     (B_out_EF     [0 +: B_IO_WRITE_PORT_COUNT]),
+        .read_enable    ({B_IO_WRITE_PORT_COUNT{`HIGH}}),
+        .output_port    (dut_B_out_EF [0 +: B_IO_WRITE_PORT_COUNT])
+    );
+
 endmodule
 """)
     parameters["default_memory_init"] = default_memory_init

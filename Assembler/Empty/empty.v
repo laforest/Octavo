@@ -7,15 +7,17 @@
 `define THREAD_6_START 120
 `define THREAD_7_START 140
 
-`define PC_FILE    "empty.pc"
-`define MEM_FILE   "empty.mem"
-`define THREADS    8
-`define ADDR_WIDTH 10
-`define MEM_DEPTH  2**10
+`define PC_FILE         "empty.pc"
+`define MEM_FILE        "empty.mem"
+`define SIMD_MEM_FILE   "SIMD_empty.mem"
+`define SIMD_WORD_WODTH 36
+`define THREADS         8
+`define ADDR_WIDTH      10
+`define MEM_DEPTH       2**10
 
 module thread_pc
-    `include "./Assembler/Assembler_begin.v"
-    `include "./Assembler/Assembler_mem_init.v"
+    `include "../Assembler/Assembler_begin.v"
+    `include "../Assembler/Assembler_mem_init.v"
 
     `L(`THREAD_0_START)
     `L(`THREAD_1_START)
@@ -26,7 +28,7 @@ module thread_pc
     `L(`THREAD_6_START)
     `L(`THREAD_7_START)
 
-    `include "./Assembler/Assembler_end.v"
+    `include "../Assembler/Assembler_end.v"
 endmodule
 
 module do_thread_pc ();
@@ -41,15 +43,15 @@ module do_thread_pc ();
 endmodule
 
 module test
-    `include "./Assembler/Assembler_begin.v"
+    `include "../Assembler/Assembler_begin.v"
 
     // Thread entry points
 
-    `include "./Assembler/Assembler_mem_init.v"
+    `include "../Assembler/Assembler_mem_init.v"
 
     // Code
 
-    `include "./Assembler/Assembler_end.v"
+    `include "../Assembler/Assembler_end.v"
 endmodule
 
 
@@ -57,6 +59,17 @@ module do_test ();
     test
     #(
         .INIT_FILE      (`MEM_FILE),
+        .START_ADDR     (0),
+        .END_ADDR       (`MEM_DEPTH - 1)
+    )
+    test ();
+endmodule
+
+module SIMD_do_test ();
+    test
+    #(
+        .WORD_WIDTH     (`SIMD_WORD_WODTH),
+        .INIT_FILE      (`SIMD_MEM_FILE),
         .START_ADDR     (0),
         .END_ADDR       (`MEM_DEPTH - 1)
     )
