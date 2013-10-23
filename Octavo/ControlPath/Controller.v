@@ -233,12 +233,19 @@ module Controller
     end
     // -----------------------------------------------------------------
 
-    wire    [PC_WIDTH-1:0]  thread_pc;
-    reg     [PC_WIDTH-1:0]  thread_pc_next;
+    wire    [PC_WIDTH-1:0]  previous_pc;
+    wire    [PC_WIDTH-1:0]  current_pc;
+    reg     [PC_WIDTH-1:0]  next_pc;
+
+    reg     [THREAD_ADDR_WIDTH-1:0] previous_thread;
+
+    always @(posedge clock) begin
+        previous_thread <= current_thread;
+    end
 
     Controller_threads 
     #(
-        .PC_WIDTH           (PC_WIDTH),
+        .PC_WIDTH           (PC_WIDTH * 2),
         .THREAD_ADDR_WIDTH  (THREAD_ADDR_WIDTH),
         .THREAD_COUNT       (THREAD_COUNT),
         .RAMSTYLE           (RAMSTYLE),
@@ -247,29 +254,38 @@ module Controller
     threads_pc 
     (
         .clock              (clock),
-        .thread_write_addr  (current_thread),
-        .thread_write_data  (thread_pc_next),
+        .thread_write_addr  (previous_thread),
+        .thread_write_data  ({next_pc, pc_reg}),
         .thread_read_addr   (next_thread), 
-        .thread_read_data   (thread_pc)
+        .thread_read_data   ({current_pc, previous_pc})
     );
 
-    reg     [PC_WIDTH-1:0]  pc_raw;
+    reg     [PC_WIDTH-1:0] normal_pc;
+    reg     [PC_WIDTH-1:0] pc_reg;
 
     always @(*) begin
         if (jump === `HIGH) begin
-            pc_raw <= D_pipelined;
+            normal_pc <= D_pipelined;
         end
         else begin
-            pc_raw <= thread_pc;
+            normal_pc <= current_pc;
         end
     end
 
     always @(*) begin
-        // ECL FIXME Yick...better way? Signed values?
-        pc <= pc_raw - {{PC_WIDTH-1{1'b0}},~IO_ready_pipelined};
+        if (IO_ready_pipelined === `HIGH) begin
+            pc <= normal_pc;
+        end
+        else begin
+            pc <= previous_pc;
+        end
+    end
+
+    always @(posedge clock) begin
+        pc_reg <= pc;
     end
 
     always @(*) begin
-        thread_pc_next <= pc_raw + IO_ready_pipelined;
+        next_pc  <= pc_reg + one[PC_WIDTH-1:0];
     end
 endmodule
