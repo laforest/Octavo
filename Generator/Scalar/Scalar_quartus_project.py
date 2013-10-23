@@ -67,6 +67,7 @@ set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/DataPath/ALU/ALU
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/DataPath/DataPath.v
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/ControlPath/Controller.v
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/ControlPath/Instr_Decoder.v
+set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/ControlPath/Thread_Number.v
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/ControlPath/ControlPath.v
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/IO/Port_Active.v
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/IO/IO_Active.v

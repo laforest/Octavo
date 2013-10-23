@@ -178,6 +178,7 @@ OCTAVO="$$INSTALL_BASE/Octavo/Misc/params.v \\
         $$INSTALL_BASE/Octavo/DataPath/DataPath.v \\
         $$INSTALL_BASE/Octavo/ControlPath/Controller.v \\
         $$INSTALL_BASE/Octavo/ControlPath/Instr_Decoder.v \\
+        $$INSTALL_BASE/Octavo/ControlPath/Thread_Number.v \\
         $$INSTALL_BASE/Octavo/ControlPath/ControlPath.v \\
         $$INSTALL_BASE/Octavo/Memory/RAM_SDP.v \\
         $$INSTALL_BASE/Octavo/Memory/Write_Enable.v \\

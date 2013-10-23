@@ -206,32 +206,21 @@ module Controller
         .jump           (jump)
     );
 
-    // ECL FIXME The following should be put into a Thread Number module.
-    // -----------------------------------------------------------------
-    reg     [THREAD_ADDR_WIDTH-1:0] current_thread;
-    reg     [THREAD_ADDR_WIDTH-1:0] next_thread;
+    wire    [THREAD_ADDR_WIDTH-1:0] current_thread;
+    wire    [THREAD_ADDR_WIDTH-1:0] next_thread;
 
-    // ECL Workaround to allow bit vector selection to eliminate truncation warnings
-    integer one = 1;
-
-    initial begin
-        current_thread = 0;
-    end
-
-    always @(*) begin
-        // ECL Doing it this way to avoid an adder/subtracter comparator. Does that work?
-        if(current_thread !== THREAD_COUNT-1) begin
-            next_thread <= current_thread + one[THREAD_ADDR_WIDTH-1:0];
-        end
-        else begin
-            next_thread <= 0;
-        end
-    end
-
-    always @(posedge clock) begin
-        current_thread  <= next_thread;
-    end
-    // -----------------------------------------------------------------
+    Thread_Number
+    #(
+        .INITIAL_THREAD     (0),
+        .THREAD_COUNT       (THREAD_COUNT),
+        .THREAD_ADDR_WIDTH  (THREAD_ADDR_WIDTH)
+    )
+    Controller_Thread_Number
+    (
+        .clock              (clock),
+        .current_thread     (current_thread),
+        .next_thread        (next_thread)
+    );
 
     wire    [PC_WIDTH-1:0]  previous_pc;
     wire    [PC_WIDTH-1:0]  current_pc;
@@ -285,6 +274,9 @@ module Controller
     always @(posedge clock) begin
         pc_reg <= pc;
     end
+
+    // Workaround to use bit vector selection to eliminate truncation warnings
+    integer one = 1;
 
     always @(*) begin
         next_pc  <= pc_reg + one[PC_WIDTH-1:0];
