@@ -243,6 +243,8 @@ module Controller
         previous_thread <= current_thread;
     end
 
+    reg     [PC_WIDTH-1:0] pc_reg;
+
     Controller_threads 
     #(
         .PC_WIDTH           (PC_WIDTH * 2),
@@ -261,7 +263,6 @@ module Controller
     );
 
     reg     [PC_WIDTH-1:0] normal_pc;
-    reg     [PC_WIDTH-1:0] pc_reg;
 
     always @(*) begin
         if (jump === `HIGH) begin
