@@ -169,6 +169,7 @@ OCTAVO="$$INSTALL_BASE/Octavo/Misc/params.v \\
         $$INSTALL_BASE/Octavo/Misc/Address_Translator.v \\
         $$INSTALL_BASE/Octavo/Misc/Addressed_Mux.v \\
         $$INSTALL_BASE/Octavo/Misc/Translated_Addressed_Mux.v \\
+        $$INSTALL_BASE/Octavo/Misc/Instruction_Annuller.v \\
         $$INSTALL_BASE/Octavo/DataPath/ALU/AddSub_Carry_Select.v \\
         $$INSTALL_BASE/Octavo/DataPath/ALU/AddSub_Ripple_Carry.v \\
         $$INSTALL_BASE/Octavo/DataPath/ALU/Mult.v \\
