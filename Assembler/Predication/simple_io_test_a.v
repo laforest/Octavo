@@ -2,16 +2,6 @@
 // Moves data from input to output, should hang if I/O not ready
 // Test by making input EMPTY and output FULL
 
-// Make addresses multiples of a power of 2: easy to track in the hex instruction word
-`define THREAD_0_START 1
-`define THREAD_1_START 16
-`define THREAD_2_START 32
-`define THREAD_3_START 48
-`define THREAD_4_START 64
-`define THREAD_5_START 80
-`define THREAD_6_START 96
-`define THREAD_7_START 112
-
 `define PC_FILE         "simple_io_test_a.pc"
 `define MEM_FILE        "simple_io_test_a.mem"
 `define SIMD_MEM_FILE   "SIMD_simple_io_test_a.mem"
@@ -20,18 +10,28 @@
 `define ADDR_WIDTH      10
 `define MEM_DEPTH       2**10
 
+// Make addresses multiples of a power of 2: easy to track in the hex instruction word
+`define THREAD_0_START `ADDR_WIDTH'd1
+`define THREAD_1_START `ADDR_WIDTH'd16
+`define THREAD_2_START `ADDR_WIDTH'd32
+`define THREAD_3_START `ADDR_WIDTH'd48
+`define THREAD_4_START `ADDR_WIDTH'd64
+`define THREAD_5_START `ADDR_WIDTH'd80
+`define THREAD_6_START `ADDR_WIDTH'd96
+`define THREAD_7_START `ADDR_WIDTH'd112
+
 module thread_pc
     `include "../Assembler/Assembler_begin.v"
     `include "../Assembler/Assembler_mem_init.v"
 
-    `L(`THREAD_0_START)
-    `L(`THREAD_1_START)
-    `L(`THREAD_2_START)
-    `L(`THREAD_3_START)
-    `L(`THREAD_4_START)
-    `L(`THREAD_5_START)
-    `L(`THREAD_6_START)
-    `L(`THREAD_7_START)
+    `L({`THREAD_0_START, `THREAD_0_START})
+    `L({`THREAD_1_START, `THREAD_1_START})
+    `L({`THREAD_2_START, `THREAD_2_START})
+    `L({`THREAD_3_START, `THREAD_3_START})
+    `L({`THREAD_4_START, `THREAD_4_START})
+    `L({`THREAD_5_START, `THREAD_5_START})
+    `L({`THREAD_6_START, `THREAD_6_START})
+    `L({`THREAD_7_START, `THREAD_7_START})
 
     `include "../Assembler/Assembler_end.v"
 endmodule
@@ -42,7 +42,7 @@ module do_thread_pc ();
         .INIT_FILE      (`PC_FILE),
         .START_ADDR     (0),
         .END_ADDR       (`THREADS - 1),
-        .WORD_WIDTH     (`ADDR_WIDTH)
+        .WORD_WIDTH     (`ADDR_WIDTH * 2)
     )
     thread_pc ();
 endmodule

@@ -1,36 +1,36 @@
 // Outputs hailstone numbers on each port, expects 1 port per mem
 
-`define THREAD_0_START 1
-`define THREAD_1_START 20
-`define THREAD_2_START 40
-`define THREAD_3_START 60
-`define THREAD_4_START 80
-`define THREAD_5_START 100
-`define THREAD_6_START 120
-`define THREAD_7_START 140
-
-`define PC_FILE    "hailstone_numbers.pc"
-`define MEM_FILE   "hailstone_numbers.mem"
+`define PC_FILE         "hailstone_numbers.pc"
+`define MEM_FILE        "hailstone_numbers.mem"
 `define SIMD_MEM_FILE   "SIMD_hailstone_numbers.mem"
 `define SIMD_WORD_WIDTH 36
-`define THREADS    8
-`define ADDR_WIDTH 10
-`define MEM_DEPTH  2**10
+`define THREADS         8
+`define ADDR_WIDTH      10
+`define MEM_DEPTH       2**10
+
+`define THREAD_0_START `ADDR_WIDTH'd1
+`define THREAD_1_START `ADDR_WIDTH'd20
+`define THREAD_2_START `ADDR_WIDTH'd40
+`define THREAD_3_START `ADDR_WIDTH'd60
+`define THREAD_4_START `ADDR_WIDTH'd80
+`define THREAD_5_START `ADDR_WIDTH'd100
+`define THREAD_6_START `ADDR_WIDTH'd120
+`define THREAD_7_START `ADDR_WIDTH'd140
 
 module thread_pc
-    `include "./Assembler/Assembler_begin.v"
-    `include "./Assembler/Assembler_mem_init.v"
+    `include "../Assembler/Assembler_begin.v"
+    `include "../Assembler/Assembler_mem_init.v"
 
-    `L(`THREAD_0_START)
-    `L(`THREAD_1_START)
-    `L(`THREAD_2_START)
-    `L(`THREAD_3_START)
-    `L(`THREAD_4_START)
-    `L(`THREAD_5_START)
-    `L(`THREAD_6_START)
-    `L(`THREAD_7_START)
+    `L({`THREAD_0_START, `THREAD_0_START})
+    `L({`THREAD_1_START, `THREAD_1_START})
+    `L({`THREAD_2_START, `THREAD_2_START})
+    `L({`THREAD_3_START, `THREAD_3_START})
+    `L({`THREAD_4_START, `THREAD_4_START})
+    `L({`THREAD_5_START, `THREAD_5_START})
+    `L({`THREAD_6_START, `THREAD_6_START})
+    `L({`THREAD_7_START, `THREAD_7_START})
 
-    `include "./Assembler/Assembler_end.v"
+    `include "../Assembler/Assembler_end.v"
 endmodule
 
 module do_thread_pc ();
@@ -39,7 +39,7 @@ module do_thread_pc ();
         .INIT_FILE      (`PC_FILE),
         .START_ADDR     (0),
         .END_ADDR       (`THREADS - 1),
-        .WORD_WIDTH     (`ADDR_WIDTH)
+        .WORD_WIDTH     (`ADDR_WIDTH * 2)
     )
     thread_pc ();
 endmodule
@@ -81,7 +81,7 @@ endmodule
 
 
 module test
-    `include "./Assembler/Assembler_begin.v"
+    `include "../Assembler/Assembler_begin.v"
 
     // Thread entry points
     `DEF(nothing)
@@ -97,7 +97,7 @@ module test
     `DEF(marker_deadbeef)
     `DEF(read_port_test)
 
-    `include "./Assembler/Assembler_mem_init.v"
+    `include "../Assembler/Assembler_mem_init.v"
 
     // Test the read ports by passing input to matching write port.
     `ALIGN(`THREAD_0_START)
@@ -150,7 +150,7 @@ module test
     `I(`ADD, `B_IO_WRITE_PORT_BASE_ADDR, deadbeef, 0)    `N(marker_deadbeef)
     `I(`JMP, marker_deadbeef, 0, 0)
 
-    `include "./Assembler/Assembler_end.v"
+    `include "../Assembler/Assembler_end.v"
 endmodule
 
 
