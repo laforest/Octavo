@@ -103,6 +103,39 @@ module Controller_threads
     end
 endmodule
 
+module PC_Selector
+#(
+    parameter       PC_WIDTH        = 0
+)
+(
+    input   wire                    jump,
+    input   wire                    IO_ready,
+    input   wire    [PC_WIDTH-1:0]  current_pc,
+    input   wire    [PC_WIDTH-1:0]  previous_pc,
+    input   wire    [PC_WIDTH-1:0]  jump_target,
+    output  reg     [PC_WIDTH-1:0]  pc
+);
+    reg     [PC_WIDTH-1:0] normal_pc;
+
+    always @(*) begin
+        if (jump === `HIGH) begin
+            normal_pc <= jump_target;
+        end
+        else begin
+            normal_pc <= current_pc;
+        end
+    end
+
+    always @(*) begin
+        if (IO_ready === `HIGH) begin
+            pc <= normal_pc;
+        end
+        else begin
+            pc <= previous_pc;
+        end
+    end
+endmodule
+
 module Controller 
 #(
     parameter       OPCODE_WIDTH        = 0,
@@ -120,7 +153,7 @@ module Controller
     input   wire    [OPCODE_WIDTH-1:0]  op,
     input   wire    [PC_WIDTH-1:0]      D,
     input   wire                        IO_ready,
-    output  reg     [PC_WIDTH-1:0]      pc 
+    output  wire    [PC_WIDTH-1:0]      pc 
 );
 
     wire    [OPCODE_WIDTH-1:0]  op_pipelined;
@@ -251,25 +284,19 @@ module Controller
         .thread_read_data   ({current_pc, previous_pc})
     );
 
-    reg     [PC_WIDTH-1:0] normal_pc;
-
-    always @(*) begin
-        if (jump === `HIGH) begin
-            normal_pc <= D_pipelined;
-        end
-        else begin
-            normal_pc <= current_pc;
-        end
-    end
-
-    always @(*) begin
-        if (IO_ready_pipelined === `HIGH) begin
-            pc <= normal_pc;
-        end
-        else begin
-            pc <= previous_pc;
-        end
-    end
+    PC_Selector
+    #(
+        .PC_WIDTH       (PC_WIDTH)
+    )
+    PC_Selector
+    (
+        .jump           (jump),
+        .IO_ready       (IO_ready_pipelined),
+        .current_pc     (current_pc),
+        .previous_pc    (previous_pc),
+        .jump_target    (D_pipelined),
+        .pc             (pc)
+    );
 
     always @(posedge clock) begin
         pc_reg <= pc;

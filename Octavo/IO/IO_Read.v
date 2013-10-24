@@ -21,7 +21,7 @@ module IO_Read
 
     output  wire                                            EmptyFull_masked,
     output  reg     [IO_READ_PORT_COUNT-1:0]                active_IO,
-    output  reg     [WORD_WIDTH-1:0]                        data_out
+    output  wire    [WORD_WIDTH-1:0]                        data_out
 );
 
     wire addr_is_IO;
@@ -124,9 +124,18 @@ module IO_Read
         IO_ready_reg_reg <= IO_ready_reg;
     end
 
-    always @(*) begin
-        data_out <= data_out_internal & {WORD_WIDTH{IO_ready_reg_reg}};
-    end
+    // ECL OK...not really an instruction. Cleans up RTL diagram a lot.
+
+    Instruction_Annuller
+    #(
+        .INSTR_WIDTH    (WORD_WIDTH)
+    )
+    IO_Read_Annuller
+    (
+        .instr_in       (data_out_internal),
+        .annul          (~IO_ready_reg_reg),
+        .instr_out      (data_out)
+    ); 
 
     initial begin
         addr_raw_reg        = 0;
