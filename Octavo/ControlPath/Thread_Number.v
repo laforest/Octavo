@@ -20,7 +20,7 @@ module Thread_Number
     integer one = 1;
 
     initial begin
-        current_thread = INITIAL_THREAD;
+        current_thread = INITIAL_THREAD[THREAD_ADDR_WIDTH-1:0];
     end
 
     always @(*) begin
