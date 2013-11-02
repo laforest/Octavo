@@ -12,6 +12,7 @@ module ControlPath
     parameter       A_OPERAND_WIDTH         = 0,
     parameter       B_OPERAND_WIDTH         = 0,
 
+    parameter       I_WRITE_ADDR_OFFSET     = 0,
     parameter       I_WORD_WIDTH            = 0,
     parameter       I_ADDR_WIDTH            = 0,
     parameter       I_DEPTH                 = 0,
@@ -49,11 +50,15 @@ module ControlPath
 
     Write_Enable 
     #(
-        .OPCODE_WIDTH   (OPCODE_WIDTH)
+        .OPCODE_WIDTH   (OPCODE_WIDTH),
+        .ADDR_COUNT     (I_DEPTH),
+        .ADDR_BASE      (I_WRITE_ADDR_OFFSET),
+        .ADDR_WIDTH     (D_OPERAND_WIDTH)
     )
     I_mem_wren
     (
         .op             (I_write_op),
+        .addr           (I_write_addr),
         .wren_other     (I_wren_other),
         .wren           (I_wren)
     );
@@ -178,7 +183,7 @@ module ControlPath
     #(
         .OPCODE_WIDTH       (OPCODE_WIDTH),
         .A_WORD_WIDTH       (A_WORD_WIDTH),
-        .PC_WIDTH           (D_OPERAND_WIDTH), 
+        .PC_WIDTH           (I_ADDR_WIDTH), 
         .THREAD_ADDR_WIDTH  (THREAD_ADDR_WIDTH),
         .THREAD_COUNT       (THREAD_COUNT),
         .RAMSTYLE           (PC_RAMSTYLE), 

@@ -18,6 +18,7 @@ def definition(all_parameters):
     parameter       A_OPERAND_WIDTH                 = ${A_OPERAND_WIDTH},
     parameter       B_OPERAND_WIDTH                 = ${B_OPERAND_WIDTH},
 
+    parameter       A_WRITE_ADDR_OFFSET             = ${A_WRITE_ADDR_OFFSET},
     parameter       A_WORD_WIDTH                    = ${A_WORD_WIDTH},
     parameter       A_ADDR_WIDTH                    = ${A_ADDR_WIDTH},
     parameter       A_DEPTH                         = ${A_DEPTH},
@@ -30,6 +31,7 @@ def definition(all_parameters):
     parameter       A_IO_WRITE_PORT_BASE_ADDR       = ${A_IO_WRITE_PORT_BASE_ADDR},
     parameter       A_IO_WRITE_PORT_ADDR_WIDTH      = ${A_IO_WRITE_PORT_ADDR_WIDTH},
 
+    parameter       B_WRITE_ADDR_OFFSET             = ${B_WRITE_ADDR_OFFSET},
     parameter       B_WORD_WIDTH                    = ${B_WORD_WIDTH},
     parameter       B_ADDR_WIDTH                    = ${B_ADDR_WIDTH},
     parameter       B_DEPTH                         = ${B_DEPTH},
@@ -42,11 +44,17 @@ def definition(all_parameters):
     parameter       B_IO_WRITE_PORT_BASE_ADDR       = ${B_IO_WRITE_PORT_BASE_ADDR},
     parameter       B_IO_WRITE_PORT_ADDR_WIDTH      = ${B_IO_WRITE_PORT_ADDR_WIDTH},
 
+    parameter       I_WRITE_ADDR_OFFSET             = ${I_WRITE_ADDR_OFFSET},
     parameter       I_WORD_WIDTH                    = ${INSTR_WIDTH},
     parameter       I_ADDR_WIDTH                    = ${I_ADDR_WIDTH},
     parameter       I_DEPTH                         = ${I_DEPTH},
     parameter       I_RAMSTYLE                      = ${I_RAMSTYLE},
     parameter       I_INIT_FILE                     = ${I_INIT_FILE},
+
+    parameter       H_WRITE_ADDR_OFFSET             = ${H_WRITE_ADDR_OFFSET},
+    parameter       H_WORD_WIDTH                    = ${H_WORD_WIDTH},
+    parameter       H_ADDR_WIDTH                    = ${H_ADDR_WIDTH},
+    parameter       H_DEPTH                         = ${H_DEPTH},
 
     parameter       PC_RAMSTYLE                     = ${PC_RAMSTYLE},
     parameter       PC_INIT_FILE                    = ${PC_INIT_FILE},
@@ -105,6 +113,7 @@ def definition(all_parameters):
         .A_OPERAND_WIDTH                    (A_OPERAND_WIDTH),
         .B_OPERAND_WIDTH                    (B_OPERAND_WIDTH),
         
+        .A_WRITE_ADDR_OFFSET                (A_WRITE_ADDR_OFFSET),
         .A_WORD_WIDTH                       (A_WORD_WIDTH),
         .A_ADDR_WIDTH                       (A_ADDR_WIDTH),
         .A_DEPTH                            (A_DEPTH),
@@ -117,6 +126,7 @@ def definition(all_parameters):
         .A_IO_WRITE_PORT_BASE_ADDR          (A_IO_WRITE_PORT_BASE_ADDR),
         .A_IO_WRITE_PORT_ADDR_WIDTH         (A_IO_WRITE_PORT_ADDR_WIDTH),
         
+        .B_WRITE_ADDR_OFFSET                (B_WRITE_ADDR_OFFSET),
         .B_WORD_WIDTH                       (B_WORD_WIDTH),
         .B_ADDR_WIDTH                       (B_ADDR_WIDTH),
         .B_DEPTH                            (B_DEPTH),
@@ -129,12 +139,18 @@ def definition(all_parameters):
         .B_IO_WRITE_PORT_BASE_ADDR          (B_IO_WRITE_PORT_BASE_ADDR),
         .B_IO_WRITE_PORT_ADDR_WIDTH         (B_IO_WRITE_PORT_ADDR_WIDTH),
         
+        .I_WRITE_ADDR_OFFSET                (I_WRITE_ADDR_OFFSET),
         .I_WORD_WIDTH                       (I_WORD_WIDTH),
         .I_ADDR_WIDTH                       (I_ADDR_WIDTH),
         .I_DEPTH                            (I_DEPTH),
         .I_RAMSTYLE                         (I_RAMSTYLE),
         .I_INIT_FILE                        (I_INIT_FILE),
         
+        .H_WRITE_ADDR_OFFSET                (H_WRITE_ADDR_OFFSET),
+        .H_WORD_WIDTH                       (H_WORD_WIDTH),
+        .H_ADDR_WIDTH                       (H_ADDR_WIDTH),
+        .H_DEPTH                            (H_DEPTH),
+
         .PC_RAMSTYLE                        (PC_RAMSTYLE),
         .PC_INIT_FILE                       (PC_INIT_FILE),
         .THREAD_COUNT                       (THREAD_COUNT),

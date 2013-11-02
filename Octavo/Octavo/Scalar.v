@@ -12,6 +12,7 @@ module Scalar
     parameter       A_OPERAND_WIDTH             = 0,
     parameter       B_OPERAND_WIDTH             = 0,
 
+    parameter       A_WRITE_ADDR_OFFSET         = 0,
     parameter       A_WORD_WIDTH                = 0,
     parameter       A_ADDR_WIDTH                = 0,
     parameter       A_DEPTH                     = 0,
@@ -24,6 +25,7 @@ module Scalar
     parameter       A_IO_WRITE_PORT_BASE_ADDR   = 0,
     parameter       A_IO_WRITE_PORT_ADDR_WIDTH  = 0,
 
+    parameter       B_WRITE_ADDR_OFFSET         = 0,
     parameter       B_WORD_WIDTH                = 0,
     parameter       B_ADDR_WIDTH                = 0,
     parameter       B_DEPTH                     = 0,
@@ -36,11 +38,17 @@ module Scalar
     parameter       B_IO_WRITE_PORT_BASE_ADDR   = 0,
     parameter       B_IO_WRITE_PORT_ADDR_WIDTH  = 0,
 
+    parameter       I_WRITE_ADDR_OFFSET         = 0,
     parameter       I_WORD_WIDTH                = 0,
     parameter       I_ADDR_WIDTH                = 0,
     parameter       I_DEPTH                     = 0,
     parameter       I_RAMSTYLE                  = "",
     parameter       I_INIT_FILE                 = "",
+
+    parameter       H_WRITE_ADDR_OFFSET         = 0,
+    parameter       H_WORD_WIDTH                = 0,
+    parameter       H_ADDR_WIDTH                = 0,
+    parameter       H_DEPTH                     = 0,
 
     parameter       PC_RAMSTYLE                 = "",
     parameter       PC_INIT_FILE                = "",
@@ -100,6 +108,8 @@ module Scalar
     // Only the Scalar Datapath A Memory connects to the Controller to affect program control
     wire    [A_WORD_WIDTH-1:0]      A_read_data_Controller;
     wire    [INSTR_WIDTH-1:0]       I_read_data_DataPath;
+
+    wire                            IO_ready;
 
     ControlPath
     #(

@@ -8,6 +8,7 @@ module DataPath
     parameter       A_OPERAND_WIDTH                                 = 0,
     parameter       B_OPERAND_WIDTH                                 = 0,
 
+    parameter       A_WRITE_ADDR_OFFSET                             = 0,
     parameter       A_WORD_WIDTH                                    = 0,
     parameter       A_ADDR_WIDTH                                    = 0,
     parameter       A_DEPTH                                         = 0,
@@ -20,6 +21,7 @@ module DataPath
     parameter       A_IO_WRITE_PORT_BASE_ADDR                       = 0,
     parameter       A_IO_WRITE_PORT_ADDR_WIDTH                      = 0,
 
+    parameter       B_WRITE_ADDR_OFFSET                             = 0,
     parameter       B_WORD_WIDTH                                    = 0,
     parameter       B_ADDR_WIDTH                                    = 0,
     parameter       B_DEPTH                                         = 0,
@@ -178,11 +180,16 @@ module DataPath
 
     Write_Enable 
     #(
-        .OPCODE_WIDTH   (OPCODE_WIDTH)
+        .OPCODE_WIDTH   (OPCODE_WIDTH),
+        .ADDR_COUNT     (A_DEPTH),
+        .ADDR_BASE      (A_WRITE_ADDR_OFFSET),
+        .ADDR_WIDTH     (D_OPERAND_WIDTH)
+
     )
     A_wren
     (
         .op             (ALU_op_out),
+        .addr           (ALU_D_out),
         .wren_other     (A_wren_other),
         .wren           (A_wren_ALU)
     );
@@ -213,7 +220,7 @@ module DataPath
     IO_Write
     #(
         .WORD_WIDTH                 (A_WORD_WIDTH),
-        .ADDR_WIDTH                 (A_ADDR_WIDTH),
+        .ADDR_WIDTH                 (D_OPERAND_WIDTH),
         .IO_WRITE_PORT_COUNT        (A_IO_WRITE_PORT_COUNT),
         .IO_WRITE_PORT_BASE_ADDR    (A_IO_WRITE_PORT_BASE_ADDR),
         .IO_WRITE_PORT_ADDR_WIDTH   (A_IO_WRITE_PORT_ADDR_WIDTH)
@@ -287,11 +294,15 @@ module DataPath
 
     Write_Enable 
     #(
-        .OPCODE_WIDTH   (OPCODE_WIDTH)
+        .OPCODE_WIDTH   (OPCODE_WIDTH),
+        .ADDR_COUNT     (B_DEPTH),
+        .ADDR_BASE      (B_WRITE_ADDR_OFFSET),
+        .ADDR_WIDTH     (D_OPERAND_WIDTH)
     )
     B_wren
     (
         .op             (ALU_op_out),
+        .addr           (ALU_D_out),
         .wren_other     (B_wren_other),
         .wren           (B_wren_ALU)
     );
@@ -322,7 +333,7 @@ module DataPath
     IO_Write
     #(
         .WORD_WIDTH                 (B_WORD_WIDTH),
-        .ADDR_WIDTH                 (B_ADDR_WIDTH),
+        .ADDR_WIDTH                 (D_OPERAND_WIDTH),
         .IO_WRITE_PORT_COUNT        (B_IO_WRITE_PORT_COUNT),
         .IO_WRITE_PORT_BASE_ADDR    (B_IO_WRITE_PORT_BASE_ADDR),
         .IO_WRITE_PORT_ADDR_WIDTH   (B_IO_WRITE_PORT_ADDR_WIDTH)
