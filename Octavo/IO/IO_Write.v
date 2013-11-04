@@ -6,6 +6,7 @@ module IO_Write
 #(
     parameter   WORD_WIDTH                                      = 0,
     parameter   ADDR_WIDTH                                      = 0,
+    parameter   RAM_ADDR_WIDTH                                  = 0,
     parameter   IO_WRITE_PORT_COUNT                             = 0,
     parameter   IO_WRITE_PORT_BASE_ADDR                         = 0,
     parameter   IO_WRITE_PORT_ADDR_WIDTH                        = 0
@@ -25,7 +26,7 @@ module IO_Write
     output  wire    [IO_WRITE_PORT_COUNT-1:0]                   active_IO,
     output  reg     [(IO_WRITE_PORT_COUNT * WORD_WIDTH)-1:0]    data_IO,
     output  reg     [WORD_WIDTH-1:0]                            data_RAM,
-    output  reg     [ADDR_WIDTH-1:0]                            addr_RAM,
+    output  reg     [RAM_ADDR_WIDTH-1:0]                        addr_RAM,
     output  reg                                                 wren_RAM
 );
 
@@ -60,7 +61,7 @@ module IO_Write
 
     always @(posedge clock) begin
         data_RAM <= ALU_result;
-        addr_RAM <= ALU_addr;
+        addr_RAM <= ALU_addr[RAM_ADDR_WIDTH-1:0];
         wren_RAM <= ALU_wren;
     end
 

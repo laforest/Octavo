@@ -221,6 +221,7 @@ module DataPath
     #(
         .WORD_WIDTH                 (A_WORD_WIDTH),
         .ADDR_WIDTH                 (D_OPERAND_WIDTH),
+        .RAM_ADDR_WIDTH             (A_ADDR_WIDTH),
         .IO_WRITE_PORT_COUNT        (A_IO_WRITE_PORT_COUNT),
         .IO_WRITE_PORT_BASE_ADDR    (A_IO_WRITE_PORT_BASE_ADDR),
         .IO_WRITE_PORT_ADDR_WIDTH   (A_IO_WRITE_PORT_ADDR_WIDTH)
@@ -334,6 +335,7 @@ module DataPath
     #(
         .WORD_WIDTH                 (B_WORD_WIDTH),
         .ADDR_WIDTH                 (D_OPERAND_WIDTH),
+        .RAM_ADDR_WIDTH             (B_ADDR_WIDTH),
         .IO_WRITE_PORT_COUNT        (B_IO_WRITE_PORT_COUNT),
         .IO_WRITE_PORT_BASE_ADDR    (B_IO_WRITE_PORT_BASE_ADDR),
         .IO_WRITE_PORT_ADDR_WIDTH   (B_IO_WRITE_PORT_ADDR_WIDTH)

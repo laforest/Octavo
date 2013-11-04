@@ -77,7 +77,7 @@ module ControlPath
     (
         .clock          (clock),
         .wren           (I_wren),
-        .write_addr     (I_write_addr),
+        .write_addr     (I_write_addr[I_ADDR_WIDTH-1:0]),
         .write_data     (I_write_data[I_WORD_WIDTH-1:0]),
         .read_addr      (I_read_addr),
         .read_data      (I_read_data_bram)
@@ -194,7 +194,7 @@ module ControlPath
         .clock              (clock),
         .A                  (A_read_data),
         .op                 (AB_op),
-        .D                  (AB_D),
+        .D                  (AB_D[I_ADDR_WIDTH-1:0]),
         .IO_ready           (IO_ready_ctrl),
         .pc                 (Ctrl_pc) 
     );
