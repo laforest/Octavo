@@ -125,6 +125,7 @@ module Scalar
         .A_OPERAND_WIDTH            (A_OPERAND_WIDTH),
         .B_OPERAND_WIDTH            (B_OPERAND_WIDTH),
 
+        .I_WRITE_ADDR_OFFSET        (I_WRITE_ADDR_OFFSET),
         .I_WORD_WIDTH               (I_WORD_WIDTH),
         .I_ADDR_WIDTH               (I_ADDR_WIDTH),
         .I_DEPTH                    (I_DEPTH),
@@ -169,6 +170,7 @@ module Scalar
         .A_OPERAND_WIDTH                (A_OPERAND_WIDTH),
         .B_OPERAND_WIDTH                (B_OPERAND_WIDTH),
 
+        .A_WRITE_ADDR_OFFSET            (A_WRITE_ADDR_OFFSET),
         .A_WORD_WIDTH                   (A_WORD_WIDTH),
         .A_ADDR_WIDTH                   (A_ADDR_WIDTH),
         .A_DEPTH                        (A_DEPTH),
@@ -181,6 +183,7 @@ module Scalar
         .A_IO_WRITE_PORT_BASE_ADDR      (A_IO_WRITE_PORT_BASE_ADDR),
         .A_IO_WRITE_PORT_ADDR_WIDTH     (A_IO_WRITE_PORT_ADDR_WIDTH),
 
+        .B_WRITE_ADDR_OFFSET            (B_WRITE_ADDR_OFFSET),
         .B_WORD_WIDTH                   (B_WORD_WIDTH),
         .B_ADDR_WIDTH                   (B_ADDR_WIDTH),
         .B_DEPTH                        (B_DEPTH),
