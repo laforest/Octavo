@@ -7,9 +7,9 @@
     parameter END_ADDR          = 0,
     parameter ADDR_WIDTH        = log2(END_ADDR - START_ADDR + 1),
     parameter WORD_WIDTH        = 36,
-    parameter INSTR_WIDTH       = 34,
+    parameter INSTR_WIDTH       = 36,
     parameter OPCODE_WIDTH      = 4,
-    parameter D_OPERAND_WIDTH   = 10,
+    parameter D_OPERAND_WIDTH   = 12,
     parameter A_OPERAND_WIDTH   = 10,
     parameter B_OPERAND_WIDTH   = 10
 )

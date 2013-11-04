@@ -57,11 +57,11 @@ module do_thread_pc ();
     thread_pc ();
 endmodule
 
-`define A_IO_WRITE_PORT_BASE_ADDR 1022
 `define A_IO_READ_PORT_BASE_ADDR  1022
+`define A_IO_WRITE_PORT_BASE_ADDR 1022
 
-`define B_IO_WRITE_PORT_BASE_ADDR 1023
 `define B_IO_READ_PORT_BASE_ADDR  1023
+`define B_IO_WRITE_PORT_BASE_ADDR 2047
 
 `define ACCUMULATOR \
     `I(`ADD, accumulator, accumulator, one) `N(loop) \
