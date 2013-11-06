@@ -6,7 +6,7 @@ import sys
 
 from Misc import misc, parameters_misc
 
-default_bench = "Predication/simple_io_test_ab"
+default_bench = "simple_io_test_ab"
 install_base = misc.base_install_path()
 quartus_base_path = misc.quartus_base_path
 
@@ -25,10 +25,10 @@ def test_bench(parameters, default_bench = default_bench, install_base = install
     parameter       B_IO_READ_PORT_COUNT        = ${B_IO_READ_PORT_COUNT},
     parameter       B_IO_WRITE_PORT_COUNT       = ${B_IO_WRITE_PORT_COUNT},
 
-    parameter       A_INIT_FILE                 = "${assembler_base}/${default_bench}.mem",
-    parameter       B_INIT_FILE                 = "${assembler_base}/${default_bench}.mem",
-    parameter       I_INIT_FILE                 = "${assembler_base}/${default_bench}.mem",
-    parameter       PC_INIT_FILE                = "${assembler_base}/${default_bench}.pc"
+    parameter       A_INIT_FILE                 = "${assembler_base}/${default_bench}.A",
+    parameter       B_INIT_FILE                 = "${assembler_base}/${default_bench}.B",
+    parameter       I_INIT_FILE                 = "${assembler_base}/${default_bench}.I",
+    parameter       PC_INIT_FILE                = "${assembler_base}/${default_bench}.PC"
 )
 (
     output  wire    [INSTR_WIDTH-1:0]                           I_read_data,

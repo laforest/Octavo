@@ -7,7 +7,7 @@ import sys
 from Misc import misc, parameters_misc
 import Scalar_quartus_project
 
-default_memory_init = "Empty/empty"
+default_memory_init = "empty"
 install_base = misc.base_install_path()
 
 def test_harness(parameters, default_memory_init = default_memory_init, install_base = install_base):
@@ -23,10 +23,10 @@ def test_harness(parameters, default_memory_init = default_memory_init, install_
     parameter       B_IO_READ_PORT_COUNT        = ${B_IO_READ_PORT_COUNT},
     parameter       B_IO_WRITE_PORT_COUNT       = ${B_IO_WRITE_PORT_COUNT},
 
-    parameter       A_INIT_FILE                 = "${assembler_base}/${default_memory_init}.mem",
-    parameter       B_INIT_FILE                 = "${assembler_base}/${default_memory_init}.mem",
-    parameter       I_INIT_FILE                 = "${assembler_base}/${default_memory_init}.mem",
-    parameter       PC_INIT_FILE                = "${assembler_base}/${default_memory_init}.pc",
+    parameter       A_INIT_FILE                 = "${assembler_base}/${default_memory_init}.A",
+    parameter       B_INIT_FILE                 = "${assembler_base}/${default_memory_init}.B",
+    parameter       I_INIT_FILE                 = "${assembler_base}/${default_memory_init}.I",
+    parameter       PC_INIT_FILE                = "${assembler_base}/${default_memory_init}.PC",
 
     // ****** These are computed for brevity later. Do not redefine at module instantiation. ******
     parameter       A_IO_READ_PORT_WIDTH        = (A_WORD_WIDTH * A_IO_READ_PORT_COUNT),

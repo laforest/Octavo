@@ -1,6 +1,6 @@
-transcript
-work
-*.pc
-*.mem
-*.log
+*.pyc
+*.A
+*.I
+*.B
+*.PC
 
