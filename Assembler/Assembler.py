@@ -98,6 +98,7 @@ class Instruction_Memory(Memory):
         D = self.lookup_write(D)
         A = self.lookup_read(A)
         B = self.lookup_read(B)
+        # print OP, D, A, B
         instr  = ((OP & self.OP_mask) << self.OP_shift) 
         instr |= ((D  & self.D_mask)  << self.D_shift) 
         instr |= ((A  & self.A_mask)  << self.A_shift) 
@@ -108,6 +109,8 @@ class Instruction_Memory(Memory):
         """Resolve Literal: set named locatfile_name, depth = 1024, width = 36ion to current address"""
         address = self.names[name]
         self.data[address] = self.here
+
+    # XXX clear field before setting
 
     def RD(self, name):
         """Set *empty* D field at named address with current address"""
