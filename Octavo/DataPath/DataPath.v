@@ -43,7 +43,17 @@ module DataPath
     parameter       ADDSUB_CARRY_SELECT                             = 0,
     parameter       MULT_DOUBLE_PIPE                                = 0,
     parameter       MULT_HETEROGENEOUS                              = 0,    
-    parameter       MULT_USE_DSP                                    = 0
+    parameter       MULT_USE_DSP                                    = 0,
+
+    parameter       OFFSETS_WRITE_ADDR_BASE                         = 0,
+    parameter       OFFSETS_WRITE_DELAY                             = 0,
+    parameter       OFFSETS_COUNT                                   = 0,
+    parameter       OFFSETS_RAMTYLE                                 = 0,
+    parameter       OFFSETS_INIT_FILE                               = 0,
+    parameter       OFFSETS_INITIAL_THREAD                          = 0,
+
+    parameter       HIGHMEM_ADDR_BASE                               = 0,
+    parameter       HIGHMEM_ADDR_COUNT                              = 0
 )
 (
     input   wire                                                    clock,
@@ -92,22 +102,6 @@ module DataPath
         .out    (I_read_data_out)
     );
 
-    wire    [INSTR_WIDTH-1:0]   I_read_data_AB;
-
-    // ECL These two stages will optionally have address translation
-
-    delay_line 
-    #(
-        .DEPTH  (TAP_AB_PIPELINE_DEPTH),
-        .WIDTH  (INSTR_WIDTH)
-    ) 
-    TAP_AB_pipeline
-    (
-        .clock  (clock),
-        .in     (I_read_data_in), // raw addr. stage 1
-        .out    (I_read_data_AB)  // "translated" addr stage 3
-    );
-
     wire    [A_OPERAND_WIDTH-1:0]  A_read_addr_in;
     wire    [B_OPERAND_WIDTH-1:0]  B_read_addr_in;
     wire    [D_OPERAND_WIDTH-1:0]  D_write_addr_in;
@@ -133,21 +127,60 @@ module DataPath
     wire    [B_OPERAND_WIDTH-1:0]  B_read_addr_AB;
     wire    [D_OPERAND_WIDTH-1:0]  D_write_addr_AB;
 
-    Instr_Decoder
+    Addressing
     #(
-        .OPCODE_WIDTH       (OPCODE_WIDTH),
-        .INSTR_WIDTH        (INSTR_WIDTH),
-        .D_OPERAND_WIDTH    (D_OPERAND_WIDTH),
-        .A_OPERAND_WIDTH    (A_OPERAND_WIDTH), 
-        .B_OPERAND_WIDTH    (B_OPERAND_WIDTH)
+        .OFFSETS_WRITE_ADDR_BASE    (OFFSETS_WRITE_ADDR_BASE),
+        .OFFSETS_WRITE_DELAY        (OFFSETS_WRITE_DELAY),
+
+        .WORD_WIDTH                 (A_ADDR_WIDTH),
+        .ADDR_WIDTH                 (A_OPERAND_WIDTH)
+        .DEPTH                      (OFFSETS_COUNT),
+        .RAMSTYLE                   (OFFSETS_RAMTYLE),
+        .INIT_FILE                  (OFFSETS_INIT_FILE),
+
+        .HIGHMEM_ADDR_BASE          (HIGHMEM_ADDR_BASE),
+        .HIGHMEM_ADDR_COUNT         (HIGHMEM_ADDR_COUNT),
+
+        .IO_ADDR_BASE               (A_IO_READ_PORT_BASE_ADDR),
+        .IO_ADDR_COUNT              (A_IO_READ_PORT_COUNT),
+
+        .INITIAL_THREAD             (OFFSETS_INITIAL_THREAD),
+        .THREAD_COUNT               (THREAD_COUNT),
+        .THREAD_ADDR_WIDTH          (THREAD_ADDR_WIDTH)
     )
-    I_AB_decoder
+    TAP_AB_A
     (
-        .instr              (I_read_data_AB),
-        .op                 (),
-        .D                  (D_write_addr_AB),
-        .A                  (A_read_addr_AB),
-        .B                  (B_read_addr_AB)
+        .clock                      (clock),
+        .addr_in                    (A_read_addr_in),
+        .write_addr                 (ALU_D_out),
+        .write_data                 (ALU_result_out),
+        .addr_out                   (A_read_addr_AB)
+    );
+
+    // ECL replace with Addressing
+    delay_line 
+    #(
+        .DEPTH  (TAP_AB_PIPELINE_DEPTH),
+        .WIDTH  (B_OPERAND_WIDTH)
+    ) 
+    TAP_AB_pipeline_B
+    (
+        .clock  (clock),
+        .in     (B_read_addr_in), // raw addr. stage 1
+        .out    (B_read_addr_AB)  // "translated" addr stage 3
+    );
+
+    // ECL replace with Addressing
+    delay_line 
+    #(
+        .DEPTH  (TAP_AB_PIPELINE_DEPTH),
+        .WIDTH  (D_OPERAND_WIDTH)
+    ) 
+    TAP_AB_pipeline_D
+    (
+        .clock  (clock),
+        .in     (D_read_addr_in), // raw addr. stage 1
+        .out    (D_read_addr_AB)  // "translated" addr stage 3
     );
 
     wire    [A_WORD_WIDTH-1:0]      A_read_data_RAM;

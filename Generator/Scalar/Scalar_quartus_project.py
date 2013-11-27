@@ -59,6 +59,7 @@ set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Misc/Address_Tra
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Misc/Addressed_Mux.v
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Misc/Translated_Addressed_Mux.v
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Misc/Instruction_Annuller.v
+set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Misc/Thread_Number.v
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/DataPath/ALU/AddSub_Carry_Select.v
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/DataPath/ALU/AddSub_Ripple_Carry.v
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/DataPath/ALU/Mult.v
@@ -67,7 +68,6 @@ set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/DataPath/ALU/ALU
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/DataPath/DataPath.v
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/ControlPath/Controller.v
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/ControlPath/Instr_Decoder.v
-set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/ControlPath/Thread_Number.v
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/ControlPath/ControlPath.v
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/IO/Port_Active.v
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/IO/IO_Active.v
@@ -75,6 +75,7 @@ set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/IO/IO_All_Ready.
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/IO/IO_Check.v
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/IO/IO_Read.v
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/IO/IO_Write.v
+set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Addressing/Addressing.v
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Memory/RAM_SDP.v
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Memory/Write_Enable.v
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Memory/Memory.v
