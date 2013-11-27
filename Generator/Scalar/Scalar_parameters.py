@@ -162,6 +162,19 @@ def generate_thread_parameters(pipeline_depths, parameters = {}):
     parameters_misc.override(thread_parameters, parameters)
     return thread_parameters
 
+def generate_addressing_parameters(common_values, parameters = {}):
+    addressing_parameters = {
+        "OFFSETS_WRITE_ADDR_BASE"   : common_values["H_WRITE_ADDR_OFFSET"], # ECL adjust later, when deciding H mem map
+        "OFFSETS_WRITE_DELAY"       : 2,                                    # ECL guess. needs adjusting
+        "OFFSETS_COUNT"             : 64,                                   # MLAB 64x10
+        "OFFSETS_RAMTYLE"           : "MLAB,no_rw_check",
+        "OFFSETS_INIT_FILE"         : '"' + common_values["MEM_INIT_FILE"] + '"',
+        "OFFSETS_INITIAL_THREAD"    : 2                                     # ECL needs adjusting
+    }
+    parameters_misc.override(addressing_parameters, parameters)
+    return addressing_parameters
+
+
 def generate_resource_diversity_options(parameters = {}):
     resource_diversity_options = { 
         "ADDSUB_CARRY_SELECT" : "`FALSE",
@@ -214,7 +227,8 @@ def all_parameters(parameters = {}):
     all_parameters.update(pipeline_depths)
     all_parameters.update(common_values)
     all_parameters.update(generate_main_parameters(common_values, parameters))
-    all_parameters.update(generate_thread_parameters(pipeline_depths, parameters)),
+    all_parameters.update(generate_thread_parameters(pipeline_depths, parameters))
+    all_parameters.update(generate_addressing_parameters(common_values, parameters))
     all_parameters.update(generate_resource_diversity_options(parameters))
     all_parameters.update(generate_partition_options(parameters))
     all_parameters.update(generate_quartus_options(parameters))

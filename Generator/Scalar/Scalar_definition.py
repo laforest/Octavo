@@ -72,7 +72,17 @@ def definition(all_parameters):
     parameter       ADDSUB_CARRY_SELECT             = ${ADDSUB_CARRY_SELECT},
     parameter       MULT_DOUBLE_PIPE                = ${MULT_DOUBLE_PIPE},
     parameter       MULT_HETEROGENEOUS              = ${MULT_HETEROGENEOUS},    
-    parameter       MULT_USE_DSP                    = ${MULT_USE_DSP}
+    parameter       MULT_USE_DSP                    = ${MULT_USE_DSP},
+
+    parameter       OFFSETS_WRITE_ADDR_BASE         = ${OFFSETS_WRITE_ADDR_BASE},
+    parameter       OFFSETS_WRITE_DELAY             = ${OFFSETS_WRITE_DELAY},
+    parameter       OFFSETS_COUNT                   = ${OFFSETS_COUNT},
+    parameter       OFFSETS_RAMTYLE                 = ${OFFSETS_RAMTYLE},
+    parameter       OFFSETS_INIT_FILE               = ${OFFSETS_INIT_FILE},
+    parameter       OFFSETS_INITIAL_THREAD          = ${OFFSETS_INITIAL_THREAD},
+
+    parameter       H_WRITE_ADDR_OFFSET             = ${H_WRITE_ADDR_OFFSET},
+    parameter       H_DEPTH                         = ${H_DEPTH} 
 )
 (
     input   wire                                                    clock,
@@ -167,7 +177,17 @@ def definition(all_parameters):
         .ADDSUB_CARRY_SELECT                (ADDSUB_CARRY_SELECT),
         .MULT_DOUBLE_PIPE                   (MULT_DOUBLE_PIPE),
         .MULT_HETEROGENEOUS                 (MULT_HETEROGENEOUS),
-        .MULT_USE_DSP                       (MULT_USE_DSP)
+        .MULT_USE_DSP                       (MULT_USE_DSP),
+
+        .OFFSETS_WRITE_ADDR_BASE            (OFFSETS_WRITE_ADDR_BASE),
+        .OFFSETS_WRITE_DELAY                (OFFSETS_WRITE_DELAY),
+        .OFFSETS_COUNT                      (OFFSETS_COUNT),
+        .OFFSETS_RAMTYLE                    (OFFSETS_RAMTYLE),
+        .OFFSETS_INIT_FILE                  (OFFSETS_INIT_FILE),
+        .OFFSETS_INITIAL_THREAD             (OFFSETS_INITIAL_THREAD),
+
+        .H_WRITE_ADDR_OFFSET                (H_WRITE_ADDR_OFFSET),
+        .H_DEPTH                            (H_DEPTH) 
     )
     Scalar
     (

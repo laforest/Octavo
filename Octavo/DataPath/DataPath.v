@@ -52,8 +52,8 @@ module DataPath
     parameter       OFFSETS_INIT_FILE                               = 0,
     parameter       OFFSETS_INITIAL_THREAD                          = 0,
 
-    parameter       HIGHMEM_ADDR_BASE                               = 0,
-    parameter       HIGHMEM_ADDR_COUNT                              = 0
+    parameter       H_WRITE_ADDR_OFFSET                             = 0,
+    parameter       H_DEPTH                                         = 0
 )
 (
     input   wire                                                    clock,
@@ -138,8 +138,8 @@ module DataPath
         .RAMSTYLE                   (OFFSETS_RAMTYLE),
         .INIT_FILE                  (OFFSETS_INIT_FILE),
 
-        .HIGHMEM_ADDR_BASE          (HIGHMEM_ADDR_BASE),
-        .HIGHMEM_ADDR_COUNT         (HIGHMEM_ADDR_COUNT),
+        .H_WRITE_ADDR_OFFSET        (H_WRITE_ADDR_OFFSET),
+        .H_DEPTH                    (H_DEPTH),
 
         .IO_ADDR_BASE               (A_IO_READ_PORT_BASE_ADDR),
         .IO_ADDR_COUNT              (A_IO_READ_PORT_COUNT),

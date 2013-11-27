@@ -12,8 +12,8 @@ module Addressing
     parameter   RAMSTYLE                = 0,
     parameter   INIT_FILE               = 0,
 
-    parameter   HIGHMEM_ADDR_BASE       = 0,
-    parameter   HIGHMEM_ADDR_COUNT      = 0,
+    parameter   H_WRITE_ADDR_OFFSET     = 0,
+    parameter   H_DEPTH                 = 0,
 
     parameter   IO_ADDR_BASE            = 0,
     parameter   IO_ADDR_COUNT           = 0,
@@ -143,8 +143,8 @@ module Addressing
 
     Address_Decoder
     #(
-        .ADDR_COUNT     (HIGHMEM_ADDR_COUNT), 
-        .ADDR_BASE      (HIGHMEM_ADDR_BASE),
+        .ADDR_COUNT     (H_DEPTH), 
+        .ADDR_BASE      (H_WRITE_ADDR_OFFSET),
         .ADDR_WIDTH     (ADDR_WIDTH),
         .REGISTERED     (`FALSE)
     )

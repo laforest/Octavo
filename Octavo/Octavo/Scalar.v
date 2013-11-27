@@ -66,7 +66,19 @@ module Scalar
     parameter       ADDSUB_CARRY_SELECT         = 0,
     parameter       MULT_DOUBLE_PIPE            = 0,
     parameter       MULT_HETEROGENEOUS          = 0,    
-    parameter       MULT_USE_DSP                = 0
+    parameter       MULT_USE_DSP                = 0,
+
+    parameter       OFFSETS_WRITE_ADDR_BASE     = 0,
+    parameter       OFFSETS_WRITE_DELAY         = 0,
+    parameter       OFFSETS_COUNT               = 0,
+    parameter       OFFSETS_RAMTYLE             = 0,
+    parameter       OFFSETS_INIT_FILE           = 0,
+    parameter       OFFSETS_INITIAL_THREAD      = 0,
+
+    parameter       H_WRITE_ADDR_OFFSET         = 0,
+    parameter       H_DEPTH                     = 0
+)
+
 )
 (
     input   wire                                                    clock,
@@ -205,7 +217,17 @@ module Scalar
         .ADDSUB_CARRY_SELECT            (ADDSUB_CARRY_SELECT),
         .MULT_DOUBLE_PIPE               (MULT_DOUBLE_PIPE),
         .MULT_HETEROGENEOUS             (MULT_HETEROGENEOUS),    
-        .MULT_USE_DSP                   (MULT_USE_DSP) 
+        .MULT_USE_DSP                   (MULT_USE_DSP),
+ 
+        .OFFSETS_WRITE_ADDR_BASE        (OFFSETS_WRITE_ADDR_BASE), 
+        .OFFSETS_WRITE_DELAY            (OFFSETS_WRITE_DELAY), 
+        .OFFSETS_COUNT                  (OFFSETS_COUNT), 
+        .OFFSETS_RAMTYLE                (OFFSETS_RAMTYLE), 
+        .OFFSETS_INIT_FILE              (OFFSETS_INIT_FILE), 
+        .OFFSETS_INITIAL_THREAD         (OFFSETS_INITIAL_THREAD), 
+
+        .H_WRITE_ADDR_OFFSET            (H_WRITE_ADDR_OFFSET), 
+        .H_DEPTH                        (H_DEPTH) 
     )
     DataPath
     (
