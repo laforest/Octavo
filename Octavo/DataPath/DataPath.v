@@ -52,6 +52,9 @@ module DataPath
     parameter       OFFSETS_INIT_FILE                               = 0,
     parameter       OFFSETS_INITIAL_THREAD                          = 0,
 
+    parameter       THREAD_COUNT                                    = 0,
+    parameter       THREAD_ADDR_WIDTH                               = 0,
+
     parameter       H_WRITE_ADDR_OFFSET                             = 0,
     parameter       H_DEPTH                                         = 0
 )
@@ -102,6 +105,7 @@ module DataPath
         .out    (I_read_data_out)
     );
 
+    wire    [OPCODE_WIDTH-1:0]     OP_in;
     wire    [A_OPERAND_WIDTH-1:0]  A_read_addr_in;
     wire    [B_OPERAND_WIDTH-1:0]  B_read_addr_in;
     wire    [D_OPERAND_WIDTH-1:0]  D_write_addr_in;
@@ -117,12 +121,13 @@ module DataPath
     I_in_decoder
     (
         .instr              (I_read_data_in),
-        .op                 (),
+        .op                 (OP_in),
         .D                  (D_write_addr_in),
         .A                  (A_read_addr_in),
         .B                  (B_read_addr_in)
     );
 
+    wire    [OPCODE_WIDTH-1:0]     OP_AB;
     wire    [A_OPERAND_WIDTH-1:0]  A_read_addr_AB;
     wire    [B_OPERAND_WIDTH-1:0]  B_read_addr_AB;
     wire    [D_OPERAND_WIDTH-1:0]  D_write_addr_AB;
@@ -133,7 +138,7 @@ module DataPath
         .OFFSETS_WRITE_DELAY        (OFFSETS_WRITE_DELAY),
 
         .WORD_WIDTH                 (A_ADDR_WIDTH),
-        .ADDR_WIDTH                 (A_OPERAND_WIDTH)
+        .ADDR_WIDTH                 (A_OPERAND_WIDTH),
         .DEPTH                      (OFFSETS_COUNT),
         .RAMSTYLE                   (OFFSETS_RAMTYLE),
         .INIT_FILE                  (OFFSETS_INIT_FILE),
@@ -179,9 +184,27 @@ module DataPath
     TAP_AB_pipeline_D
     (
         .clock  (clock),
-        .in     (D_read_addr_in), // raw addr. stage 1
-        .out    (D_read_addr_AB)  // "translated" addr stage 3
+        .in     (D_write_addr_in), // raw addr. stage 1
+        .out    (D_write_addr_AB)  // "translated" addr stage 3
     );
+
+    delay_line 
+    #(
+        .DEPTH  (TAP_AB_PIPELINE_DEPTH),
+        .WIDTH  (OPCODE_WIDTH)
+    ) 
+    TAP_AB_pipeline_OP
+    (
+        .clock  (clock),
+        .in     (OP_in), // raw addr. stage 1
+        .out    (OP_AB)  // "translated" addr stage 3
+    );
+
+    reg     [INSTR_WIDTH-1:0]   I_read_data_AB;
+
+    always @(*) begin
+        I_read_data_AB <= {OP_AB, D_write_addr_AB, A_read_addr_AB, B_read_addr_AB};
+    end
 
     wire    [A_WORD_WIDTH-1:0]      A_read_data_RAM;
     wire                            A_io_in_EF_masked;

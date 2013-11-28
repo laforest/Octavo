@@ -167,7 +167,7 @@ def generate_addressing_parameters(common_values, parameters = {}):
         "OFFSETS_WRITE_ADDR_BASE"   : common_values["H_WRITE_ADDR_OFFSET"], # ECL adjust later, when deciding H mem map
         "OFFSETS_WRITE_DELAY"       : 2,                                    # ECL guess. needs adjusting
         "OFFSETS_COUNT"             : 64,                                   # MLAB 64x10
-        "OFFSETS_RAMTYLE"           : "MLAB,no_rw_check",
+        "OFFSETS_RAMTYLE"           : '"MLAB,no_rw_check"',
         "OFFSETS_INIT_FILE"         : '"' + common_values["MEM_INIT_FILE"] + '"',
         "OFFSETS_INITIAL_THREAD"    : 2                                     # ECL needs adjusting
     }

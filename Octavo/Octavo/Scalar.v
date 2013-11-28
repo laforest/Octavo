@@ -73,12 +73,7 @@ module Scalar
     parameter       OFFSETS_COUNT               = 0,
     parameter       OFFSETS_RAMTYLE             = 0,
     parameter       OFFSETS_INIT_FILE           = 0,
-    parameter       OFFSETS_INITIAL_THREAD      = 0,
-
-    parameter       H_WRITE_ADDR_OFFSET         = 0,
-    parameter       H_DEPTH                     = 0
-)
-
+    parameter       OFFSETS_INITIAL_THREAD      = 0
 )
 (
     input   wire                                                    clock,
@@ -224,10 +219,13 @@ module Scalar
         .OFFSETS_COUNT                  (OFFSETS_COUNT), 
         .OFFSETS_RAMTYLE                (OFFSETS_RAMTYLE), 
         .OFFSETS_INIT_FILE              (OFFSETS_INIT_FILE), 
-        .OFFSETS_INITIAL_THREAD         (OFFSETS_INITIAL_THREAD), 
+        .OFFSETS_INITIAL_THREAD         (OFFSETS_INITIAL_THREAD),
 
-        .H_WRITE_ADDR_OFFSET            (H_WRITE_ADDR_OFFSET), 
-        .H_DEPTH                        (H_DEPTH) 
+        .THREAD_COUNT                   (THREAD_COUNT),
+        .THREAD_ADDR_WIDTH              (THREAD_ADDR_WIDTH),
+
+        .H_WRITE_ADDR_OFFSET            (H_WRITE_ADDR_OFFSET),
+        .H_DEPTH                        (H_DEPTH)
     )
     DataPath
     (

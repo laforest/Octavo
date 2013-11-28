@@ -79,10 +79,7 @@ def definition(all_parameters):
     parameter       OFFSETS_COUNT                   = ${OFFSETS_COUNT},
     parameter       OFFSETS_RAMTYLE                 = ${OFFSETS_RAMTYLE},
     parameter       OFFSETS_INIT_FILE               = ${OFFSETS_INIT_FILE},
-    parameter       OFFSETS_INITIAL_THREAD          = ${OFFSETS_INITIAL_THREAD},
-
-    parameter       H_WRITE_ADDR_OFFSET             = ${H_WRITE_ADDR_OFFSET},
-    parameter       H_DEPTH                         = ${H_DEPTH} 
+    parameter       OFFSETS_INITIAL_THREAD          = ${OFFSETS_INITIAL_THREAD}
 )
 (
     input   wire                                                    clock,
@@ -184,10 +181,7 @@ def definition(all_parameters):
         .OFFSETS_COUNT                      (OFFSETS_COUNT),
         .OFFSETS_RAMTYLE                    (OFFSETS_RAMTYLE),
         .OFFSETS_INIT_FILE                  (OFFSETS_INIT_FILE),
-        .OFFSETS_INITIAL_THREAD             (OFFSETS_INITIAL_THREAD),
-
-        .H_WRITE_ADDR_OFFSET                (H_WRITE_ADDR_OFFSET),
-        .H_DEPTH                            (H_DEPTH) 
+        .OFFSETS_INITIAL_THREAD             (OFFSETS_INITIAL_THREAD)
     )
     Scalar
     (

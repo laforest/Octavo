@@ -45,7 +45,7 @@ module Addressing
         .next_thread        (next_thread)
     );
 
-    wire    [ADDR_WIDTH-1:0]    offsets_current_thread;
+    wire    [THREAD_ADDR_WIDTH-1:0]     offsets_current_thread;
 
     delay_line 
     #(
@@ -87,6 +87,8 @@ module Addressing
         .out    (offsets_write_data)
     );
 
+    wire    wren;
+
     Address_Decoder
     #(
         .ADDR_COUNT     (THREAD_COUNT), 
@@ -101,21 +103,23 @@ module Addressing
         .hit            (wren) 
     );
 
-    wire    [ADDR_WIDTH-1:0]    final_write_addr;
+    reg     [ADDR_WIDTH-1:0]    final_write_addr;
 
     always @(*) begin
-        final_write_addr <= {offsets_current_thread, offsets_write_addr[ADDR_WIDTH-THREAD_ADDR_WIDTH-1:0]}
+        final_write_addr <= {offsets_current_thread, offsets_write_addr[ADDR_WIDTH-THREAD_ADDR_WIDTH-1:0]};
     end
 
-    wire    [ADDR_WIDTH-1:0]    final_read_addr;
+    reg     [ADDR_WIDTH-1:0]    final_read_addr;
 
     always @(*) begin
-        final_read_addr <= {next_thread, {ADDR_WIDTH-THREAD_ADDR_WIDTH{1'b0}};
+        final_read_addr <= {next_thread, {ADDR_WIDTH-THREAD_ADDR_WIDTH{1'b0}} };
     end
+
+    wire    [ADDR_WIDTH-1:0]    offset;
 
     RAM_SDP
     #(
-        .WORD_WIDTH         (WORD_WIDTH),
+        .WORD_WIDTH         (ADDR_WIDTH),
         .ADDR_WIDTH         (ADDR_WIDTH),
         .DEPTH              (DEPTH),
         .RAMSTYLE           (RAMSTYLE),
