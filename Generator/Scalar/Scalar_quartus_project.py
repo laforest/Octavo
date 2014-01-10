@@ -47,7 +47,7 @@ def create_settings_file(all_parameters, path, install_base = install_base):
 """
 # Project-Wide Assignments
 # ========================
-set_global_assignment -name LAST_QUARTUS_VERSION 12.1
+set_global_assignment -name LAST_QUARTUS_VERSION 13.1
 set_global_assignment -name FLOW_DISABLE_ASSEMBLER ON
 set_global_assignment -name SMART_RECOMPILE ON
 set_global_assignment -name NUM_PARALLEL_PROCESSORS ${QUARTUS_NUM_PARALLEL_PROCESSORS}
