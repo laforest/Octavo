@@ -74,7 +74,7 @@ def definition(all_parameters):
     parameter       MULT_HETEROGENEOUS              = ${MULT_HETEROGENEOUS},    
     parameter       MULT_USE_DSP                    = ${MULT_USE_DSP},
 
-    parameter       OFFSETS_WRITE_ADDR_BASE         = ${OFFSETS_WRITE_ADDR_BASE},
+    parameter       OFFSETS_H_ADDR_BASE             = ${OFFSETS_H_ADDR_BASE},
     parameter       OFFSETS_WRITE_DELAY             = ${OFFSETS_WRITE_DELAY},
     parameter       OFFSETS_COUNT                   = ${OFFSETS_COUNT},
     parameter       OFFSETS_RAMTYLE                 = ${OFFSETS_RAMTYLE},
@@ -176,7 +176,7 @@ def definition(all_parameters):
         .MULT_HETEROGENEOUS                 (MULT_HETEROGENEOUS),
         .MULT_USE_DSP                       (MULT_USE_DSP),
 
-        .OFFSETS_WRITE_ADDR_BASE            (OFFSETS_WRITE_ADDR_BASE),
+        .OFFSETS_H_ADDR_BASE                (OFFSETS_H_ADDR_BASE),
         .OFFSETS_WRITE_DELAY                (OFFSETS_WRITE_DELAY),
         .OFFSETS_COUNT                      (OFFSETS_COUNT),
         .OFFSETS_RAMTYLE                    (OFFSETS_RAMTYLE),

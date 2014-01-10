@@ -45,7 +45,7 @@ module DataPath
     parameter       MULT_HETEROGENEOUS                              = 0,    
     parameter       MULT_USE_DSP                                    = 0,
 
-    parameter       OFFSETS_WRITE_ADDR_BASE                         = 0,
+    parameter       OFFSETS_H_ADDR_BASE                             = 0,
     parameter       OFFSETS_WRITE_DELAY                             = 0,
     parameter       OFFSETS_COUNT                                   = 0,
     parameter       OFFSETS_RAMTYLE                                 = 0,
@@ -134,32 +134,36 @@ module DataPath
 
     Addressing
     #(
-        .OFFSETS_WRITE_ADDR_BASE    (OFFSETS_WRITE_ADDR_BASE),
-        .OFFSETS_WRITE_DELAY        (OFFSETS_WRITE_DELAY),
+        .OFFSETS_WORD_WIDTH     (A_OPERAND_WIDTH),
+        .OFFSETS_ADDR_WIDTH     (A_OPERAND_WIDTH),
+        .OFFSETS_COUNT          (OFFSETS_COUNT),
+        .OFFSETS_RAMSTYLE       (OFFSETS_RAMTYLE),
+        .OFFSETS_INIT_FILE      (OFFSETS_INIT_FILE),
 
-        .WORD_WIDTH                 (A_ADDR_WIDTH),
-        .ADDR_WIDTH                 (A_OPERAND_WIDTH),
-        .DEPTH                      (OFFSETS_COUNT),
-        .RAMSTYLE                   (OFFSETS_RAMTYLE),
-        .INIT_FILE                  (OFFSETS_INIT_FILE),
+        .OFFSETS_H_ADDR_BASE    (OFFSETS_H_ADDR_BASE),
+        .OFFSETS_WRITE_DELAY    (OFFSETS_WRITE_DELAY),
 
-        .H_WRITE_ADDR_OFFSET        (H_WRITE_ADDR_OFFSET),
-        .H_DEPTH                    (H_DEPTH),
+        .WORD_WIDTH             (ALU_WORD_WIDTH),
+        .READ_ADDR_WIDTH        (A_ADDR_WIDTH),
+        .WRITE_ADDR_WIDTH       (D_OPERAND_WIDTH),
 
-        .IO_ADDR_BASE               (A_IO_READ_PORT_BASE_ADDR),
-        .IO_ADDR_COUNT              (A_IO_READ_PORT_COUNT),
+        .H_WRITE_ADDR_OFFSET    (H_WRITE_ADDR_OFFSET),
+        .H_DEPTH                (H_DEPTH),
 
-        .INITIAL_THREAD             (OFFSETS_INITIAL_THREAD),
-        .THREAD_COUNT               (THREAD_COUNT),
-        .THREAD_ADDR_WIDTH          (THREAD_ADDR_WIDTH)
+        .IO_ADDR_BASE           (A_IO_READ_PORT_BASE_ADDR),
+        .IO_ADDR_COUNT          (A_IO_READ_PORT_COUNT),
+
+        .INITIAL_THREAD         (OFFSETS_INITIAL_THREAD),
+        .THREAD_COUNT           (THREAD_COUNT),
+        .THREAD_ADDR_WIDTH      (THREAD_ADDR_WIDTH)
     )
     TAP_AB_A
     (
-        .clock                      (clock),
-        .addr_in                    (A_read_addr_in),
-        .write_addr                 (ALU_D_out),
-        .write_data                 (ALU_result_out),
-        .addr_out                   (A_read_addr_AB)
+        .clock                  (clock),
+        .addr_in                (A_read_addr_in),
+        .write_addr             (ALU_D_out),
+        .write_data             (ALU_result_out),
+        .addr_out               (A_read_addr_AB)
     );
 
     // ECL replace with Addressing
