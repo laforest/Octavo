@@ -248,15 +248,106 @@ quartus_sh --flow compile ${CPU_NAME}_test_harness 2>&1 | tee LOG_QUARTUS
 """)
     return test_harness_script_template.substitute(parameters)
 
+def seed_run_script(harness_name = misc.harness_name):
+    seed_run_script_template = string.Template(
+"""#! /bin/bash
+
+SOURCEDIR=${HARNESS_NAME}
+WORKDIR=$${SOURCEDIR}_$$1
+
+function generate_seed () {
+    # No idea about the distribution...
+    echo $$(( $${RANDOM}$${RANDOM} % 2**31 ))
+}
+
+function set_project_parameters () {
+    local SEED=$$1
+    sed -i -e"s/SEED.*/SEED $${SEED}/" *.qsf
+}
+
+function extract_fmax () {
+    echo $$(grep "MHz" *.sta.rpt | grep -v Base | grep -v half_clock | cut -d';' -f 2 | cut -d' ' -f 2)
+}
+
+function do_seed_run () {
+    rm -rf $${WORKDIR} > /dev/null
+    cp -a $${SOURCEDIR} $${WORKDIR}
+    pushd $${WORKDIR} > /dev/null
+        set_project_parameters $$(generate_seed)
+        ./run_test_harness > /dev/null
+        rm -rf db incremental_db > /dev/null
+        extract_fmax > ./fmax
+    popd > /dev/null
+}
+
+do_seed_run
+
+""")
+    return seed_run_script_template.substitute({"HARNESS_NAME":harness_name})
+
+def all_seed_runs_script():
+    all_seed_run_script_template = string.Template(
+"""#! /bin/bash
+
+if [ $$# -lt 1 ]; then
+    JOBS=1
+else
+    JOBS=$$1
+fi
+
+parallel -j $${JOBS} <<TODO
+./seed_run 0
+./seed_run 1
+./seed_run 2
+./seed_run 3
+./seed_run 4
+./seed_run 5
+./seed_run 6
+./seed_run 7
+./seed_run 8
+./seed_run 9
+TODO
+
+""")
+    return all_seed_run_script_template.substitute()
+
+def all_fmax_script(harness_name = misc.harness_name):
+    all_fmax_script_template = string.Template(
+"""#! /bin/bash
+
+for i in ${HARNESS_NAME}_*;
+do
+    cat $$i/fmax
+done | sort -n |  awk '{s+=$$1; print $$1}END{print s/NR}'
+
+""")
+    return all_fmax_script_template.substitute({"HARNESS_NAME":harness_name})
+
 def main(parameters = {}):
     name                = parameters["CPU_NAME"]
     test_harness_name   = name + "_" + misc.harness_name
-    test_harness_file   = test_harness(parameters)
-    test_harness_run    = test_harness_script(parameters)
     test_harness_dir    = os.path.join(os.getcwd(), misc.harness_name)
+    cwd                 = os.getcwd()
+
+    test_harness_file   = test_harness(parameters)
     misc.write_file(test_harness_dir, test_harness_name + ".v", test_harness_file)
+
+    test_harness_run    = test_harness_script(parameters)
     misc.write_file(test_harness_dir, "run_" + misc.harness_name, test_harness_run)
     misc.make_file_executable(test_harness_dir, "run_" + misc.harness_name)
+
+    seed_run            = seed_run_script()
+    misc.write_file(cwd, "seed_run", seed_run)
+    misc.make_file_executable(cwd, "seed_run")
+
+    all_seed_runs       = all_seed_runs_script()
+    misc.write_file(cwd, "all_seed_runs", all_seed_runs)
+    misc.make_file_executable(cwd, "all_seed_runs")
+
+    all_fmax            = all_fmax_script()
+    misc.write_file(cwd, "all_fmax", all_fmax)
+    misc.make_file_executable(cwd, "all_fmax")
+
     # XXX ECL hack: we should specify the location of the parameter file
     parameters_misc.update_parameter_file(os.getcwd(), 
                                           name, 
