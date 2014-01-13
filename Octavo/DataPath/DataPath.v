@@ -166,31 +166,74 @@ module DataPath
         .addr_out               (A_read_addr_AB)
     );
 
-    // ECL replace with Addressing
-    delay_line 
+    Addressing
     #(
-        .DEPTH  (TAP_AB_PIPELINE_DEPTH),
-        .WIDTH  (B_OPERAND_WIDTH)
-    ) 
-    TAP_AB_pipeline_B
+        .OFFSETS_WORD_WIDTH     (B_OPERAND_WIDTH),
+        .OFFSETS_ADDR_WIDTH     (B_OPERAND_WIDTH),
+        .OFFSETS_COUNT          (OFFSETS_COUNT),
+        .OFFSETS_RAMSTYLE       (OFFSETS_RAMTYLE),
+        .OFFSETS_INIT_FILE      (OFFSETS_INIT_FILE),
+
+        .OFFSETS_H_ADDR_BASE    (OFFSETS_H_ADDR_BASE),
+        .OFFSETS_WRITE_DELAY    (OFFSETS_WRITE_DELAY),
+
+        .WORD_WIDTH             (ALU_WORD_WIDTH),
+        .READ_ADDR_WIDTH        (B_ADDR_WIDTH),
+        .WRITE_ADDR_WIDTH       (D_OPERAND_WIDTH),
+
+        .H_WRITE_ADDR_OFFSET    (H_WRITE_ADDR_OFFSET),
+        .H_DEPTH                (H_DEPTH),
+
+        .IO_ADDR_BASE           (B_IO_READ_PORT_BASE_ADDR),
+        .IO_ADDR_COUNT          (B_IO_READ_PORT_COUNT),
+
+        .INITIAL_THREAD         (OFFSETS_INITIAL_THREAD),
+        .THREAD_COUNT           (THREAD_COUNT),
+        .THREAD_ADDR_WIDTH      (THREAD_ADDR_WIDTH)
+    )
+    TAP_AB_B
     (
-        .clock  (clock),
-        .in     (B_read_addr_in), // raw addr. stage 1
-        .out    (B_read_addr_AB)  // "translated" addr stage 3
+        .clock                  (clock),
+        .addr_in                (B_read_addr_in),
+        .write_addr             (ALU_D_out),
+        .write_data             (ALU_result_out),
+        .addr_out               (B_read_addr_AB)
     );
 
-    // ECL replace with Addressing
-    delay_line 
+    Addressing
     #(
-        .DEPTH  (TAP_AB_PIPELINE_DEPTH),
-        .WIDTH  (D_OPERAND_WIDTH)
-    ) 
-    TAP_AB_pipeline_D
+        .OFFSETS_WORD_WIDTH     (D_OPERAND_WIDTH),
+        .OFFSETS_ADDR_WIDTH     (D_OPERAND_WIDTH),
+        .OFFSETS_COUNT          (OFFSETS_COUNT),
+        .OFFSETS_RAMSTYLE       (OFFSETS_RAMTYLE),
+        .OFFSETS_INIT_FILE      (OFFSETS_INIT_FILE),
+
+        .OFFSETS_H_ADDR_BASE    (OFFSETS_H_ADDR_BASE),
+        .OFFSETS_WRITE_DELAY    (OFFSETS_WRITE_DELAY),
+
+        .WORD_WIDTH             (ALU_WORD_WIDTH),
+        .READ_ADDR_WIDTH        (D_OPERAND_WIDTH),
+        .WRITE_ADDR_WIDTH       (D_OPERAND_WIDTH),
+
+        .H_WRITE_ADDR_OFFSET    (H_WRITE_ADDR_OFFSET),
+        .H_DEPTH                (H_DEPTH),
+
+        .IO_ADDR_BASE           (B_IO_READ_PORT_BASE_ADDR), // ECL FIXME, temp value
+        .IO_ADDR_COUNT          (B_IO_READ_PORT_COUNT),     // ECL FIXME
+
+        .INITIAL_THREAD         (OFFSETS_INITIAL_THREAD),
+        .THREAD_COUNT           (THREAD_COUNT),
+        .THREAD_ADDR_WIDTH      (THREAD_ADDR_WIDTH)
+    )
+    TAP_AB_D
     (
-        .clock  (clock),
-        .in     (D_write_addr_in), // raw addr. stage 1
-        .out    (D_write_addr_AB)  // "translated" addr stage 3
+        .clock                  (clock),
+        .addr_in                (D_read_addr_in),
+        .write_addr             (ALU_D_out),
+        .write_data             (ALU_result_out),
+        .addr_out               (D_read_addr_AB)
     );
+
 
     delay_line 
     #(
