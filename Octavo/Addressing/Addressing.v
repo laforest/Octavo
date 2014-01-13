@@ -140,12 +140,26 @@ module Addressing
         .read_data          (offset)
     );
 
+    wire    [OFFSETS_WORD_WIDTH-1:0]    offset_pipelined;
+
+    delay_line 
+    #(
+        .DEPTH  (2),
+        .WIDTH  (OFFSETS_WORD_WIDTH)
+    ) 
+    offset_retime
+    (
+        .clock  (clock),
+        .in     (offset),
+        .out    (offset_pipelined)
+    );
+
     reg     [READ_ADDR_WIDTH-1:0]   raw_addr;
     reg     [READ_ADDR_WIDTH-1:0]   offset_addr;
 
     always @(posedge clock) begin
         raw_addr    <= addr_in;
-        offset_addr <= addr_in + offset;
+        offset_addr <= addr_in + offset_pipelined;
     end
 
     wire                in_highmem;
