@@ -228,10 +228,10 @@ module DataPath
     TAP_AB_D
     (
         .clock                  (clock),
-        .addr_in                (D_read_addr_in),
+        .addr_in                (D_write_addr_in),
         .write_addr             (ALU_D_out),
         .write_data             (ALU_result_out),
-        .addr_out               (D_read_addr_AB)
+        .addr_out               (D_write_addr_AB)
     );
 
 
