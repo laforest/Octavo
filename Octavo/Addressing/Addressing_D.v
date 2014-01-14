@@ -1,7 +1,9 @@
 // Adds a per-thread offset to non High-Mem and non-I/O addresses to make
 // shared code access per-thread private data.
 
-module Addressing
+// This version works for the D address operand, which can reach both A and B I/O port ranges.
+
+module Addressing_D
 #(
     parameter   OFFSETS_WORD_WIDTH          = 0,
     parameter   OFFSETS_ADDR_WIDTH          = 0,
