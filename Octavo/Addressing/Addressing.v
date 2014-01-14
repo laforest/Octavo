@@ -49,20 +49,6 @@ module Addressing
         .next_thread        (next_thread)
     );
 
-    wire    [THREAD_ADDR_WIDTH-1:0]     offsets_current_thread;
-
-    delay_line 
-    #(
-        .DEPTH  (OFFSETS_WRITE_DELAY),
-        .WIDTH  (THREAD_ADDR_WIDTH)
-    ) 
-    TID_sync
-    (
-        .clock  (clock),
-        .in     (next_thread),
-        .out    (offsets_current_thread)
-    );
-
     wire    [WRITE_ADDR_WIDTH-1:0]    offsets_write_addr;
 
     delay_line 
@@ -110,7 +96,7 @@ module Addressing
     reg     [OFFSETS_ADDR_WIDTH-1:0]    final_offsets_write_addr;
 
     always @(*) begin
-        final_offsets_write_addr <= {offsets_current_thread, offsets_write_addr[OFFSETS_ADDR_WIDTH-THREAD_ADDR_WIDTH-1:0]};
+        final_offsets_write_addr <= {current_thread, offsets_write_addr[OFFSETS_ADDR_WIDTH-THREAD_ADDR_WIDTH-1:0]};
     end
 
     reg     [READ_ADDR_WIDTH-1:0]   final_offsets_read_addr;
@@ -144,7 +130,7 @@ module Addressing
 
     delay_line 
     #(
-        .DEPTH  (2),
+        .DEPTH  (1),
         .WIDTH  (OFFSETS_WORD_WIDTH)
     ) 
     offset_retime

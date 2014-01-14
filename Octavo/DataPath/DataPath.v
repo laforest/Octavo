@@ -93,6 +93,11 @@ module DataPath
     output  wire    [(B_WORD_WIDTH * B_IO_WRITE_PORT_COUNT)-1:0]    B_io_out
 
 );
+
+    localparam      OFFSETS_H_ADDR_BASE_A = OFFSETS_H_ADDR_BASE;
+    localparam      OFFSETS_H_ADDR_BASE_B = OFFSETS_H_ADDR_BASE + OFFSETS_COUNT;
+    localparam      OFFSETS_H_ADDR_BASE_D = OFFSETS_H_ADDR_BASE + (OFFSETS_COUNT * 2);
+
     delay_line 
     #(
         .DEPTH  (I_PASSTHRU_PIPELINE_DEPTH),
@@ -140,7 +145,7 @@ module DataPath
         .OFFSETS_RAMSTYLE       (OFFSETS_RAMTYLE),
         .OFFSETS_INIT_FILE      (OFFSETS_INIT_FILE),
 
-        .OFFSETS_H_ADDR_BASE    (OFFSETS_H_ADDR_BASE),
+        .OFFSETS_H_ADDR_BASE    (OFFSETS_H_ADDR_BASE_A),
         .OFFSETS_WRITE_DELAY    (OFFSETS_WRITE_DELAY),
 
         .WORD_WIDTH             (ALU_WORD_WIDTH),
@@ -174,7 +179,7 @@ module DataPath
         .OFFSETS_RAMSTYLE       (OFFSETS_RAMTYLE),
         .OFFSETS_INIT_FILE      (OFFSETS_INIT_FILE),
 
-        .OFFSETS_H_ADDR_BASE    (OFFSETS_H_ADDR_BASE),
+        .OFFSETS_H_ADDR_BASE    (OFFSETS_H_ADDR_BASE_B),
         .OFFSETS_WRITE_DELAY    (OFFSETS_WRITE_DELAY),
 
         .WORD_WIDTH             (ALU_WORD_WIDTH),
@@ -208,7 +213,7 @@ module DataPath
         .OFFSETS_RAMSTYLE       (OFFSETS_RAMTYLE),
         .OFFSETS_INIT_FILE      (OFFSETS_INIT_FILE),
 
-        .OFFSETS_H_ADDR_BASE    (OFFSETS_H_ADDR_BASE),
+        .OFFSETS_H_ADDR_BASE    (OFFSETS_H_ADDR_BASE_D),
         .OFFSETS_WRITE_DELAY    (OFFSETS_WRITE_DELAY),
 
         .WORD_WIDTH             (ALU_WORD_WIDTH),
@@ -218,8 +223,8 @@ module DataPath
         .H_WRITE_ADDR_OFFSET    (H_WRITE_ADDR_OFFSET),
         .H_DEPTH                (H_DEPTH),
 
-        .IO_ADDR_BASE           (B_IO_READ_PORT_BASE_ADDR), // ECL FIXME, temp value
-        .IO_ADDR_COUNT          (B_IO_READ_PORT_COUNT),     // ECL FIXME
+        .IO_ADDR_BASE           (A_IO_READ_PORT_BASE_ADDR), // ECL FIXME We need to make this work for both A and B I/O ports.
+        .IO_ADDR_COUNT          (A_IO_READ_PORT_COUNT),     // ECL FIXME 
 
         .INITIAL_THREAD         (OFFSETS_INITIAL_THREAD),
         .THREAD_COUNT           (THREAD_COUNT),

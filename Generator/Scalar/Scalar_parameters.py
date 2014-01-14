@@ -164,12 +164,12 @@ def generate_thread_parameters(pipeline_depths, parameters = {}):
 
 def generate_addressing_parameters(common_values, parameters = {}):
     addressing_parameters = {
-        "OFFSETS_H_ADDR_BASE"   : common_values["H_WRITE_ADDR_OFFSET"], # ECL adjust later, when deciding H mem map
-        "OFFSETS_WRITE_DELAY"       : 2,                                    # ECL guess. needs adjusting
+        "OFFSETS_H_ADDR_BASE"       : common_values["H_WRITE_ADDR_OFFSET"],
+        "OFFSETS_WRITE_DELAY"       : 0,
         "OFFSETS_COUNT"             : 64,                                   # MLAB 64x10
         "OFFSETS_RAMTYLE"           : '"MLAB,no_rw_check"',
         "OFFSETS_INIT_FILE"         : '"' + common_values["MEM_INIT_FILE"] + '"',
-        "OFFSETS_INITIAL_THREAD"    : 2                                     # ECL needs adjusting
+        "OFFSETS_INITIAL_THREAD"    : 7
     }
     parameters_misc.override(addressing_parameters, parameters)
     return addressing_parameters
