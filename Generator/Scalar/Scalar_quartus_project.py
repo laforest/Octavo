@@ -76,6 +76,10 @@ set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/IO/IO_Check.v
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/IO/IO_Read.v
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/IO/IO_Write.v
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Addressing/Addressing.v
+set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Addressing/Addressing_AB.v
+set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Addressing/Addressing_D.v
+set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Addressing/Thread_Value.v
+set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Addressing/Offset_Selector.v
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Memory/RAM_SDP.v
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Memory/Write_Enable.v
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Memory/Memory.v

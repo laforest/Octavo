@@ -163,13 +163,14 @@ def generate_thread_parameters(pipeline_depths, parameters = {}):
     return thread_parameters
 
 def generate_addressing_parameters(common_values, parameters = {}):
+    addressing_depth  = 64 # MLAB 64x10
     addressing_parameters = {
-        "OFFSETS_H_ADDR_BASE"       : common_values["H_WRITE_ADDR_OFFSET"],
-        "OFFSETS_WRITE_DELAY"       : 0,
-        "OFFSETS_COUNT"             : 64,                                   # MLAB 64x10
-        "OFFSETS_RAMTYLE"           : '"MLAB,no_rw_check"',
-        "OFFSETS_INIT_FILE"         : '"' + common_values["MEM_INIT_FILE"] + '"',
-        "OFFSETS_INITIAL_THREAD"    : 7
+        "ADDRESSING_H_ADDR_BASE"    : common_values["H_WRITE_ADDR_OFFSET"], # Add offset as necessary at instantiation
+        "ADDRESSING_DEPTH"          : addressing_depth,
+        "ADDRESSING_ADDR_WIDTH"     : misc.log2(addressing_depth),
+        "ADDRESSING_RAMTYLE"        : '"MLAB,no_rw_check"',
+        "ADDRESSING_INIT_FILE"      : '"' + common_values["MEM_INIT_FILE"] + '"',
+        "ADDRESSING_INITIAL_THREAD" : 7
     }
     parameters_misc.override(addressing_parameters, parameters)
     return addressing_parameters

@@ -74,12 +74,12 @@ def definition(all_parameters):
     parameter       MULT_HETEROGENEOUS              = ${MULT_HETEROGENEOUS},    
     parameter       MULT_USE_DSP                    = ${MULT_USE_DSP},
 
-    parameter       OFFSETS_H_ADDR_BASE             = ${OFFSETS_H_ADDR_BASE},
-    parameter       OFFSETS_WRITE_DELAY             = ${OFFSETS_WRITE_DELAY},
-    parameter       OFFSETS_COUNT                   = ${OFFSETS_COUNT},
-    parameter       OFFSETS_RAMTYLE                 = ${OFFSETS_RAMTYLE},
-    parameter       OFFSETS_INIT_FILE               = ${OFFSETS_INIT_FILE},
-    parameter       OFFSETS_INITIAL_THREAD          = ${OFFSETS_INITIAL_THREAD}
+    parameter       ADDRESSING_H_ADDR_BASE          = ${ADDRESSING_H_ADDR_BASE},
+    parameter       ADDRESSING_DEPTH                = ${ADDRESSING_DEPTH},
+    parameter       ADDRESSING_ADDR_WIDTH           = ${ADDRESSING_ADDR_WIDTH},
+    parameter       ADDRESSING_RAMTYLE              = ${ADDRESSING_RAMTYLE},
+    parameter       ADDRESSING_INIT_FILE            = ${ADDRESSING_INIT_FILE},
+    parameter       ADDRESSING_INITIAL_THREAD       = ${ADDRESSING_INITIAL_THREAD}
 )
 (
     input   wire                                                    clock,
@@ -176,12 +176,12 @@ def definition(all_parameters):
         .MULT_HETEROGENEOUS                 (MULT_HETEROGENEOUS),
         .MULT_USE_DSP                       (MULT_USE_DSP),
 
-        .OFFSETS_H_ADDR_BASE                (OFFSETS_H_ADDR_BASE),
-        .OFFSETS_WRITE_DELAY                (OFFSETS_WRITE_DELAY),
-        .OFFSETS_COUNT                      (OFFSETS_COUNT),
-        .OFFSETS_RAMTYLE                    (OFFSETS_RAMTYLE),
-        .OFFSETS_INIT_FILE                  (OFFSETS_INIT_FILE),
-        .OFFSETS_INITIAL_THREAD             (OFFSETS_INITIAL_THREAD)
+        .ADDRESSING_H_ADDR_BASE             (ADDRESSING_H_ADDR_BASE),
+        .ADDRESSING_DEPTH                   (ADDRESSING_DEPTH),
+        .ADDRESSING_ADDR_WIDTH              (ADDRESSING_ADDR_WIDTH),
+        .ADDRESSING_RAMTYLE                 (ADDRESSING_RAMTYLE),
+        .ADDRESSING_INIT_FILE               (ADDRESSING_INIT_FILE),
+        .ADDRESSING_INITIAL_THREAD          (ADDRESSING_INITIAL_THREAD)
     )
     Scalar
     (

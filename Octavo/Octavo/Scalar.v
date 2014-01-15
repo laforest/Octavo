@@ -68,12 +68,12 @@ module Scalar
     parameter       MULT_HETEROGENEOUS          = 0,    
     parameter       MULT_USE_DSP                = 0,
 
-    parameter       OFFSETS_H_ADDR_BASE         = 0,
-    parameter       OFFSETS_WRITE_DELAY         = 0,
-    parameter       OFFSETS_COUNT               = 0,
-    parameter       OFFSETS_RAMTYLE             = 0,
-    parameter       OFFSETS_INIT_FILE           = 0,
-    parameter       OFFSETS_INITIAL_THREAD      = 0
+    parameter       ADDRESSING_H_ADDR_BASE      = 0,
+    parameter       ADDRESSING_DEPTH            = 0,
+    parameter       ADDRESSING_ADDR_WIDTH       = 0,
+    parameter       ADDRESSING_RAMTYLE          = 0,
+    parameter       ADDRESSING_INIT_FILE        = 0,
+    parameter       ADDRESSING_INITIAL_THREAD   = 0
 )
 (
     input   wire                                                    clock,
@@ -214,12 +214,12 @@ module Scalar
         .MULT_HETEROGENEOUS             (MULT_HETEROGENEOUS),    
         .MULT_USE_DSP                   (MULT_USE_DSP),
  
-        .OFFSETS_H_ADDR_BASE            (OFFSETS_H_ADDR_BASE), 
-        .OFFSETS_WRITE_DELAY            (OFFSETS_WRITE_DELAY), 
-        .OFFSETS_COUNT                  (OFFSETS_COUNT), 
-        .OFFSETS_RAMTYLE                (OFFSETS_RAMTYLE), 
-        .OFFSETS_INIT_FILE              (OFFSETS_INIT_FILE), 
-        .OFFSETS_INITIAL_THREAD         (OFFSETS_INITIAL_THREAD),
+        .ADDRESSING_H_ADDR_BASE         (ADDRESSING_H_ADDR_BASE), 
+        .ADDRESSING_DEPTH               (ADDRESSING_DEPTH), 
+        .ADDRESSING_ADDR_WIDTH          (ADDRESSING_ADDR_WIDTH), 
+        .ADDRESSING_RAMTYLE             (ADDRESSING_RAMTYLE), 
+        .ADDRESSING_INIT_FILE           (ADDRESSING_INIT_FILE), 
+        .ADDRESSING_INITIAL_THREAD      (ADDRESSING_INITIAL_THREAD),
 
         .THREAD_COUNT                   (THREAD_COUNT),
         .THREAD_ADDR_WIDTH              (THREAD_ADDR_WIDTH),

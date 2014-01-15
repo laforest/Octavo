@@ -41,7 +41,7 @@ module Thread_Value
     reg     [ADDR_WIDTH-1:0]    final_write_addr;
 
     always @(*) begin
-        final_read_addr  <= {next_thread,    read_addr [ADDR_WIDTH-THREAD_ADDR_WIDTH-1:0] };
+        final_read_addr  <= {next_thread,    read_addr [ADDR_WIDTH-THREAD_ADDR_WIDTH-1:0]};
         final_write_addr <= {current_thread, write_addr[ADDR_WIDTH-THREAD_ADDR_WIDTH-1:0]};
     end
 

@@ -45,12 +45,12 @@ module DataPath
     parameter       MULT_HETEROGENEOUS                              = 0,    
     parameter       MULT_USE_DSP                                    = 0,
 
-    parameter       OFFSETS_H_ADDR_BASE                             = 0,
-    parameter       OFFSETS_WRITE_DELAY                             = 0,
-    parameter       OFFSETS_COUNT                                   = 0,
-    parameter       OFFSETS_RAMTYLE                                 = 0,
-    parameter       OFFSETS_INIT_FILE                               = 0,
-    parameter       OFFSETS_INITIAL_THREAD                          = 0,
+    parameter       ADDRESSING_H_ADDR_BASE                          = 0,
+    parameter       ADDRESSING_DEPTH                                = 0,
+    parameter       ADDRESSING_ADDR_WIDTH                           = 0,
+    parameter       ADDRESSING_RAMTYLE                              = 0,
+    parameter       ADDRESSING_INIT_FILE                            = 0,
+    parameter       ADDRESSING_INITIAL_THREAD                       = 0,
 
     parameter       THREAD_COUNT                                    = 0,
     parameter       THREAD_ADDR_WIDTH                               = 0,
@@ -94,9 +94,9 @@ module DataPath
 
 );
 
-    localparam      OFFSETS_H_ADDR_BASE_A = OFFSETS_H_ADDR_BASE;
-    localparam      OFFSETS_H_ADDR_BASE_B = OFFSETS_H_ADDR_BASE + OFFSETS_COUNT;
-    localparam      OFFSETS_H_ADDR_BASE_D = OFFSETS_H_ADDR_BASE + (OFFSETS_COUNT * 2);
+    localparam      ADDRESSING_H_ADDR_BASE_A = ADDRESSING_H_ADDR_BASE;
+    localparam      ADDRESSING_H_ADDR_BASE_B = ADDRESSING_H_ADDR_BASE +  ADDRESSING_DEPTH;
+    localparam      ADDRESSING_H_ADDR_BASE_D = ADDRESSING_H_ADDR_BASE + (ADDRESSING_DEPTH * 2);
 
     delay_line 
     #(
@@ -132,33 +132,40 @@ module DataPath
         .B                  (B_read_addr_in)
     );
 
+    wire                TAP_AB_A_wren;
+
+    Address_Decoder
+    #(
+        .ADDR_COUNT     (ADDRESSING_DEPTH),
+        .ADDR_BASE      (ADDRESSING_H_ADDR_BASE_A),
+        .ADDR_WIDTH     (D_OPERAND_WIDTH),
+        .REGISTERED     (`FALSE)
+    )
+    Offsets_wren_A
+    (
+        .clock          (`LOW),
+        .addr           (ALU_D_out),
+        .hit            (TAP_AB_A_wren)
+    );
+
     wire    [OPCODE_WIDTH-1:0]     OP_AB;
     wire    [A_OPERAND_WIDTH-1:0]  A_read_addr_AB;
     wire    [B_OPERAND_WIDTH-1:0]  B_read_addr_AB;
     wire    [D_OPERAND_WIDTH-1:0]  D_write_addr_AB;
 
-    Addressing
+    Addressing_AB
     #(
-        .OFFSETS_WORD_WIDTH     (A_OPERAND_WIDTH),
-        .OFFSETS_ADDR_WIDTH     (A_OPERAND_WIDTH),
-        .OFFSETS_COUNT          (OFFSETS_COUNT),
-        .OFFSETS_RAMSTYLE       (OFFSETS_RAMTYLE),
-        .OFFSETS_INIT_FILE      (OFFSETS_INIT_FILE),
-
-        .OFFSETS_H_ADDR_BASE    (OFFSETS_H_ADDR_BASE_A),
-        .OFFSETS_WRITE_DELAY    (OFFSETS_WRITE_DELAY),
-
-        .WORD_WIDTH             (ALU_WORD_WIDTH),
-        .READ_ADDR_WIDTH        (A_ADDR_WIDTH),
-        .WRITE_ADDR_WIDTH       (D_OPERAND_WIDTH),
-
-        .H_WRITE_ADDR_OFFSET    (H_WRITE_ADDR_OFFSET),
-        .H_DEPTH                (H_DEPTH),
+        .WORD_WIDTH             (A_OPERAND_WIDTH),
+        .ADDR_WIDTH             (ADDRESSING_ADDR_WIDTH),
+        .DEPTH                  (ADDRESSING_DEPTH),
+        .RAMSTYLE               (ADDRESSING_RAMTYLE),
+        .INIT_FILE              (ADDRESSING_INIT_FILE),
+        .BASE_ADDR              (ADDRESSING_H_ADDR_BASE_A),
 
         .IO_ADDR_BASE           (A_IO_READ_PORT_BASE_ADDR),
         .IO_ADDR_COUNT          (A_IO_READ_PORT_COUNT),
 
-        .INITIAL_THREAD         (OFFSETS_INITIAL_THREAD),
+        .INITIAL_THREAD         (ADDRESSING_INITIAL_THREAD),
         .THREAD_COUNT           (THREAD_COUNT),
         .THREAD_ADDR_WIDTH      (THREAD_ADDR_WIDTH)
     )
@@ -166,33 +173,41 @@ module DataPath
     (
         .clock                  (clock),
         .addr_in                (A_read_addr_in),
-        .write_addr             (ALU_D_out),
-        .write_data             (ALU_result_out),
+        .wren                   (TAP_AB_A_wren),
+        .write_addr             (ALU_D_out[ADDRESSING_ADDR_WIDTH-1:0]),
+        .write_data             (ALU_result_out[A_OPERAND_WIDTH-1:0]),
         .addr_out               (A_read_addr_AB)
     );
 
-    Addressing
+    wire                TAP_AB_B_wren;
+
+    Address_Decoder
     #(
-        .OFFSETS_WORD_WIDTH     (B_OPERAND_WIDTH),
-        .OFFSETS_ADDR_WIDTH     (B_OPERAND_WIDTH),
-        .OFFSETS_COUNT          (OFFSETS_COUNT),
-        .OFFSETS_RAMSTYLE       (OFFSETS_RAMTYLE),
-        .OFFSETS_INIT_FILE      (OFFSETS_INIT_FILE),
+        .ADDR_COUNT     (ADDRESSING_DEPTH),
+        .ADDR_BASE      (ADDRESSING_H_ADDR_BASE_B),
+        .ADDR_WIDTH     (D_OPERAND_WIDTH),
+        .REGISTERED     (`FALSE)
+    )
+    Offsets_wren_B
+    (
+        .clock          (`LOW),
+        .addr           (ALU_D_out),
+        .hit            (TAP_AB_B_wren)
+    );
 
-        .OFFSETS_H_ADDR_BASE    (OFFSETS_H_ADDR_BASE_B),
-        .OFFSETS_WRITE_DELAY    (OFFSETS_WRITE_DELAY),
-
-        .WORD_WIDTH             (ALU_WORD_WIDTH),
-        .READ_ADDR_WIDTH        (B_ADDR_WIDTH),
-        .WRITE_ADDR_WIDTH       (D_OPERAND_WIDTH),
-
-        .H_WRITE_ADDR_OFFSET    (H_WRITE_ADDR_OFFSET),
-        .H_DEPTH                (H_DEPTH),
+    Addressing_AB
+    #(
+        .WORD_WIDTH             (B_OPERAND_WIDTH),
+        .ADDR_WIDTH             (ADDRESSING_ADDR_WIDTH),
+        .DEPTH                  (ADDRESSING_DEPTH),
+        .RAMSTYLE               (ADDRESSING_RAMTYLE),
+        .INIT_FILE              (ADDRESSING_INIT_FILE),
+        .BASE_ADDR              (ADDRESSING_H_ADDR_BASE_B),
 
         .IO_ADDR_BASE           (B_IO_READ_PORT_BASE_ADDR),
         .IO_ADDR_COUNT          (B_IO_READ_PORT_COUNT),
 
-        .INITIAL_THREAD         (OFFSETS_INITIAL_THREAD),
+        .INITIAL_THREAD         (ADDRESSING_INITIAL_THREAD),
         .THREAD_COUNT           (THREAD_COUNT),
         .THREAD_ADDR_WIDTH      (THREAD_ADDR_WIDTH)
     )
@@ -200,33 +215,47 @@ module DataPath
     (
         .clock                  (clock),
         .addr_in                (B_read_addr_in),
-        .write_addr             (ALU_D_out),
-        .write_data             (ALU_result_out),
+        .wren                   (TAP_AB_B_wren),
+        .write_addr             (ALU_D_out[ADDRESSING_ADDR_WIDTH-1:0]),
+        .write_data             (ALU_result_out[B_OPERAND_WIDTH-1:0]),
         .addr_out               (B_read_addr_AB)
     );
 
-    Addressing
+    wire                TAP_AB_D_wren;
+
+    Address_Decoder
     #(
-        .OFFSETS_WORD_WIDTH     (D_OPERAND_WIDTH),
-        .OFFSETS_ADDR_WIDTH     (D_OPERAND_WIDTH),
-        .OFFSETS_COUNT          (OFFSETS_COUNT),
-        .OFFSETS_RAMSTYLE       (OFFSETS_RAMTYLE),
-        .OFFSETS_INIT_FILE      (OFFSETS_INIT_FILE),
+        .ADDR_COUNT     (ADDRESSING_DEPTH),
+        .ADDR_BASE      (ADDRESSING_H_ADDR_BASE_D),
+        .ADDR_WIDTH     (D_OPERAND_WIDTH),
+        .REGISTERED     (`FALSE)
+    )
+    Offsets_wren_D
+    (
+        .clock          (`LOW),
+        .addr           (ALU_D_out),
+        .hit            (TAP_AB_D_wren)
+    );
 
-        .OFFSETS_H_ADDR_BASE    (OFFSETS_H_ADDR_BASE_D),
-        .OFFSETS_WRITE_DELAY    (OFFSETS_WRITE_DELAY),
-
-        .WORD_WIDTH             (ALU_WORD_WIDTH),
-        .READ_ADDR_WIDTH        (D_OPERAND_WIDTH),
-        .WRITE_ADDR_WIDTH       (D_OPERAND_WIDTH),
+    Addressing_D
+    #(
+        .WORD_WIDTH             (D_OPERAND_WIDTH),
+        .ADDR_WIDTH             (ADDRESSING_ADDR_WIDTH),
+        .DEPTH                  (ADDRESSING_DEPTH),
+        .RAMSTYLE               (ADDRESSING_RAMTYLE),
+        .INIT_FILE              (ADDRESSING_INIT_FILE),
+        .BASE_ADDR              (ADDRESSING_H_ADDR_BASE_D),
 
         .H_WRITE_ADDR_OFFSET    (H_WRITE_ADDR_OFFSET),
         .H_DEPTH                (H_DEPTH),
 
-        .IO_ADDR_BASE           (A_IO_READ_PORT_BASE_ADDR), // ECL FIXME We need to make this work for both A and B I/O ports.
-        .IO_ADDR_COUNT          (A_IO_READ_PORT_COUNT),     // ECL FIXME 
+        .A_IO_ADDR_BASE         (A_IO_READ_PORT_BASE_ADDR),
+        .A_IO_ADDR_COUNT        (A_IO_READ_PORT_COUNT),
 
-        .INITIAL_THREAD         (OFFSETS_INITIAL_THREAD),
+        .B_IO_ADDR_BASE         (B_IO_READ_PORT_BASE_ADDR),
+        .B_IO_ADDR_COUNT        (B_IO_READ_PORT_COUNT),
+
+        .INITIAL_THREAD         (ADDRESSING_INITIAL_THREAD),
         .THREAD_COUNT           (THREAD_COUNT),
         .THREAD_ADDR_WIDTH      (THREAD_ADDR_WIDTH)
     )
@@ -234,11 +263,11 @@ module DataPath
     (
         .clock                  (clock),
         .addr_in                (D_write_addr_in),
-        .write_addr             (ALU_D_out),
-        .write_data             (ALU_result_out),
+        .wren                   (TAP_AB_D_wren),
+        .write_addr             (ALU_D_out[ADDRESSING_ADDR_WIDTH-1:0]),
+        .write_data             (ALU_result_out[D_OPERAND_WIDTH-1:0]),
         .addr_out               (D_write_addr_AB)
     );
-
 
     delay_line 
     #(

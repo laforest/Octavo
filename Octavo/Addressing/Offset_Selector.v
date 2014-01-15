@@ -2,19 +2,18 @@
 
 module Offset_Selector
 #(
-    parameter   ADDR_WIDTH              = 0,
-    parameter   OFFSET_WIDTH            = 0,
+    parameter   WORD_WIDTH              = 0
 )
 (
     input   wire                        clock,
-    input   wire    [ADDR_WIDTH-1:0]    addr_in,
-    input   wire    [OFFSET_WIDTH-1:0]  offset,
+    input   wire    [WORD_WIDTH-1:0]    addr_in,
+    input   wire    [WORD_WIDTH-1:0]    offset,
     input   wire                        use_raw_addr,
-    output  wire    [ADDR_WIDTH-1:0]    addr_out
+    output  wire    [WORD_WIDTH-1:0]    addr_out
 );
-    reg     [READ_ADDR_WIDTH-1:0]   raw_addr;
-    reg     [READ_ADDR_WIDTH-1:0]   offset_addr;
-    reg                             selector;
+    reg     [WORD_WIDTH-1:0]    raw_addr;
+    reg     [WORD_WIDTH-1:0]    offset_addr;
+    reg                         selector;
 
     always @(posedge clock) begin
         raw_addr    <= addr_in;
@@ -24,7 +23,7 @@ module Offset_Selector
 
     Addressed_Mux
     #(
-        .WORD_WIDTH         (ADDR_WIDTH),
+        .WORD_WIDTH         (WORD_WIDTH),
         .ADDR_WIDTH         (1),
         .INPUT_COUNT        (2),
         .REGISTERED         (`TRUE)

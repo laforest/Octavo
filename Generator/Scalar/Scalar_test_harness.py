@@ -27,7 +27,7 @@ def test_harness(parameters, default_memory_init = default_memory_init, install_
     parameter       B_INIT_FILE                 = "${assembler_base}/${default_memory_init}.B",
     parameter       I_INIT_FILE                 = "${assembler_base}/${default_memory_init}.I",
     parameter       PC_INIT_FILE                = "${assembler_base}/${default_memory_init}.PC",
-    parameter       OFFSETS_INIT_FILE           = "${assembler_base}/${default_memory_init}.OFF",
+    parameter       ADDRESSING_INIT_FILE        = "${assembler_base}/${default_memory_init}.OFF",
 
     // ****** These are computed for brevity later. Do not redefine at module instantiation. ******
     parameter       A_IO_READ_PORT_WIDTH        = (A_WORD_WIDTH * A_IO_READ_PORT_COUNT),
@@ -68,11 +68,11 @@ def test_harness(parameters, default_memory_init = default_memory_init, install_
 
     ${CPU_NAME}
     #(
-        .A_INIT_FILE        (A_INIT_FILE),
-        .B_INIT_FILE        (B_INIT_FILE),
-        .I_INIT_FILE        (I_INIT_FILE),
-        .PC_INIT_FILE       (PC_INIT_FILE),
-        .OFFSETS_INIT_FILE  (OFFSETS_INIT_FILE)
+        .A_INIT_FILE            (A_INIT_FILE),
+        .B_INIT_FILE            (B_INIT_FILE),
+        .I_INIT_FILE            (I_INIT_FILE),
+        .PC_INIT_FILE           (PC_INIT_FILE),
+        .ADDRESSING_INIT_FILE   (ADDRESSING_INIT_FILE)
     )
     DUT
     (
