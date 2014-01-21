@@ -42,11 +42,11 @@ module Addressing_D
         .ADDR_COUNT     (H_DEPTH), 
         .ADDR_BASE      (H_WRITE_ADDR_OFFSET),
         .ADDR_WIDTH     (WORD_WIDTH),
-        .REGISTERED     (`FALSE)
+        .REGISTERED     (`TRUE)
     )
     highmem
     (
-        .clock          (`LOW),
+        .clock          (clock),
         .addr           (addr_in),
         .hit            (in_highmem)   
     );
@@ -58,11 +58,11 @@ module Addressing_D
         .ADDR_COUNT     (A_IO_ADDR_COUNT), 
         .ADDR_BASE      (A_IO_ADDR_BASE),
         .ADDR_WIDTH     (WORD_WIDTH),
-        .REGISTERED     (`FALSE)
+        .REGISTERED     (`TRUE)
     )
     A_io
     (
-        .clock          (`LOW),
+        .clock          (clock),
         .addr           (addr_in),
         .hit            (in_A_io)   
     );
@@ -74,11 +74,11 @@ module Addressing_D
         .ADDR_COUNT     (B_IO_ADDR_COUNT), 
         .ADDR_BASE      (B_IO_ADDR_BASE),
         .ADDR_WIDTH     (WORD_WIDTH),
-        .REGISTERED     (`FALSE)
+        .REGISTERED     (`TRUE)
     )
     B_io
     (
-        .clock          (`LOW),
+        .clock          (clock),
         .addr           (addr_in),
         .hit            (in_B_io)   
     );

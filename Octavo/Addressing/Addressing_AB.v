@@ -28,20 +28,20 @@ module Addressing_AB
     input   wire    [WORD_WIDTH-1:0]        write_data,
     output  wire    [WORD_WIDTH-1:0]        addr_out
 );
-    wire                in_io;
+    wire                use_raw_addr;
 
     Address_Decoder
     #(
         .ADDR_COUNT     (IO_ADDR_COUNT), 
         .ADDR_BASE      (IO_ADDR_BASE),
         .ADDR_WIDTH     (WORD_WIDTH),
-        .REGISTERED     (`FALSE)
+        .REGISTERED     (`TRUE)
     )
     io
     (
-        .clock          (`LOW),
+        .clock          (clock),
         .addr           (addr_in),
-        .hit            (in_io)   
+        .hit            (use_raw_addr)   
     );
 
     Addressing
@@ -60,7 +60,7 @@ module Addressing_AB
     Addressing
     (
         .clock              (clock),
-        .use_raw_addr       (in_io),
+        .use_raw_addr       (use_raw_addr),
         .addr_in            (addr_in),
         .wren               (wren),
         .write_addr         (write_addr),

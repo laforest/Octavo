@@ -132,6 +132,39 @@ module DataPath
         .B                  (B_read_addr_in)
     );
 
+    // ECL XXX Hardcoded for now. 2 cycles to sync R and D to incoming
+    // instruction from stage 1, else one thread could obstruct the
+    // post-increment of another thread.
+    // Two cycles past stage 0, and 8 cycles before stage 9, so 2 cycles delay.
+    
+    wire    [ALU_WORD_WIDTH-1:0]    ALU_result_synced;
+
+    delay_line 
+    #(
+        .DEPTH  (2),
+        .WIDTH  (ALU_WORD_WIDTH)
+    ) 
+    ALU_Addr_R
+    (
+        .clock  (clock),
+        .in     (ALU_result_out), 
+        .out    (ALU_result_synced)
+    );
+
+    wire    [D_OPERAND_WIDTH-1:0]    ALU_D_synced;
+
+    delay_line 
+    #(
+        .DEPTH  (2),
+        .WIDTH  (D_OPERAND_WIDTH)
+    ) 
+    ALU_Addr_D
+    (
+        .clock  (clock),
+        .in     (ALU_D_out), 
+        .out    (ALU_D_synced)
+    );
+
     wire                TAP_AB_A_wren;
 
     Address_Decoder
@@ -144,7 +177,7 @@ module DataPath
     Offsets_wren_A
     (
         .clock          (`LOW),
-        .addr           (ALU_D_out),
+        .addr           (ALU_D_synced),
         .hit            (TAP_AB_A_wren)
     );
 
@@ -174,8 +207,8 @@ module DataPath
         .clock                  (clock),
         .addr_in                (A_read_addr_in),
         .wren                   (TAP_AB_A_wren),
-        .write_addr             (ALU_D_out[ADDRESSING_ADDR_WIDTH-1:0]),
-        .write_data             (ALU_result_out[A_OPERAND_WIDTH-1:0]),
+        .write_addr             (ALU_D_synced[ADDRESSING_ADDR_WIDTH-1:0]),
+        .write_data             (ALU_result_synced[A_OPERAND_WIDTH-1:0]),
         .addr_out               (A_read_addr_AB)
     );
 
@@ -191,7 +224,7 @@ module DataPath
     Offsets_wren_B
     (
         .clock          (`LOW),
-        .addr           (ALU_D_out),
+        .addr           (ALU_D_synced),
         .hit            (TAP_AB_B_wren)
     );
 
@@ -216,8 +249,8 @@ module DataPath
         .clock                  (clock),
         .addr_in                (B_read_addr_in),
         .wren                   (TAP_AB_B_wren),
-        .write_addr             (ALU_D_out[ADDRESSING_ADDR_WIDTH-1:0]),
-        .write_data             (ALU_result_out[B_OPERAND_WIDTH-1:0]),
+        .write_addr             (ALU_D_synced[ADDRESSING_ADDR_WIDTH-1:0]),
+        .write_data             (ALU_result_synced[B_OPERAND_WIDTH-1:0]),
         .addr_out               (B_read_addr_AB)
     );
 
@@ -233,7 +266,7 @@ module DataPath
     Offsets_wren_D
     (
         .clock          (`LOW),
-        .addr           (ALU_D_out),
+        .addr           (ALU_D_synced),
         .hit            (TAP_AB_D_wren)
     );
 
@@ -264,8 +297,8 @@ module DataPath
         .clock                  (clock),
         .addr_in                (D_write_addr_in),
         .wren                   (TAP_AB_D_wren),
-        .write_addr             (ALU_D_out[ADDRESSING_ADDR_WIDTH-1:0]),
-        .write_data             (ALU_result_out[D_OPERAND_WIDTH-1:0]),
+        .write_addr             (ALU_D_synced[ADDRESSING_ADDR_WIDTH-1:0]),
+        .write_data             (ALU_result_synced[D_OPERAND_WIDTH-1:0]),
         .addr_out               (D_write_addr_AB)
     );
 
