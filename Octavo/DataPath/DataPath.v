@@ -186,7 +186,7 @@ module DataPath
     wire    [B_OPERAND_WIDTH-1:0]  B_read_addr_AB;
     wire    [D_OPERAND_WIDTH-1:0]  D_write_addr_AB;
 
-    Addressing_AB
+    Addressing
     #(
         .WORD_WIDTH             (A_OPERAND_WIDTH),
         .ADDR_WIDTH             (ADDRESSING_ADDR_WIDTH),
@@ -194,9 +194,6 @@ module DataPath
         .RAMSTYLE               (ADDRESSING_RAMTYLE),
         .INIT_FILE              (ADDRESSING_INIT_FILE),
         .BASE_ADDR              (ADDRESSING_H_ADDR_BASE_A),
-
-        .IO_ADDR_BASE           (A_IO_READ_PORT_BASE_ADDR),
-        .IO_ADDR_COUNT          (A_IO_READ_PORT_COUNT),
 
         .INITIAL_THREAD         (ADDRESSING_INITIAL_THREAD),
         .THREAD_COUNT           (THREAD_COUNT),
@@ -228,7 +225,7 @@ module DataPath
         .hit            (TAP_AB_B_wren)
     );
 
-    Addressing_AB
+    Addressing
     #(
         .WORD_WIDTH             (B_OPERAND_WIDTH),
         .ADDR_WIDTH             (ADDRESSING_ADDR_WIDTH),
@@ -236,9 +233,6 @@ module DataPath
         .RAMSTYLE               (ADDRESSING_RAMTYLE),
         .INIT_FILE              (ADDRESSING_INIT_FILE),
         .BASE_ADDR              (ADDRESSING_H_ADDR_BASE_B),
-
-        .IO_ADDR_BASE           (B_IO_READ_PORT_BASE_ADDR),
-        .IO_ADDR_COUNT          (B_IO_READ_PORT_COUNT),
 
         .INITIAL_THREAD         (ADDRESSING_INITIAL_THREAD),
         .THREAD_COUNT           (THREAD_COUNT),
@@ -270,7 +264,7 @@ module DataPath
         .hit            (TAP_AB_D_wren)
     );
 
-    Addressing_D
+    Addressing
     #(
         .WORD_WIDTH             (D_OPERAND_WIDTH),
         .ADDR_WIDTH             (ADDRESSING_ADDR_WIDTH),
@@ -278,15 +272,6 @@ module DataPath
         .RAMSTYLE               (ADDRESSING_RAMTYLE),
         .INIT_FILE              (ADDRESSING_INIT_FILE),
         .BASE_ADDR              (ADDRESSING_H_ADDR_BASE_D),
-
-        .H_WRITE_ADDR_OFFSET    (H_WRITE_ADDR_OFFSET),
-        .H_DEPTH                (H_DEPTH),
-
-        .A_IO_ADDR_BASE         (A_IO_READ_PORT_BASE_ADDR),
-        .A_IO_ADDR_COUNT        (A_IO_READ_PORT_COUNT),
-
-        .B_IO_ADDR_BASE         (B_IO_READ_PORT_BASE_ADDR),
-        .B_IO_ADDR_COUNT        (B_IO_READ_PORT_COUNT),
 
         .INITIAL_THREAD         (ADDRESSING_INITIAL_THREAD),
         .THREAD_COUNT           (THREAD_COUNT),

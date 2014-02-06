@@ -170,7 +170,7 @@ def generate_addressing_parameters(common_values, parameters = {}):
         "ADDRESSING_ADDR_WIDTH"     : misc.log2(addressing_depth),
         "ADDRESSING_RAMTYLE"        : '"MLAB,no_rw_check"',
         "ADDRESSING_INIT_FILE"      : '"' + common_values["MEM_INIT_FILE"] + '"',
-        "ADDRESSING_INITIAL_THREAD" : 6
+        "ADDRESSING_INITIAL_THREAD" : 3
     }
     parameters_misc.override(addressing_parameters, parameters)
     return addressing_parameters

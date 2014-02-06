@@ -2,9 +2,9 @@
 // Memory providing one of multiple per-thread values.
 // Useful for offsets, increments, and other repeated values
 
-// ECL Since we are using MLAB here, the normal SDP_RAM behaviour
-// won't work: no write forwarding.
-// Also, we want a synchronous clear on the output.
+// ECL Since we are using MLAB here, the normal SDP_RAM behaviour won't work:
+// no write forwarding.  Also, we don't want a synchronous clear on the output:
+// any register driving it cannot be retimed.
 
 // ECL XXX Factor this out into common file for thread offsets and PC memories.
 // We'll need separate BRAM definitions for M9K and MLAB after all.
@@ -20,7 +20,6 @@ module Offset_Memory
 (
     input  wire                         clock,
     input  wire                         wren,
-    input  wire                         read_clear,
     input  wire     [ADDR_WIDTH-1:0]    write_addr,
     input  wire     [WORD_WIDTH-1:0]    write_data,
     input  wire     [ADDR_WIDTH-1:0]    read_addr, 
@@ -37,13 +36,7 @@ module Offset_Memory
         if(wren == `HIGH) begin
             ram[write_addr] <= write_data;
         end
-
-        if(read_clear == `HIGH) begin
-            read_data <= 0;
-        end
-        else begin
-            read_data <= ram[read_addr];
-        end
+    read_data <= ram[read_addr];
     end
 
     initial begin
@@ -52,11 +45,11 @@ module Offset_Memory
 endmodule
 
 
-// Adds a per-thread offset to non High-Mem and non-I/O addresses to make
-// shared code access per-thread private data.
+// Adds a per-thread offset to addresses to make shared code access per-thread
+// private data. This includes the shared I/O and high-mem areas.
 
-// Generic version needing external offset enable
-// wren moved to higher level to abstract away operand width
+// Generic version needing external offset enable.  wren moved to higher level
+// to abstract away operand width
 
 module Addressing
 #(
@@ -73,17 +66,16 @@ module Addressing
 )
 (
     input   wire                        clock,
-    input   wire                        use_raw_addr,
     input   wire    [WORD_WIDTH-1:0]    addr_in,
     input   wire                        wren,
     input   wire    [ADDR_WIDTH-1:0]    write_addr,
     input   wire    [WORD_WIDTH-1:0]    write_data,
     output  reg     [WORD_WIDTH-1:0]    addr_out
 );
-    wire    [THREAD_ADDR_WIDTH-1:0] current_thread;
-    wire    [THREAD_ADDR_WIDTH-1:0] next_thread;
+    wire    [THREAD_ADDR_WIDTH-1:0] read_thread_BC;
+    wire    [THREAD_ADDR_WIDTH-1:0] write_thread;
 
-    Thread_Number
+    Addressing_Thread_Number
     #(
         .INITIAL_THREAD     (INITIAL_THREAD),
         .THREAD_COUNT       (THREAD_COUNT),
@@ -92,16 +84,29 @@ module Addressing
     TID
     (
         .clock              (clock),
-        .current_thread     (current_thread),
-        .next_thread        (next_thread)
+        .read_thread        (read_thread_BC),
+        .write_thread       (write_thread)
     );
+
+    reg     [THREAD_ADDR_WIDTH-1:0] read_thread_MEM;
+
+    initial begin
+        read_thread_MEM = 0;
+    end
+
+    // synchronize read_thread with block counter output
+    always @(posedge clock) begin
+        read_thread_MEM <= read_thread_BC;
+    end
 
     reg     [ADDR_WIDTH-1:0]    final_read_addr;
     reg     [ADDR_WIDTH-1:0]    final_write_addr;
 
+    integer zero = 0;
+
     always @(*) begin
-        final_read_addr  <= {next_thread,    addr_in[ADDR_WIDTH-THREAD_ADDR_WIDTH-1:0]};
-        final_write_addr <= {current_thread, write_addr[ADDR_WIDTH-THREAD_ADDR_WIDTH-1:0]};
+        final_read_addr  <= {read_thread_MEM, zero[ADDR_WIDTH-THREAD_ADDR_WIDTH-1:0]};
+        final_write_addr <= {write_thread,    zero[ADDR_WIDTH-THREAD_ADDR_WIDTH-1:0]};
     end
 
     wire    [WORD_WIDTH-1:0]    offset;
@@ -118,23 +123,31 @@ module Addressing
     (
         .clock              (clock),
         .wren               (wren),
-        .read_clear         (use_raw_addr),
         .write_addr         (final_write_addr),
         .write_data         (write_data),
         .read_addr          (final_read_addr),
         .read_data          (offset)
     );
 
-    reg     [WORD_WIDTH-1:0]    raw_addr_1;
-    reg     [WORD_WIDTH-1:0]    raw_addr_2;
+    wire    [WORD_WIDTH-1:0]    offset_final;
+
+    delay_line 
+    #(
+        .DEPTH  (2),
+        .WIDTH  (WORD_WIDTH)
+    ) 
+    offset_pipeline
+    (    
+        .clock  (clock),
+        .in     (offset),
+        .out    (offset_final)
+    );
+
+    reg     [WORD_WIDTH-1:0]    raw_addr;
 
     always @(posedge clock) begin
-        raw_addr_1  <= addr_in;
-        raw_addr_2  <= raw_addr_1;
-    end
-
-    always @(*) begin
-        addr_out <= raw_addr_2 + offset;
+        raw_addr  <= addr_in;
+        addr_out <= raw_addr + offset_final;
     end
 endmodule
 
