@@ -2,7 +2,10 @@
 
 from Assembler import *
 
-bench_name = "empty"
+bench_dir = "Empty"
+bench_file = "empty"
+bench_name = bench_dir + "/" + bench_file
+SIMD_bench_name = bench_dir + "/" + "SIMD_" + bench_file
 
 def assemble_PC():
     PC = PC_Memory(bench_name + ".PC", depth = 8, width = 20, word_width = 10)
@@ -29,24 +32,30 @@ def assemble_I(PC, A, B):
     I = Instruction_Memory(bench_name + ".I")
     return I
 
+def assemble_DOFF():
+    DOFF = Memory(bench_name + ".DOFF", depth = 8, width = 10)
+    return DOFF
 
 def assemble_all():
     PC = assemble_PC()
     A  = assemble_A()
     B  = assemble_B()
     I  = assemble_I(PC, A, B)
+    DOFF = assemble_DOFF()
 
     PC.file_dump()
 
     A.file_dump()
-    A.file_name = "SIMD_" + A.file_name
+    A.file_name = SIMD_bench_name + ".A"
     A.file_dump()
 
     B.file_dump()
-    B.file_name = "SIMD_" + B.file_name
+    B.file_name = SIMD_bench_name + ".B"
     B.file_dump()
 
     I.file_dump()
+
+    DOFF.file_dump()
 
 if __name__ == "__main__":
     assemble_all()
