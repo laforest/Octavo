@@ -42,6 +42,8 @@ module Addressing_Thread_Number
         write_thread    <=  next_thread;
     end
 
+    // ECL XXX fix stupid bit truncation warning here
+
     initial begin
         read_delay_1    =   INITIAL_THREAD - 1;
         read_delay_2    =   INITIAL_THREAD - 2;

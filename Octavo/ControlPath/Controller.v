@@ -70,6 +70,8 @@ module Controller_jump
     end
 endmodule
 
+// ECL XXX Re-implement with RAM_SDP_no_fw instance, tying wren high.
+
 module Controller_threads 
 #(
     parameter       PC_WIDTH                = 0,
