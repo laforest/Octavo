@@ -154,23 +154,44 @@ def generate_main_parameters(common_values, parameters = {}):
     assert main_parameters["INSTR_WIDTH"] <= common_values["WORD_WIDTH"], "ERROR: instruction width %d larger than word width %d" % (main_parameters["INSTR_WIDTH"], main_parameters["WORD_WIDTH"])
     return main_parameters
 
-def generate_thread_parameters(pipeline_depths, parameters = {}):
-    thread_count = pipeline_depths["AB_ALU_PIPELINE_DEPTH"]
+def generate_thread_parameters(common_values, parameters = {}):
+    thread_count = common_values["AB_ALU_PIPELINE_DEPTH"]
     thread_parameters = {
         "THREAD_COUNT"      :   thread_count,
         "THREAD_ADDR_WIDTH" :   misc.log2(thread_count)}
-    parameters_misc.override(thread_parameters, parameters)
+    parameters_misc.override(common_values, parameters)
     return thread_parameters
 
+# ECL XXX We're going to need some centralized memory map base address
+# generation to keep it all straight
+
 def generate_addressing_parameters(common_values, parameters = {}):
-    addressing_depth  = 64 # MLAB 64x10
+    default_offset_count = common_values["THREAD_COUNT"]
     addressing_parameters = {
-        "ADDRESSING_H_ADDR_BASE"    : common_values["H_WRITE_ADDR_OFFSET"], # Add offset as necessary at instantiation
-        "ADDRESSING_DEPTH"          : addressing_depth,
-        "ADDRESSING_ADDR_WIDTH"     : misc.log2(addressing_depth),
-        "ADDRESSING_RAMTYLE"        : '"MLAB,no_rw_check"',
-        "ADDRESSING_INIT_FILE"      : '"' + common_values["MEM_INIT_FILE"] + '"',
-        "ADDRESSING_INITIAL_THREAD" : 3
+        "ADDRESSING_INITIAL_THREAD"             : 3, # So write thread is 4, and read thread is 1, see Addressing_Thread_Number.v
+
+        "A_DEFAULT_OFFSET_WRITE_ADDR_OFFSET"    : common_values["H_WRITE_ADDR_OFFSET"],
+        "A_DEFAULT_OFFSET_WORD_WIDTH"           : common_values["A_OPERAND_WIDTH"],
+        "A_DEFAULT_OFFSET_ADDR_WIDTH"           : misc.log2(default_offset_count),
+        "A_DEFAULT_OFFSET_DEPTH"                : default_offset_count,
+        "A_DEFAULT_OFFSET_RAMTYLE"              : '"MLAB,no_rw_check"',
+        "A_DEFAULT_OFFSET_INIT_FILE"            : '"' + common_values["MEM_INIT_FILE"] + '"',
+
+        "B_DEFAULT_OFFSET_WRITE_ADDR_OFFSET"    : common_values["H_WRITE_ADDR_OFFSET"] + default_offset_count,
+        "B_DEFAULT_OFFSET_WORD_WIDTH"           : common_values["B_OPERAND_WIDTH"],
+        "B_DEFAULT_OFFSET_ADDR_WIDTH"           : misc.log2(default_offset_count),
+        "B_DEFAULT_OFFSET_DEPTH"                : default_offset_count,
+        "B_DEFAULT_OFFSET_RAMTYLE"              : '"MLAB,no_rw_check"',
+        "B_DEFAULT_OFFSET_INIT_FILE"            : '"' + common_values["MEM_INIT_FILE"] + '"',
+
+        "D_DEFAULT_OFFSET_WRITE_ADDR_OFFSET"    : common_values["H_WRITE_ADDR_OFFSET"] + (default_offset_count * 2),
+        # ECL XXX Using 12 for simplicity, but we can really only address the 10 bits of A/B/I memories
+        # ECL XXX May have to alter Addressing.v to support different address and offset widths
+        "D_DEFAULT_OFFSET_WORD_WIDTH"           : common_values["D_OPERAND_WIDTH"],
+        "D_DEFAULT_OFFSET_ADDR_WIDTH"           : misc.log2(default_offset_count),
+        "D_DEFAULT_OFFSET_DEPTH"                : default_offset_count,
+        "D_DEFAULT_OFFSET_RAMTYLE"              : '"MLAB,no_rw_check"',
+        "D_DEFAULT_OFFSET_INIT_FILE"            : '"' + common_values["MEM_INIT_FILE"] + '"',
     }
     parameters_misc.override(addressing_parameters, parameters)
     return addressing_parameters
@@ -220,22 +241,20 @@ def generate_logiclock_parameters(parameters = {}):
     parameters_misc.override(logiclock_options, parameters)
     return logiclock_options
 
+# ECL XXX Ugh, hacky....
+
 def all_parameters(parameters = {}):
-    pipeline_depths = generate_pipeline_depths(parameters)
-    common_values   = generate_common_values(parameters)
-    common_values.update(pipeline_depths)
-    all_parameters  = {}
-    all_parameters.update(pipeline_depths)
-    all_parameters.update(common_values)
-    all_parameters.update(generate_main_parameters(common_values, parameters))
-    all_parameters.update(generate_thread_parameters(pipeline_depths, parameters))
-    all_parameters.update(generate_addressing_parameters(common_values, parameters))
-    all_parameters.update(generate_resource_diversity_options(parameters))
-    all_parameters.update(generate_partition_options(parameters))
-    all_parameters.update(generate_quartus_options(parameters))
-    all_parameters.update(generate_logiclock_parameters(parameters))
-    all_parameters.update(generate_cpu_name(all_parameters))
-    return all_parameters
+    common_values = generate_common_values(parameters)
+    common_values.update(generate_pipeline_depths(parameters))
+    common_values.update(generate_resource_diversity_options(parameters))
+    common_values.update(generate_partition_options(parameters))
+    common_values.update(generate_quartus_options(parameters))
+    common_values.update(generate_logiclock_parameters(parameters))
+    common_values.update(generate_main_parameters(common_values, parameters))
+    common_values.update(generate_thread_parameters(common_values, parameters))
+    common_values.update(generate_addressing_parameters(common_values, parameters))
+    common_values.update(generate_cpu_name(common_values))
+    return common_values
 
 if __name__ == "__main__":
     import pprint
