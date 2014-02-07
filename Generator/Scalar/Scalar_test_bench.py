@@ -6,7 +6,7 @@ import sys
 
 from Misc import misc, parameters_misc
 
-default_bench = "simple_io_test_ab"
+default_bench = "Hailstone/hailstone"
 install_base = misc.base_install_path()
 quartus_base_path = misc.quartus_base_path
 
@@ -28,7 +28,10 @@ def test_bench(parameters, default_bench = default_bench, install_base = install
     parameter       A_INIT_FILE                 = "${assembler_base}/${default_bench}.A",
     parameter       B_INIT_FILE                 = "${assembler_base}/${default_bench}.B",
     parameter       I_INIT_FILE                 = "${assembler_base}/${default_bench}.I",
-    parameter       PC_INIT_FILE                = "${assembler_base}/${default_bench}.PC"
+    parameter       PC_INIT_FILE                = "${assembler_base}/${default_bench}.PC",
+    parameter       A_DEFAULT_OFFSET_INIT_FILE  = "${assembler_base}/${default_bench}.DOFF",
+    parameter       B_DEFAULT_OFFSET_INIT_FILE  = "${assembler_base}/${default_bench}.DOFF",
+    parameter       D_DEFAULT_OFFSET_INIT_FILE  = "${assembler_base}/${default_bench}.DOFF"
 )
 (
     output  wire    [INSTR_WIDTH-1:0]                           I_read_data,
@@ -112,10 +115,13 @@ def test_bench(parameters, default_bench = default_bench, install_base = install
 
     ${CPU_NAME} 
     #(
-        .A_INIT_FILE        (A_INIT_FILE),
-        .B_INIT_FILE        (B_INIT_FILE),
-        .I_INIT_FILE        (I_INIT_FILE),
-        .PC_INIT_FILE       (PC_INIT_FILE)
+        .A_INIT_FILE                    (A_INIT_FILE),
+        .B_INIT_FILE                    (B_INIT_FILE),
+        .I_INIT_FILE                    (I_INIT_FILE),
+        .PC_INIT_FILE                   (PC_INIT_FILE),
+        .A_DEFAULT_OFFSET_INIT_FILE     (A_DEFAULT_OFFSET_INIT_FILE),
+        .B_DEFAULT_OFFSET_INIT_FILE     (B_DEFAULT_OFFSET_INIT_FILE),
+        .D_DEFAULT_OFFSET_INIT_FILE     (D_DEFAULT_OFFSET_INIT_FILE)
     )
     DUT 
     (
@@ -181,9 +187,11 @@ OCTAVO="$$INSTALL_BASE/Octavo/Misc/params.v \\
         $$INSTALL_BASE/Octavo/ControlPath/Instr_Decoder.v \\
         $$INSTALL_BASE/Octavo/ControlPath/ControlPath.v \\
         $$INSTALL_BASE/Octavo/Memory/RAM_SDP.v \\
+        $$INSTALL_BASE/Octavo/Memory/RAM_SDP_no_fw.v \\
         $$INSTALL_BASE/Octavo/Memory/Write_Enable.v \\
         $$INSTALL_BASE/Octavo/Memory/Memory.v \\
         $$INSTALL_BASE/Octavo/Addressing/Addressing.v \\
+        $$INSTALL_BASE/Octavo/Addressing/Addressing_Thread_Number.v \\
         $$INSTALL_BASE/Octavo/IO/EmptyFullBit.v \\
         $$INSTALL_BASE/Octavo/IO/IO_Active.v \\
         $$INSTALL_BASE/Octavo/IO/IO_All_Ready.v \\
