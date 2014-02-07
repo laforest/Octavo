@@ -7,7 +7,7 @@ import sys
 from Misc import misc, parameters_misc
 import Scalar_quartus_project
 
-default_memory_init = "empty"
+default_memory_init = "Empty/empty"
 install_base = misc.base_install_path()
 
 def test_harness(parameters, default_memory_init = default_memory_init, install_base = install_base):
@@ -27,7 +27,9 @@ def test_harness(parameters, default_memory_init = default_memory_init, install_
     parameter       B_INIT_FILE                 = "${assembler_base}/${default_memory_init}.B",
     parameter       I_INIT_FILE                 = "${assembler_base}/${default_memory_init}.I",
     parameter       PC_INIT_FILE                = "${assembler_base}/${default_memory_init}.PC",
-    parameter       ADDRESSING_INIT_FILE        = "${assembler_base}/${default_memory_init}.OFF",
+    parameter       A_DEFAULT_OFFSET_INIT_FILE  = "${assembler_base}/${default_memory_init}.DOFF",
+    parameter       B_DEFAULT_OFFSET_INIT_FILE  = "${assembler_base}/${default_memory_init}.DOFF",
+    parameter       D_DEFAULT_OFFSET_INIT_FILE  = "${assembler_base}/${default_memory_init}.DOFF",
 
     // ****** These are computed for brevity later. Do not redefine at module instantiation. ******
     parameter       A_IO_READ_PORT_WIDTH        = (A_WORD_WIDTH * A_IO_READ_PORT_COUNT),
@@ -68,11 +70,13 @@ def test_harness(parameters, default_memory_init = default_memory_init, install_
 
     ${CPU_NAME}
     #(
-        .A_INIT_FILE            (A_INIT_FILE),
-        .B_INIT_FILE            (B_INIT_FILE),
-        .I_INIT_FILE            (I_INIT_FILE),
-        .PC_INIT_FILE           (PC_INIT_FILE),
-        .ADDRESSING_INIT_FILE   (ADDRESSING_INIT_FILE)
+        .A_INIT_FILE                    (A_INIT_FILE),
+        .B_INIT_FILE                    (B_INIT_FILE),
+        .I_INIT_FILE                    (I_INIT_FILE),
+        .PC_INIT_FILE                   (PC_INIT_FILE),
+        .A_DEFAULT_OFFSET_INIT_FILE     (A_DEFAULT_OFFSET_INIT_FILE),
+        .B_DEFAULT_OFFSET_INIT_FILE     (B_DEFAULT_OFFSET_INIT_FILE),
+        .D_DEFAULT_OFFSET_INIT_FILE     (D_DEFAULT_OFFSET_INIT_FILE)
     )
     DUT
     (

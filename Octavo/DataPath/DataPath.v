@@ -45,12 +45,28 @@ module DataPath
     parameter       MULT_HETEROGENEOUS                              = 0,    
     parameter       MULT_USE_DSP                                    = 0,
 
-    parameter       ADDRESSING_H_ADDR_BASE                          = 0,
-    parameter       ADDRESSING_DEPTH                                = 0,
-    parameter       ADDRESSING_ADDR_WIDTH                           = 0,
-    parameter       ADDRESSING_RAMTYLE                              = 0,
-    parameter       ADDRESSING_INIT_FILE                            = 0,
     parameter       ADDRESSING_INITIAL_THREAD                       = 0,
+
+    parameter       A_DEFAULT_OFFSET_WRITE_ADDR_OFFSET              = 0,
+    parameter       A_DEFAULT_OFFSET_WORD_WIDTH                     = 0,
+    parameter       A_DEFAULT_OFFSET_ADDR_WIDTH                     = 0,
+    parameter       A_DEFAULT_OFFSET_DEPTH                          = 0,
+    parameter       A_DEFAULT_OFFSET_RAMTYLE                        = 0,
+    parameter       A_DEFAULT_OFFSET_INIT_FILE                      = 0,
+
+    parameter       B_DEFAULT_OFFSET_WRITE_ADDR_OFFSET              = 0,
+    parameter       B_DEFAULT_OFFSET_WORD_WIDTH                     = 0,
+    parameter       B_DEFAULT_OFFSET_ADDR_WIDTH                     = 0,
+    parameter       B_DEFAULT_OFFSET_DEPTH                          = 0,
+    parameter       B_DEFAULT_OFFSET_RAMTYLE                        = 0,
+    parameter       B_DEFAULT_OFFSET_INIT_FILE                      = 0,
+
+    parameter       D_DEFAULT_OFFSET_WRITE_ADDR_OFFSET              = 0,
+    parameter       D_DEFAULT_OFFSET_WORD_WIDTH                     = 0,
+    parameter       D_DEFAULT_OFFSET_ADDR_WIDTH                     = 0,
+    parameter       D_DEFAULT_OFFSET_DEPTH                          = 0,
+    parameter       D_DEFAULT_OFFSET_RAMTYLE                        = 0,
+    parameter       D_DEFAULT_OFFSET_INIT_FILE                      = 0,
 
     parameter       THREAD_COUNT                                    = 0,
     parameter       THREAD_ADDR_WIDTH                               = 0,
@@ -93,10 +109,7 @@ module DataPath
     output  wire    [(B_WORD_WIDTH * B_IO_WRITE_PORT_COUNT)-1:0]    B_io_out
 
 );
-
-    localparam      ADDRESSING_H_ADDR_BASE_A = ADDRESSING_H_ADDR_BASE;
-    localparam      ADDRESSING_H_ADDR_BASE_B = ADDRESSING_H_ADDR_BASE +  ADDRESSING_DEPTH;
-    localparam      ADDRESSING_H_ADDR_BASE_D = ADDRESSING_H_ADDR_BASE + (ADDRESSING_DEPTH * 2);
+    // ----------------------------------------------------------
 
     delay_line 
     #(
@@ -109,6 +122,8 @@ module DataPath
         .in     (I_read_data_in),
         .out    (I_read_data_out)
     );
+
+    // ----------------------------------------------------------
 
     wire    [OPCODE_WIDTH-1:0]     OP_in;
     wire    [A_OPERAND_WIDTH-1:0]  A_read_addr_in;
@@ -131,6 +146,8 @@ module DataPath
         .A                  (A_read_addr_in),
         .B                  (B_read_addr_in)
     );
+
+    // ----------------------------------------------------------
 
     // ECL XXX Hardcoded for now. 2 cycles to sync R and D to incoming
     // instruction from stage 1, else one thread could obstruct the
@@ -165,139 +182,149 @@ module DataPath
         .out    (ALU_D_synced)
     );
 
-    wire                TAP_AB_A_wren;
+    // ----------------------------------------------------------
+
+    wire                A_Default_Offset_wren;
 
     Address_Decoder
     #(
-        .ADDR_COUNT     (ADDRESSING_DEPTH),
-        .ADDR_BASE      (ADDRESSING_H_ADDR_BASE_A),
+        .ADDR_COUNT     (A_DEFAULT_OFFSET_DEPTH),
+        .ADDR_BASE      (A_DEFAULT_OFFSET_WRITE_ADDR_OFFSET),
         .ADDR_WIDTH     (D_OPERAND_WIDTH),
         .REGISTERED     (`FALSE)
     )
-    Offsets_wren_A
+    A_Default_Offset
     (
         .clock          (`LOW),
         .addr           (ALU_D_synced),
-        .hit            (TAP_AB_A_wren)
+        .hit            (A_Default_Offset_wren)
     );
 
-    wire    [OPCODE_WIDTH-1:0]     OP_AB;
-    wire    [A_OPERAND_WIDTH-1:0]  A_read_addr_AB;
-    wire    [B_OPERAND_WIDTH-1:0]  B_read_addr_AB;
-    wire    [D_OPERAND_WIDTH-1:0]  D_write_addr_AB;
+    wire    [A_DEFAULT_OFFSET_WORD_WIDTH-1:0]  A_read_addr_AB;
 
     Addressing
     #(
-        .WORD_WIDTH             (A_OPERAND_WIDTH),
-        .ADDR_WIDTH             (ADDRESSING_ADDR_WIDTH),
-        .DEPTH                  (ADDRESSING_DEPTH),
-        .RAMSTYLE               (ADDRESSING_RAMTYLE),
-        .INIT_FILE              (ADDRESSING_INIT_FILE),
-        .BASE_ADDR              (ADDRESSING_H_ADDR_BASE_A),
+        .DEFAULT_OFFSET_WORD_WIDTH  (A_DEFAULT_OFFSET_WORD_WIDTH),
+        .DEFAULT_OFFSET_ADDR_WIDTH  (A_DEFAULT_OFFSET_ADDR_WIDTH),
+        .DEFAULT_OFFSET_DEPTH       (A_DEFAULT_OFFSET_DEPTH),
+        .DEFAULT_OFFSET_RAMSTYLE    (A_DEFAULT_OFFSET_RAMTYLE),
+        .DEFAULT_OFFSET_INIT_FILE   (A_DEFAULT_OFFSET_INIT_FILE),
 
-        .INITIAL_THREAD         (ADDRESSING_INITIAL_THREAD),
-        .THREAD_COUNT           (THREAD_COUNT),
-        .THREAD_ADDR_WIDTH      (THREAD_ADDR_WIDTH)
+        .INITIAL_THREAD             (ADDRESSING_INITIAL_THREAD),
+        .THREAD_COUNT               (THREAD_COUNT),
+        .THREAD_ADDR_WIDTH          (THREAD_ADDR_WIDTH)
     )
     TAP_AB_A
     (
         .clock                  (clock),
         .addr_in                (A_read_addr_in),
-        .wren                   (TAP_AB_A_wren),
-        .write_addr             (ALU_D_synced[ADDRESSING_ADDR_WIDTH-1:0]),
-        .write_data             (ALU_result_synced[A_OPERAND_WIDTH-1:0]),
+        .default_offset_wren    (A_Default_Offset_wren),
+        .write_addr             (ALU_D_synced[A_DEFAULT_OFFSET_ADDR_WIDTH-1:0]),
+        .write_data             (ALU_result_synced[A_DEFAULT_OFFSET_WORD_WIDTH-1:0]),
         .addr_out               (A_read_addr_AB)
     );
 
-    wire                TAP_AB_B_wren;
+    // ----------------------------------------------------------
+
+    wire                B_Default_Offset_wren;
 
     Address_Decoder
     #(
-        .ADDR_COUNT     (ADDRESSING_DEPTH),
-        .ADDR_BASE      (ADDRESSING_H_ADDR_BASE_B),
+        .ADDR_COUNT     (B_DEFAULT_OFFSET_DEPTH),
+        .ADDR_BASE      (B_DEFAULT_OFFSET_WRITE_ADDR_OFFSET),
         .ADDR_WIDTH     (D_OPERAND_WIDTH),
         .REGISTERED     (`FALSE)
     )
-    Offsets_wren_B
+    B_Default_Offset
     (
         .clock          (`LOW),
         .addr           (ALU_D_synced),
-        .hit            (TAP_AB_B_wren)
+        .hit            (B_Default_Offset_wren)
     );
+
+    wire    [B_DEFAULT_OFFSET_WORD_WIDTH-1:0]  B_read_addr_AB;
 
     Addressing
     #(
-        .WORD_WIDTH             (B_OPERAND_WIDTH),
-        .ADDR_WIDTH             (ADDRESSING_ADDR_WIDTH),
-        .DEPTH                  (ADDRESSING_DEPTH),
-        .RAMSTYLE               (ADDRESSING_RAMTYLE),
-        .INIT_FILE              (ADDRESSING_INIT_FILE),
-        .BASE_ADDR              (ADDRESSING_H_ADDR_BASE_B),
+        .DEFAULT_OFFSET_WORD_WIDTH  (B_DEFAULT_OFFSET_WORD_WIDTH),
+        .DEFAULT_OFFSET_ADDR_WIDTH  (B_DEFAULT_OFFSET_ADDR_WIDTH),
+        .DEFAULT_OFFSET_DEPTH       (B_DEFAULT_OFFSET_DEPTH),
+        .DEFAULT_OFFSET_RAMSTYLE    (B_DEFAULT_OFFSET_RAMTYLE),
+        .DEFAULT_OFFSET_INIT_FILE   (B_DEFAULT_OFFSET_INIT_FILE),
 
-        .INITIAL_THREAD         (ADDRESSING_INITIAL_THREAD),
-        .THREAD_COUNT           (THREAD_COUNT),
-        .THREAD_ADDR_WIDTH      (THREAD_ADDR_WIDTH)
+        .INITIAL_THREAD             (ADDRESSING_INITIAL_THREAD),
+        .THREAD_COUNT               (THREAD_COUNT),
+        .THREAD_ADDR_WIDTH          (THREAD_ADDR_WIDTH)
     )
     TAP_AB_B
     (
         .clock                  (clock),
         .addr_in                (B_read_addr_in),
-        .wren                   (TAP_AB_B_wren),
-        .write_addr             (ALU_D_synced[ADDRESSING_ADDR_WIDTH-1:0]),
-        .write_data             (ALU_result_synced[B_OPERAND_WIDTH-1:0]),
+        .default_offset_wren    (B_Default_Offset_wren),
+        .write_addr             (ALU_D_synced[B_DEFAULT_OFFSET_ADDR_WIDTH-1:0]),
+        .write_data             (ALU_result_synced[B_DEFAULT_OFFSET_WORD_WIDTH-1:0]),
         .addr_out               (B_read_addr_AB)
     );
 
-    wire                TAP_AB_D_wren;
+    // ----------------------------------------------------------
+
+    wire                D_Default_Offset_wren;
 
     Address_Decoder
     #(
-        .ADDR_COUNT     (ADDRESSING_DEPTH),
-        .ADDR_BASE      (ADDRESSING_H_ADDR_BASE_D),
+        .ADDR_COUNT     (D_DEFAULT_OFFSET_DEPTH),
+        .ADDR_BASE      (D_DEFAULT_OFFSET_WRITE_ADDR_OFFSET),
         .ADDR_WIDTH     (D_OPERAND_WIDTH),
         .REGISTERED     (`FALSE)
     )
-    Offsets_wren_D
+    D_Default_Offset
     (
         .clock          (`LOW),
         .addr           (ALU_D_synced),
-        .hit            (TAP_AB_D_wren)
+        .hit            (D_Default_Offset_wren)
     );
+
+    wire    [D_DEFAULT_OFFSET_WORD_WIDTH-1:0]  D_write_addr_AB;
 
     Addressing
     #(
-        .WORD_WIDTH             (D_OPERAND_WIDTH),
-        .ADDR_WIDTH             (ADDRESSING_ADDR_WIDTH),
-        .DEPTH                  (ADDRESSING_DEPTH),
-        .RAMSTYLE               (ADDRESSING_RAMTYLE),
-        .INIT_FILE              (ADDRESSING_INIT_FILE),
-        .BASE_ADDR              (ADDRESSING_H_ADDR_BASE_D),
+        .DEFAULT_OFFSET_WORD_WIDTH  (D_DEFAULT_OFFSET_WORD_WIDTH),
+        .DEFAULT_OFFSET_ADDR_WIDTH  (D_DEFAULT_OFFSET_ADDR_WIDTH),
+        .DEFAULT_OFFSET_DEPTH       (D_DEFAULT_OFFSET_DEPTH),
+        .DEFAULT_OFFSET_RAMSTYLE    (D_DEFAULT_OFFSET_RAMTYLE),
+        .DEFAULT_OFFSET_INIT_FILE   (D_DEFAULT_OFFSET_INIT_FILE),
 
-        .INITIAL_THREAD         (ADDRESSING_INITIAL_THREAD),
-        .THREAD_COUNT           (THREAD_COUNT),
-        .THREAD_ADDR_WIDTH      (THREAD_ADDR_WIDTH)
+        .INITIAL_THREAD             (ADDRESSING_INITIAL_THREAD),
+        .THREAD_COUNT               (THREAD_COUNT),
+        .THREAD_ADDR_WIDTH          (THREAD_ADDR_WIDTH)
     )
     TAP_AB_D
     (
         .clock                  (clock),
         .addr_in                (D_write_addr_in),
-        .wren                   (TAP_AB_D_wren),
-        .write_addr             (ALU_D_synced[ADDRESSING_ADDR_WIDTH-1:0]),
-        .write_data             (ALU_result_synced[D_OPERAND_WIDTH-1:0]),
+        .default_offset_wren    (D_Default_Offset_wren),
+        .write_addr             (ALU_D_synced[D_DEFAULT_OFFSET_ADDR_WIDTH-1:0]),
+        .write_data             (ALU_result_synced[D_DEFAULT_OFFSET_WORD_WIDTH-1:0]),
         .addr_out               (D_write_addr_AB)
     );
+
+    // ----------------------------------------------------------
+
+    wire    [OPCODE_WIDTH-1:0]  OP_AB;
 
     delay_line 
     #(
         .DEPTH  (TAP_AB_PIPELINE_DEPTH),
         .WIDTH  (OPCODE_WIDTH)
     ) 
-    TAP_AB_pipeline_OP
+    TAP_AB_OP
     (
         .clock  (clock),
-        .in     (OP_in), // raw addr. stage 1
-        .out    (OP_AB)  // "translated" addr stage 3
+        .in     (OP_in), // stage 1
+        .out    (OP_AB)  // stage 3
     );
+
+    // ----------------------------------------------------------
 
     reg     [INSTR_WIDTH-1:0]   I_read_data_AB;
 
