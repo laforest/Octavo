@@ -1,6 +1,7 @@
 #! /usr/bin/python
 
-from Assembler import *
+import empty
+from opcodes import *
 
 bench_dir  = "Hailstone"
 bench_file = "hailstone"
@@ -12,27 +13,25 @@ def partition_data_memory(memory_depth = 1024, literal_pool_depth = 32, thread_c
     offsets = [(thread * (thread_data_memory_depth / 8)) + literal_pool_depth for thread in range(0,thread_count)]
     return offsets
 
-# We don't have programmed offsets, so we can modify them to reach a literal
-# pool, I/O or H mem. For now, the tesbench will have to run "blind", with
-# private data, and we'll check it's internal state for correct operation.
+# We don't have programmed offsets, so we can't modify them to reach a
+# literal pool, I/O or H mem. For now, the tesbench will have to run
+# "blind", with private data, and we'll check it's internal state for
+# correct operation.
 
 offsets = partition_data_memory(literal_pool_depth = 0)
 
+# Get empty instances with default parameters
+empty = empty.assemble_all()
+
 def assemble_PC():
-    PC = PC_Memory(bench_name + ".PC", depth = 8, width = 20, word_width = 10)
-    # Shared code. All starts at the same place, matching thread 0 for simplicity.
-    PC.L(PC.pack2(1,1)), PC.N("THREAD0_START")
-    PC.L(PC.pack2(1,1)), PC.N("THREAD1_START")
-    PC.L(PC.pack2(1,1)), PC.N("THREAD2_START")
-    PC.L(PC.pack2(1,1)), PC.N("THREAD3_START")
-    PC.L(PC.pack2(1,1)), PC.N("THREAD4_START")
-    PC.L(PC.pack2(1,1)), PC.N("THREAD5_START")
-    PC.L(PC.pack2(1,1)), PC.N("THREAD6_START")
-    PC.L(PC.pack2(1,1)), PC.N("THREAD7_START")
+    # Nothing to do here.
+    PC = empty["PC"]
+    PC.file_name = bench_name
     return PC
 
 def assemble_A():
-    A = Data_Memory(bench_name + ".A")
+    A = empty["A"]
+    A.file_name = bench_name
     A.add_port_pair("READ_PORT", "WRITE_PORT", 1023)
     # Peel out zeroth iteration for naming
     A.ALIGN(offsets[0])
@@ -52,7 +51,8 @@ def assemble_A():
     return A
 
 def assemble_B():
-    B = Data_Memory(bench_name + ".B", write_offset = 1024)
+    B = empty["B"]
+    B.file_name = bench_name
     B.add_port_pair("READ_PORT", "WRITE_PORT", 1023)
 
     seeds = [27, 47, 67, 87, 107, 127, 234, 335]
@@ -69,7 +69,9 @@ def assemble_B():
     return B
 
 def assemble_I(PC, A, B):
-    I = Instruction_Memory(bench_name + ".I", write_offset = 2048)
+    I = empty["I"]
+    I.file_name = bench_name
+    # Align threads 1-7 with thread 0
     I.NOP()
 
     I.ALIGN(PC.get_pc("THREAD0_START"))
@@ -89,33 +91,30 @@ def assemble_I(PC, A, B):
     I.I(JMP, "hailstone", 0, 0)
     return I
 
-def assemble_DOFF():
-    DOFF = Memory(bench_name + ".DOFF", depth = 8, width = 10)
-    for offset in offsets:
-        DOFF.L(offset)
-    return DOFF
+def assemble_XDO():
+    ADO, BDO, DDO = empty["ADO"], empty["BDO"], empty["DDO"]
+    ADO.file_name = bench_name
+    BDO.file_name = bench_name
+    DDO.file_name = bench_name
+    for mem in ADO, BDO, DDO:
+        for offset in offsets:
+            mem.L(offset)
+    return ADO, BDO, DDO
 
 def assemble_all():
     PC = assemble_PC()
     A  = assemble_A()
     B  = assemble_B()
     I  = assemble_I(PC, A, B)
-    DOFF = assemble_DOFF()
+    ADO, BDO, DDO = assemble_XDO()
+    hailstone = {"PC":PC, "A":A, "B":B, "I":I, "ADO":ADO, "BDO":BDO, "DDO":DDO}
+    return hailstone
 
-    PC.file_dump()
-
-    A.file_dump()
-    A.file_name = SIMD_bench_name + ".A"
-    A.file_dump()
-
-    B.file_dump()
-    B.file_name = SIMD_bench_name + ".B"
-    B.file_dump()
-
-    I.file_dump()
-
-    DOFF.file_dump()
+def dump_all(hailstone):
+    for memory in hailstone.values():
+        memory.file_dump()
 
 if __name__ == "__main__":
-    assemble_all()
+    hailstone = assemble_all()
+    dump_all(hailstone)
 
