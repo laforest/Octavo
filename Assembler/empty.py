@@ -1,6 +1,7 @@
 #! /usr/bin/python
 
 import Assembler
+from memory_map import mem_map
 
 bench_dir = "Empty"
 bench_file = "empty"
@@ -22,21 +23,21 @@ def assemble_PC():
     return PC
 
 def assemble_A():
-    A = Assembler.Data_Memory(bench_name, file_ext = ".A", write_offset = 0)
+    A = Assembler.Data_Memory(bench_name, file_ext = ".A", write_offset = mem_map["A"]["Origin"])
     return A
 
 def assemble_B():
-    B = Assembler.Data_Memory(bench_name, file_ext = ".B", write_offset = 1024)
+    B = Assembler.Data_Memory(bench_name, file_ext = ".B", write_offset = mem_map["B"]["Origin"])
     return B
 
 def assemble_I():
-    I = Assembler.Instruction_Memory(bench_name, write_offset = 2048)
+    I = Assembler.Instruction_Memory(bench_name, write_offset = mem_map["I"]["Origin"])
     return I
 
 def assemble_XDO():
-    ADO = Assembler.Default_Offset_Memory(bench_name, file_ext = ".ADO", write_offset = 3072)
-    BDO = Assembler.Default_Offset_Memory(bench_name, file_ext = ".BDO", write_offset = ADO.write_offset + ADO.depth)
-    DDO = Assembler.Default_Offset_Memory(bench_name, file_ext = ".DDO", write_offset = BDO.write_offset + BDO.depth)
+    ADO = Assembler.Default_Offset_Memory(bench_name, file_ext = ".ADO", write_offset = mem_map["ADO"]["Origin"])
+    BDO = Assembler.Default_Offset_Memory(bench_name, file_ext = ".BDO", write_offset = mem_map["BDO"]["Origin"])
+    DDO = Assembler.Default_Offset_Memory(bench_name, file_ext = ".DDO", write_offset = mem_map["DDO"]["Origin"])
     return ADO, BDO, DDO
 
 def assemble_all():

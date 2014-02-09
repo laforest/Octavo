@@ -2,6 +2,7 @@
 
 import empty
 from opcodes import *
+from memory_map import mem_map
 
 bench_dir  = "Hailstone"
 bench_file = "hailstone"
@@ -32,7 +33,7 @@ def assemble_PC():
 def assemble_A():
     A = empty["A"]
     A.file_name = bench_name
-    A.add_port_pair("READ_PORT", "WRITE_PORT", 1023)
+    A.add_port_pair("READ_PORT", "WRITE_PORT", mem_map["A"]["IO_base"])
     # Peel out zeroth iteration for naming
     A.ALIGN(offsets[0])
     A.L(0),                 A.N("zero")
@@ -53,7 +54,7 @@ def assemble_A():
 def assemble_B():
     B = empty["B"]
     B.file_name = bench_name
-    B.add_port_pair("READ_PORT", "WRITE_PORT", 1023)
+    B.add_port_pair("READ_PORT", "WRITE_PORT", mem_map["B"]["IO_base"])
 
     seeds = [27, 47, 67, 87, 107, 127, 234, 335]
 
