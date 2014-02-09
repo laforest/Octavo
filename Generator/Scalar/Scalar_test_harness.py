@@ -27,9 +27,9 @@ def test_harness(parameters, default_memory_init = default_memory_init, install_
     parameter       B_INIT_FILE                 = "${assembler_base}/${default_memory_init}.B",
     parameter       I_INIT_FILE                 = "${assembler_base}/${default_memory_init}.I",
     parameter       PC_INIT_FILE                = "${assembler_base}/${default_memory_init}.PC",
-    parameter       A_DEFAULT_OFFSET_INIT_FILE  = "${assembler_base}/${default_memory_init}.DOFF",
-    parameter       B_DEFAULT_OFFSET_INIT_FILE  = "${assembler_base}/${default_memory_init}.DOFF",
-    parameter       D_DEFAULT_OFFSET_INIT_FILE  = "${assembler_base}/${default_memory_init}.DOFF",
+    parameter       A_DEFAULT_OFFSET_INIT_FILE  = "${assembler_base}/${default_memory_init}.ADO",
+    parameter       B_DEFAULT_OFFSET_INIT_FILE  = "${assembler_base}/${default_memory_init}.BDO",
+    parameter       D_DEFAULT_OFFSET_INIT_FILE  = "${assembler_base}/${default_memory_init}.DDO",
 
     // ****** These are computed for brevity later. Do not redefine at module instantiation. ******
     parameter       A_IO_READ_PORT_WIDTH        = (A_WORD_WIDTH * A_IO_READ_PORT_COUNT),

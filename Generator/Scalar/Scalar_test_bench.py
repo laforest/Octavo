@@ -29,9 +29,9 @@ def test_bench(parameters, default_bench = default_bench, install_base = install
     parameter       B_INIT_FILE                 = "${assembler_base}/${default_bench}.B",
     parameter       I_INIT_FILE                 = "${assembler_base}/${default_bench}.I",
     parameter       PC_INIT_FILE                = "${assembler_base}/${default_bench}.PC",
-    parameter       A_DEFAULT_OFFSET_INIT_FILE  = "${assembler_base}/${default_bench}.DOFF",
-    parameter       B_DEFAULT_OFFSET_INIT_FILE  = "${assembler_base}/${default_bench}.DOFF",
-    parameter       D_DEFAULT_OFFSET_INIT_FILE  = "${assembler_base}/${default_bench}.DOFF"
+    parameter       A_DEFAULT_OFFSET_INIT_FILE  = "${assembler_base}/${default_bench}.ADO",
+    parameter       B_DEFAULT_OFFSET_INIT_FILE  = "${assembler_base}/${default_bench}.BDO",
+    parameter       D_DEFAULT_OFFSET_INIT_FILE  = "${assembler_base}/${default_bench}.DDO"
 )
 (
     output  wire    [INSTR_WIDTH-1:0]                           I_read_data,
