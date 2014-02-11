@@ -27,12 +27,26 @@
 `define MLS     `OPCODE_WIDTH'h9 // opcode[1:0] === {0,1} signed, low
 `define MHU     `OPCODE_WIDTH'hA // opcode[1:0] === {1,0} unsigned, high
 
+// ECL XXX These will go away once Branch Folding works.
 // Flow Control (MSB === 1, remaining 5 opcodes, wren to mem === 0)
 `define JMP     `OPCODE_WIDTH'hB
 `define JZE     `OPCODE_WIDTH'hC
 `define JNZ     `OPCODE_WIDTH'hD
 `define JPO     `OPCODE_WIDTH'hE
 `define JNE     `OPCODE_WIDTH'hF
+
+// Addressing Module Control_Memory Branch Conditions
+// ECL XXX Make sure this matches the computed parameters and the ordering in Basic_Block_Flags!
+
+`define CONDITION_WIDTH     3
+`define ALWAYS              `CONDITION_WIDTH'h0
+`define ZERO                `CONDITION_WIDTH'h1
+`define NONZERO             `CONDITION_WIDTH'h2
+`define POSITIVE            `CONDITION_WIDTH'h3
+`define NEGATIVE            `CONDITION_WIDTH'h4
+`define SENTINEL            `CONDITION_WIDTH'h5
+`define COUNTERZERO         `CONDITION_WIDTH'h6
+`define EVEN                `CONDITION_WIDTH'h7
 
 // ********** For Simulation **********
 // This matches the Altera libraries

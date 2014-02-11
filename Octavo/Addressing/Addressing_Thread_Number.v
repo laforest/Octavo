@@ -10,7 +10,8 @@ module Addressing_Thread_Number
 )
 (
     input   wire                                clock,
-    output  reg     [THREAD_ADDR_WIDTH-1:0]     read_thread,
+    output  reg     [THREAD_ADDR_WIDTH-1:0]     read_thread_BBC,
+    output  reg     [THREAD_ADDR_WIDTH-1:0]     read_thread_MEM,
     output  reg     [THREAD_ADDR_WIDTH-1:0]     write_thread
 );
     wire    [THREAD_ADDR_WIDTH-1:0]     current_thread;
@@ -29,24 +30,35 @@ module Addressing_Thread_Number
         .next_thread        (next_thread)
     );
 
+// -----------------------------------------------------------
+
+    // If write is on T4, then BCC read on T1, and mem on T0
+    // ECL XXX This will break for INITIAL_THREAD < 3
     reg     [THREAD_ADDR_WIDTH-1:0]     read_delay_1;
     reg     [THREAD_ADDR_WIDTH-1:0]     read_delay_2;
+    reg     [THREAD_ADDR_WIDTH-1:0]     read_delay_3;
+
+    integer one   = 1;
+    integer two   = 2;
+    integer three = 3;
+
+    initial begin
+        read_delay_1    = INITIAL_THREAD - one[THREAD_ADDR_WIDTH-1:0];
+        read_delay_2    = INITIAL_THREAD - two[THREAD_ADDR_WIDTH-1:0];
+        read_delay_3    = INITIAL_THREAD - three[THREAD_ADDR_WIDTH-1:0];
+    end
 
     always @(posedge clock) begin
         read_delay_1    <=  current_thread;
         read_delay_2    <=  read_delay_1;
+        read_delay_3    <=  read_delay_2;
     end
 
+    // Sync mem read with Basic Block Counter output
     always @(*) begin
-        read_thread     <=  read_delay_2;
+        read_thread_BBC <=  read_delay_2;
+        read_thread_MEM <=  read_delay_3;
         write_thread    <=  next_thread;
-    end
-
-    // ECL XXX fix stupid bit truncation warning here
-
-    initial begin
-        read_delay_1    =   INITIAL_THREAD - 1;
-        read_delay_2    =   INITIAL_THREAD - 2;
     end
 endmodule
 
