@@ -1,4 +1,6 @@
 
+// Concatenate data_in with zeroth element on the right.
+
 module Addressed_Mux
 #(
     parameter       WORD_WIDTH                          = 0,
