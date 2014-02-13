@@ -11,7 +11,7 @@ module Control_Memory
 
     parameter   MATCH_WIDTH             = 0,
     parameter   COND_WIDTH              = 0,
-    parameter   LINK_WIDTH              = 0,
+    parameter   LINK_WIDTH              = 0
 )
 (
     input   wire                        clock,
