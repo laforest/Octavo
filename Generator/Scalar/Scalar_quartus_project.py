@@ -126,7 +126,7 @@ set_global_assignment -name ROUTER_LCELL_INSERTION_AND_LOGIC_DUPLICATION ON
 set_global_assignment -name ROUTER_TIMING_OPTIMIZATION_LEVEL MAXIMUM
 set_global_assignment -name PHYSICAL_SYNTHESIS_COMBO_LOGIC_FOR_AREA OFF
 set_global_assignment -name AUTO_PACKED_REGISTERS_STRATIXII AUTO
-set_global_assignment -name ROUTER_CLOCKING_TOPOLOGY_ANALYSIS OFF
+set_global_assignment -name ROUTER_CLOCKING_TOPOLOGY_ANALYSIS ON
 set_global_assignment -name PHYSICAL_SYNTHESIS_MAP_LOGIC_TO_MEMORY_FOR_AREA OFF
 set_global_assignment -name BLOCK_RAM_TO_MLAB_CELL_CONVERSION OFF
 set_global_assignment -name SEED 1
