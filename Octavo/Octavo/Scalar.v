@@ -101,6 +101,9 @@ module Scalar
     wire    [A_WORD_WIDTH-1:0]      A_read_data_Controller;
     wire    [INSTR_WIDTH-1:0]       I_read_data_DataPath;
 
+    // Use this signal to annull the instruction and anything that would cause side-effects.
+    wire                            IO_ready;
+
     ControlPath
     #(
         .ALU_WORD_WIDTH             (ALU_WORD_WIDTH),
