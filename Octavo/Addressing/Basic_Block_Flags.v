@@ -162,6 +162,7 @@ module Basic_Block_Flags
         .INPUT_COUNT    (COND_COUNT),
         .REGISTERED     (`FALSE)
     )
+    flag_selector
     (
         .clock          (clock),
         .addr           (branch_condition_reg),

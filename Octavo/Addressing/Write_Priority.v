@@ -2,55 +2,51 @@
 // Selects write data between ALU and local data, giving priority to ALU
 // writes. Note that the ALU data must come from the previous instruction of
 // the same thread (T4, in this case) as the local data, else one thread
-// will corrupt the flow of another.
+// will corrupt the flow of another. See Write_Synchronize also.
 
 module Write_Priority
 #(
-    parameter   WORD_WIDTH  = 0
+    parameter   WORD_WIDTH              = 0,
+    parameter   ADDR_WIDTH              = 0
 )
 (
     input   wire                        clock,
+
     input   wire                        ALU_wren,
-    input   wire    [WORD_WIDTH-1:0]    ALU_data,
+    input   wire    [ADDR_WIDTH-1:0]    ALU_write_addr,
+    input   wire    [WORD_WIDTH-1:0]    ALU_write_data,
+
     input   wire                        local_wren,
-    input   wire    [WORD_WIDTH-1:0]    local_data,
-    output  wire                        wren_out,
-    output  wire    [WORD_WIDTH-1:0]    data_out
+    input   wire    [ADDR_WIDTH-1:0]    local_write_addr,
+    input   wire    [WORD_WIDTH-1:0]    local_write_data,
+
+    output  reg                         wren,
+    output  wire    [ADDR_WIDTH-1:0]    write_addr,
+    output  wire    [WORD_WIDTH-1:0]    write_data
     
 );
 
 // -----------------------------------------------------------
 
-    wire    [WORD_WIDTH-1:0]    ALU_data_reg;
-
-    // Synchronize from Thread 6 to Thread 4
-    delay_line
-    #(
-        .DEPTH  (2),
-        .WIDTH  (WORD_WIDTH)
-    )
-    ALU_data_pipeline
-    (
-        .clock  (clock),
-        .in     (ALU_data),
-        .out    (ALU_data_reg)
-    );
+    always @(*) begin
+        wren <= local_wren | ALU_wren;
+    end
 
 // -----------------------------------------------------------
 
-    wire    [WORD_WIDTH-1:0]    ALU_wren_reg;
-
-    // Synchronize from Thread 6 to Thread 4
-    delay_line
+    Addressed_Mux
     #(
-        .DEPTH  (2),
-        .WIDTH  (1)
+        .WORD_WIDTH     (ADDR_WIDTH),
+        .ADDR_WIDTH     (1),
+        .INPUT_COUNT    (2),
+        .REGISTERED     (`FALSE) 
     )
-    ALU_wren_pipeline
+    write_addr_selector
     (
-        .clock  (clock),
-        .in     (ALU_wren),
-        .out    (ALU_wren_reg)
+        .clock          (clock),
+        .addr           (ALU_wren),
+        .data_in        ({ALU_write_addr, local_write_addr}),
+        .data_out       (write_addr)
     );
 
 // -----------------------------------------------------------
@@ -65,14 +61,9 @@ module Write_Priority
     write_data_selector
     (
         .clock          (clock),
-        .addr           (ALU_wren_reg),
-        .data_in        ({ALU_data_reg, local_data}),
-        .data_out       (data_out)
+        .addr           (ALU_wren),
+        .data_in        ({ALU_write_data, local_write_data}),
+        .data_out       (write_data)
     );
 
-// -----------------------------------------------------------
-
-    always @(*) begin
-        wren_out <= local_wren | ALU_wren_reg;
-    end
 endmodule

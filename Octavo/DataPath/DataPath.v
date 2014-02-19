@@ -42,34 +42,8 @@ module DataPath
     parameter       LOGIC_OPCODE_WIDTH                              = 0,
     parameter       ADDSUB_CARRY_SELECT                             = 0,
     parameter       MULT_DOUBLE_PIPE                                = 0,
-    parameter       MULT_HETEROGENEOUS                              = 0,    
+    parameter       MULT_HETEROGENEOUS                              = 0,
     parameter       MULT_USE_DSP                                    = 0,
-
-    parameter       ADDRESSING_INITIAL_THREAD                       = 0,
-
-    parameter       A_DEFAULT_OFFSET_WRITE_ADDR_OFFSET              = 0,
-    parameter       A_DEFAULT_OFFSET_WORD_WIDTH                     = 0,
-    parameter       A_DEFAULT_OFFSET_ADDR_WIDTH                     = 0,
-    parameter       A_DEFAULT_OFFSET_DEPTH                          = 0,
-    parameter       A_DEFAULT_OFFSET_RAMTYLE                        = 0,
-    parameter       A_DEFAULT_OFFSET_INIT_FILE                      = 0,
-
-    parameter       B_DEFAULT_OFFSET_WRITE_ADDR_OFFSET              = 0,
-    parameter       B_DEFAULT_OFFSET_WORD_WIDTH                     = 0,
-    parameter       B_DEFAULT_OFFSET_ADDR_WIDTH                     = 0,
-    parameter       B_DEFAULT_OFFSET_DEPTH                          = 0,
-    parameter       B_DEFAULT_OFFSET_RAMTYLE                        = 0,
-    parameter       B_DEFAULT_OFFSET_INIT_FILE                      = 0,
-
-    parameter       D_DEFAULT_OFFSET_WRITE_ADDR_OFFSET              = 0,
-    parameter       D_DEFAULT_OFFSET_WORD_WIDTH                     = 0,
-    parameter       D_DEFAULT_OFFSET_ADDR_WIDTH                     = 0,
-    parameter       D_DEFAULT_OFFSET_DEPTH                          = 0,
-    parameter       D_DEFAULT_OFFSET_RAMTYLE                        = 0,
-    parameter       D_DEFAULT_OFFSET_INIT_FILE                      = 0,
-
-    parameter       THREAD_COUNT                                    = 0,
-    parameter       THREAD_ADDR_WIDTH                               = 0,
 
     parameter       H_WRITE_ADDR_OFFSET                             = 0,
     parameter       H_DEPTH                                         = 0
@@ -78,7 +52,8 @@ module DataPath
     input   wire                                                    clock,
     input   wire                                                    half_clock,
 
-    input   wire    [INSTR_WIDTH-1:0]                               I_read_data_in,
+    input   wire    [INSTR_WIDTH-1:0]                               I_read_data_in,         // stage 1
+    input   wire    [INSTR_WIDTH-1:0]                               I_read_data_translated, // stage 3
     output  wire    [INSTR_WIDTH-1:0]                               I_read_data_out,
 
     input   wire                                                    A_wren_other,
@@ -109,7 +84,7 @@ module DataPath
     output  wire    [(B_WORD_WIDTH * B_IO_WRITE_PORT_COUNT)-1:0]    B_io_out
 
 );
-    // ----------------------------------------------------------
+// ----------------------------------------------------------
 
     delay_line 
     #(
@@ -123,7 +98,7 @@ module DataPath
         .out    (I_read_data_out)
     );
 
-    // ----------------------------------------------------------
+// ----------------------------------------------------------
 
     wire    [OPCODE_WIDTH-1:0]     OP_in;
     wire    [A_OPERAND_WIDTH-1:0]  A_read_addr_in;
@@ -138,7 +113,7 @@ module DataPath
         .A_OPERAND_WIDTH    (A_OPERAND_WIDTH), 
         .B_OPERAND_WIDTH    (B_OPERAND_WIDTH)
     )
-    I_in_decoder
+    I_in
     (
         .instr              (I_read_data_in),
         .op                 (OP_in),
@@ -147,190 +122,39 @@ module DataPath
         .B                  (B_read_addr_in)
     );
 
-    // ----------------------------------------------------------
+// ----------------------------------------------------------
 
-    // ECL XXX Hardcoded for now. 2 cycles to sync R and D to incoming
-    // instruction from stage 1, else one thread could obstruct the
-    // post-increment of another thread.
-    // Two cycles past stage 0, and 8 cycles before stage 9, so 2 cycles delay.
-    
-    wire    [ALU_WORD_WIDTH-1:0]    ALU_result_synced;
+    wire    [OPCODE_WIDTH-1:0]      OP_AB;
+    wire    [D_OPERAND_WIDTH-1:0]   D_write_addr_AB;
+    wire    [A_OPERAND_WIDTH-1:0]   A_read_addr_AB;
+    wire    [A_OPERAND_WIDTH-1:0]   B_read_addr_AB;
 
-    delay_line 
+    Instr_Decoder
     #(
-        .DEPTH  (2),
-        .WIDTH  (ALU_WORD_WIDTH)
-    ) 
-    ALU_Addr_R
-    (
-        .clock  (clock),
-        .in     (ALU_result_out), 
-        .out    (ALU_result_synced)
-    );
-
-    wire    [D_OPERAND_WIDTH-1:0]    ALU_D_synced;
-
-    delay_line 
-    #(
-        .DEPTH  (2),
-        .WIDTH  (D_OPERAND_WIDTH)
-    ) 
-    ALU_Addr_D
-    (
-        .clock  (clock),
-        .in     (ALU_D_out), 
-        .out    (ALU_D_synced)
-    );
-
-    // ----------------------------------------------------------
-
-    wire                A_Default_Offset_wren;
-
-    Address_Decoder
-    #(
-        .ADDR_COUNT     (A_DEFAULT_OFFSET_DEPTH),
-        .ADDR_BASE      (A_DEFAULT_OFFSET_WRITE_ADDR_OFFSET),
-        .ADDR_WIDTH     (D_OPERAND_WIDTH),
-        .REGISTERED     (`FALSE)
+        .OPCODE_WIDTH       (OPCODE_WIDTH),
+        .INSTR_WIDTH        (INSTR_WIDTH),
+        .D_OPERAND_WIDTH    (D_OPERAND_WIDTH),
+        .A_OPERAND_WIDTH    (A_OPERAND_WIDTH), 
+        .B_OPERAND_WIDTH    (B_OPERAND_WIDTH)
     )
-    A_Default_Offset
+    I_translated
     (
-        .clock          (`LOW),
-        .addr           (ALU_D_synced),
-        .hit            (A_Default_Offset_wren)
+        .instr              (I_read_data_translated),
+        .op                 (OP_AB),
+        .D                  (D_write_addr_AB),
+        .A                  (A_read_addr_AB),
+        .B                  (B_read_addr_AB)
     );
 
-    wire    [A_DEFAULT_OFFSET_WORD_WIDTH-1:0]  A_read_addr_AB;
-
-    Addressing
-    #(
-        .DEFAULT_OFFSET_WORD_WIDTH  (A_DEFAULT_OFFSET_WORD_WIDTH),
-        .DEFAULT_OFFSET_ADDR_WIDTH  (A_DEFAULT_OFFSET_ADDR_WIDTH),
-        .DEFAULT_OFFSET_DEPTH       (A_DEFAULT_OFFSET_DEPTH),
-        .DEFAULT_OFFSET_RAMSTYLE    (A_DEFAULT_OFFSET_RAMTYLE),
-        .DEFAULT_OFFSET_INIT_FILE   (A_DEFAULT_OFFSET_INIT_FILE),
-
-        .INITIAL_THREAD             (ADDRESSING_INITIAL_THREAD),
-        .THREAD_COUNT               (THREAD_COUNT),
-        .THREAD_ADDR_WIDTH          (THREAD_ADDR_WIDTH)
-    )
-    TAP_AB_A
-    (
-        .clock                  (clock),
-        .addr_in                (A_read_addr_in),
-        .default_offset_wren    (A_Default_Offset_wren),
-        .write_addr             (ALU_D_synced[A_DEFAULT_OFFSET_ADDR_WIDTH-1:0]),
-        .write_data             (ALU_result_synced[A_DEFAULT_OFFSET_WORD_WIDTH-1:0]),
-        .addr_out               (A_read_addr_AB)
-    );
-
-    // ----------------------------------------------------------
-
-    wire                B_Default_Offset_wren;
-
-    Address_Decoder
-    #(
-        .ADDR_COUNT     (B_DEFAULT_OFFSET_DEPTH),
-        .ADDR_BASE      (B_DEFAULT_OFFSET_WRITE_ADDR_OFFSET),
-        .ADDR_WIDTH     (D_OPERAND_WIDTH),
-        .REGISTERED     (`FALSE)
-    )
-    B_Default_Offset
-    (
-        .clock          (`LOW),
-        .addr           (ALU_D_synced),
-        .hit            (B_Default_Offset_wren)
-    );
-
-    wire    [B_DEFAULT_OFFSET_WORD_WIDTH-1:0]  B_read_addr_AB;
-
-    Addressing
-    #(
-        .DEFAULT_OFFSET_WORD_WIDTH  (B_DEFAULT_OFFSET_WORD_WIDTH),
-        .DEFAULT_OFFSET_ADDR_WIDTH  (B_DEFAULT_OFFSET_ADDR_WIDTH),
-        .DEFAULT_OFFSET_DEPTH       (B_DEFAULT_OFFSET_DEPTH),
-        .DEFAULT_OFFSET_RAMSTYLE    (B_DEFAULT_OFFSET_RAMTYLE),
-        .DEFAULT_OFFSET_INIT_FILE   (B_DEFAULT_OFFSET_INIT_FILE),
-
-        .INITIAL_THREAD             (ADDRESSING_INITIAL_THREAD),
-        .THREAD_COUNT               (THREAD_COUNT),
-        .THREAD_ADDR_WIDTH          (THREAD_ADDR_WIDTH)
-    )
-    TAP_AB_B
-    (
-        .clock                  (clock),
-        .addr_in                (B_read_addr_in),
-        .default_offset_wren    (B_Default_Offset_wren),
-        .write_addr             (ALU_D_synced[B_DEFAULT_OFFSET_ADDR_WIDTH-1:0]),
-        .write_data             (ALU_result_synced[B_DEFAULT_OFFSET_WORD_WIDTH-1:0]),
-        .addr_out               (B_read_addr_AB)
-    );
-
-    // ----------------------------------------------------------
-
-    wire                D_Default_Offset_wren;
-
-    Address_Decoder
-    #(
-        .ADDR_COUNT     (D_DEFAULT_OFFSET_DEPTH),
-        .ADDR_BASE      (D_DEFAULT_OFFSET_WRITE_ADDR_OFFSET),
-        .ADDR_WIDTH     (D_OPERAND_WIDTH),
-        .REGISTERED     (`FALSE)
-    )
-    D_Default_Offset
-    (
-        .clock          (`LOW),
-        .addr           (ALU_D_synced),
-        .hit            (D_Default_Offset_wren)
-    );
-
-    wire    [D_DEFAULT_OFFSET_WORD_WIDTH-1:0]  D_write_addr_AB;
-
-    Addressing
-    #(
-        .DEFAULT_OFFSET_WORD_WIDTH  (D_DEFAULT_OFFSET_WORD_WIDTH),
-        .DEFAULT_OFFSET_ADDR_WIDTH  (D_DEFAULT_OFFSET_ADDR_WIDTH),
-        .DEFAULT_OFFSET_DEPTH       (D_DEFAULT_OFFSET_DEPTH),
-        .DEFAULT_OFFSET_RAMSTYLE    (D_DEFAULT_OFFSET_RAMTYLE),
-        .DEFAULT_OFFSET_INIT_FILE   (D_DEFAULT_OFFSET_INIT_FILE),
-
-        .INITIAL_THREAD             (ADDRESSING_INITIAL_THREAD),
-        .THREAD_COUNT               (THREAD_COUNT),
-        .THREAD_ADDR_WIDTH          (THREAD_ADDR_WIDTH)
-    )
-    TAP_AB_D
-    (
-        .clock                  (clock),
-        .addr_in                (D_write_addr_in),
-        .default_offset_wren    (D_Default_Offset_wren),
-        .write_addr             (ALU_D_synced[D_DEFAULT_OFFSET_ADDR_WIDTH-1:0]),
-        .write_data             (ALU_result_synced[D_DEFAULT_OFFSET_WORD_WIDTH-1:0]),
-        .addr_out               (D_write_addr_AB)
-    );
-
-    // ----------------------------------------------------------
-
-    wire    [OPCODE_WIDTH-1:0]  OP_AB;
-
-    delay_line 
-    #(
-        .DEPTH  (TAP_AB_PIPELINE_DEPTH),
-        .WIDTH  (OPCODE_WIDTH)
-    ) 
-    TAP_AB_OP
-    (
-        .clock  (clock),
-        .in     (OP_in), // stage 1
-        .out    (OP_AB)  // stage 3
-    );
-
-    // ----------------------------------------------------------
+// ----------------------------------------------------------
 
     reg     [INSTR_WIDTH-1:0]   I_read_data_AB;
 
     always @(*) begin
         I_read_data_AB <= {OP_AB, D_write_addr_AB, A_read_addr_AB, B_read_addr_AB};
     end
+
+// ----------------------------------------------------------
 
     wire    [A_WORD_WIDTH-1:0]      A_read_data_RAM;
     wire                            A_io_in_EF_masked;
@@ -357,6 +181,8 @@ module DataPath
         .data_out                   (A_read_data)
     );
 
+// ----------------------------------------------------------
+
     wire                A_wren_RAM;
     wire                A_wren_ALU;
 
@@ -376,6 +202,8 @@ module DataPath
         .wren           (A_wren_ALU)
     );
 
+// ----------------------------------------------------------
+
     wire        A_write_is_IO;
     wire        A_write_is_IO_ALU;
 
@@ -394,6 +222,8 @@ module DataPath
         .in     (A_write_is_IO),
         .out    (A_write_is_IO_ALU)
     );
+
+// ----------------------------------------------------------
 
     wire    [A_WORD_WIDTH-1:0]      A_write_data;
     wire    [A_ADDR_WIDTH-1:0]      A_write_addr;
@@ -427,6 +257,8 @@ module DataPath
         .wren_RAM                   (A_wren_RAM)
     );
 
+// ----------------------------------------------------------
+
     RAM_SDP
     #(
         .WORD_WIDTH     (A_WORD_WIDTH),
@@ -445,6 +277,7 @@ module DataPath
         .read_data      (A_read_data_RAM)
     );
 
+// ----------------------------------------------------------
 
     wire    [B_WORD_WIDTH-1:0]      B_read_data_RAM;
     wire    [B_WORD_WIDTH-1:0]      B_read_data;
@@ -472,6 +305,8 @@ module DataPath
         .data_out                   (B_read_data)
     );
 
+// ----------------------------------------------------------
+
     wire                B_wren_RAM;
     wire                B_wren_ALU;
 
@@ -490,10 +325,12 @@ module DataPath
         .wren           (B_wren_ALU)
     );
 
+// ----------------------------------------------------------
+
     wire        B_write_is_IO;
     wire        B_write_is_IO_ALU;
 
-    // ECL FIXME This points to a magic number in the parameters. 
+    // ECL XXX FIXME This points to a magic number in the parameters. 
     // The base and total depth of the ALU should be a parameter, 
     // not calculated.
 
@@ -508,6 +345,8 @@ module DataPath
         .in     (B_write_is_IO),
         .out    (B_write_is_IO_ALU)
     );
+
+// ----------------------------------------------------------
 
     wire    [B_WORD_WIDTH-1:0]      B_write_data;
     wire    [B_ADDR_WIDTH-1:0]      B_write_addr;
@@ -541,6 +380,8 @@ module DataPath
         .wren_RAM                   (B_wren_RAM)
     );
 
+// ----------------------------------------------------------
+
     RAM_SDP
     #(
         .WORD_WIDTH     (B_WORD_WIDTH),
@@ -559,6 +400,8 @@ module DataPath
         .read_data      (B_read_data_RAM)
     );
 
+// ----------------------------------------------------------
+
     IO_All_Ready
     #(
         .READ_PORT_COUNT    (2),
@@ -571,6 +414,8 @@ module DataPath
         .write_EF           ({A_io_out_EF_masked, B_io_out_EF_masked}),
         .ready              (IO_ready)
     );
+
+// ----------------------------------------------------------
 
     wire    [INSTR_WIDTH-1:0]   I_read_data_AB_masked;
 
@@ -587,6 +432,8 @@ module DataPath
 
     wire    [INSTR_WIDTH-1:0]   AB_instr;
 
+// ----------------------------------------------------------
+
     delay_line 
     #(
         .DEPTH  (AB_READ_PIPELINE_DEPTH),
@@ -598,6 +445,8 @@ module DataPath
         .in     (I_read_data_AB_masked),
         .out    (AB_instr)
     );
+
+// ----------------------------------------------------------
 
     wire    [OPCODE_WIDTH-1:0]      ALU_op_in;
     wire    [D_OPERAND_WIDTH-1:0]   ALU_D_in;
@@ -618,6 +467,8 @@ module DataPath
         .A                  (),
         .B                  ()
     );
+
+// ----------------------------------------------------------
 
     ALU 
     #(

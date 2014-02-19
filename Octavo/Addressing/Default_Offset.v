@@ -12,9 +12,9 @@ module Default_Offset
 (
     input   wire                        clock,
     input   wire                        wren,
-    input   wire    [ADDR_WIDTH-1:0]    write_thread,
+    input   wire    [ADDR_WIDTH-1:0]    write_addr,
     input   wire    [WORD_WIDTH-1:0]    write_data,
-    input   wire    [ADDR_WIDTH-1:0]    read_thread,
+    input   wire    [ADDR_WIDTH-1:0]    read_addr,
     output  wire    [WORD_WIDTH-1:0]    offset
 );
 
@@ -32,9 +32,9 @@ module Default_Offset
     (
         .clock              (clock),
         .wren               (wren),
-        .write_addr         (write_thread),
+        .write_addr         (write_addr),
         .write_data         (write_data),
-        .read_addr          (read_thread),
+        .read_addr          (read_addr),
         .read_data          (offset_raw)
     );
 

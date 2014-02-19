@@ -2,51 +2,51 @@
 // Adds a default or programmed (at PC LSB match) per-thread offset to
 // addresses to make shared code access per-thread private data. This includes
 // the shared I/O and high-mem areas. Programmed offsets end basic blocks and
-// provide indirection with (+0, +1) post-incrementing addressing.
+// provide indirection with post-incrementing addressing.
 
 module Addressing
 #(
-    parameter   PC_WIDTH                                = 0,
-    parameter   WORD_WIDTH                              = 0,
-    parameter   ADDR_WIDTH                              = 0,
-    parameter   D_OPERAND_WIDTH                         = 0,
+    parameter   PC_WIDTH                                    = 0,
+    parameter   WORD_WIDTH                                  = 0,
+    parameter   ADDR_WIDTH                                  = 0,
+    parameter   D_OPERAND_WIDTH                             = 0,
 
-    parameter   INITIAL_THREAD                          = 0,
-    parameter   THREAD_COUNT                            = 0,
-    parameter   THREAD_ADDR_WIDTH                       = 0,
+    parameter   INITIAL_THREAD                              = 0,
+    parameter   THREAD_COUNT                                = 0,
+    parameter   THREAD_ADDR_WIDTH                           = 0,
 
-    parameter   BASIC_BLOCK_COUNTER_WORD_WIDTH          = 0,
-    parameter   BASIC_BLOCK_COUNTER_ADDR_WIDTH          = 0,
-    parameter   BASIC_BLOCK_COUNTER_DEPTH               = 0,
-    parameter   BASIC_BLOCK_COUNTER_RAMSTYLE            = 0,
-    parameter   BASIC_BLOCK_COUNTER_INIT_FILE           = 0,
+    parameter   BASIC_BLOCK_COUNTER_WORD_WIDTH              = 0,
+    parameter   BASIC_BLOCK_COUNTER_ADDR_WIDTH              = 0,
+    parameter   BASIC_BLOCK_COUNTER_DEPTH                   = 0,
+    parameter   BASIC_BLOCK_COUNTER_RAMSTYLE                = 0,
+    parameter   BASIC_BLOCK_COUNTER_INIT_FILE               = 0,
 
-    parameter   CONTROL_MEMORY_WORD_WIDTH               = 0,
-    parameter   CONTROL_MEMORY_ADDR_WIDTH               = 0,
-    parameter   CONTROL_MEMORY_DEPTH                    = 0,
-    parameter   CONTROL_MEMORY_RAMSTYLE                 = 0,
-    parameter   CONTROL_MEMORY_INIT_FILE                = 0,
-    parameter   CONTROL_MEMORY_MATCH_WIDTH              = 0,
-    parameter   CONTROL_MEMORY_COND_WIDTH               = 0,
-    parameter   CONTROL_MEMORY_LINK_WIDTH               = 0,
+    parameter   CONTROL_MEMORY_WORD_WIDTH                   = 0,
+    parameter   CONTROL_MEMORY_ADDR_WIDTH                   = 0,
+    parameter   CONTROL_MEMORY_DEPTH                        = 0,
+    parameter   CONTROL_MEMORY_RAMSTYLE                     = 0,
+    parameter   CONTROL_MEMORY_INIT_FILE                    = 0,
+    parameter   CONTROL_MEMORY_MATCH_WIDTH                  = 0,
+    parameter   CONTROL_MEMORY_COND_WIDTH                   = 0,
+    parameter   CONTROL_MEMORY_LINK_WIDTH                   = 0,
 
-    parameter   DEFAULT_OFFSET_WORD_WIDTH               = 0,
-    parameter   DEFAULT_OFFSET_ADDR_WIDTH               = 0,
-    parameter   DEFAULT_OFFSET_DEPTH                    = 0,
-    parameter   DEFAULT_OFFSET_RAMSTYLE                 = 0,
-    parameter   DEFAULT_OFFSET_INIT_FILE                = 0,
+    parameter   DEFAULT_OFFSET_WORD_WIDTH                   = 0,
+    parameter   DEFAULT_OFFSET_ADDR_WIDTH                   = 0,
+    parameter   DEFAULT_OFFSET_DEPTH                        = 0,
+    parameter   DEFAULT_OFFSET_RAMSTYLE                     = 0,
+    parameter   DEFAULT_OFFSET_INIT_FILE                    = 0,
 
-    parameter   PROGRAMMED_OFFSETS_WORD_WIDTH           = 0,
-    parameter   PROGRAMMED_OFFSETS_ADDR_WIDTH           = 0,
-    parameter   PROGRAMMED_OFFSETS_DEPTH                = 0,
-    parameter   PROGRAMMED_OFFSETS_RAMSTYLE             = 0,
-    parameter   PROGRAMMED_OFFSETS_INIT_FILE            = 0,
+    parameter   PROGRAMMED_OFFSETS_WORD_WIDTH               = 0,
+    parameter   PROGRAMMED_OFFSETS_ADDR_WIDTH               = 0,
+    parameter   PROGRAMMED_OFFSETS_DEPTH                    = 0,
+    parameter   PROGRAMMED_OFFSETS_RAMSTYLE                 = 0,
+    parameter   PROGRAMMED_OFFSETS_INIT_FILE                = 0,
 
-    parameter   INCREMENTS_OFFSET_WORD_WIDTH            = 0,
-    parameter   INCREMENTS_OFFSET_ADDR_WIDTH            = 0,
-    parameter   INCREMENTS_OFFSET_DEPTH                 = 0,
-    parameter   INCREMENTS_OFFSET_RAMSTYLE              = 0,
-    parameter   INCREMENTS_OFFSET_INIT_FILE             = 0
+    parameter   INCREMENTS_WORD_WIDTH                       = 0,
+    parameter   INCREMENTS_ADDR_WIDTH                       = 0,
+    parameter   INCREMENTS_DEPTH                            = 0,
+    parameter   INCREMENTS_RAMSTYLE                         = 0,
+    parameter   INCREMENTS_INIT_FILE                        = 0
 )
 (
     input   wire                                            clock,
@@ -66,14 +66,83 @@ module Addressing
     input   wire    [WORD_WIDTH-1:0]                        ALU_write_data,
 
     // Subsets of above, so we can align multiple Addressing instances along a word in the DataPath.
+    // We want to keep all memory map knowledge in the DataPath
     input   wire    [BASIC_BLOCK_COUNTER_WORD_WIDTH-1:0]    ALU_write_data_BBC,
     input   wire    [CONTROL_MEMORY_WORD_WIDTH-1:0]         ALU_write_data_CTL,
     input   wire    [DEFAULT_OFFSET_WORD_WIDTH-1:0]         ALU_write_data_DO,
     input   wire    [PROGRAMMED_OFFSETS_WORD_WIDTH-1:0]     ALU_write_data_PO,
     input   wire    [INCREMENTS_WORD_WIDTH-1:0]             ALU_write_data_INC,
 
-    output  wire    [ADDR_WIDTH-1:0]                        addr_out
+    output  wire    [ADDR_WIDTH-1:0]                        addr_out // from stage 3, to stage 4 (the Memory subsystem)
 );
+
+// -----------------------------------------------------------
+
+    wire                        ALU_wren_BBC_synced;
+    wire                        ALU_wren_CTL_synced;
+    wire                        ALU_wren_DO_synced;
+    wire                        ALU_wren_PO_synced;
+    wire                        ALU_wren_INC_synced;
+
+    wire    [ADDR_WIDTH-1:0]    ALU_write_addr_synced;
+    wire    [WORD_WIDTH-1:0]    ALU_write_data_synced;
+
+    wire    [BASIC_BLOCK_COUNTER_WORD_WIDTH-1:0]    ALU_write_data_BBC_synced;
+    wire    [CONTROL_MEMORY_WORD_WIDTH-1:0]         ALU_write_data_CTL_synced;
+    wire    [DEFAULT_OFFSET_WORD_WIDTH-1:0]         ALU_write_data_DO_synced;
+    wire    [PROGRAMMED_OFFSETS_WORD_WIDTH-1:0]     ALU_write_data_PO_synced;
+    wire    [INCREMENTS_WORD_WIDTH-1:0]             ALU_write_data_INC_synced;
+
+    // This looks horribly redundant, and it is, but the alternative uses
+    // parameters to offset the write data into each field, rather than just
+    // wiring it up in the DataPath, leaking memory map info into this module.
+    // Also, the CAD tool will deduplicate equivalent pipeline stages.
+
+    Write_Synchronize
+    #(
+        .WORD_WIDTH                     (WORD_WIDTH),
+        .ADDR_WIDTH                     (D_OPERAND_WIDTH),
+
+        .BASIC_BLOCK_COUNTER_WORD_WIDTH (BASIC_BLOCK_COUNTER_WORD_WIDTH),
+        .CONTROL_MEMORY_WORD_WIDTH      (CONTROL_MEMORY_WORD_WIDTH),
+        .DEFAULT_OFFSET_WORD_WIDTH      (DEFAULT_OFFSET_WORD_WIDTH),
+        .PROGRAMMED_OFFSETS_WORD_WIDTH  (PROGRAMMED_OFFSETS_WORD_WIDTH),
+        .INCREMENTS_WORD_WIDTH          (INCREMENTS_WORD_WIDTH)
+    )
+    Thread6to4
+    (
+        .clock                      (clock),
+
+        .ALU_wren_BBC               (ALU_wren_BBC),
+        .ALU_wren_CTL               (ALU_wren_CTL),
+        .ALU_wren_DO                (ALU_wren_DO),
+        .ALU_wren_PO                (ALU_wren_PO),
+        .ALU_wren_INC               (ALU_wren_INC),
+
+        .ALU_write_addr             (ALU_write_addr),
+        .ALU_write_data             (ALU_write_data),
+
+        .ALU_write_data_BBC         (ALU_write_data_BBC),
+        .ALU_write_data_CTL         (ALU_write_data_CTL),
+        .ALU_write_data_DO          (ALU_write_data_DO),
+        .ALU_write_data_PO          (ALU_write_data_PO),
+        .ALU_write_data_INC         (ALU_write_data_INC),
+
+        .ALU_wren_BBC_synced        (ALU_wren_BBC_synced),
+        .ALU_wren_CTL_synced        (ALU_wren_CTL_synced),
+        .ALU_wren_DO_synced         (ALU_wren_DO_synced),
+        .ALU_wren_PO_synced         (ALU_wren_PO_synced),
+        .ALU_wren_INC_synced        (ALU_wren_INC_synced),
+
+        .ALU_write_addr_synced      (ALU_write_addr_synced),
+        .ALU_write_data_synced      (ALU_write_data_synced),
+
+        .ALU_write_data_BBC_synced  (ALU_write_data_BBC_synced),
+        .ALU_write_data_CTL_synced  (ALU_write_data_CTL_synced),
+        .ALU_write_data_DO_synced   (ALU_write_data_DO_synced),
+        .ALU_write_data_PO_synced   (ALU_write_data_PO_synced),
+        .ALU_write_data_INC_synced  (ALU_write_data_INC_synced)
+    );
 
 // -----------------------------------------------------------
 
@@ -90,7 +159,7 @@ module Addressing
     TID
     (
         .clock              (clock),
-        .read_thread_MEM    (read_thread_BBC),
+        .read_thread_BBC    (read_thread_BBC),
         .read_thread_MEM    (read_thread_MEM),
         .write_thread       (write_thread)
     );
@@ -98,6 +167,7 @@ module Addressing
 // -----------------------------------------------------------
 
     wire                                            BBC_wren;
+    wire    [BASIC_BLOCK_COUNTER_ADDR_WIDTH-1:0]    BBC_write_addr;
     wire    [BASIC_BLOCK_COUNTER_WORD_WIDTH-1:0]    BBC_write_data;
     wire    [BASIC_BLOCK_COUNTER_WORD_WIDTH-1:0]    block_number;
     wire    [BASIC_BLOCK_COUNTER_WORD_WIDTH-1:0]    block_number_post_incr;
@@ -114,9 +184,9 @@ module Addressing
     (
         .clock                      (clock),
         .wren                       (BBC_wren),
-        .write_thread               (write_thread),
+        .write_addr                 (BBC_write_addr),
         .write_data                 (BBC_write_data),
-        .read_thread                (read_thread_BBC),
+        .read_addr                  (read_thread_BBC),
         .block_number               (block_number),
         .block_number_post_incr     (block_number_post_incr)
     );
@@ -128,26 +198,28 @@ module Addressing
 
     Write_Priority
     #(
-        .WORD_WIDTH     (BASIC_BLOCK_COUNTER_WORD_WIDTH)
+        .WORD_WIDTH     (BASIC_BLOCK_COUNTER_WORD_WIDTH),
+        .ADDR_WIDTH     (BASIC_BLOCK_COUNTER_ADDR_WIDTH)
     )
-    BBC
+    BBC_wp
     (
-        .clock          (clock),
-        .ALU_wren       (ALU_wren_BBC),
-        .ALU_data       (ALU_write_data_BBC),
-        .local_wren     (local_wren),
-        .local_data     (next_block_number),
-        .wren_out       (BBC_wren),
-        .data_out       (BBC_write_data)
+        .clock              (clock),
+        .ALU_wren           (ALU_wren_BBC_synced),
+        .ALU_write_addr     (ALU_write_addr_synced[BASIC_BLOCK_COUNTER_ADDR_WIDTH-1:0]),
+        .ALU_write_data     (ALU_write_data_BBC_synced),
+        .local_wren         (local_wren),
+        .local_write_addr   (write_thread),
+        .local_write_data   (next_block_number),
+        .wren               (BBC_wren),
+        .write_addr         (BBC_write_addr),
+        .write_data         (BBC_write_data)
     );
 
 // -----------------------------------------------------------
 
-    wire                                            CTL_wren;
-    wire    [BASIC_BLOCK_COUNTER_WORD_WIDTH-1:0]    CTL_write_data;
-    wire    [CONTROL_MEMORY_MATCH_WIDTH-1:0]        match;
-    wire    [CONTROL_MEMORY_COND_WIDTH-1:0]         cond;
-    wire    [CONTROL_MEMORY_LINK_WIDTH-1:0]         link;
+    wire    [CONTROL_MEMORY_MATCH_WIDTH-1:0]    match;
+    wire    [CONTROL_MEMORY_COND_WIDTH-1:0]     cond;
+    wire    [CONTROL_MEMORY_LINK_WIDTH-1:0]     link;
 
     Control_Memory
     #(
@@ -163,33 +235,13 @@ module Addressing
     CTL
     (
         .clock              (clock),
-        .wren               (CTL_wren),
-        .write_thread       (write_thread),
-        .write_data         (CTL_write_data),
-        .read_thread        (read_thread_MEM),
+        .wren               (ALU_wren_CTL_synced),
+        .write_addr         (ALU_write_addr_synced[CONTROL_MEMORY_ADDR_WIDTH-1:0]),
+        .write_data         (ALU_write_data_CTL_synced),
+        .read_addr          (block_number),
         .PC_match           (match),
         .branch_condition   (cond),
         .BBC_link           (link)
-    );
-
-// -----------------------------------------------------------
-
-    // ECL XXX Note the redundancy here. Without local data writes, this should
-    // reduce to the ALU write synchronization pipeline.
-
-    Write_Priority
-    #(
-        .WORD_WIDTH     (CONTROL_MEMORY_WORD_WIDTH)
-    )
-    CTL
-    (
-        .clock          (clock),
-        .ALU_wren       (ALU_wren_CTL),
-        .ALU_data       (ALU_write_data_CTL),
-        .local_wren     (`LOW),
-        .local_data     (ALU_write_data_CTL),
-        .wren_out       (CTL_wren),
-        .data_out       (CTL_write_data)
     );
 
 // -----------------------------------------------------------
@@ -222,7 +274,7 @@ module Addressing
 
     wire    branch_taken;
 
-    module Basic_Block_Flags
+    Basic_Block_Flags
     #(
         .WORD_WIDTH         (WORD_WIDTH),
         .COND_WIDTH         (CONTROL_MEMORY_COND_WIDTH)
@@ -255,14 +307,12 @@ module Addressing
 
 // -----------------------------------------------------------
 
-    wire                                        DO_wren;
-    wire    [DEFAULT_OFFSET_WORD_WIDTH-1:0]     DO_write_data;
     wire    [DEFAULT_OFFSET_WORD_WIDTH-1:0]     default_offset;
 
     Default_Offset
     #(
         .WORD_WIDTH     (DEFAULT_OFFSET_WORD_WIDTH),
-        .ADDR_WIDTH     (DEFAULT_OFFSET_ADDR_WIDTH
+        .ADDR_WIDTH     (DEFAULT_OFFSET_ADDR_WIDTH),
         .DEPTH          (DEFAULT_OFFSET_DEPTH),
         .RAMSTYLE       (DEFAULT_OFFSET_RAMSTYLE),
         .INIT_FILE      (DEFAULT_OFFSET_INIT_FILE) 
@@ -270,35 +320,19 @@ module Addressing
     DO
     (
         .clock          (clock),
-        .wren           (DO_wren),
-        .write_thread   (write_thread),
-        .write_data     (DO_write_data),
-        .read_thread    (read_thread_MEM),
+        .wren           (ALU_wren_DO_synced),
+        .write_addr     (ALU_write_addr_synced[DEFAULT_OFFSET_ADDR_WIDTH-1:0]),
+        .write_data     (ALU_write_data_DO_synced),
+        .read_addr      (read_thread_MEM),
         .offset         (default_offset)
     );
 
 // -----------------------------------------------------------
 
-    // ECL XXX Note the redundancy here. Without local data writes, this should
-    // reduce to the ALU write synchronization pipeline.
-
-    Write_Priority
-    #(
-        .WORD_WIDTH     (DEFAULT_OFFSET_WORD_WIDTH)
-    )
-    DO
-    (
-        .clock          (clock),
-        .ALU_wren       (ALU_wren_DO),
-        .ALU_data       (ALU_write_data_DO),
-        .local_wren     (`LOW),
-        .local_data     (ALU_write_data_DO),
-        .wren_out       (DO_wren),
-        .data_out       (DO_write_data)
-    );
-
-
-// -----------------------------------------------------------
+    wire                                        PO_wren;
+    wire    [PROGRAMMED_OFFSETS_ADDR_WIDTH-1:0] PO_write_addr;
+    wire    [PROGRAMMED_OFFSETS_WORD_WIDTH-1:0] PO_write_data;
+    wire    [PROGRAMMED_OFFSETS_WORD_WIDTH-1:0] programmed_offset;
 
     Programmed_Offsets
     #(
@@ -306,17 +340,32 @@ module Addressing
         .ADDR_WIDTH         (PROGRAMMED_OFFSETS_ADDR_WIDTH),
         .DEPTH              (PROGRAMMED_OFFSETS_DEPTH),
         .RAMSTYLE           (PROGRAMMED_OFFSETS_RAMSTYLE),
-        .INIT_FILE          (PROGRAMEED_OFFSETS_INIT_FILE)
+        .INIT_FILE          (PROGRAMMED_OFFSETS_INIT_FILE)
     )
     PO
     (
         .clock              (clock),
         .wren               (PO_wren),
-        .write_thread       (write_thread),
+        .write_addr         (PO_write_addr),
         .write_data         (PO_write_data),
-        .read_thread        (read_thread_MEM),
-        .offset_pre_incr    (programmed_offset_pre_incr),
-        .offset_addr_adder  (programmed_offset)
+        .read_addr          (block_number),
+        .offset             (programmed_offset)
+    );
+
+// -----------------------------------------------------------
+
+    wire    [BASIC_BLOCK_COUNTER_WORD_WIDTH-1:0]    block_number_PO_write;
+
+    delay_line
+    #(
+        .DEPTH  (4),
+        .WIDTH  (BASIC_BLOCK_COUNTER_WORD_WIDTH)
+    )
+    PO_write
+    (
+        .clock  (clock),
+        .in     (block_number),
+        .out    (block_number_PO_write)
     );
 
 // -----------------------------------------------------------
@@ -325,23 +374,25 @@ module Addressing
 
     Write_Priority
     #(
-        .WORD_WIDTH     (PROGRAMMED_OFFSETS_WORD_WIDTH)
+        .WORD_WIDTH     (PROGRAMMED_OFFSETS_WORD_WIDTH),
+        .ADDR_WIDTH     (PROGRAMMED_OFFSETS_ADDR_WIDTH)
     )
-    PO
+    PO_wp
     (
-        .clock          (clock),
-        .ALU_wren       (ALU_wren_PO),
-        .ALU_data       (ALU_write_data_PO),
-        .local_wren     (local_wren),
-        .local_data     (programmed_offset_post_incr),
-        .wren_out       (PO_wren),
-        .data_out       (PO_write_data)
+        .clock              (clock),
+        .ALU_wren           (ALU_wren_PO_synced),
+        .ALU_write_addr     (ALU_write_addr_synced[PROGRAMMED_OFFSETS_ADDR_WIDTH-1:0]),
+        .ALU_write_data     (ALU_write_data_PO_synced),
+        .local_wren         (local_wren),
+        .local_write_addr   (block_number_PO_write),
+        .local_write_data   (programmed_offset_post_incr),
+        .wren               (PO_wren),
+        .write_addr         (PO_write_addr),
+        .write_data         (PO_write_data)
     );
 
 // -----------------------------------------------------------
 
-    wire                                    INC_wren;
-    wire    [INCREMENTS_WORD_WIDTH-1:0]     INC_write_data;
     wire    [INCREMENTS_WORD_WIDTH-1:0]     increment;
 
     Increments
@@ -355,43 +406,24 @@ module Addressing
     INC
     (
         .clock          (clock),
-        .wren           (INC_wren),
-        .write_thread   (write_thread),
-        .write_data     (INC_write_data),
-        .read_thread    (read_thread_MEM),
+        .wren           (ALU_wren_INC_synced),
+        .write_addr     (ALU_write_addr_synced[INCREMENTS_ADDR_WIDTH-1:0]),
+        .write_data     (ALU_write_data_INC_synced),
+        .read_addr      (block_number),
         .increment      (increment)
-    );
-
-// -----------------------------------------------------------
-
-    // ECL XXX Note the redundancy here. Without local data writes, this should
-    // reduce to the ALU write synchronization pipeline.
-
-    Write_Priority
-    #(
-        .WORD_WIDTH     (INCREMENTS_WORD_WIDTH)
-    )
-    INC
-    (
-        .clock          (clock),
-        .ALU_wren       (ALU_wren_INC),
-        .ALU_data       (ALU_write_data_INC),
-        .local_wren     (`LOW),
-        .local_data     (ALU_write_data_INC),
-        .wren_out       (INC_wren),
-        .data_out       (INC_write_data)
     );
 
 // -----------------------------------------------------------
 
     Increment_Adder
     #(
-        .WORD_WIDTH     (PROGRAMMED_OFFSETS_WORD_WIDTH)
+        .OFFSET_WORD_WIDTH      (PROGRAMMED_OFFSETS_WORD_WIDTH),
+        .INCREMENT_WORD_WIDTH   (INCREMENTS_WORD_WIDTH)
     )
     INC_ADD
     (
         .clock          (clock),
-        .offset_in      (programmed_offset_pre_incr),
+        .offset_in      (programmed_offset),
         .increment      (increment),
         .offset_out     (programmed_offset_post_incr)
     );

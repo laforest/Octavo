@@ -3,16 +3,18 @@
 
 module Increment_Adder
 #(
-    parameter   WORD_WIDTH              = 0
+    parameter   OFFSET_WORD_WIDTH               = 0,
+    parameter   INCREMENT_WORD_WIDTH            = 0
 )
 (
-    input   wire                        clock,
-    input   wire    [WORD_WIDTH-1:0]    offset_in,
-    input   wire    [WORD_WIDTH-1:0]    increment,
-    output  wire    [WORD_WIDTH-1:0]    offset_out
+    input   wire                                clock,
+    input   wire    [OFFSET_WORD_WIDTH-1:0]     offset_in,
+    input   wire    [INCREMENT_WORD_WIDTH-1:0]  increment,
+    output  wire    [OFFSET_WORD_WIDTH-1:0]     offset_out
 );
-    reg     [WORD_WIDTH-1:0]    offset_out_raw;
+    reg     [OFFSET_WORD_WIDTH-1:0]    offset_out_raw;
 
+    // ECL XXX Fix: add signed increment support
     always @(*) begin
         offset_out_raw <= offset_in + increment;
     end
@@ -22,7 +24,7 @@ module Increment_Adder
     delay_line
     #(
         .DEPTH  (1),
-        .WIDTH  (WORD_WIDTH)
+        .WIDTH  (OFFSET_WORD_WIDTH)
     )
     incr_adder_pipeline
     (

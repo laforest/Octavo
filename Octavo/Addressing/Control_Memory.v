@@ -16,11 +16,11 @@ module Control_Memory
 (
     input   wire                        clock,
     input   wire                        wren,
-    input   wire    [ADDR_WIDTH-1:0]    write_thread,
+    input   wire    [ADDR_WIDTH-1:0]    write_addr,
     input   wire    [WORD_WIDTH-1:0]    write_data,
-    input   wire    [ADDR_WIDTH-1:0]    read_thread,
-    output  wire    [MATCH_WIDTH-1:0]   PC_match,
-    output  reg     [COND_WIDTH-1:0]    branch_condition,
+    input   wire    [ADDR_WIDTH-1:0]    read_addr,
+    output  reg     [MATCH_WIDTH-1:0]   PC_match,
+    output  wire    [COND_WIDTH-1:0]    branch_condition,
     output  wire    [LINK_WIDTH-1:0]    BBC_link
 );
     wire    [MATCH_WIDTH-1:0]   match;
@@ -35,13 +35,13 @@ module Control_Memory
         .RAMSTYLE       (RAMSTYLE),
         .INIT_FILE      (INIT_FILE)
     )
-    Basic_Block_Counter
+    CTL
     (
         .clock          (clock),
         .wren           (wren),
-        .write_addr     (write_thread),
+        .write_addr     (write_addr),
         .write_data     (write_data),
-        .read_addr      (read_thread),
+        .read_addr      (read_addr),
         .read_data      ({match, condition, link})
     );
 
@@ -56,7 +56,7 @@ module Control_Memory
     delay_line
     #(
         .DEPTH  (1),
-        .WIDTH  (LINK_WIDTH)
+        .WIDTH  (COND_WIDTH)
     )
     condition_pipeline
     (

@@ -41,7 +41,7 @@ module Basic_Block_End
     // synthesize this. The schematic denotes this as bitwise XOR'ing
     // followed by a NOR-reduction, but let's see if this works.
 
-    wire    block_end_raw;
+    reg     block_end_raw;
 
     always @(*) begin
         if(PC_LSB_reg === match) begin
