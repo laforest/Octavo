@@ -19,7 +19,7 @@ module Control_Memory
     input   wire    [ADDR_WIDTH-1:0]    write_addr,
     input   wire    [WORD_WIDTH-1:0]    write_data,
     input   wire    [ADDR_WIDTH-1:0]    read_addr,
-    output  reg     [MATCH_WIDTH-1:0]   PC_match,
+    output  wire    [MATCH_WIDTH-1:0]   PC_match,
     output  wire    [COND_WIDTH-1:0]    branch_condition,
     output  wire    [LINK_WIDTH-1:0]    BBC_link
 );
@@ -47,9 +47,17 @@ module Control_Memory
 
 // -----------------------------------------------------------
 
-    always @(*) begin
-        PC_match <= match;
-    end
+    delay_line
+    #(
+        .DEPTH  (0),
+        .WIDTH  (MATCH_WIDTH)
+    )
+    match_pipeline
+    (
+        .clock  (clock),
+        .in     (match),
+        .out    (PC_match)
+    );
 
 // -----------------------------------------------------------
 
