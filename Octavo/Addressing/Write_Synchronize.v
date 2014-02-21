@@ -7,11 +7,13 @@
 
 module Write_Synchronize
 #(
+    parameter   PIPE_DEPTH                                  = 0,
+
     parameter   WORD_WIDTH                                  = 0,
     parameter   ADDR_WIDTH                                  = 0,
 
-    parameter   BASIC_BLOCK_COUNTER_WORD_WIDTH              = 0, 
-    parameter   CONTROL_MEMORY_WORD_WIDTH                   = 0, 
+    parameter   PO_INC_COUNT                                = 0,
+
     parameter   DEFAULT_OFFSET_WORD_WIDTH                   = 0, 
     parameter   PROGRAMMED_OFFSETS_WORD_WIDTH               = 0, 
     parameter   INCREMENTS_WORD_WIDTH                       = 0 
@@ -19,66 +21,29 @@ module Write_Synchronize
 (
     input   wire                                            clock,
 
-    input   wire                                            ALU_wren_BBC,
-    input   wire                                            ALU_wren_CTL,
     input   wire                                            ALU_wren_DO,
-    input   wire                                            ALU_wren_PO,
-    input   wire                                            ALU_wren_INC,
+    input   wire    [PO_INC_COUNT-1:0]                      ALU_wren_PO,
+    input   wire    [PO_INC_COUNT-1:0]                      ALU_wren_INC,
 
     input   wire    [ADDR_WIDTH-1:0]                        ALU_write_addr,
     input   wire    [WORD_WIDTH-1:0]                        ALU_write_data,
 
-    input   wire    [BASIC_BLOCK_COUNTER_WORD_WIDTH-1:0]    ALU_write_data_BBC,
-    input   wire    [CONTROL_MEMORY_WORD_WIDTH-1:0]         ALU_write_data_CTL,
     input   wire    [DEFAULT_OFFSET_WORD_WIDTH-1:0]         ALU_write_data_DO,
     input   wire    [PROGRAMMED_OFFSETS_WORD_WIDTH-1:0]     ALU_write_data_PO,
     input   wire    [INCREMENTS_WORD_WIDTH-1:0]             ALU_write_data_INC,
 
-    output  wire                                            ALU_wren_BBC_synced,
-    output  wire                                            ALU_wren_CTL_synced,
     output  wire                                            ALU_wren_DO_synced,
-    output  wire                                            ALU_wren_PO_synced,
-    output  wire                                            ALU_wren_INC_synced,
+    output  wire    [PO_INC_COUNT-1:0]                      ALU_wren_PO_synced,
+    output  wire    [PO_INC_COUNT-1:0]                      ALU_wren_INC_synced,
 
     output  wire    [ADDR_WIDTH-1:0]                        ALU_write_addr_synced,
     output  wire    [WORD_WIDTH-1:0]                        ALU_write_data_synced,
 
-    output  wire    [BASIC_BLOCK_COUNTER_WORD_WIDTH-1:0]    ALU_write_data_BBC_synced,
-    output  wire    [CONTROL_MEMORY_WORD_WIDTH-1:0]         ALU_write_data_CTL_synced,
     output  wire    [DEFAULT_OFFSET_WORD_WIDTH-1:0]         ALU_write_data_DO_synced,
     output  wire    [PROGRAMMED_OFFSETS_WORD_WIDTH-1:0]     ALU_write_data_PO_synced,
     output  wire    [INCREMENTS_WORD_WIDTH-1:0]             ALU_write_data_INC_synced
 );
 
-    localparam PIPE_DEPTH = 2;
-
-// -----------------------------------------------------------
-
-    delay_line
-    #(
-        .DEPTH  (PIPE_DEPTH),
-        .WIDTH  (1)
-    )
-    BBC_wren
-    (
-        .clock  (clock),
-        .in     (ALU_wren_BBC),
-        .out    (ALU_wren_BBC_synced)
-    );
-
-// -----------------------------------------------------------
-
-    delay_line
-    #(
-        .DEPTH  (PIPE_DEPTH),
-        .WIDTH  (1)
-    )
-    CTL_wren
-    (
-        .clock  (clock),
-        .in     (ALU_wren_CTL),
-        .out    (ALU_wren_CTL_synced)
-    );
 
 // -----------------------------------------------------------
 
@@ -101,7 +66,7 @@ module Write_Synchronize
         .DEPTH  (PIPE_DEPTH),
         .WIDTH  (1)
     )
-    INC_wren
+    INC_wren    [PO_INC_COUNT-1:0]
     (
         .clock  (clock),
         .in     (ALU_wren_INC),
@@ -115,7 +80,7 @@ module Write_Synchronize
         .DEPTH  (PIPE_DEPTH),
         .WIDTH  (1)
     )
-    PO_wren
+    PO_wren     [PO_INC_COUNT-1:0]
     (
         .clock  (clock),
         .in     (ALU_wren_PO),
@@ -148,36 +113,6 @@ module Write_Synchronize
         .clock  (clock),
         .in     (ALU_write_data),
         .out    (ALU_write_data_synced)
-    );
-
-// -----------------------------------------------------------
-
-    // ECL XXX Verilog needs real lists to make generate blocks really useful.
-
-    delay_line
-    #(
-        .DEPTH  (PIPE_DEPTH),
-        .WIDTH  (BASIC_BLOCK_COUNTER_WORD_WIDTH)
-    )
-    BBC_write_data
-    (
-        .clock  (clock),
-        .in     (ALU_write_data_BBC),
-        .out    (ALU_write_data_BBC_synced)
-    );
-
-// -----------------------------------------------------------
-
-    delay_line
-    #(
-        .DEPTH  (PIPE_DEPTH),
-        .WIDTH  (CONTROL_MEMORY_WORD_WIDTH)
-    )
-    CTL_write_data
-    (
-        .clock  (clock),
-        .in     (ALU_write_data_CTL),
-        .out    (ALU_write_data_CTL_synced)
     );
 
 // -----------------------------------------------------------
