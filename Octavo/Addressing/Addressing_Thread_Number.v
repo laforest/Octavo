@@ -10,8 +10,7 @@ module Addressing_Thread_Number
 )
 (
     input   wire                                clock,
-    output  reg     [THREAD_ADDR_WIDTH-1:0]     read_thread_BBC,
-    output  reg     [THREAD_ADDR_WIDTH-1:0]     read_thread_MEM,
+    output  reg     [THREAD_ADDR_WIDTH-1:0]     read_thread,
     output  reg     [THREAD_ADDR_WIDTH-1:0]     write_thread
 );
     wire    [THREAD_ADDR_WIDTH-1:0]     current_thread;
@@ -32,7 +31,7 @@ module Addressing_Thread_Number
 
 // -----------------------------------------------------------
 
-    // If write is on T4, then BCC read on T1, and mem on T0
+    // If write is on T4, then read on T0
     // ECL XXX This will break for INITIAL_THREAD < 3
     reg     [THREAD_ADDR_WIDTH-1:0]     read_delay_1;
     reg     [THREAD_ADDR_WIDTH-1:0]     read_delay_2;
@@ -54,10 +53,8 @@ module Addressing_Thread_Number
         read_delay_3    <=  read_delay_2;
     end
 
-    // Sync mem read with Basic Block Counter output
     always @(*) begin
-        read_thread_BBC <=  read_delay_2;
-        read_thread_MEM <=  read_delay_3;
+        read_thread     <=  read_delay_3;
         write_thread    <=  next_thread;
     end
 endmodule
