@@ -41,7 +41,7 @@ module Programmed_Offsets
 
     delay_line
     #(
-        .DEPTH  (2),
+        .DEPTH  (1),
         .WIDTH  (WORD_WIDTH)
     )
     programmed_offsets_pipeline

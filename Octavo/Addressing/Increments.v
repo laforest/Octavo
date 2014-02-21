@@ -1,5 +1,5 @@
 
-// Contains different increments at each Basic Block end, added back to the Programmed_Offset values.
+// Contains different increments added back to the Programmed_Offset values.
 
 // ECL XXX Because, for simplicity, the Addressing module for D operands
 // works with 12 bits instead of the 10 we only really need, once the A/B/D
@@ -46,7 +46,7 @@ module Increments
 
     delay_line
     #(
-        .DEPTH  (2),
+        .DEPTH  (1),
         .WIDTH  (WORD_WIDTH)
     )
     increments_pipeline
