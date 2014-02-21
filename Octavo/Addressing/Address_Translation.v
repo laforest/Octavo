@@ -1,7 +1,6 @@
 
 module Address_Translation
 #(
-    parameter   PC_WIDTH                                    = 0,
     parameter   WORD_WIDTH                                  = 0,
     parameter   D_OPERAND_WIDTH                             = 0,
     parameter   A_OPERAND_WIDTH                             = 0,
@@ -13,25 +12,6 @@ module Address_Translation
 
 // -----------------------------------------------------------
 
-    parameter   A_BASIC_BLOCK_COUNTER_WRITE_WORD_OFFSET     = 0,
-    parameter   A_BASIC_BLOCK_COUNTER_WRITE_ADDR_OFFSET     = 0,
-    parameter   A_BASIC_BLOCK_COUNTER_WORD_WIDTH            = 0,
-    parameter   A_BASIC_BLOCK_COUNTER_ADDR_WIDTH            = 0,
-    parameter   A_BASIC_BLOCK_COUNTER_DEPTH                 = 0,
-    parameter   A_BASIC_BLOCK_COUNTER_RAMSTYLE              = 0,
-    parameter   A_BASIC_BLOCK_COUNTER_INIT_FILE             = 0,
-
-    parameter   A_CONTROL_MEMORY_WRITE_WORD_OFFSET          = 0,
-    parameter   A_CONTROL_MEMORY_WRITE_ADDR_OFFSET          = 0,
-    parameter   A_CONTROL_MEMORY_WORD_WIDTH                 = 0,
-    parameter   A_CONTROL_MEMORY_ADDR_WIDTH                 = 0,
-    parameter   A_CONTROL_MEMORY_DEPTH                      = 0,
-    parameter   A_CONTROL_MEMORY_RAMSTYLE                   = 0,
-    parameter   A_CONTROL_MEMORY_INIT_FILE                  = 0,
-    parameter   A_CONTROL_MEMORY_MATCH_WIDTH                = 0,
-    parameter   A_CONTROL_MEMORY_COND_WIDTH                 = 0,
-    parameter   A_CONTROL_MEMORY_LINK_WIDTH                 = 0,
-
     parameter   A_DEFAULT_OFFSET_WRITE_WORD_OFFSET          = 0,
     parameter   A_DEFAULT_OFFSET_WRITE_ADDR_OFFSET          = 0,
     parameter   A_DEFAULT_OFFSET_WORD_WIDTH                 = 0,
@@ -39,6 +19,9 @@ module Address_Translation
     parameter   A_DEFAULT_OFFSET_DEPTH                      = 0,
     parameter   A_DEFAULT_OFFSET_RAMSTYLE                   = 0,
     parameter   A_DEFAULT_OFFSET_INIT_FILE                  = 0,
+
+    parameter   A_PO_INC_COUNT                              = 0,
+    parameter   A_PO_INC_COUNT_ADDR_WIDTH                   = 0,
 
     parameter   A_PROGRAMMED_OFFSETS_WRITE_WORD_OFFSET      = 0,
     parameter   A_PROGRAMMED_OFFSETS_WRITE_ADDR_OFFSET      = 0,
@@ -58,25 +41,6 @@ module Address_Translation
 
 // -----------------------------------------------------------
 
-    parameter   B_BASIC_BLOCK_COUNTER_WRITE_WORD_OFFSET     = 0,
-    parameter   B_BASIC_BLOCK_COUNTER_WRITE_ADDR_OFFSET     = 0,
-    parameter   B_BASIC_BLOCK_COUNTER_WORD_WIDTH            = 0,
-    parameter   B_BASIC_BLOCK_COUNTER_ADDR_WIDTH            = 0,
-    parameter   B_BASIC_BLOCK_COUNTER_DEPTH                 = 0,
-    parameter   B_BASIC_BLOCK_COUNTER_RAMSTYLE              = 0,
-    parameter   B_BASIC_BLOCK_COUNTER_INIT_FILE             = 0,
-
-    parameter   B_CONTROL_MEMORY_WRITE_WORD_OFFSET          = 0,
-    parameter   B_CONTROL_MEMORY_WRITE_ADDR_OFFSET          = 0,
-    parameter   B_CONTROL_MEMORY_WORD_WIDTH                 = 0,
-    parameter   B_CONTROL_MEMORY_ADDR_WIDTH                 = 0,
-    parameter   B_CONTROL_MEMORY_DEPTH                      = 0,
-    parameter   B_CONTROL_MEMORY_RAMSTYLE                   = 0,
-    parameter   B_CONTROL_MEMORY_INIT_FILE                  = 0,
-    parameter   B_CONTROL_MEMORY_MATCH_WIDTH                = 0,
-    parameter   B_CONTROL_MEMORY_COND_WIDTH                 = 0,
-    parameter   B_CONTROL_MEMORY_LINK_WIDTH                 = 0,
-
     parameter   B_DEFAULT_OFFSET_WRITE_WORD_OFFSET          = 0,
     parameter   B_DEFAULT_OFFSET_WRITE_ADDR_OFFSET          = 0,
     parameter   B_DEFAULT_OFFSET_WORD_WIDTH                 = 0,
@@ -84,6 +48,9 @@ module Address_Translation
     parameter   B_DEFAULT_OFFSET_DEPTH                      = 0,
     parameter   B_DEFAULT_OFFSET_RAMSTYLE                   = 0,
     parameter   B_DEFAULT_OFFSET_INIT_FILE                  = 0,
+
+    parameter   B_PO_INC_COUNT                              = 0,
+    parameter   B_PO_INC_COUNT_ADDR_WIDTH                   = 0,
 
     parameter   B_PROGRAMMED_OFFSETS_WRITE_WORD_OFFSET      = 0,
     parameter   B_PROGRAMMED_OFFSETS_WRITE_ADDR_OFFSET      = 0,
@@ -103,25 +70,6 @@ module Address_Translation
 
 // -----------------------------------------------------------
 
-    parameter   D_BASIC_BLOCK_COUNTER_WRITE_WORD_OFFSET     = 0,
-    parameter   D_BASIC_BLOCK_COUNTER_WRITE_ADDR_OFFSET     = 0,
-    parameter   D_BASIC_BLOCK_COUNTER_WORD_WIDTH            = 0,
-    parameter   D_BASIC_BLOCK_COUNTER_ADDR_WIDTH            = 0,
-    parameter   D_BASIC_BLOCK_COUNTER_DEPTH                 = 0,
-    parameter   D_BASIC_BLOCK_COUNTER_RAMSTYLE              = 0,
-    parameter   D_BASIC_BLOCK_COUNTER_INIT_FILE             = 0,
-
-    parameter   D_CONTROL_MEMORY_WRITE_WORD_OFFSET          = 0,
-    parameter   D_CONTROL_MEMORY_WRITE_ADDR_OFFSET          = 0,
-    parameter   D_CONTROL_MEMORY_WORD_WIDTH                 = 0,
-    parameter   D_CONTROL_MEMORY_ADDR_WIDTH                 = 0,
-    parameter   D_CONTROL_MEMORY_DEPTH                      = 0,
-    parameter   D_CONTROL_MEMORY_RAMSTYLE                   = 0,
-    parameter   D_CONTROL_MEMORY_INIT_FILE                  = 0,
-    parameter   D_CONTROL_MEMORY_MATCH_WIDTH                = 0,
-    parameter   D_CONTROL_MEMORY_COND_WIDTH                 = 0,
-    parameter   D_CONTROL_MEMORY_LINK_WIDTH                 = 0,
-
     parameter   D_DEFAULT_OFFSET_WRITE_WORD_OFFSET          = 0,
     parameter   D_DEFAULT_OFFSET_WRITE_ADDR_OFFSET          = 0,
     parameter   D_DEFAULT_OFFSET_WORD_WIDTH                 = 0,
@@ -129,6 +77,9 @@ module Address_Translation
     parameter   D_DEFAULT_OFFSET_DEPTH                      = 0,
     parameter   D_DEFAULT_OFFSET_RAMSTYLE                   = 0,
     parameter   D_DEFAULT_OFFSET_INIT_FILE                  = 0,
+
+    parameter   D_PO_INC_COUNT                              = 0,
+    parameter   D_PO_INC_COUNT_ADDR_WIDTH                   = 0,
 
     parameter   D_PROGRAMMED_OFFSETS_WRITE_WORD_OFFSET      = 0,
     parameter   D_PROGRAMMED_OFFSETS_WRITE_ADDR_OFFSET      = 0,
@@ -148,9 +99,6 @@ module Address_Translation
 )
 (
     input   wire                                            clock,
-
-    // from ControlPath
-    input   wire    [PC_WIDTH-1:0]                          PC,
 
     // from stage 1
     input   wire    [A_OPERAND_WIDTH-1:0]                   A_addr_in,
@@ -174,7 +122,6 @@ module Address_Translation
 
     Addressing_Mapped
     #(
-        .PC_WIDTH                                   (PC_WIDTH),
         .WORD_WIDTH                                 (WORD_WIDTH),
         .ADDR_WIDTH                                 (A_OPERAND_WIDTH),
         .D_OPERAND_WIDTH                            (D_OPERAND_WIDTH),
@@ -183,25 +130,6 @@ module Address_Translation
         .THREAD_COUNT                               (THREAD_COUNT),
         .THREAD_ADDR_WIDTH                          (THREAD_ADDR_WIDTH),
 
-        .BASIC_BLOCK_COUNTER_WRITE_WORD_OFFSET      (A_BASIC_BLOCK_COUNTER_WRITE_WORD_OFFSET),
-        .BASIC_BLOCK_COUNTER_WRITE_ADDR_OFFSET      (A_BASIC_BLOCK_COUNTER_WRITE_ADDR_OFFSET),
-        .BASIC_BLOCK_COUNTER_WORD_WIDTH             (A_BASIC_BLOCK_COUNTER_WORD_WIDTH),
-        .BASIC_BLOCK_COUNTER_ADDR_WIDTH             (A_BASIC_BLOCK_COUNTER_ADDR_WIDTH),
-        .BASIC_BLOCK_COUNTER_DEPTH                  (A_BASIC_BLOCK_COUNTER_DEPTH),
-        .BASIC_BLOCK_COUNTER_RAMSTYLE               (A_BASIC_BLOCK_COUNTER_RAMSTYLE),
-        .BASIC_BLOCK_COUNTER_INIT_FILE              (A_BASIC_BLOCK_COUNTER_INIT_FILE),
-
-        .CONTROL_MEMORY_WRITE_WORD_OFFSET           (A_CONTROL_MEMORY_WRITE_WORD_OFFSET),
-        .CONTROL_MEMORY_WRITE_ADDR_OFFSET           (A_CONTROL_MEMORY_WRITE_ADDR_OFFSET),
-        .CONTROL_MEMORY_WORD_WIDTH                  (A_CONTROL_MEMORY_WORD_WIDTH),
-        .CONTROL_MEMORY_ADDR_WIDTH                  (A_CONTROL_MEMORY_ADDR_WIDTH),
-        .CONTROL_MEMORY_DEPTH                       (A_CONTROL_MEMORY_DEPTH),
-        .CONTROL_MEMORY_RAMSTYLE                    (A_CONTROL_MEMORY_RAMSTYLE),
-        .CONTROL_MEMORY_INIT_FILE                   (A_CONTROL_MEMORY_INIT_FILE),
-        .CONTROL_MEMORY_MATCH_WIDTH                 (A_CONTROL_MEMORY_MATCH_WIDTH),
-        .CONTROL_MEMORY_COND_WIDTH                  (A_CONTROL_MEMORY_COND_WIDTH),
-        .CONTROL_MEMORY_LINK_WIDTH                  (A_CONTROL_MEMORY_LINK_WIDTH),
-
         .DEFAULT_OFFSET_WRITE_WORD_OFFSET           (A_DEFAULT_OFFSET_WRITE_WORD_OFFSET),
         .DEFAULT_OFFSET_WRITE_ADDR_OFFSET           (A_DEFAULT_OFFSET_WRITE_ADDR_OFFSET),
         .DEFAULT_OFFSET_WORD_WIDTH                  (A_DEFAULT_OFFSET_WORD_WIDTH),
@@ -209,6 +137,9 @@ module Address_Translation
         .DEFAULT_OFFSET_DEPTH                       (A_DEFAULT_OFFSET_DEPTH),
         .DEFAULT_OFFSET_RAMSTYLE                    (A_DEFAULT_OFFSET_RAMSTYLE),
         .DEFAULT_OFFSET_INIT_FILE                   (A_DEFAULT_OFFSET_INIT_FILE),
+
+        .PO_INC_COUNT                               (A_PO_INC_COUNT),
+        .PO_INC_COUNT_ADDR_WIDTH                    (A_PO_INC_COUNT_ADDR_WIDTH),
 
         .PROGRAMMED_OFFSETS_WRITE_WORD_OFFSET       (A_PROGRAMMED_OFFSETS_WRITE_WORD_OFFSET),
         .PROGRAMMED_OFFSETS_WRITE_ADDR_OFFSET       (A_PROGRAMMED_OFFSETS_WRITE_ADDR_OFFSET),
@@ -229,7 +160,6 @@ module Address_Translation
     A
     (
         .clock                                      (clock),
-        .PC                                         (PC),
         .addr_in                                    (A_addr_in),
         .IO_ready                                   (IO_ready),
         .ALU_write_addr                             (ALU_write_addr),
@@ -241,7 +171,6 @@ module Address_Translation
 
     Addressing_Mapped
     #(
-        .PC_WIDTH                                   (PC_WIDTH),
         .WORD_WIDTH                                 (WORD_WIDTH),
         .ADDR_WIDTH                                 (B_OPERAND_WIDTH),
         .D_OPERAND_WIDTH                            (D_OPERAND_WIDTH),
@@ -250,25 +179,6 @@ module Address_Translation
         .THREAD_COUNT                               (THREAD_COUNT),
         .THREAD_ADDR_WIDTH                          (THREAD_ADDR_WIDTH),
 
-        .BASIC_BLOCK_COUNTER_WRITE_WORD_OFFSET      (B_BASIC_BLOCK_COUNTER_WRITE_WORD_OFFSET),
-        .BASIC_BLOCK_COUNTER_WRITE_ADDR_OFFSET      (B_BASIC_BLOCK_COUNTER_WRITE_ADDR_OFFSET),
-        .BASIC_BLOCK_COUNTER_WORD_WIDTH             (B_BASIC_BLOCK_COUNTER_WORD_WIDTH),
-        .BASIC_BLOCK_COUNTER_ADDR_WIDTH             (B_BASIC_BLOCK_COUNTER_ADDR_WIDTH),
-        .BASIC_BLOCK_COUNTER_DEPTH                  (B_BASIC_BLOCK_COUNTER_DEPTH),
-        .BASIC_BLOCK_COUNTER_RAMSTYLE               (B_BASIC_BLOCK_COUNTER_RAMSTYLE),
-        .BASIC_BLOCK_COUNTER_INIT_FILE              (B_BASIC_BLOCK_COUNTER_INIT_FILE),
-
-        .CONTROL_MEMORY_WRITE_WORD_OFFSET           (B_CONTROL_MEMORY_WRITE_WORD_OFFSET),
-        .CONTROL_MEMORY_WRITE_ADDR_OFFSET           (B_CONTROL_MEMORY_WRITE_ADDR_OFFSET),
-        .CONTROL_MEMORY_WORD_WIDTH                  (B_CONTROL_MEMORY_WORD_WIDTH),
-        .CONTROL_MEMORY_ADDR_WIDTH                  (B_CONTROL_MEMORY_ADDR_WIDTH),
-        .CONTROL_MEMORY_DEPTH                       (B_CONTROL_MEMORY_DEPTH),
-        .CONTROL_MEMORY_RAMSTYLE                    (B_CONTROL_MEMORY_RAMSTYLE),
-        .CONTROL_MEMORY_INIT_FILE                   (B_CONTROL_MEMORY_INIT_FILE),
-        .CONTROL_MEMORY_MATCH_WIDTH                 (B_CONTROL_MEMORY_MATCH_WIDTH),
-        .CONTROL_MEMORY_COND_WIDTH                  (B_CONTROL_MEMORY_COND_WIDTH),
-        .CONTROL_MEMORY_LINK_WIDTH                  (B_CONTROL_MEMORY_LINK_WIDTH),
-
         .DEFAULT_OFFSET_WRITE_WORD_OFFSET           (B_DEFAULT_OFFSET_WRITE_WORD_OFFSET),
         .DEFAULT_OFFSET_WRITE_ADDR_OFFSET           (B_DEFAULT_OFFSET_WRITE_ADDR_OFFSET),
         .DEFAULT_OFFSET_WORD_WIDTH                  (B_DEFAULT_OFFSET_WORD_WIDTH),
@@ -276,6 +186,9 @@ module Address_Translation
         .DEFAULT_OFFSET_DEPTH                       (B_DEFAULT_OFFSET_DEPTH),
         .DEFAULT_OFFSET_RAMSTYLE                    (B_DEFAULT_OFFSET_RAMSTYLE),
         .DEFAULT_OFFSET_INIT_FILE                   (B_DEFAULT_OFFSET_INIT_FILE),
+
+        .PO_INC_COUNT                               (B_PO_INC_COUNT),
+        .PO_INC_COUNT_ADDR_WIDTH                    (B_PO_INC_COUNT_ADDR_WIDTH),
 
         .PROGRAMMED_OFFSETS_WRITE_WORD_OFFSET       (B_PROGRAMMED_OFFSETS_WRITE_WORD_OFFSET),
         .PROGRAMMED_OFFSETS_WRITE_ADDR_OFFSET       (B_PROGRAMMED_OFFSETS_WRITE_ADDR_OFFSET),
@@ -296,7 +209,6 @@ module Address_Translation
     B
     (
         .clock                                      (clock),
-        .PC                                         (PC),
         .addr_in                                    (B_addr_in),
         .IO_ready                                   (IO_ready),
         .ALU_write_addr                             (ALU_write_addr),
@@ -308,7 +220,6 @@ module Address_Translation
 
     Addressing_Mapped
     #(
-        .PC_WIDTH                                   (PC_WIDTH),
         .WORD_WIDTH                                 (WORD_WIDTH),
         .ADDR_WIDTH                                 (D_OPERAND_WIDTH),
         .D_OPERAND_WIDTH                            (D_OPERAND_WIDTH),
@@ -317,25 +228,6 @@ module Address_Translation
         .THREAD_COUNT                               (THREAD_COUNT),
         .THREAD_ADDR_WIDTH                          (THREAD_ADDR_WIDTH),
 
-        .BASIC_BLOCK_COUNTER_WRITE_WORD_OFFSET      (D_BASIC_BLOCK_COUNTER_WRITE_WORD_OFFSET),
-        .BASIC_BLOCK_COUNTER_WRITE_ADDR_OFFSET      (D_BASIC_BLOCK_COUNTER_WRITE_ADDR_OFFSET),
-        .BASIC_BLOCK_COUNTER_WORD_WIDTH             (D_BASIC_BLOCK_COUNTER_WORD_WIDTH),
-        .BASIC_BLOCK_COUNTER_ADDR_WIDTH             (D_BASIC_BLOCK_COUNTER_ADDR_WIDTH),
-        .BASIC_BLOCK_COUNTER_DEPTH                  (D_BASIC_BLOCK_COUNTER_DEPTH),
-        .BASIC_BLOCK_COUNTER_RAMSTYLE               (D_BASIC_BLOCK_COUNTER_RAMSTYLE),
-        .BASIC_BLOCK_COUNTER_INIT_FILE              (D_BASIC_BLOCK_COUNTER_INIT_FILE),
-
-        .CONTROL_MEMORY_WRITE_WORD_OFFSET           (D_CONTROL_MEMORY_WRITE_WORD_OFFSET),
-        .CONTROL_MEMORY_WRITE_ADDR_OFFSET           (D_CONTROL_MEMORY_WRITE_ADDR_OFFSET),
-        .CONTROL_MEMORY_WORD_WIDTH                  (D_CONTROL_MEMORY_WORD_WIDTH),
-        .CONTROL_MEMORY_ADDR_WIDTH                  (D_CONTROL_MEMORY_ADDR_WIDTH),
-        .CONTROL_MEMORY_DEPTH                       (D_CONTROL_MEMORY_DEPTH),
-        .CONTROL_MEMORY_RAMSTYLE                    (D_CONTROL_MEMORY_RAMSTYLE),
-        .CONTROL_MEMORY_INIT_FILE                   (D_CONTROL_MEMORY_INIT_FILE),
-        .CONTROL_MEMORY_MATCH_WIDTH                 (D_CONTROL_MEMORY_MATCH_WIDTH),
-        .CONTROL_MEMORY_COND_WIDTH                  (D_CONTROL_MEMORY_COND_WIDTH),
-        .CONTROL_MEMORY_LINK_WIDTH                  (D_CONTROL_MEMORY_LINK_WIDTH),
-
         .DEFAULT_OFFSET_WRITE_WORD_OFFSET           (D_DEFAULT_OFFSET_WRITE_WORD_OFFSET),
         .DEFAULT_OFFSET_WRITE_ADDR_OFFSET           (D_DEFAULT_OFFSET_WRITE_ADDR_OFFSET),
         .DEFAULT_OFFSET_WORD_WIDTH                  (D_DEFAULT_OFFSET_WORD_WIDTH),
@@ -343,6 +235,9 @@ module Address_Translation
         .DEFAULT_OFFSET_DEPTH                       (D_DEFAULT_OFFSET_DEPTH),
         .DEFAULT_OFFSET_RAMSTYLE                    (D_DEFAULT_OFFSET_RAMSTYLE),
         .DEFAULT_OFFSET_INIT_FILE                   (D_DEFAULT_OFFSET_INIT_FILE),
+
+        .PO_INC_COUNT                               (D_PO_INC_COUNT),
+        .PO_INC_COUNT_ADDR_WIDTH                    (D_PO_INC_COUNT_ADDR_WIDTH),
 
         .PROGRAMMED_OFFSETS_WRITE_WORD_OFFSET       (D_PROGRAMMED_OFFSETS_WRITE_WORD_OFFSET),
         .PROGRAMMED_OFFSETS_WRITE_ADDR_OFFSET       (D_PROGRAMMED_OFFSETS_WRITE_ADDR_OFFSET),
@@ -363,7 +258,6 @@ module Address_Translation
     D
     (
         .clock                                      (clock),
-        .PC                                         (PC),
         .addr_in                                    (D_addr_in),
         .IO_ready                                   (IO_ready),
         .ALU_write_addr                             (ALU_write_addr),

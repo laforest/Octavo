@@ -3,7 +3,6 @@
 
 module Addressing_Mapped
 #(
-    parameter   PC_WIDTH                                    = 0,
     parameter   WORD_WIDTH                                  = 0,
     parameter   ADDR_WIDTH                                  = 0,
     parameter   D_OPERAND_WIDTH                             = 0,
@@ -12,25 +11,6 @@ module Addressing_Mapped
     parameter   THREAD_COUNT                                = 0,
     parameter   THREAD_ADDR_WIDTH                           = 0,
 
-    parameter   BASIC_BLOCK_COUNTER_WRITE_WORD_OFFSET       = 0,
-    parameter   BASIC_BLOCK_COUNTER_WRITE_ADDR_OFFSET       = 0,
-    parameter   BASIC_BLOCK_COUNTER_WORD_WIDTH              = 0,
-    parameter   BASIC_BLOCK_COUNTER_ADDR_WIDTH              = 0,
-    parameter   BASIC_BLOCK_COUNTER_DEPTH                   = 0,
-    parameter   BASIC_BLOCK_COUNTER_RAMSTYLE                = 0,
-    parameter   BASIC_BLOCK_COUNTER_INIT_FILE               = 0,
-
-    parameter   CONTROL_MEMORY_WRITE_WORD_OFFSET            = 0,
-    parameter   CONTROL_MEMORY_WRITE_ADDR_OFFSET            = 0,
-    parameter   CONTROL_MEMORY_WORD_WIDTH                   = 0,
-    parameter   CONTROL_MEMORY_ADDR_WIDTH                   = 0,
-    parameter   CONTROL_MEMORY_DEPTH                        = 0,
-    parameter   CONTROL_MEMORY_RAMSTYLE                     = 0,
-    parameter   CONTROL_MEMORY_INIT_FILE                    = 0,
-    parameter   CONTROL_MEMORY_MATCH_WIDTH                  = 0,
-    parameter   CONTROL_MEMORY_COND_WIDTH                   = 0,
-    parameter   CONTROL_MEMORY_LINK_WIDTH                   = 0,
-
     parameter   DEFAULT_OFFSET_WRITE_WORD_OFFSET            = 0,
     parameter   DEFAULT_OFFSET_WRITE_ADDR_OFFSET            = 0,
     parameter   DEFAULT_OFFSET_WORD_WIDTH                   = 0,
@@ -38,6 +18,10 @@ module Addressing_Mapped
     parameter   DEFAULT_OFFSET_DEPTH                        = 0,
     parameter   DEFAULT_OFFSET_RAMSTYLE                     = 0,
     parameter   DEFAULT_OFFSET_INIT_FILE                    = 0,
+
+    parameter   PO_INC_READ_BASE_ADDR                       = 0,
+    parameter   PO_INC_COUNT                                = 0,
+    parameter   PO_INC_COUNT_ADDR_WIDTH                     = 0,
 
     parameter   PROGRAMMED_OFFSETS_WRITE_WORD_OFFSET        = 0,
     parameter   PROGRAMMED_OFFSETS_WRITE_ADDR_OFFSET        = 0,
@@ -58,9 +42,6 @@ module Addressing_Mapped
 (
     input   wire                                            clock,
 
-    // from ControlPath
-    input   wire    [PC_WIDTH-1:0]                          PC,
-
     // from stage 1
     input   wire    [ADDR_WIDTH-1:0]                        addr_in,
 
@@ -77,40 +58,29 @@ module Addressing_Mapped
 
 // -----------------------------------------------------------
 
-    // Generate these combinationaly from the ALU_write_addr.
-    wire    ALU_wren_BBC;
-    wire    ALU_wren_CTL;
+// TODO: address decoders for indirect and shared hardware.
+
+// -----------------------------------------------------------
+
+    // Translates the read address LSB to internal PO/INC instance order
+    wire    [PO_INC_COUNT_ADDR_WIDTH-1:0]   PO_INC_index;
+
+    Address_Translator
+    #(
+        .ADDR_COUNT         (PO_INC_COUNT),
+        .ADDR_BASE          (PO_INC_READ_BASE_ADDR),
+        .ADDR_WIDTH         (PO_INC_COUNT_ADDR_WIDTH)
+    )
+    PO_addr
+    (
+        .raw_address        (addr_in[PO_INC_COUNT_ADDR_WIDTH-1:0]),
+        .translated_address (PO_INC_index)
+    );
+
+// -----------------------------------------------------------
+
+    // Generate combinationaly from the ALU_write_addr.
     wire    ALU_wren_DO;
-    wire    ALU_wren_PO;
-    wire    ALU_wren_INC;
-
-    Address_Decoder
-    #(
-        .ADDR_COUNT     (BASIC_BLOCK_COUNTER_DEPTH),
-        .ADDR_BASE      (BASIC_BLOCK_COUNTER_WRITE_ADDR_OFFSET),
-        .ADDR_WIDTH     (D_OPERAND_WIDTH),
-        .REGISTERED     (`FALSE)
-    )
-    BBC
-    (
-        .clock          (clock),
-        .addr           (ALU_write_addr),
-        .hit            (ALU_wren_BBC)
-    );
-
-    Address_Decoder
-    #(
-        .ADDR_COUNT     (CONTROL_MEMORY_DEPTH),
-        .ADDR_BASE      (CONTROL_MEMORY_WRITE_ADDR_OFFSET),
-        .ADDR_WIDTH     (D_OPERAND_WIDTH),
-        .REGISTERED     (`FALSE)
-    )
-    CTL
-    (
-        .clock          (clock),
-        .addr           (ALU_write_addr),
-        .hit            (ALU_wren_CTL)
-    );
 
     Address_Decoder
     #(
@@ -126,48 +96,62 @@ module Addressing_Mapped
         .hit            (ALU_wren_DO)
     );
 
-    Address_Decoder
-    #(
-        .ADDR_COUNT     (PROGRAMMED_OFFSETS_DEPTH),
-        .ADDR_BASE      (PROGRAMMED_OFFSETS_WRITE_ADDR_OFFSET),
-        .ADDR_WIDTH     (D_OPERAND_WIDTH),
-        .REGISTERED     (`FALSE)
-    )
-    PO
-    (
-        .clock          (clock),
-        .addr           (ALU_write_addr),
-        .hit            (ALU_wren_PO)
-    );
+// -----------------------------------------------------------
 
-    Address_Decoder
-    #(
-        .ADDR_COUNT     (INCREMENTS_DEPTH),
-        .ADDR_BASE      (INCREMENTS_WRITE_ADDR_OFFSET),
-        .ADDR_WIDTH     (D_OPERAND_WIDTH),
-        .REGISTERED     (`FALSE)
-    )
-    INC
-    (
-        .clock          (clock),
-        .addr           (ALU_write_addr),
-        .hit            (ALU_wren_INC)
-    );
+    // Generate one per PO_INC_COUNT, consecutively mapped in write address space
+    wire    [PO_INC_COUNT-1:0]  ALU_wren_PO;
+    wire    [PO_INC_COUNT-1:0]  ALU_wren_INC;
 
+    genvar count;
+    integer PO_offset;
+    integer INC_offset;
+
+    generate
+        for(count = 0; count < PO_INC_COUNT; count = count + 1) begin
+
+            PO_offset = PROGRAMMED_OFFSETS_WRITE_ADDR_OFFSET + (PROGRAMMED_OFFSETS_DEPTH * count);
+
+            Address_Decoder
+            #(
+                .ADDR_COUNT     (PROGRAMMED_OFFSETS_DEPTH),
+                .ADDR_BASE      (PO_offset),
+                .ADDR_WIDTH     (D_OPERAND_WIDTH),
+                .REGISTERED     (`FALSE)
+            )
+            PO
+            (
+                .clock          (clock),
+                .addr           (ALU_write_addr),
+                .hit            (ALU_wren_PO[count])
+            );
+
+            INC_offset = INCREMENTS_WRITE_ADDR_OFFSET + (INCREMENTS_DEPTH * count);
+
+            Address_Decoder
+            #(
+                .ADDR_COUNT     (INCREMENTS_DEPTH),
+                .ADDR_BASE      (INC_offset),
+                .ADDR_WIDTH     (D_OPERAND_WIDTH),
+                .REGISTERED     (`FALSE)
+            )
+            INC
+            (
+                .clock          (clock),
+                .addr           (ALU_write_addr),
+                .hit            (ALU_wren_INC[count])
+            );
+        end
+    endgenerate
 
 // -----------------------------------------------------------
 
-    // Subsets of above, so we can align multiple Addressing instances along a word.
-    // We want to keep all memory map knowledge in here.
-    reg     [BASIC_BLOCK_COUNTER_WORD_WIDTH-1:0]    ALU_write_data_BBC;
-    reg     [CONTROL_MEMORY_WORD_WIDTH-1:0]         ALU_write_data_CTL;
+    // Subsets of above, so we can align multiple memories along a word.
+    // We want to keep all memory map knowledge out of here.
     reg     [DEFAULT_OFFSET_WORD_WIDTH-1:0]         ALU_write_data_DO;
     reg     [PROGRAMMED_OFFSETS_WORD_WIDTH-1:0]     ALU_write_data_PO;
     reg     [INCREMENTS_WORD_WIDTH-1:0]             ALU_write_data_INC;
 
     always @(*) begin
-        ALU_write_data_BBC <= ALU_write_data[BASIC_BLOCK_COUNTER_WORD_WIDTH + BASIC_BLOCK_COUNTER_WRITE_WORD_OFFSET-1:BASIC_BLOCK_COUNTER_WRITE_WORD_OFFSET];
-        ALU_write_data_CTL <= ALU_write_data[CONTROL_MEMORY_WORD_WIDTH + CONTROL_MEMORY_WRITE_WORD_OFFSET-1:CONTROL_MEMORY_WRITE_WORD_OFFSET];
         ALU_write_data_DO  <= ALU_write_data[DEFAULT_OFFSET_WORD_WIDTH + DEFAULT_OFFSET_WRITE_WORD_OFFSET-1:DEFAULT_OFFSET_WRITE_WORD_OFFSET];
         ALU_write_data_PO  <= ALU_write_data[PROGRAMMED_OFFSETS_WORD_WIDTH + PROGRAMMED_OFFSETS_WRITE_WORD_OFFSET-1:PROGRAMMED_OFFSETS_WRITE_WORD_OFFSET];
         ALU_write_data_INC <= ALU_write_data[INCREMENTS_WORD_WIDTH + INCREMENTS_WRITE_WORD_OFFSET-1:INCREMENTS_WRITE_WORD_OFFSET];
@@ -177,7 +161,6 @@ module Addressing_Mapped
 
     Addressing
     #(
-        .PC_WIDTH                           (PC_WIDTH),
         .WORD_WIDTH                         (WORD_WIDTH),
         .ADDR_WIDTH                         (ADDR_WIDTH),
         .D_OPERAND_WIDTH                    (D_OPERAND_WIDTH),
@@ -186,26 +169,14 @@ module Addressing_Mapped
         .THREAD_COUNT                       (THREAD_COUNT),
         .THREAD_ADDR_WIDTH                  (THREAD_ADDR_WIDTH),
 
-        .BASIC_BLOCK_COUNTER_WORD_WIDTH     (BASIC_BLOCK_COUNTER_WORD_WIDTH),
-        .BASIC_BLOCK_COUNTER_ADDR_WIDTH     (BASIC_BLOCK_COUNTER_ADDR_WIDTH),
-        .BASIC_BLOCK_COUNTER_DEPTH          (BASIC_BLOCK_COUNTER_DEPTH),
-        .BASIC_BLOCK_COUNTER_RAMSTYLE       (BASIC_BLOCK_COUNTER_RAMSTYLE),
-        .BASIC_BLOCK_COUNTER_INIT_FILE      (BASIC_BLOCK_COUNTER_INIT_FILE),
-
-        .CONTROL_MEMORY_WORD_WIDTH          (CONTROL_MEMORY_WORD_WIDTH),
-        .CONTROL_MEMORY_ADDR_WIDTH          (CONTROL_MEMORY_ADDR_WIDTH),
-        .CONTROL_MEMORY_DEPTH               (CONTROL_MEMORY_DEPTH),
-        .CONTROL_MEMORY_RAMSTYLE            (CONTROL_MEMORY_RAMSTYLE),
-        .CONTROL_MEMORY_INIT_FILE           (CONTROL_MEMORY_INIT_FILE),
-        .CONTROL_MEMORY_MATCH_WIDTH         (CONTROL_MEMORY_MATCH_WIDTH),
-        .CONTROL_MEMORY_COND_WIDTH          (CONTROL_MEMORY_COND_WIDTH),
-        .CONTROL_MEMORY_LINK_WIDTH          (CONTROL_MEMORY_LINK_WIDTH),
-
         .DEFAULT_OFFSET_WORD_WIDTH          (DEFAULT_OFFSET_WORD_WIDTH),
         .DEFAULT_OFFSET_ADDR_WIDTH          (DEFAULT_OFFSET_ADDR_WIDTH),
         .DEFAULT_OFFSET_DEPTH               (DEFAULT_OFFSET_DEPTH),
         .DEFAULT_OFFSET_RAMSTYLE            (DEFAULT_OFFSET_RAMSTYLE),
         .DEFAULT_OFFSET_INIT_FILE           (DEFAULT_OFFSET_INIT_FILE),
+
+        .PO_INC_COUNT                       (PO_INC_COUNT),
+        .PO_INC_COUNT_ADDR_WIDTH            (PO_INC_COUNT_ADDR_WIDTH),
 
         .PROGRAMMED_OFFSETS_WORD_WIDTH      (PROGRAMMED_OFFSETS_WORD_WIDTH),
         .PROGRAMMED_OFFSETS_ADDR_WIDTH      (PROGRAMMED_OFFSETS_ADDR_WIDTH),
@@ -222,14 +193,15 @@ module Addressing_Mapped
     Addressing
     (
         .clock                              (clock),
-        .PC                                 (PC),
 
         .addr_in                            (addr_in),
 
+        .PO_INC_index                       (PO_INC_index),
+        .indirect_memory                    (indirect_memory),
+        .shared_hardware_memory             (shared_hardware_memory),
+
         .IO_ready                           (IO_ready),
 
-        .ALU_wren_BBC                       (ALU_wren_BBC),
-        .ALU_wren_CTL                       (ALU_wren_CTL),
         .ALU_wren_DO                        (ALU_wren_DO),
         .ALU_wren_PO                        (ALU_wren_PO),
         .ALU_wren_INC                       (ALU_wren_INC),
@@ -237,8 +209,6 @@ module Addressing_Mapped
         .ALU_write_addr                     (ALU_write_addr),
         .ALU_write_data                     (ALU_write_data),
 
-        .ALU_write_data_BBC                 (ALU_write_data_BBC),
-        .ALU_write_data_CTL                 (ALU_write_data_CTL),
         .ALU_write_data_DO                  (ALU_write_data_DO),
         .ALU_write_data_PO                  (ALU_write_data_PO),
         .ALU_write_data_INC                 (ALU_write_data_INC),
