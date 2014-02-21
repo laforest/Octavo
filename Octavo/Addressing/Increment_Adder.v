@@ -12,11 +12,30 @@ module Increment_Adder
     input   wire    [INCREMENT_WORD_WIDTH-1:0]  increment,
     output  wire    [OFFSET_WORD_WIDTH-1:0]     offset_out
 );
-    reg     [OFFSET_WORD_WIDTH-1:0]    offset_out_raw;
+
+// -----------------------------------------------------------
+
+    wire    [OFFSET_WORD_WIDTH-1:0]     increment_reg;
+
+    delay_line
+    #(
+        .DEPTH  (1),
+        .WIDTH  (INCREMENT_WORD_WIDTH)
+    )
+    increment_pipeline
+    (
+        .clock  (clock),
+        .in     (increment),
+        .out    (increment_reg)
+    );
+
+// -----------------------------------------------------------
+
+    reg     [OFFSET_WORD_WIDTH-1:0]     offset_out_raw;
 
     // ECL XXX Fix: add signed increment support
     always @(*) begin
-        offset_out_raw <= offset_in + increment;
+        offset_out_raw <= offset_in + increment_reg;
     end
 
 // -----------------------------------------------------------
@@ -26,11 +45,12 @@ module Increment_Adder
         .DEPTH  (1),
         .WIDTH  (OFFSET_WORD_WIDTH)
     )
-    incr_adder_pipeline
+    offset_out_pipeline
     (
         .clock  (clock),
         .in     (offset_out_raw),
         .out    (offset_out)
     );
+`
 endmodule
 
