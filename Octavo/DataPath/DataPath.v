@@ -430,9 +430,9 @@ module DataPath
         .instr_out      (I_read_data_AB_masked)
     ); 
 
-    wire    [INSTR_WIDTH-1:0]   AB_instr;
-
 // ----------------------------------------------------------
+
+    wire    [INSTR_WIDTH-1:0]   AB_instr;
 
     delay_line 
     #(
