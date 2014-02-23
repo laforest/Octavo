@@ -123,7 +123,21 @@ module Addressing
 
 // -----------------------------------------------------------
 
-// TODO: generate stage 2 and 3 delayed versions of indirect_memory, and stage 2 version of shared_hardware_memory
+    // Use for the PO wren signals
+    wire    indirect_memory_stage3;
+
+    delay_line
+    #(
+        .DEPTH  (1),
+        .WIDTH  (1)
+    )
+    indirect_memory_pipeline
+    (
+        .clock  (clock),
+        .in     (indirect_memory),
+        .out    (indirect_memory_stage3)
+    );
+
 
 // -----------------------------------------------------------
 

@@ -11,6 +11,17 @@ module Addressing_Mapped
     parameter   THREAD_COUNT                                = 0,
     parameter   THREAD_ADDR_WIDTH                           = 0,
 
+    parameter   IO_READ_PORT_COUNT                          = 0,
+    parameter   IO_READ_PORT_BASE_ADDR                      = 0,
+    parameter   IO_READ_PORT_ADDR_WIDTH                     = 0,
+    parameter   IO_WRITE_PORT_COUNT                         = 0,
+    parameter   IO_WRITE_PORT_BASE_ADDR                     = 0,
+    parameter   IO_WRITE_PORT_ADDR_WIDTH                    = 0,
+
+    parameter   H_DEPTH                                     = 0,
+    parameter   H_WRITE_ADDR_OFFSET                         = 0,
+    parameter   H_ADDR_WIDTH                                = 0,
+
     parameter   DEFAULT_OFFSET_WRITE_WORD_OFFSET            = 0,
     parameter   DEFAULT_OFFSET_WRITE_ADDR_OFFSET            = 0,
     parameter   DEFAULT_OFFSET_WORD_WIDTH                   = 0,
@@ -58,7 +69,90 @@ module Addressing_Mapped
 
 // -----------------------------------------------------------
 
-// TODO: address decoders for indirect and shared hardware.
+    // Does the address access indirected memory? (the read mapping of the programmed offsets)
+    wire    indirect_memory;
+
+    Address_Decoder
+    #(
+        .ADDR_COUNT     (PO_INC_COUNT),
+        .ADDR_BASE      (PO_INC_READ_BASE_ADDR),
+        .ADDR_WIDTH     (PO_INC_COUNT_ADDR_WIDTH),
+        .REGISTERED     (`TRUE)
+    )
+    indirect
+    (
+        .clock          (clock),
+        .addr           (addr_in),
+        .hit            (indirect_memory)
+    );
+
+// -----------------------------------------------------------
+
+    // Does the address access this memory's IO read ports?
+    wire    IO_read_memory;
+
+    Address_Decoder
+    #(
+        .ADDR_COUNT     (IO_READ_PORT_COUNT),
+        .ADDR_BASE      (IO_READ_PORT_BASE_ADDR),
+        .ADDR_WIDTH     (IO_READ_PORT_ADDR_WIDTH),
+        .REGISTERED     (`TRUE)
+    )
+    IO_read
+    (
+        .clock          (clock),
+        .addr           (addr_in),
+        .hit            (IO_read_memory)
+    );
+
+// -----------------------------------------------------------
+
+    // Does the address access this memory's IO write ports?
+    wire    IO_write_memory;
+
+    Address_Decoder
+    #(
+        .ADDR_COUNT     (IO_WRITE_PORT_COUNT),
+        .ADDR_BASE      (IO_WRITE_PORT_BASE_ADDR),
+        .ADDR_WIDTH     (IO_WRITE_PORT_ADDR_WIDTH),
+        .REGISTERED     (`TRUE)
+    )
+    IO_write
+    (
+        .clock          (clock),
+        .addr           (addr_in),
+        .hit            (IO_write_memory)
+    );
+
+// -----------------------------------------------------------
+
+    // Does the address access the High Memory?
+    // Only possible for D operand. For A/B this should optimize away.
+    wire    high_memory;
+
+    Address_Decoder
+    #(
+        .ADDR_COUNT     (H_DEPTH),
+        .ADDR_BASE      (H_WRITE_ADDR_OFFSET),
+        .ADDR_WIDTH     (H_ADDR_WIDTH),
+        .REGISTERED     (`TRUE)
+    )
+    high
+    (
+        .clock          (clock),
+        .addr           (addr_in),
+        .hit            (high_memory)
+    );
+
+// -----------------------------------------------------------
+
+    // Does the address access shared hardware? (unique instance, shared by all threads at same addr)
+    // Currently, this means High Memory and I/O ports.
+    wire    shared_hardware_memory;
+
+    always @(*) begin
+        shared_hardware_memory <= high_memory | IO_read_memory | IO_write_memory;
+    end
 
 // -----------------------------------------------------------
 
