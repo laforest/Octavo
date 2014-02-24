@@ -15,7 +15,7 @@ module Increment_Adder
 
 // -----------------------------------------------------------
 
-    wire    [OFFSET_WORD_WIDTH-1:0]     increment_reg;
+    wire    [INCREMENT_WORD_WIDTH-1:0]     increment_reg;
 
     delay_line
     #(
@@ -51,6 +51,6 @@ module Increment_Adder
         .in     (offset_out_raw),
         .out    (offset_out)
     );
-`
+
 endmodule
 

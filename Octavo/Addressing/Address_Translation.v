@@ -12,6 +12,10 @@ module Address_Translation
 
 // -----------------------------------------------------------
 
+    parameter   A_IO_READ_PORT_COUNT                        = 0,
+    parameter   A_IO_READ_PORT_BASE_ADDR                    = 0,
+    parameter   A_IO_READ_PORT_ADDR_WIDTH                   = 0,
+
     parameter   A_DEFAULT_OFFSET_WRITE_WORD_OFFSET          = 0,
     parameter   A_DEFAULT_OFFSET_WRITE_ADDR_OFFSET          = 0,
     parameter   A_DEFAULT_OFFSET_WORD_WIDTH                 = 0,
@@ -20,6 +24,7 @@ module Address_Translation
     parameter   A_DEFAULT_OFFSET_RAMSTYLE                   = 0,
     parameter   A_DEFAULT_OFFSET_INIT_FILE                  = 0,
 
+    parameter   A_PO_INC_READ_BASE_ADDR                     = 0,
     parameter   A_PO_INC_COUNT                              = 0,
     parameter   A_PO_INC_COUNT_ADDR_WIDTH                   = 0,
 
@@ -41,6 +46,10 @@ module Address_Translation
 
 // -----------------------------------------------------------
 
+    parameter   B_IO_READ_PORT_COUNT                        = 0,
+    parameter   B_IO_READ_PORT_BASE_ADDR                    = 0,
+    parameter   B_IO_READ_PORT_ADDR_WIDTH                   = 0,
+
     parameter   B_DEFAULT_OFFSET_WRITE_WORD_OFFSET          = 0,
     parameter   B_DEFAULT_OFFSET_WRITE_ADDR_OFFSET          = 0,
     parameter   B_DEFAULT_OFFSET_WORD_WIDTH                 = 0,
@@ -49,6 +58,7 @@ module Address_Translation
     parameter   B_DEFAULT_OFFSET_RAMSTYLE                   = 0,
     parameter   B_DEFAULT_OFFSET_INIT_FILE                  = 0,
 
+    parameter   B_PO_INC_READ_BASE_ADDR                     = 0,
     parameter   B_PO_INC_COUNT                              = 0,
     parameter   B_PO_INC_COUNT_ADDR_WIDTH                   = 0,
 
@@ -70,6 +80,18 @@ module Address_Translation
 
 // -----------------------------------------------------------
 
+    parameter   A_IO_WRITE_PORT_COUNT                       = 0,
+    parameter   A_IO_WRITE_PORT_BASE_ADDR                   = 0,
+    parameter   A_IO_WRITE_PORT_ADDR_WIDTH                  = 0,
+
+    parameter   B_IO_WRITE_PORT_COUNT                       = 0,
+    parameter   B_IO_WRITE_PORT_BASE_ADDR                   = 0,
+    parameter   B_IO_WRITE_PORT_ADDR_WIDTH                  = 0,
+
+    parameter   H_DEPTH                                     = 0,
+    parameter   H_WRITE_ADDR_OFFSET                         = 0,
+    parameter   H_ADDR_WIDTH                                = 0,
+
     parameter   D_DEFAULT_OFFSET_WRITE_WORD_OFFSET          = 0,
     parameter   D_DEFAULT_OFFSET_WRITE_ADDR_OFFSET          = 0,
     parameter   D_DEFAULT_OFFSET_WORD_WIDTH                 = 0,
@@ -78,6 +100,7 @@ module Address_Translation
     parameter   D_DEFAULT_OFFSET_RAMSTYLE                   = 0,
     parameter   D_DEFAULT_OFFSET_INIT_FILE                  = 0,
 
+    parameter   D_PO_INC_READ_BASE_ADDR                     = 0,
     parameter   D_PO_INC_COUNT                              = 0,
     parameter   D_PO_INC_COUNT_ADDR_WIDTH                   = 0,
 
@@ -120,7 +143,7 @@ module Address_Translation
 
 // -----------------------------------------------------------
 
-    Addressing_Mapped
+    Addressing_Mapped_AB
     #(
         .WORD_WIDTH                                 (WORD_WIDTH),
         .ADDR_WIDTH                                 (A_OPERAND_WIDTH),
@@ -129,6 +152,10 @@ module Address_Translation
         .INITIAL_THREAD                             (INITIAL_THREAD),
         .THREAD_COUNT                               (THREAD_COUNT),
         .THREAD_ADDR_WIDTH                          (THREAD_ADDR_WIDTH),
+
+        .IO_READ_PORT_COUNT                         (A_IO_READ_PORT_COUNT),
+        .IO_READ_PORT_BASE_ADDR                     (A_IO_READ_PORT_BASE_ADDR),
+        .IO_READ_PORT_ADDR_WIDTH                    (A_IO_READ_PORT_ADDR_WIDTH),
 
         .DEFAULT_OFFSET_WRITE_WORD_OFFSET           (A_DEFAULT_OFFSET_WRITE_WORD_OFFSET),
         .DEFAULT_OFFSET_WRITE_ADDR_OFFSET           (A_DEFAULT_OFFSET_WRITE_ADDR_OFFSET),
@@ -169,7 +196,7 @@ module Address_Translation
 
 // -----------------------------------------------------------
 
-    Addressing_Mapped
+    Addressing_Mapped_AB
     #(
         .WORD_WIDTH                                 (WORD_WIDTH),
         .ADDR_WIDTH                                 (B_OPERAND_WIDTH),
@@ -178,6 +205,10 @@ module Address_Translation
         .INITIAL_THREAD                             (INITIAL_THREAD),
         .THREAD_COUNT                               (THREAD_COUNT),
         .THREAD_ADDR_WIDTH                          (THREAD_ADDR_WIDTH),
+
+        .IO_READ_PORT_COUNT                         (B_IO_READ_PORT_COUNT),
+        .IO_READ_PORT_BASE_ADDR                     (B_IO_READ_PORT_BASE_ADDR),
+        .IO_READ_PORT_ADDR_WIDTH                    (B_IO_READ_PORT_ADDR_WIDTH),
 
         .DEFAULT_OFFSET_WRITE_WORD_OFFSET           (B_DEFAULT_OFFSET_WRITE_WORD_OFFSET),
         .DEFAULT_OFFSET_WRITE_ADDR_OFFSET           (B_DEFAULT_OFFSET_WRITE_ADDR_OFFSET),
@@ -218,7 +249,7 @@ module Address_Translation
 
 // -----------------------------------------------------------
 
-    Addressing_Mapped
+    Addressing_Mapped_D
     #(
         .WORD_WIDTH                                 (WORD_WIDTH),
         .ADDR_WIDTH                                 (D_OPERAND_WIDTH),
@@ -227,6 +258,18 @@ module Address_Translation
         .INITIAL_THREAD                             (INITIAL_THREAD),
         .THREAD_COUNT                               (THREAD_COUNT),
         .THREAD_ADDR_WIDTH                          (THREAD_ADDR_WIDTH),
+
+        .A_IO_WRITE_PORT_COUNT                      (A_IO_WRITE_PORT_COUNT),
+        .A_IO_WRITE_PORT_BASE_ADDR                  (A_IO_WRITE_PORT_BASE_ADDR),
+        .A_IO_WRITE_PORT_ADDR_WIDTH                 (A_IO_WRITE_PORT_ADDR_WIDTH),
+        
+        .B_IO_WRITE_PORT_COUNT                      (B_IO_WRITE_PORT_COUNT),
+        .B_IO_WRITE_PORT_BASE_ADDR                  (B_IO_WRITE_PORT_BASE_ADDR),
+        .B_IO_WRITE_PORT_ADDR_WIDTH                 (B_IO_WRITE_PORT_ADDR_WIDTH),
+        
+        .H_DEPTH                                    (H_DEPTH),
+        .H_WRITE_ADDR_OFFSET                        (H_WRITE_ADDR_OFFSET),
+        .H_ADDR_WIDTH                               (H_ADDR_WIDTH),
 
         .DEFAULT_OFFSET_WRITE_WORD_OFFSET           (D_DEFAULT_OFFSET_WRITE_WORD_OFFSET),
         .DEFAULT_OFFSET_WRITE_ADDR_OFFSET           (D_DEFAULT_OFFSET_WRITE_ADDR_OFFSET),

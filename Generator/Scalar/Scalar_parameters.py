@@ -6,6 +6,7 @@ Many parameters are calculated from others.
 """
 
 import string
+import math
 
 from Misc import misc, parameters_misc
 
@@ -171,10 +172,6 @@ def generate_addressing_parameters(common_values, parameters = {}):
     mem_init  = '"' + common_values["MEM_INIT_FILE"] + '"'
     mem_style = '"MLAB,no_rw_check"'
 
-    # ECL XXX hardcoded...
-    block_addr_width = 7
-    block_depth = 2**block_addr_width
-
     def generate_actual_parameters(prefix, parameters):
         new_parameters = {}
         for key,value in parameters.items():
@@ -188,96 +185,78 @@ def generate_addressing_parameters(common_values, parameters = {}):
             new_parameters.append(generate_actual_parameters(memory, parameters))
         return new_parameters
 
-    default_BBC_parameters = {
-        "_BASIC_BLOCK_COUNTER_WRITE_WORD_OFFSET"   :  None,
-        "_BASIC_BLOCK_COUNTER_WRITE_ADDR_OFFSET"   :  base_addr,
-        "_BASIC_BLOCK_COUNTER_WORD_WIDTH"          :  block_addr_width,
-        "_BASIC_BLOCK_COUNTER_ADDR_WIDTH"          :  3,
-        "_BASIC_BLOCK_COUNTER_DEPTH"               :  8, # ECL XXX hardcoded...
-        "_BASIC_BLOCK_COUNTER_RAMSTYLE"            :  mem_style,
-        "_BASIC_BLOCK_COUNTER_INIT_FILE"           :  mem_init
-    }
-
-    D_BBC_parameters, A_BBC_parameters, B_BBC_parameters = generate_all_actual_parameters(default_BBC_parameters)
-    D_BBC_parameters["D_BASIC_BLOCK_COUNTER_WRITE_WORD_OFFSET"] = 24
-    A_BBC_parameters["A_BASIC_BLOCK_COUNTER_WRITE_WORD_OFFSET"] = 12
-    B_BBC_parameters["B_BASIC_BLOCK_COUNTER_WRITE_WORD_OFFSET"] = 0
-
     default_DO_parameters = {
         "_DEFAULT_OFFSET_WRITE_WORD_OFFSET" : None,
-        "_DEFAULT_OFFSET_WRITE_ADDR_OFFSET" : base_addr + 8,
+        "_DEFAULT_OFFSET_WRITE_ADDR_OFFSET" : base_addr,
         "_DEFAULT_OFFSET_WORD_WIDTH"        : 10,
         "_DEFAULT_OFFSET_ADDR_WIDTH"        : 3,
-        "_DEFAULT_OFFSET_DEPTH"             : 8, # ECL XXX hardcoded...
+        "_DEFAULT_OFFSET_DEPTH"             : 8, # ECL XXX hardcoded...one per thread
         "_DEFAULT_OFFSET_RAMSTYLE"          : mem_style,
         "_DEFAULT_OFFSET_INIT_FILE"         : mem_init
     }
 
     D_DO_parameters, A_DO_parameters, B_DO_parameters = generate_all_actual_parameters(default_DO_parameters)
     D_DO_parameters["D_DEFAULT_OFFSET_WORD_WIDTH"] = 12
-    D_DO_parameters["D_DEFAULT_OFFSET_WRITE_WORD_OFFSET"] = 24
-    A_DO_parameters["A_DEFAULT_OFFSET_WRITE_WORD_OFFSET"] = 12
-    B_DO_parameters["B_DEFAULT_OFFSET_WRITE_WORD_OFFSET"] = 12
+    # Lay them in the same memory word, just as the instruction operand they modify
+    D_DO_parameters["D_DEFAULT_OFFSET_WRITE_WORD_OFFSET"] = 20
+    A_DO_parameters["A_DEFAULT_OFFSET_WRITE_WORD_OFFSET"] = 10
+    B_DO_parameters["B_DEFAULT_OFFSET_WRITE_WORD_OFFSET"] = 0
 
-    default_CTL_parameters = {
-        "_CONTROL_MEMORY_WRITE_WORD_OFFSET"    :   23,
-        "_CONTROL_MEMORY_WRITE_ADDR_OFFSET"    :   None,
-        "_CONTROL_MEMORY_WORD_WIDTH"           :   13,
-        "_CONTROL_MEMORY_ADDR_WIDTH"           :   block_addr_width,
-        "_CONTROL_MEMORY_DEPTH"                :   block_depth,
-        "_CONTROL_MEMORY_RAMSTYLE"             :   mem_style,
-        "_CONTROL_MEMORY_INIT_FILE"            :   mem_init,
-        "_CONTROL_MEMORY_MATCH_WIDTH"          :   3,
-        "_CONTROL_MEMORY_COND_WIDTH"           :   3,
-        "_CONTROL_MEMORY_LINK_WIDTH"           :   7
+    default_PO_INC_parameters = {
+        "_PO_INC_READ_BASE_ADDR"   : None,
+        "_PO_INC_COUNT"            : 2,
+        "_PO_INC_COUNT_ADDR_WIDTH" : 1
     }
 
-    D_CTL_parameters, A_CTL_parameters, B_CTL_parameters = generate_all_actual_parameters(default_CTL_parameters)
-    D_CTL_parameters["D_CONTROL_MEMORY_WRITE_ADDR_OFFSET"] = base_addr + 8 + 8
-    A_CTL_parameters["A_CONTROL_MEMORY_WRITE_ADDR_OFFSET"] = base_addr + 8 + 8 + block_depth
-    B_CTL_parameters["B_CONTROL_MEMORY_WRITE_ADDR_OFFSET"] = base_addr + 8 + 8 + block_depth + block_depth
+    D_PO_INC_parameters, A_PO_INC_parameters, B_PO_INC_parameters = generate_all_actual_parameters(default_PO_INC_parameters)
+    # Place the write offsets just before the end of High Memory
+    D_PO_INC_parameters["D_PO_INC_READ_BASE_ADDR"] = common_values["H_WRITE_ADDR_OFFSET"] + common_values["H_DEPTH"] - D_PO_INC_parameters["D_PO_INC_COUNT"] - 1
+    # Place the read offsets just before the I/O read ports.
+    A_PO_INC_parameters["A_PO_INC_READ_BASE_ADDR"] = common_values["A_IO_READ_PORT_BASE_ADDR"] - A_PO_INC_parameters["A_PO_INC_COUNT"]
+    B_PO_INC_parameters["B_PO_INC_READ_BASE_ADDR"] = common_values["B_IO_READ_PORT_BASE_ADDR"] - B_PO_INC_parameters["B_PO_INC_COUNT"]
 
     default_PO_parameters = {
-        "_PROGRAMMED_OFFSETS_WRITE_WORD_OFFSET" : 11,
-        "_PROGRAMMED_OFFSETS_WRITE_ADDR_OFFSET" : None,
+        "_PROGRAMMED_OFFSETS_WRITE_WORD_OFFSET" : None,
+        "_PROGRAMMED_OFFSETS_WRITE_ADDR_OFFSET" : base_addr + 8,
         "_PROGRAMMED_OFFSETS_WORD_WIDTH"        : 10,
-        "_PROGRAMMED_OFFSETS_ADDR_WIDTH"        : block_addr_width,
-        "_PROGRAMMED_OFFSETS_DEPTH"             : block_depth,
+        "_PROGRAMMED_OFFSETS_ADDR_WIDTH"        : 3,
+        "_PROGRAMMED_OFFSETS_DEPTH"             : 8,
         "_PROGRAMMED_OFFSETS_RAMSTYLE"          : mem_style,
         "_PROGRAMMED_OFFSETS_INIT_FILE"         : mem_init
     }
 
     D_PO_parameters, A_PO_parameters, B_PO_parameters = generate_all_actual_parameters(default_PO_parameters)
     D_PO_parameters["D_PROGRAMMED_OFFSETS_WORD_WIDTH"] = 12
-    D_PO_parameters["D_PROGRAMMED_OFFSETS_WRITE_ADDR_OFFSET"] = base_addr + 8 + 8
-    A_PO_parameters["A_PROGRAMMED_OFFSETS_WRITE_ADDR_OFFSET"] = base_addr + 8 + 8 + block_depth
-    B_PO_parameters["B_PROGRAMMED_OFFSETS_WRITE_ADDR_OFFSET"] = base_addr + 8 + 8 + block_depth + block_depth
+    # Lay them in the same memory word, just as the instruction operand they modify
+    D_PO_parameters["D_PROGRAMMED_OFFSETS_WRITE_WORD_OFFSET"] = 20
+    A_PO_parameters["A_PROGRAMMED_OFFSETS_WRITE_WORD_OFFSET"] = 10
+    B_PO_parameters["B_PROGRAMMED_OFFSETS_WRITE_WORD_OFFSET"] = 0
 
     default_INC_parameters = {
-        "_INCREMENTS_WRITE_WORD_OFFSET" : 0,
-        "_INCREMENTS_WRITE_ADDR_OFFSET" : None,
+        "_INCREMENTS_WRITE_WORD_OFFSET" : None,
+        "_INCREMENTS_WRITE_ADDR_OFFSET" : base_addr + 8,
         "_INCREMENTS_WORD_WIDTH"        : 1,
-        "_INCREMENTS_ADDR_WIDTH"        : block_addr_width,
-        "_INCREMENTS_DEPTH"             : block_depth,
+        "_INCREMENTS_ADDR_WIDTH"        : 3,
+        "_INCREMENTS_DEPTH"             : 8,
         "_INCREMENTS_RAMSTYLE"          : mem_style,
         "_INCREMENTS_INIT_FILE"         : mem_init
     }
 
     D_INC_parameters, A_INC_parameters, B_INC_parameters = generate_all_actual_parameters(default_INC_parameters)
-    D_INC_parameters["D_INCREMENTS_WRITE_ADDR_OFFSET"] = base_addr + 8 + 8
-    A_INC_parameters["A_INCREMENTS_WRITE_ADDR_OFFSET"] = base_addr + 8 + 8 + block_depth
-    B_INC_parameters["B_INCREMENTS_WRITE_ADDR_OFFSET"] = base_addr + 8 + 8 + block_depth + block_depth
+    # Lay them in the same memory word, just past the offsets, in the same order
+    D_INC_parameters["D_INCREMENTS_WRITE_WORD_OFFSET"] = 34
+    A_INC_parameters["A_INCREMENTS_WRITE_WORD_OFFSET"] = 33
+    B_INC_parameters["B_INCREMENTS_WRITE_WORD_OFFSET"] = 32
 
     addressing_parameters = {
-        # So write thread is 4, and read thread is 1, see Addressing_Thread_Number.v
+        # So write thread is 4, and read thread is 0, see Addressing_Thread_Number.v
         "ADDRESS_TRANSLATION_INITIAL_THREAD" : 3
     }
 
-    for entry in [D_BBC_parameters, A_BBC_parameters, B_BBC_parameters, 
-                  D_DO_parameters,  A_DO_parameters,  B_DO_parameters, 
-                  D_CTL_parameters, A_CTL_parameters, B_CTL_parameters, 
-                  D_PO_parameters,  A_PO_parameters,  B_PO_parameters, 
-                  D_INC_parameters, A_INC_parameters, B_INC_parameters]:
+    for entry in [D_DO_parameters,      A_DO_parameters,      B_DO_parameters, 
+                  D_PO_INC_parameters,  A_PO_INC_parameters,  B_PO_INC_parameters, 
+                  D_PO_parameters,      A_PO_parameters,      B_PO_parameters, 
+                  D_INC_parameters,     A_INC_parameters,     B_INC_parameters]:
         addressing_parameters.update(entry)
 
     parameters_misc.override(addressing_parameters, parameters)

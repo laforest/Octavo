@@ -1,7 +1,7 @@
 
-// Wraps Addressing with data and address memory map info
+// Wraps Addressing with data and address memory map info, for D operand addresses.
 
-module Addressing_Mapped
+module Addressing_Mapped_D
 #(
     parameter   WORD_WIDTH                                  = 0,
     parameter   ADDR_WIDTH                                  = 0,
@@ -11,12 +11,13 @@ module Addressing_Mapped
     parameter   THREAD_COUNT                                = 0,
     parameter   THREAD_ADDR_WIDTH                           = 0,
 
-    parameter   IO_READ_PORT_COUNT                          = 0,
-    parameter   IO_READ_PORT_BASE_ADDR                      = 0,
-    parameter   IO_READ_PORT_ADDR_WIDTH                     = 0,
-    parameter   IO_WRITE_PORT_COUNT                         = 0,
-    parameter   IO_WRITE_PORT_BASE_ADDR                     = 0,
-    parameter   IO_WRITE_PORT_ADDR_WIDTH                    = 0,
+    parameter   A_IO_WRITE_PORT_COUNT                       = 0,
+    parameter   A_IO_WRITE_PORT_BASE_ADDR                   = 0,
+    parameter   A_IO_WRITE_PORT_ADDR_WIDTH                  = 0,
+
+    parameter   B_IO_WRITE_PORT_COUNT                       = 0,
+    parameter   B_IO_WRITE_PORT_BASE_ADDR                   = 0,
+    parameter   B_IO_WRITE_PORT_ADDR_WIDTH                  = 0,
 
     parameter   H_DEPTH                                     = 0,
     parameter   H_WRITE_ADDR_OFFSET                         = 0,
@@ -76,7 +77,7 @@ module Addressing_Mapped
     #(
         .ADDR_COUNT     (PO_INC_COUNT),
         .ADDR_BASE      (PO_INC_READ_BASE_ADDR),
-        .ADDR_WIDTH     (PO_INC_COUNT_ADDR_WIDTH),
+        .ADDR_WIDTH     (ADDR_WIDTH),
         .REGISTERED     (`TRUE)
     )
     indirect
@@ -88,53 +89,54 @@ module Addressing_Mapped
 
 // -----------------------------------------------------------
 
-    // Does the address access this memory's IO read ports?
-    wire    IO_read_memory;
+    // Does the address access A mem IO write ports?
+    wire    A_IO_write_memory;
 
     Address_Decoder
     #(
-        .ADDR_COUNT     (IO_READ_PORT_COUNT),
-        .ADDR_BASE      (IO_READ_PORT_BASE_ADDR),
-        .ADDR_WIDTH     (IO_READ_PORT_ADDR_WIDTH),
+        .ADDR_COUNT     (A_IO_WRITE_PORT_COUNT),
+        .ADDR_BASE      (A_IO_WRITE_PORT_BASE_ADDR),
+        .ADDR_WIDTH     (ADDR_WIDTH),
         .REGISTERED     (`TRUE)
     )
-    IO_read
+    A_IO_write
     (
         .clock          (clock),
         .addr           (addr_in),
-        .hit            (IO_read_memory)
+        .hit            (A_IO_write_memory)
     );
 
 // -----------------------------------------------------------
 
-    // Does the address access this memory's IO write ports?
-    wire    IO_write_memory;
+    // Does the address access B mem IO write ports?
+    wire    B_IO_write_memory;
 
     Address_Decoder
     #(
-        .ADDR_COUNT     (IO_WRITE_PORT_COUNT),
-        .ADDR_BASE      (IO_WRITE_PORT_BASE_ADDR),
-        .ADDR_WIDTH     (IO_WRITE_PORT_ADDR_WIDTH),
+        .ADDR_COUNT     (B_IO_WRITE_PORT_COUNT),
+        .ADDR_BASE      (B_IO_WRITE_PORT_BASE_ADDR),
+        .ADDR_WIDTH     (ADDR_WIDTH),
         .REGISTERED     (`TRUE)
     )
-    IO_write
+    B_IO_write
     (
         .clock          (clock),
         .addr           (addr_in),
-        .hit            (IO_write_memory)
+        .hit            (B_IO_write_memory)
     );
+
 
 // -----------------------------------------------------------
 
     // Does the address access the High Memory?
-    // Only possible for D operand. For A/B this should optimize away.
+    // Only possible for D operand.
     wire    high_memory;
 
     Address_Decoder
     #(
         .ADDR_COUNT     (H_DEPTH),
         .ADDR_BASE      (H_WRITE_ADDR_OFFSET),
-        .ADDR_WIDTH     (H_ADDR_WIDTH),
+        .ADDR_WIDTH     (ADDR_WIDTH),
         .REGISTERED     (`TRUE)
     )
     high
@@ -147,16 +149,18 @@ module Addressing_Mapped
 // -----------------------------------------------------------
 
     // Does the address access shared hardware? (unique instance, shared by all threads at same addr)
-    // Currently, this means High Memory and I/O ports.
-    wire    shared_hardware_memory;
+    // Currently, for D operand, this means High Memory and I/O ports.
+    // The D operand can't access the A/B indirect read memory mappings and I/O read ports.
+    // Any writes to those go to RAM, but cannot be read back except if overlapping a suitably set PO/INC mapping.
+    reg     shared_hardware_memory;
 
     always @(*) begin
-        shared_hardware_memory <= high_memory | IO_read_memory | IO_write_memory;
+        shared_hardware_memory <= high_memory | A_IO_write_memory | B_IO_write_memory;
     end
 
 // -----------------------------------------------------------
 
-    // Translates the read address LSB to internal PO/INC instance order
+    // Translates the original address LSB to internal PO/INC instance order
     wire    [PO_INC_COUNT_ADDR_WIDTH-1:0]   PO_INC_index;
 
     Address_Translator
@@ -197,18 +201,14 @@ module Addressing_Mapped
     wire    [PO_INC_COUNT-1:0]  ALU_wren_INC;
 
     genvar count;
-    integer PO_offset;
-    integer INC_offset;
 
     generate
-        for(count = 0; count < PO_INC_COUNT; count = count + 1) begin
-
-            PO_offset = PROGRAMMED_OFFSETS_WRITE_ADDR_OFFSET + (PROGRAMMED_OFFSETS_DEPTH * count);
+        for(count = 0; count < PO_INC_COUNT; count = count + 1) begin : PO_INC_ALU_wren
 
             Address_Decoder
             #(
                 .ADDR_COUNT     (PROGRAMMED_OFFSETS_DEPTH),
-                .ADDR_BASE      (PO_offset),
+                .ADDR_BASE      (PROGRAMMED_OFFSETS_WRITE_ADDR_OFFSET + (PROGRAMMED_OFFSETS_DEPTH * count)),
                 .ADDR_WIDTH     (D_OPERAND_WIDTH),
                 .REGISTERED     (`FALSE)
             )
@@ -219,12 +219,10 @@ module Addressing_Mapped
                 .hit            (ALU_wren_PO[count])
             );
 
-            INC_offset = INCREMENTS_WRITE_ADDR_OFFSET + (INCREMENTS_DEPTH * count);
-
             Address_Decoder
             #(
                 .ADDR_COUNT     (INCREMENTS_DEPTH),
-                .ADDR_BASE      (INC_offset),
+                .ADDR_BASE      (INCREMENTS_WRITE_ADDR_OFFSET + (INCREMENTS_DEPTH * count)),
                 .ADDR_WIDTH     (D_OPERAND_WIDTH),
                 .REGISTERED     (`FALSE)
             )

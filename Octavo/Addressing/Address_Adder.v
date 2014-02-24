@@ -12,7 +12,7 @@ module Address_Adder
     input   wire    [WORD_WIDTH-1:0]    addr_in,
     input   wire    [WORD_WIDTH-1:0]    offset,
     output  wire    [WORD_WIDTH-1:0]    addr_out
-)
+);
 
 // -----------------------------------------------------------
 
@@ -51,7 +51,6 @@ module Address_Adder
         .in     (addr_out_raw),
         .out    (addr_out)
     );
-`
 
 endmodule
 

@@ -76,14 +76,11 @@ set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/IO/IO_Check.v
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/IO/IO_Read.v
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/IO/IO_Write.v
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Addressing/Address_Adder.v
-set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Addressing/Addressing_Mapped.v
+set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Addressing/Addressing_Mapped_AB.v
+set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Addressing/Addressing_Mapped_D.v
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Addressing/Addressing_Thread_Number.v
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Addressing/Addressing.v
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Addressing/Address_Translation.v
-set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Addressing/Basic_Block_Counter.v
-set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Addressing/Basic_Block_End.v
-set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Addressing/Basic_Block_Flags.v
-set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Addressing/Control_Memory.v
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Addressing/Default_Offset.v
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Addressing/Increment_Adder.v
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Addressing/Increments.v

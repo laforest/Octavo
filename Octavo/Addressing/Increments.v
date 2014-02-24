@@ -1,11 +1,10 @@
 
 // Contains different increments added back to the Programmed_Offset values.
 
-// ECL XXX Because, for simplicity, the Addressing module for D operands
-// works with 12 bits instead of the 10 we only really need, once the A/B/D
-// Programmed Offsets are placed in the same memory word, only 4 bits
-// remain, so we can only have 1-bit increments for now. Reducing D
-// Addressing to 10 bits leaves 6 bits, for 2-bit (signed!) increments.
+// ECL XXX Because, for simplicity, the Addressing module for D operands works
+// with 12 bits instead of 10 once the A/B/D Programmed Offsets are placed in
+// the same memory word, only 4 bits remain, so we can only have 1-bit
+// increments for now. 
 
 module Increments
 #(

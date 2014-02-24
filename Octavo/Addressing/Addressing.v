@@ -69,7 +69,7 @@ module Addressing
     wire    [PO_INC_COUNT-1:0]                      ALU_wren_PO_synced;
     wire    [PO_INC_COUNT-1:0]                      ALU_wren_INC_synced;
 
-    wire    [ADDR_WIDTH-1:0]                        ALU_write_addr_synced;
+    wire    [D_OPERAND_WIDTH-1:0]                   ALU_write_addr_synced;
     wire    [WORD_WIDTH-1:0]                        ALU_write_data_synced;
 
     wire    [DEFAULT_OFFSET_WORD_WIDTH-1:0]         ALU_write_data_DO_synced;
@@ -83,7 +83,7 @@ module Addressing
 
     Write_Synchronize
     #(
-        .PIPE_DEPTH                     (2)
+        .PIPE_DEPTH                     (2),
 
         .WORD_WIDTH                     (WORD_WIDTH),
         .ADDR_WIDTH                     (D_OPERAND_WIDTH),
@@ -164,7 +164,7 @@ module Addressing
     genvar count;
     
     generate
-        for(count = 0; count < PO_INC_COUNT; count = count + 1) begin
+        for(count = 0; count < PO_INC_COUNT; count = count + 1) begin : local_PO_wren_generator
             Address_Decoder
             #(
                 .ADDR_COUNT     (1),
@@ -212,7 +212,7 @@ module Addressing
     TID
     (
         .clock              (clock),
-        .read_thread_MEM    (read_thread),
+        .read_thread        (read_thread),
         .write_thread       (write_thread)
     );
 
@@ -241,8 +241,8 @@ module Addressing
 // -----------------------------------------------------------
 
     wire    [ PO_INC_COUNT-1:0]                                     PO_wren;
-    wire    [ PO_INC_COUNT_ADDR_WIDTH-1:0]                          PO_write_addr;
-    wire    [ PROGRAMMED_OFFSETS_WORD_WIDTH-1:0]                    PO_write_data;
+    wire    [(PO_INC_COUNT * PROGRAMMED_OFFSETS_ADDR_WIDTH)-1:0]    PO_write_addr;
+    wire    [(PO_INC_COUNT * PROGRAMMED_OFFSETS_WORD_WIDTH)-1:0]    PO_write_data;
     wire    [(PO_INC_COUNT * PROGRAMMED_OFFSETS_WORD_WIDTH)-1:0]    programmed_offsets;
 
     Programmed_Offsets
@@ -267,9 +267,11 @@ module Addressing
 
 // -----------------------------------------------------------
 
+    wire    [PROGRAMMED_OFFSETS_WORD_WIDTH-1:0]    programmed_offset;
+
     Addressed_Mux
     #(
-        .WORD_WIDTH         (PROGRAMMED_OFFSET_WORD_WIDTH),
+        .WORD_WIDTH         (PROGRAMMED_OFFSETS_WORD_WIDTH),
         .ADDR_WIDTH         (PO_INC_COUNT_ADDR_WIDTH),
         .INPUT_COUNT        (PO_INC_COUNT),
         .REGISTERED         (`TRUE)
@@ -307,7 +309,7 @@ module Addressing
 
 // -----------------------------------------------------------
 
-    wire    [INCREMENTS_WORD_WIDTH-1:0]     increment;
+    wire    [(PO_INC_COUNT * INCREMENTS_WORD_WIDTH)-1:0]    increments;
 
     Increments
     #(
@@ -317,14 +319,33 @@ module Addressing
         .RAMSTYLE       (INCREMENTS_RAMSTYLE),
         .INIT_FILE      (INCREMENTS_INIT_FILE)
     )
-    INC [PROGRAMMED_OFFSETS_COUNT-1:0]
+    INC [PO_INC_COUNT-1:0]
     (
         .clock          (clock),
         .wren           (ALU_wren_INC_synced),
         .write_addr     (ALU_write_addr_synced[INCREMENTS_ADDR_WIDTH-1:0]),
         .write_data     (ALU_write_data_INC_synced),
-        .read_addr      (read_addr),
-        .increment      (increment)
+        .read_addr      (read_thread),
+        .increment      (increments)
+    );
+
+// -----------------------------------------------------------
+
+    wire    [INCREMENTS_WORD_WIDTH-1:0]    increment;
+
+    Addressed_Mux
+    #(
+        .WORD_WIDTH         (INCREMENTS_WORD_WIDTH),
+        .ADDR_WIDTH         (PO_INC_COUNT_ADDR_WIDTH),
+        .INPUT_COUNT        (PO_INC_COUNT),
+        .REGISTERED         (`TRUE)
+    )
+    INC_selector
+    (
+        .clock          (clock),
+        .addr           (PO_INC_index),
+        .data_in        (increments),
+        .data_out       (increment)
     );
 
 // -----------------------------------------------------------
@@ -344,8 +365,32 @@ module Addressing
 
 // -----------------------------------------------------------
 
+    // output default offset, unless we access shared hardware, then output 0
+    wire    [DEFAULT_OFFSET_WORD_WIDTH-1:0]    default_offset_final;
+
+    Addressed_Mux
+    #(
+        .WORD_WIDTH     (DEFAULT_OFFSET_WORD_WIDTH),
+        .ADDR_WIDTH     (1),
+        .INPUT_COUNT    (2),
+        .REGISTERED     (`FALSE)
+    )
+    default_offset_selector
+    (
+        .clock          (clock),
+        .addr           (shared_hardware_memory),
+        .data_in        ({{DEFAULT_OFFSET_WORD_WIDTH{`LOW}}, default_offset}),
+        .data_out       (default_offset_final)
+    );
+
+// -----------------------------------------------------------
+
     // ECL XXX Not that default and programmed should ever differ in width.
-    wire    [DEFAULT_OFFSET_WORD_WIDTH-1:0]    addr_offset;
+    // If we access indirect memory, then override default offset with programmed offset
+    // This causes odd cases if indirect memory overlaps shared hardware like I/O ports.
+    // Usable, but think twice about it first.
+    // if PO/INC are 0, I/O works as usual, else gets redirected to RAM, incl. other I/O port!)
+    wire    [DEFAULT_OFFSET_WORD_WIDTH-1:0]    final_offset;
 
     Addressed_Mux
     #(
@@ -358,27 +403,7 @@ module Addressing
     (
         .clock          (clock),
         .addr           (indirect_memory),
-        .data_in        ({programmed_offset, default_offset}),
-        .data_out       (addr_offset)
-    );
-
-// -----------------------------------------------------------
-
-    // ECL XXX Not that default and programmed should ever differ in width.
-    wire    [DEFAULT_OFFSET_WORD_WIDTH-1:0]    final_offset;
-
-    Addressed_Mux
-    #(
-        .WORD_WIDTH     (DEFAULT_OFFSET_WORD_WIDTH),
-        .ADDR_WIDTH     (1),
-        .INPUT_COUNT    (2),
-        .REGISTERED     (`FALSE)
-    )
-    final_offset_selector
-    (
-        .clock          (clock),
-        .addr           (shared_hardware_memory),
-        .data_in        ({{DEFAULT_OFFSET_WORD_WIDTH{`LOW}}, addr_offset}),
+        .data_in        ({programmed_offset, default_offset_final}),
         .data_out       (final_offset)
     );
 

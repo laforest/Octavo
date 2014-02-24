@@ -88,25 +88,6 @@ module Scalar
 
 // -----------------------------------------------------------
 
-    parameter   A_BASIC_BLOCK_COUNTER_WRITE_WORD_OFFSET     = 0,
-    parameter   A_BASIC_BLOCK_COUNTER_WRITE_ADDR_OFFSET     = 0,
-    parameter   A_BASIC_BLOCK_COUNTER_WORD_WIDTH            = 0,
-    parameter   A_BASIC_BLOCK_COUNTER_ADDR_WIDTH            = 0,
-    parameter   A_BASIC_BLOCK_COUNTER_DEPTH                 = 0,
-    parameter   A_BASIC_BLOCK_COUNTER_RAMSTYLE              = 0,
-    parameter   A_BASIC_BLOCK_COUNTER_INIT_FILE             = 0,
-
-    parameter   A_CONTROL_MEMORY_WRITE_WORD_OFFSET          = 0,
-    parameter   A_CONTROL_MEMORY_WRITE_ADDR_OFFSET          = 0,
-    parameter   A_CONTROL_MEMORY_WORD_WIDTH                 = 0,
-    parameter   A_CONTROL_MEMORY_ADDR_WIDTH                 = 0,
-    parameter   A_CONTROL_MEMORY_DEPTH                      = 0,
-    parameter   A_CONTROL_MEMORY_RAMSTYLE                   = 0,
-    parameter   A_CONTROL_MEMORY_INIT_FILE                  = 0,
-    parameter   A_CONTROL_MEMORY_MATCH_WIDTH                = 0,
-    parameter   A_CONTROL_MEMORY_COND_WIDTH                 = 0,
-    parameter   A_CONTROL_MEMORY_LINK_WIDTH                 = 0,
-
     parameter   A_DEFAULT_OFFSET_WRITE_WORD_OFFSET          = 0,
     parameter   A_DEFAULT_OFFSET_WRITE_ADDR_OFFSET          = 0,
     parameter   A_DEFAULT_OFFSET_WORD_WIDTH                 = 0,
@@ -114,6 +95,10 @@ module Scalar
     parameter   A_DEFAULT_OFFSET_DEPTH                      = 0,
     parameter   A_DEFAULT_OFFSET_RAMSTYLE                   = 0,
     parameter   A_DEFAULT_OFFSET_INIT_FILE                  = 0,
+
+    parameter   A_PO_INC_READ_BASE_ADDR                     = 0,
+    parameter   A_PO_INC_COUNT                              = 0,
+    parameter   A_PO_INC_COUNT_ADDR_WIDTH                   = 0,
 
     parameter   A_PROGRAMMED_OFFSETS_WRITE_WORD_OFFSET      = 0,
     parameter   A_PROGRAMMED_OFFSETS_WRITE_ADDR_OFFSET      = 0,
@@ -133,25 +118,6 @@ module Scalar
 
 // -----------------------------------------------------------
 
-    parameter   B_BASIC_BLOCK_COUNTER_WRITE_WORD_OFFSET     = 0,
-    parameter   B_BASIC_BLOCK_COUNTER_WRITE_ADDR_OFFSET     = 0,
-    parameter   B_BASIC_BLOCK_COUNTER_WORD_WIDTH            = 0,
-    parameter   B_BASIC_BLOCK_COUNTER_ADDR_WIDTH            = 0,
-    parameter   B_BASIC_BLOCK_COUNTER_DEPTH                 = 0,
-    parameter   B_BASIC_BLOCK_COUNTER_RAMSTYLE              = 0,
-    parameter   B_BASIC_BLOCK_COUNTER_INIT_FILE             = 0,
-
-    parameter   B_CONTROL_MEMORY_WRITE_WORD_OFFSET          = 0,
-    parameter   B_CONTROL_MEMORY_WRITE_ADDR_OFFSET          = 0,
-    parameter   B_CONTROL_MEMORY_WORD_WIDTH                 = 0,
-    parameter   B_CONTROL_MEMORY_ADDR_WIDTH                 = 0,
-    parameter   B_CONTROL_MEMORY_DEPTH                      = 0,
-    parameter   B_CONTROL_MEMORY_RAMSTYLE                   = 0,
-    parameter   B_CONTROL_MEMORY_INIT_FILE                  = 0,
-    parameter   B_CONTROL_MEMORY_MATCH_WIDTH                = 0,
-    parameter   B_CONTROL_MEMORY_COND_WIDTH                 = 0,
-    parameter   B_CONTROL_MEMORY_LINK_WIDTH                 = 0,
-
     parameter   B_DEFAULT_OFFSET_WRITE_WORD_OFFSET          = 0,
     parameter   B_DEFAULT_OFFSET_WRITE_ADDR_OFFSET          = 0,
     parameter   B_DEFAULT_OFFSET_WORD_WIDTH                 = 0,
@@ -159,6 +125,10 @@ module Scalar
     parameter   B_DEFAULT_OFFSET_DEPTH                      = 0,
     parameter   B_DEFAULT_OFFSET_RAMSTYLE                   = 0,
     parameter   B_DEFAULT_OFFSET_INIT_FILE                  = 0,
+
+    parameter   B_PO_INC_READ_BASE_ADDR                     = 0,
+    parameter   B_PO_INC_COUNT                              = 0,
+    parameter   B_PO_INC_COUNT_ADDR_WIDTH                   = 0,
 
     parameter   B_PROGRAMMED_OFFSETS_WRITE_WORD_OFFSET      = 0,
     parameter   B_PROGRAMMED_OFFSETS_WRITE_ADDR_OFFSET      = 0,
@@ -178,25 +148,6 @@ module Scalar
 
 // -----------------------------------------------------------
 
-    parameter   D_BASIC_BLOCK_COUNTER_WRITE_WORD_OFFSET     = 0,
-    parameter   D_BASIC_BLOCK_COUNTER_WRITE_ADDR_OFFSET     = 0,
-    parameter   D_BASIC_BLOCK_COUNTER_WORD_WIDTH            = 0,
-    parameter   D_BASIC_BLOCK_COUNTER_ADDR_WIDTH            = 0,
-    parameter   D_BASIC_BLOCK_COUNTER_DEPTH                 = 0,
-    parameter   D_BASIC_BLOCK_COUNTER_RAMSTYLE              = 0,
-    parameter   D_BASIC_BLOCK_COUNTER_INIT_FILE             = 0,
-
-    parameter   D_CONTROL_MEMORY_WRITE_WORD_OFFSET          = 0,
-    parameter   D_CONTROL_MEMORY_WRITE_ADDR_OFFSET          = 0,
-    parameter   D_CONTROL_MEMORY_WORD_WIDTH                 = 0,
-    parameter   D_CONTROL_MEMORY_ADDR_WIDTH                 = 0,
-    parameter   D_CONTROL_MEMORY_DEPTH                      = 0,
-    parameter   D_CONTROL_MEMORY_RAMSTYLE                   = 0,
-    parameter   D_CONTROL_MEMORY_INIT_FILE                  = 0,
-    parameter   D_CONTROL_MEMORY_MATCH_WIDTH                = 0,
-    parameter   D_CONTROL_MEMORY_COND_WIDTH                 = 0,
-    parameter   D_CONTROL_MEMORY_LINK_WIDTH                 = 0,
-
     parameter   D_DEFAULT_OFFSET_WRITE_WORD_OFFSET          = 0,
     parameter   D_DEFAULT_OFFSET_WRITE_ADDR_OFFSET          = 0,
     parameter   D_DEFAULT_OFFSET_WORD_WIDTH                 = 0,
@@ -204,6 +155,10 @@ module Scalar
     parameter   D_DEFAULT_OFFSET_DEPTH                      = 0,
     parameter   D_DEFAULT_OFFSET_RAMSTYLE                   = 0,
     parameter   D_DEFAULT_OFFSET_INIT_FILE                  = 0,
+
+    parameter   D_PO_INC_READ_BASE_ADDR                     = 0,
+    parameter   D_PO_INC_COUNT                              = 0,
+    parameter   D_PO_INC_COUNT_ADDR_WIDTH                   = 0,
 
     parameter   D_PROGRAMMED_OFFSETS_WRITE_WORD_OFFSET      = 0,
     parameter   D_PROGRAMMED_OFFSETS_WRITE_ADDR_OFFSET      = 0,
@@ -367,7 +322,6 @@ module Scalar
 
     Address_Translation
     #(
-        .PC_WIDTH                                    (I_ADDR_WIDTH),
         .WORD_WIDTH                                  (ALU_WORD_WIDTH),
         .D_OPERAND_WIDTH                             (D_OPERAND_WIDTH),
         .A_OPERAND_WIDTH                             (A_OPERAND_WIDTH),
@@ -379,24 +333,9 @@ module Scalar
 
     // -----------------------------------------------------------
 
-        .A_BASIC_BLOCK_COUNTER_WRITE_WORD_OFFSET     (A_BASIC_BLOCK_COUNTER_WRITE_WORD_OFFSET),
-        .A_BASIC_BLOCK_COUNTER_WRITE_ADDR_OFFSET     (A_BASIC_BLOCK_COUNTER_WRITE_ADDR_OFFSET),
-        .A_BASIC_BLOCK_COUNTER_WORD_WIDTH            (A_BASIC_BLOCK_COUNTER_WORD_WIDTH),
-        .A_BASIC_BLOCK_COUNTER_ADDR_WIDTH            (A_BASIC_BLOCK_COUNTER_ADDR_WIDTH),
-        .A_BASIC_BLOCK_COUNTER_DEPTH                 (A_BASIC_BLOCK_COUNTER_DEPTH),
-        .A_BASIC_BLOCK_COUNTER_RAMSTYLE              (A_BASIC_BLOCK_COUNTER_RAMSTYLE),
-        .A_BASIC_BLOCK_COUNTER_INIT_FILE             (A_BASIC_BLOCK_COUNTER_INIT_FILE),
-
-        .A_CONTROL_MEMORY_WRITE_WORD_OFFSET          (A_CONTROL_MEMORY_WRITE_WORD_OFFSET),
-        .A_CONTROL_MEMORY_WRITE_ADDR_OFFSET          (A_CONTROL_MEMORY_WRITE_ADDR_OFFSET),
-        .A_CONTROL_MEMORY_WORD_WIDTH                 (A_CONTROL_MEMORY_WORD_WIDTH),
-        .A_CONTROL_MEMORY_ADDR_WIDTH                 (A_CONTROL_MEMORY_ADDR_WIDTH),
-        .A_CONTROL_MEMORY_DEPTH                      (A_CONTROL_MEMORY_DEPTH),
-        .A_CONTROL_MEMORY_RAMSTYLE                   (A_CONTROL_MEMORY_RAMSTYLE),
-        .A_CONTROL_MEMORY_INIT_FILE                  (A_CONTROL_MEMORY_INIT_FILE),
-        .A_CONTROL_MEMORY_MATCH_WIDTH                (A_CONTROL_MEMORY_MATCH_WIDTH),
-        .A_CONTROL_MEMORY_COND_WIDTH                 (A_CONTROL_MEMORY_COND_WIDTH),
-        .A_CONTROL_MEMORY_LINK_WIDTH                 (A_CONTROL_MEMORY_LINK_WIDTH),
+        .A_IO_READ_PORT_COUNT                        (A_IO_READ_PORT_COUNT),
+        .A_IO_READ_PORT_BASE_ADDR                    (A_IO_READ_PORT_BASE_ADDR),
+        .A_IO_READ_PORT_ADDR_WIDTH                   (A_IO_READ_PORT_ADDR_WIDTH),
 
         .A_DEFAULT_OFFSET_WRITE_WORD_OFFSET          (A_DEFAULT_OFFSET_WRITE_WORD_OFFSET),
         .A_DEFAULT_OFFSET_WRITE_ADDR_OFFSET          (A_DEFAULT_OFFSET_WRITE_ADDR_OFFSET),
@@ -405,6 +344,10 @@ module Scalar
         .A_DEFAULT_OFFSET_DEPTH                      (A_DEFAULT_OFFSET_DEPTH),
         .A_DEFAULT_OFFSET_RAMSTYLE                   (A_DEFAULT_OFFSET_RAMSTYLE),
         .A_DEFAULT_OFFSET_INIT_FILE                  (A_DEFAULT_OFFSET_INIT_FILE),
+
+        .A_PO_INC_READ_BASE_ADDR                     (A_PO_INC_READ_BASE_ADDR),
+        .A_PO_INC_COUNT                              (A_PO_INC_COUNT),
+        .A_PO_INC_COUNT_ADDR_WIDTH                   (A_PO_INC_COUNT_ADDR_WIDTH),
 
         .A_PROGRAMMED_OFFSETS_WRITE_WORD_OFFSET      (A_PROGRAMMED_OFFSETS_WRITE_WORD_OFFSET),
         .A_PROGRAMMED_OFFSETS_WRITE_ADDR_OFFSET      (A_PROGRAMMED_OFFSETS_WRITE_ADDR_OFFSET),
@@ -424,24 +367,9 @@ module Scalar
 
     // -----------------------------------------------------------
 
-        .B_BASIC_BLOCK_COUNTER_WRITE_WORD_OFFSET     (B_BASIC_BLOCK_COUNTER_WRITE_WORD_OFFSET),
-        .B_BASIC_BLOCK_COUNTER_WRITE_ADDR_OFFSET     (B_BASIC_BLOCK_COUNTER_WRITE_ADDR_OFFSET),
-        .B_BASIC_BLOCK_COUNTER_WORD_WIDTH            (B_BASIC_BLOCK_COUNTER_WORD_WIDTH),
-        .B_BASIC_BLOCK_COUNTER_ADDR_WIDTH            (B_BASIC_BLOCK_COUNTER_ADDR_WIDTH),
-        .B_BASIC_BLOCK_COUNTER_DEPTH                 (B_BASIC_BLOCK_COUNTER_DEPTH),
-        .B_BASIC_BLOCK_COUNTER_RAMSTYLE              (B_BASIC_BLOCK_COUNTER_RAMSTYLE),
-        .B_BASIC_BLOCK_COUNTER_INIT_FILE             (B_BASIC_BLOCK_COUNTER_INIT_FILE),
-
-        .B_CONTROL_MEMORY_WRITE_WORD_OFFSET          (B_CONTROL_MEMORY_WRITE_WORD_OFFSET),
-        .B_CONTROL_MEMORY_WRITE_ADDR_OFFSET          (B_CONTROL_MEMORY_WRITE_ADDR_OFFSET),
-        .B_CONTROL_MEMORY_WORD_WIDTH                 (B_CONTROL_MEMORY_WORD_WIDTH),
-        .B_CONTROL_MEMORY_ADDR_WIDTH                 (B_CONTROL_MEMORY_ADDR_WIDTH),
-        .B_CONTROL_MEMORY_DEPTH                      (B_CONTROL_MEMORY_DEPTH),
-        .B_CONTROL_MEMORY_RAMSTYLE                   (B_CONTROL_MEMORY_RAMSTYLE),
-        .B_CONTROL_MEMORY_INIT_FILE                  (B_CONTROL_MEMORY_INIT_FILE),
-        .B_CONTROL_MEMORY_MATCH_WIDTH                (B_CONTROL_MEMORY_MATCH_WIDTH),
-        .B_CONTROL_MEMORY_COND_WIDTH                 (B_CONTROL_MEMORY_COND_WIDTH),
-        .B_CONTROL_MEMORY_LINK_WIDTH                 (B_CONTROL_MEMORY_LINK_WIDTH),
+        .B_IO_READ_PORT_COUNT                        (B_IO_READ_PORT_COUNT),
+        .B_IO_READ_PORT_BASE_ADDR                    (B_IO_READ_PORT_BASE_ADDR),
+        .B_IO_READ_PORT_ADDR_WIDTH                   (B_IO_READ_PORT_ADDR_WIDTH),
 
         .B_DEFAULT_OFFSET_WRITE_WORD_OFFSET          (B_DEFAULT_OFFSET_WRITE_WORD_OFFSET),
         .B_DEFAULT_OFFSET_WRITE_ADDR_OFFSET          (B_DEFAULT_OFFSET_WRITE_ADDR_OFFSET),
@@ -450,6 +378,10 @@ module Scalar
         .B_DEFAULT_OFFSET_DEPTH                      (B_DEFAULT_OFFSET_DEPTH),
         .B_DEFAULT_OFFSET_RAMSTYLE                   (B_DEFAULT_OFFSET_RAMSTYLE),
         .B_DEFAULT_OFFSET_INIT_FILE                  (B_DEFAULT_OFFSET_INIT_FILE),
+
+        .B_PO_INC_READ_BASE_ADDR                     (B_PO_INC_READ_BASE_ADDR),
+        .B_PO_INC_COUNT                              (B_PO_INC_COUNT),
+        .B_PO_INC_COUNT_ADDR_WIDTH                   (B_PO_INC_COUNT_ADDR_WIDTH),
 
         .B_PROGRAMMED_OFFSETS_WRITE_WORD_OFFSET      (B_PROGRAMMED_OFFSETS_WRITE_WORD_OFFSET),
         .B_PROGRAMMED_OFFSETS_WRITE_ADDR_OFFSET      (B_PROGRAMMED_OFFSETS_WRITE_ADDR_OFFSET),
@@ -469,24 +401,17 @@ module Scalar
 
     // -----------------------------------------------------------
 
-        .D_BASIC_BLOCK_COUNTER_WRITE_WORD_OFFSET     (D_BASIC_BLOCK_COUNTER_WRITE_WORD_OFFSET),
-        .D_BASIC_BLOCK_COUNTER_WRITE_ADDR_OFFSET     (D_BASIC_BLOCK_COUNTER_WRITE_ADDR_OFFSET),
-        .D_BASIC_BLOCK_COUNTER_WORD_WIDTH            (D_BASIC_BLOCK_COUNTER_WORD_WIDTH),
-        .D_BASIC_BLOCK_COUNTER_ADDR_WIDTH            (D_BASIC_BLOCK_COUNTER_ADDR_WIDTH),
-        .D_BASIC_BLOCK_COUNTER_DEPTH                 (D_BASIC_BLOCK_COUNTER_DEPTH),
-        .D_BASIC_BLOCK_COUNTER_RAMSTYLE              (D_BASIC_BLOCK_COUNTER_RAMSTYLE),
-        .D_BASIC_BLOCK_COUNTER_INIT_FILE             (D_BASIC_BLOCK_COUNTER_INIT_FILE),
+        .A_IO_WRITE_PORT_COUNT                       (A_IO_WRITE_PORT_COUNT),
+        .A_IO_WRITE_PORT_BASE_ADDR                   (A_IO_WRITE_PORT_BASE_ADDR),
+        .A_IO_WRITE_PORT_ADDR_WIDTH                  (A_IO_WRITE_PORT_ADDR_WIDTH),
 
-        .D_CONTROL_MEMORY_WRITE_WORD_OFFSET          (D_CONTROL_MEMORY_WRITE_WORD_OFFSET),
-        .D_CONTROL_MEMORY_WRITE_ADDR_OFFSET          (D_CONTROL_MEMORY_WRITE_ADDR_OFFSET),
-        .D_CONTROL_MEMORY_WORD_WIDTH                 (D_CONTROL_MEMORY_WORD_WIDTH),
-        .D_CONTROL_MEMORY_ADDR_WIDTH                 (D_CONTROL_MEMORY_ADDR_WIDTH),
-        .D_CONTROL_MEMORY_DEPTH                      (D_CONTROL_MEMORY_DEPTH),
-        .D_CONTROL_MEMORY_RAMSTYLE                   (D_CONTROL_MEMORY_RAMSTYLE),
-        .D_CONTROL_MEMORY_INIT_FILE                  (D_CONTROL_MEMORY_INIT_FILE),
-        .D_CONTROL_MEMORY_MATCH_WIDTH                (D_CONTROL_MEMORY_MATCH_WIDTH),
-        .D_CONTROL_MEMORY_COND_WIDTH                 (D_CONTROL_MEMORY_COND_WIDTH),
-        .D_CONTROL_MEMORY_LINK_WIDTH                 (D_CONTROL_MEMORY_LINK_WIDTH),
+        .B_IO_WRITE_PORT_COUNT                       (B_IO_WRITE_PORT_COUNT),
+        .B_IO_WRITE_PORT_BASE_ADDR                   (B_IO_WRITE_PORT_BASE_ADDR),
+        .B_IO_WRITE_PORT_ADDR_WIDTH                  (B_IO_WRITE_PORT_ADDR_WIDTH),
+
+        .H_DEPTH                                     (H_DEPTH),
+        .H_WRITE_ADDR_OFFSET                         (H_WRITE_ADDR_OFFSET),
+        .H_ADDR_WIDTH                                (H_ADDR_WIDTH),
 
         .D_DEFAULT_OFFSET_WRITE_WORD_OFFSET          (D_DEFAULT_OFFSET_WRITE_WORD_OFFSET),
         .D_DEFAULT_OFFSET_WRITE_ADDR_OFFSET          (D_DEFAULT_OFFSET_WRITE_ADDR_OFFSET),
@@ -495,6 +420,10 @@ module Scalar
         .D_DEFAULT_OFFSET_DEPTH                      (D_DEFAULT_OFFSET_DEPTH),
         .D_DEFAULT_OFFSET_RAMSTYLE                   (D_DEFAULT_OFFSET_RAMSTYLE),
         .D_DEFAULT_OFFSET_INIT_FILE                  (D_DEFAULT_OFFSET_INIT_FILE),
+
+        .D_PO_INC_READ_BASE_ADDR                     (D_PO_INC_READ_BASE_ADDR),
+        .D_PO_INC_COUNT                              (D_PO_INC_COUNT),
+        .D_PO_INC_COUNT_ADDR_WIDTH                   (D_PO_INC_COUNT_ADDR_WIDTH),
 
         .D_PROGRAMMED_OFFSETS_WRITE_WORD_OFFSET      (D_PROGRAMMED_OFFSETS_WRITE_WORD_OFFSET),
         .D_PROGRAMMED_OFFSETS_WRITE_ADDR_OFFSET      (D_PROGRAMMED_OFFSETS_WRITE_ADDR_OFFSET),
@@ -515,8 +444,6 @@ module Scalar
     Address_Translation
     (
         .clock              (clock),
-
-        .PC                 (Controller_pc_I),
 
         .A_addr_in          (A_addr_raw),
         .B_addr_in          (B_addr_raw),
