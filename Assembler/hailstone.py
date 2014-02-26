@@ -76,6 +76,18 @@ def assemble_I(PC, A, B):
     I.NOP()
 
     I.ALIGN(PC.get_pc("THREAD0_START"))
+    # ECL XXX Flush pipeline of inital zeroes
+    I.NOP()
+    I.NOP()
+    I.NOP()
+    I.NOP()
+    I.NOP()
+    I.NOP()
+    I.NOP()
+    I.NOP()
+    I.NOP()
+    I.NOP()
+
     # Is the seed odd?
     I.I(AND, (A,"temp"), (A,"one"), (B,"seed")),   I.N("hailstone")
     I.I(JNZ, 0, (A,"temp"), 0),                    I.N("odd")
@@ -86,7 +98,7 @@ def assemble_I(PC, A, B):
     I.I(MLS, (B,"seed"), (A,"three"), (B,"seed")), I.RD("odd")
     I.I(ADD, (B,"seed"), (A,"one"), (B,"seed"))
     # placeholder, as we are running "blind"
-    I.I(XOR, 0, 0, 0),                             I.RD("output")
+    I.NOP(),                                     I.RD("output")
     # I.I(ADD, (A,"WRITE_PORT"), 0, (B,seed)),   I.RD("output")
     #I.I(ADD, (B,"WRITE_PORT"), 0, (B,seed))
     I.I(JMP, "hailstone", 0, 0)
@@ -102,13 +114,38 @@ def assemble_XDO():
             mem.L(offset)
     return ADO, BDO, DDO
 
+def assemble_XPO():
+    APO, BPO, DPO = empty["APO"], empty["BPO"], empty["DPO"]
+    APO.file_name = bench_name
+    BPO.file_name = bench_name
+    DPO.file_name = bench_name
+    for mem in APO, BPO, DPO:
+        for count in range(0,8):
+            mem.L(0)
+    return APO, BPO, DPO
+
+def assemble_XIN():
+    AIN, BIN, DIN = empty["AIN"], empty["BIN"], empty["DIN"]
+    AIN.file_name = bench_name
+    BIN.file_name = bench_name
+    DIN.file_name = bench_name
+    for mem in AIN, BIN, DIN:
+        for count in range(0,8):
+            mem.L(0)
+    return AIN, BIN, DIN
+
 def assemble_all():
     PC = assemble_PC()
     A  = assemble_A()
     B  = assemble_B()
     I  = assemble_I(PC, A, B)
     ADO, BDO, DDO = assemble_XDO()
-    hailstone = {"PC":PC, "A":A, "B":B, "I":I, "ADO":ADO, "BDO":BDO, "DDO":DDO}
+    APO, BPO, DPO = assemble_XPO()
+    AIN, BIN, DIN = assemble_XIN()
+    hailstone = {"PC":PC, "A":A, "B":B, "I":I, 
+                 "ADO":ADO, "BDO":BDO, "DDO":DDO,
+                 "APO":APO, "BPO":BPO, "DPO":DPO,
+                 "AIN":AIN, "BIN":BIN, "DIN":DIN}
     return hailstone
 
 def dump_all(hailstone):

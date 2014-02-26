@@ -31,7 +31,13 @@ def test_bench(parameters, default_bench = default_bench, install_base = install
     parameter       PC_INIT_FILE                = "${assembler_base}/${default_bench}.PC",
     parameter       A_DEFAULT_OFFSET_INIT_FILE  = "${assembler_base}/${default_bench}.ADO",
     parameter       B_DEFAULT_OFFSET_INIT_FILE  = "${assembler_base}/${default_bench}.BDO",
-    parameter       D_DEFAULT_OFFSET_INIT_FILE  = "${assembler_base}/${default_bench}.DDO"
+    parameter       D_DEFAULT_OFFSET_INIT_FILE  = "${assembler_base}/${default_bench}.DDO",
+    parameter       A_PROGRAMMED_OFFSETS_INIT_FILE  = "${assembler_base}/${default_bench}.APO",
+    parameter       B_PROGRAMMED_OFFSETS_INIT_FILE  = "${assembler_base}/${default_bench}.BPO",
+    parameter       D_PROGRAMMED_OFFSETS_INIT_FILE  = "${assembler_base}/${default_bench}.DPO",
+    parameter       A_INCREMENTS_INIT_FILE  = "${assembler_base}/${default_bench}.AIN",
+    parameter       B_INCREMENTS_INIT_FILE  = "${assembler_base}/${default_bench}.BIN",
+    parameter       D_INCREMENTS_INIT_FILE  = "${assembler_base}/${default_bench}.DIN"
 )
 (
     output  wire    [INSTR_WIDTH-1:0]                           I_read_data,
@@ -121,7 +127,13 @@ def test_bench(parameters, default_bench = default_bench, install_base = install
         .PC_INIT_FILE                   (PC_INIT_FILE),
         .A_DEFAULT_OFFSET_INIT_FILE     (A_DEFAULT_OFFSET_INIT_FILE),
         .B_DEFAULT_OFFSET_INIT_FILE     (B_DEFAULT_OFFSET_INIT_FILE),
-        .D_DEFAULT_OFFSET_INIT_FILE     (D_DEFAULT_OFFSET_INIT_FILE)
+        .D_DEFAULT_OFFSET_INIT_FILE     (D_DEFAULT_OFFSET_INIT_FILE),
+        .A_PROGRAMMED_OFFSETS_INIT_FILE     (A_PROGRAMMED_OFFSETS_INIT_FILE),
+        .B_PROGRAMMED_OFFSETS_INIT_FILE     (B_PROGRAMMED_OFFSETS_INIT_FILE),
+        .D_PROGRAMMED_OFFSETS_INIT_FILE     (D_PROGRAMMED_OFFSETS_INIT_FILE),
+        .A_INCREMENTS_INIT_FILE     (A_INCREMENTS_INIT_FILE),
+        .B_INCREMENTS_INIT_FILE     (B_INCREMENTS_INIT_FILE),
+        .D_INCREMENTS_INIT_FILE     (D_INCREMENTS_INIT_FILE)
     )
     DUT 
     (
@@ -190,8 +202,18 @@ OCTAVO="$$INSTALL_BASE/Octavo/Misc/params.v \\
         $$INSTALL_BASE/Octavo/Memory/RAM_SDP_no_fw.v \\
         $$INSTALL_BASE/Octavo/Memory/Write_Enable.v \\
         $$INSTALL_BASE/Octavo/Memory/Memory.v \\
-        $$INSTALL_BASE/Octavo/Addressing/Addressing.v \\
+        $$INSTALL_BASE/Octavo/Addressing/Address_Adder.v \\
+        $$INSTALL_BASE/Octavo/Addressing/Addressing_Mapped_AB.v \\
+        $$INSTALL_BASE/Octavo/Addressing/Addressing_Mapped_D.v \\
         $$INSTALL_BASE/Octavo/Addressing/Addressing_Thread_Number.v \\
+        $$INSTALL_BASE/Octavo/Addressing/Addressing.v \\
+        $$INSTALL_BASE/Octavo/Addressing/Address_Translation.v \\
+        $$INSTALL_BASE/Octavo/Addressing/Default_Offset.v \\
+        $$INSTALL_BASE/Octavo/Addressing/Increment_Adder.v \\
+        $$INSTALL_BASE/Octavo/Addressing/Increments.v \\
+        $$INSTALL_BASE/Octavo/Addressing/Programmed_Offsets.v \\
+        $$INSTALL_BASE/Octavo/Addressing/Write_Priority.v \\
+        $$INSTALL_BASE/Octavo/Addressing/Write_Synchronize.v \\
         $$INSTALL_BASE/Octavo/IO/EmptyFullBit.v \\
         $$INSTALL_BASE/Octavo/IO/IO_Active.v \\
         $$INSTALL_BASE/Octavo/IO/IO_All_Ready.v \\

@@ -37,8 +37,20 @@ def assemble_I():
 def assemble_XDO():
     ADO = Assembler.Default_Offset_Memory(bench_name, file_ext = ".ADO", write_offset = mem_map["ADO"]["Origin"])
     BDO = Assembler.Default_Offset_Memory(bench_name, file_ext = ".BDO", write_offset = mem_map["BDO"]["Origin"])
-    DDO = Assembler.Default_Offset_Memory(bench_name, file_ext = ".DDO", write_offset = mem_map["DDO"]["Origin"])
+    DDO = Assembler.Default_Offset_Memory(bench_name, file_ext = ".DDO", write_offset = mem_map["DDO"]["Origin"], width = 12)
     return ADO, BDO, DDO
+
+def assemble_XPO():
+    APO = Assembler.Programmed_Offset_Memory(bench_name, file_ext = ".APO", write_offset = mem_map["APO"]["Origin"])
+    BPO = Assembler.Programmed_Offset_Memory(bench_name, file_ext = ".BPO", write_offset = mem_map["BPO"]["Origin"])
+    DPO = Assembler.Programmed_Offset_Memory(bench_name, file_ext = ".DPO", write_offset = mem_map["DPO"]["Origin"], width = 12)
+    return APO, BPO, DPO
+
+def assemble_XIN():
+    AIN = Assembler.Increments_Memory(bench_name, file_ext = ".AIN", write_offset = mem_map["AIN"]["Origin"])
+    BIN = Assembler.Increments_Memory(bench_name, file_ext = ".BIN", write_offset = mem_map["BIN"]["Origin"])
+    DIN = Assembler.Increments_Memory(bench_name, file_ext = ".DIN", write_offset = mem_map["DIN"]["Origin"])
+    return AIN, BIN, DIN
 
 def assemble_all():
     PC = assemble_PC()
@@ -46,7 +58,12 @@ def assemble_all():
     B  = assemble_B()
     I  = assemble_I()
     ADO, BDO, DDO = assemble_XDO()
-    empty = {"PC":PC, "A":A, "B":B, "I":I, "ADO":ADO, "BDO":BDO, "DDO":DDO}
+    APO, BPO, DPO = assemble_XPO()
+    AIN, BIN, DIN = assemble_XIN()
+    empty = {"PC":PC, "A":A, "B":B, "I":I, 
+             "ADO":ADO, "BDO":BDO, "DDO":DDO,
+             "APO":APO, "BPO":BPO, "DPO":DPO,
+             "AIN":AIN, "BIN":BIN, "DIN":DIN}
     return empty
 
 def dump_all(empty):
