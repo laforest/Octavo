@@ -397,7 +397,7 @@ module Addressing
         .WORD_WIDTH     (DEFAULT_OFFSET_WORD_WIDTH),
         .ADDR_WIDTH     (1),
         .INPUT_COUNT    (2),
-        .REGISTERED     (`FALSE)
+        .REGISTERED     (`TRUE)
     )
     PO_DO_selector
     (

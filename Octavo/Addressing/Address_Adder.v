@@ -20,7 +20,7 @@ module Address_Adder
 
     delay_line
     #(
-        .DEPTH  (1),
+        .DEPTH  (2),
         .WIDTH  (WORD_WIDTH)
     )
     addr_in_pipeline
@@ -42,7 +42,7 @@ module Address_Adder
 
     delay_line
     #(
-        .DEPTH  (1),
+        .DEPTH  (0),
         .WIDTH  (WORD_WIDTH)
     )
     addr_out_pipeline
