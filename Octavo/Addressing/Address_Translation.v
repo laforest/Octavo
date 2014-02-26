@@ -165,6 +165,7 @@ module Address_Translation
         .DEFAULT_OFFSET_RAMSTYLE                    (A_DEFAULT_OFFSET_RAMSTYLE),
         .DEFAULT_OFFSET_INIT_FILE                   (A_DEFAULT_OFFSET_INIT_FILE),
 
+        .PO_INC_READ_BASE_ADDR                      (A_PO_INC_READ_BASE_ADDR),
         .PO_INC_COUNT                               (A_PO_INC_COUNT),
         .PO_INC_COUNT_ADDR_WIDTH                    (A_PO_INC_COUNT_ADDR_WIDTH),
 
@@ -218,6 +219,7 @@ module Address_Translation
         .DEFAULT_OFFSET_RAMSTYLE                    (B_DEFAULT_OFFSET_RAMSTYLE),
         .DEFAULT_OFFSET_INIT_FILE                   (B_DEFAULT_OFFSET_INIT_FILE),
 
+        .PO_INC_READ_BASE_ADDR                      (B_PO_INC_READ_BASE_ADDR),
         .PO_INC_COUNT                               (B_PO_INC_COUNT),
         .PO_INC_COUNT_ADDR_WIDTH                    (B_PO_INC_COUNT_ADDR_WIDTH),
 
@@ -279,6 +281,7 @@ module Address_Translation
         .DEFAULT_OFFSET_RAMSTYLE                    (D_DEFAULT_OFFSET_RAMSTYLE),
         .DEFAULT_OFFSET_INIT_FILE                   (D_DEFAULT_OFFSET_INIT_FILE),
 
+        .PO_INC_READ_BASE_ADDR                      (D_PO_INC_READ_BASE_ADDR),
         .PO_INC_COUNT                               (D_PO_INC_COUNT),
         .PO_INC_COUNT_ADDR_WIDTH                    (D_PO_INC_COUNT_ADDR_WIDTH),
 

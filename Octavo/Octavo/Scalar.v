@@ -300,7 +300,7 @@ module Scalar
     wire    [OPCODE_WIDTH-1:0]      OP_cooked;
 
     // ECL XXX ick, hardcoded...
-    localparam ADDR_TRANSLATION_DEPTH = 4;
+    localparam ADDR_TRANSLATION_DEPTH = 2;
 
     delay_line 
     #(
