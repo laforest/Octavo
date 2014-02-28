@@ -7,7 +7,7 @@ import sys
 from Misc import misc, parameters_misc
 import Scalar_quartus_project
 
-default_memory_init = "empty"
+default_memory_init = "Empty/empty"
 install_base = misc.base_install_path()
 
 def test_harness(parameters, default_memory_init = default_memory_init, install_base = install_base):
@@ -27,6 +27,18 @@ def test_harness(parameters, default_memory_init = default_memory_init, install_
     parameter       B_INIT_FILE                 = "${assembler_base}/${default_memory_init}.B",
     parameter       I_INIT_FILE                 = "${assembler_base}/${default_memory_init}.I",
     parameter       PC_INIT_FILE                = "${assembler_base}/${default_memory_init}.PC",
+
+    parameter       A_DEFAULT_OFFSET_INIT_FILE  = "${assembler_base}/${default_memory_init}.ADO",
+    parameter       B_DEFAULT_OFFSET_INIT_FILE  = "${assembler_base}/${default_memory_init}.BDO",
+    parameter       D_DEFAULT_OFFSET_INIT_FILE  = "${assembler_base}/${default_memory_init}.DDO",
+
+    parameter       A_PROGRAMMED_OFFSETS_INIT_FILE  = "${assembler_base}/${default_memory_init}.APO",
+    parameter       B_PROGRAMMED_OFFSETS_INIT_FILE  = "${assembler_base}/${default_memory_init}.BPO",
+    parameter       D_PROGRAMMED_OFFSETS_INIT_FILE  = "${assembler_base}/${default_memory_init}.DPO",
+
+    parameter       A_INCREMENTS_INIT_FILE  = "${assembler_base}/${default_memory_init}.AIN",
+    parameter       B_INCREMENTS_INIT_FILE  = "${assembler_base}/${default_memory_init}.BIN",
+    parameter       D_INCREMENTS_INIT_FILE  = "${assembler_base}/${default_memory_init}.DIN",
 
     // ****** These are computed for brevity later. Do not redefine at module instantiation. ******
     parameter       A_IO_READ_PORT_WIDTH        = (A_WORD_WIDTH * A_IO_READ_PORT_COUNT),
@@ -67,10 +79,19 @@ def test_harness(parameters, default_memory_init = default_memory_init, install_
 
     ${CPU_NAME}
     #(
-        .A_INIT_FILE        (A_INIT_FILE),
-        .B_INIT_FILE        (B_INIT_FILE),
-        .I_INIT_FILE        (I_INIT_FILE),
-        .PC_INIT_FILE       (PC_INIT_FILE)
+        .A_INIT_FILE                    (A_INIT_FILE),
+        .B_INIT_FILE                    (B_INIT_FILE),
+        .I_INIT_FILE                    (I_INIT_FILE),
+        .PC_INIT_FILE                   (PC_INIT_FILE),
+        .A_DEFAULT_OFFSET_INIT_FILE     (A_DEFAULT_OFFSET_INIT_FILE),
+        .B_DEFAULT_OFFSET_INIT_FILE     (B_DEFAULT_OFFSET_INIT_FILE),
+        .D_DEFAULT_OFFSET_INIT_FILE     (D_DEFAULT_OFFSET_INIT_FILE),
+        .A_PROGRAMMED_OFFSETS_INIT_FILE     (A_PROGRAMMED_OFFSETS_INIT_FILE),
+        .B_PROGRAMMED_OFFSETS_INIT_FILE     (B_PROGRAMMED_OFFSETS_INIT_FILE),
+        .D_PROGRAMMED_OFFSETS_INIT_FILE     (D_PROGRAMMED_OFFSETS_INIT_FILE),
+        .A_INCREMENTS_INIT_FILE     (A_INCREMENTS_INIT_FILE),
+        .B_INCREMENTS_INIT_FILE     (B_INCREMENTS_INIT_FILE),
+        .D_INCREMENTS_INIT_FILE     (D_INCREMENTS_INIT_FILE)
     )
     DUT
     (
