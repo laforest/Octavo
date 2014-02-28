@@ -1,53 +1,76 @@
 #! /usr/bin/python
 
-from Assembler import *
+import Assembler
+from memory_map import mem_map
 
-bench_name = "empty"
+bench_dir = "Empty"
+bench_file = "empty"
+bench_name = bench_dir + "/" + bench_file
+SIMD_bench_name = bench_dir + "/" + "SIMD_" + bench_file
 
 def assemble_PC():
-    PC = PC_Memory(bench_name + ".PC", depth = 8, width = 20, word_width = 10)
-    # Some examples.
-    PC.L(PC.pack2(1,1)),     PC.N("THREAD0_START")
-    PC.L(PC.pack2(16,16)),   PC.N("THREAD1_START")
-    PC.L(PC.pack2(32,32)),   PC.N("THREAD2_START")
-    PC.L(PC.pack2(48,48)),   PC.N("THREAD3_START")
-    PC.L(PC.pack2(64,64)),   PC.N("THREAD4_START")
-    PC.L(PC.pack2(80,80)),   PC.N("THREAD5_START")
-    PC.L(PC.pack2(96,96)),   PC.N("THREAD6_START")
-    PC.L(PC.pack2(112,112)), PC.N("THREAD7_START")
+    PC = Assembler.PC_Memory(bench_name)
+    # Thread 0 must start its code at 1, as first PC is always 0 (register set at config)
+    # Place a NOP at 0 for threads 1-7, and they will all be in sync, as well as flush out the pipeline of any initial zeroes.
+    PC.L(PC.pack2(1,1)), PC.N("THREAD0_START")
+    PC.L(PC.pack2(0,0)), PC.N("THREAD1_START")
+    PC.L(PC.pack2(0,0)), PC.N("THREAD2_START")
+    PC.L(PC.pack2(0,0)), PC.N("THREAD3_START")
+    PC.L(PC.pack2(0,0)), PC.N("THREAD4_START")
+    PC.L(PC.pack2(0,0)), PC.N("THREAD5_START")
+    PC.L(PC.pack2(0,0)), PC.N("THREAD6_START")
+    PC.L(PC.pack2(0,0)), PC.N("THREAD7_START")
     return PC
 
 def assemble_A():
-    A = Data_Memory(bench_name + ".A")
+    A = Assembler.Data_Memory(bench_name, file_ext = ".A", write_offset = mem_map["A"]["Origin"])
     return A
 
 def assemble_B():
-    B = Data_Memory(bench_name + ".B")
+    B = Assembler.Data_Memory(bench_name, file_ext = ".B", write_offset = mem_map["B"]["Origin"])
     return B
 
-def assemble_I(PC, A, B):
-    I = Instruction_Memory(bench_name + ".I")
+def assemble_I():
+    I = Assembler.Instruction_Memory(bench_name, write_offset = mem_map["I"]["Origin"])
     return I
 
+def assemble_XDO():
+    ADO = Assembler.Default_Offset_Memory(bench_name, file_ext = ".ADO", write_offset = mem_map["ADO"]["Origin"])
+    BDO = Assembler.Default_Offset_Memory(bench_name, file_ext = ".BDO", write_offset = mem_map["BDO"]["Origin"])
+    DDO = Assembler.Default_Offset_Memory(bench_name, file_ext = ".DDO", write_offset = mem_map["DDO"]["Origin"], width = 12)
+    return ADO, BDO, DDO
+
+def assemble_XPO():
+    APO = Assembler.Programmed_Offset_Memory(bench_name, file_ext = ".APO", write_offset = mem_map["APO"]["Origin"])
+    BPO = Assembler.Programmed_Offset_Memory(bench_name, file_ext = ".BPO", write_offset = mem_map["BPO"]["Origin"])
+    DPO = Assembler.Programmed_Offset_Memory(bench_name, file_ext = ".DPO", write_offset = mem_map["DPO"]["Origin"], width = 12)
+    return APO, BPO, DPO
+
+def assemble_XIN():
+    AIN = Assembler.Increments_Memory(bench_name, file_ext = ".AIN", write_offset = mem_map["AIN"]["Origin"])
+    BIN = Assembler.Increments_Memory(bench_name, file_ext = ".BIN", write_offset = mem_map["BIN"]["Origin"])
+    DIN = Assembler.Increments_Memory(bench_name, file_ext = ".DIN", write_offset = mem_map["DIN"]["Origin"])
+    return AIN, BIN, DIN
 
 def assemble_all():
     PC = assemble_PC()
     A  = assemble_A()
     B  = assemble_B()
-    I  = assemble_I(PC, A, B)
+    I  = assemble_I()
+    ADO, BDO, DDO = assemble_XDO()
+    APO, BPO, DPO = assemble_XPO()
+    AIN, BIN, DIN = assemble_XIN()
+    empty = {"PC":PC, "A":A, "B":B, "I":I, 
+             "ADO":ADO, "BDO":BDO, "DDO":DDO,
+             "APO":APO, "BPO":BPO, "DPO":DPO,
+             "AIN":AIN, "BIN":BIN, "DIN":DIN}
+    return empty
 
-    PC.file_dump()
-
-    A.file_dump()
-    A.file_name = "SIMD_" + A.file_name
-    A.file_dump()
-
-    B.file_dump()
-    B.file_name = "SIMD_" + B.file_name
-    B.file_dump()
-
-    I.file_dump()
+def dump_all(empty):
+    for memory in empty.values():
+        memory.file_dump()
 
 if __name__ == "__main__":
-    assemble_all()
+    empty = assemble_all()
+    dump_all(empty)
 

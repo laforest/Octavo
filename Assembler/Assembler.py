@@ -1,8 +1,6 @@
 #! /usr/bin/python
 
-# Opcodes
-XOR, AND, OR, SUB, ADD, UND1, UND2, UND3, MHS, MLS, MHU, JMP, JZE, JNZ, JPO, JNE = range(16)
-
+from opcodes import *
 
 class Memory:
     "A basic Memory capable of assembling literals, naming locations, and dumping its contents into a format $readmemh can use."
@@ -27,7 +25,7 @@ class Memory:
 
     def file_dump(self):
         self.find_unresolved()
-        with open(self.file_name, 'w') as f:
+        with open(self.file_name + self.file_ext, 'w') as f:
             f.write(self.file_header + "\n")
             format_string = self.dump_format()
             for entry in self.data:
@@ -47,8 +45,9 @@ class Memory:
         self.here += 1
         self.data[self.here] = number & self.mask
 
-    def __init__(self, file_name, depth = 1024, width = 36, write_offset = 0):
+    def __init__(self, file_name, file_ext = ".MEM", depth = 1024, width = 36, write_offset = 0):
         self.file_name    = file_name
+        self.file_ext     = file_ext
         self.depth        = depth
         self.width        = width
         self.write_offset = write_offset
@@ -127,12 +126,12 @@ class Instruction_Memory(Memory):
         address = self.names[name]
         self.data[address] |= (self.here & self.B_mask) << self.B_shift
 
+    # Never change this encoding. NOP must be all zero, and zero-out location 0
     def NOP(self):
         self.I(XOR, 0, 0, 0)
 
-    def __init__(self, file_name, depth = 1024, width = 36, write_offset = 0,
-                       OP_width = 4, D_width = 12, A_width = 10, B_width = 10):
-        Memory.__init__(self, file_name, depth = depth, width = width, write_offset = write_offset)
+    def __init__(self, file_name, file_ext = ".I", depth = 1024, width = 36, OP_width = 4, D_width = 12, A_width = 10, B_width = 10, write_offset = 0):
+        Memory.__init__(self, file_name, file_ext = file_ext, depth = depth, width = width, write_offset = write_offset)
         self.OP_width       = OP_width
         self.D_width        = D_width
         self.A_width        = A_width
@@ -163,13 +162,8 @@ class Data_Memory(Instruction_Memory):
         self.add_port(read_name, addr)
         self.add_port(write_name, addr)
 
-    def __init__(self, file_name, depth = 1024, width = 36,
-                       OP_width = 4, D_width = 12, A_width = 10, B_width = 10,
-                       write_offset = 0):
-        Instruction_Memory.__init__(self, file_name, depth = depth, width = width,
-                                    OP_width = OP_width, D_width = D_width,
-                                    A_width = A_width, B_width = B_width,
-                                    write_offset = write_offset)
+    def __init__(self, file_name, file_ext = ".AB", depth = 1024, width = 36, OP_width = 4, D_width = 12, A_width = 10, B_width = 10, write_offset = 0):
+        Instruction_Memory.__init__(self, file_name, file_ext = file_ext, depth = depth, width = width, OP_width = OP_width, D_width = D_width, A_width = A_width, B_width = B_width, write_offset = write_offset)
 
 
 
@@ -189,12 +183,33 @@ class PC_Memory(Memory):
         # Both next and current PC are the same at assemble-time
         return self.data[self.names[name]] & self.word_mask
 
-    def __init__(self, file_name, depth = 1024, width = 36, write_offset = 0,
-                       word_width = 0):
-        assert (word_width * 2) <= width, "ERROR: Cannot pack two {1} bit words into {2} bit memory word".format(word_width, width) 
-        Memory.__init__(self, file_name, depth = depth, width = width,
-                        write_offset = write_offset)
+    def __init__(self, file_name, file_ext = ".PC", depth = 8, width = 20, write_offset = 0, word_width = 10):
+        assert word_width > 0, "ERROR: Word width must be > 0 to pack anything into PC memory."
+        assert (word_width * 2) <= width, "ERROR: Cannot pack two {1} bit words into a {2} bit memory word".format(word_width, width) 
+        Memory.__init__(self, file_name, file_ext = file_ext, depth = depth, width = width, write_offset = write_offset)
         self.word_width = word_width
         self.word_mask  = self.width_mask(word_width)
-        
+
+
+
+class Default_Offset_Memory(Memory):
+    "Default offsets to add to A/B/D operands. One per thread."
+
+    # Change extension to match: s/X/A/ for example.
+    def __init__(self, file_name, file_ext = ".XDO", depth = 8, width = 10, write_offset = 0):
+        Memory.__init__(self, file_name, file_ext = file_ext, depth = depth, width = width, write_offset = write_offset)
+
+class Programmed_Offset_Memory(Memory):
+    "Programmed offsets to add to A/B/D operands. One per thread."
+
+    # Change extension to match: s/X/A/ for example.
+    def __init__(self, file_name, file_ext = ".XPO", depth = 8, width = 10, write_offset = 0):
+        Memory.__init__(self, file_name, file_ext = file_ext, depth = depth, width = width, write_offset = write_offset)
+
+class Increments_Memory(Memory):
+    "Increments to A/B/D Programmed Offsets after access. One per thread."
+
+    # Change extension to match: s/X/A/ for example.
+    def __init__(self, file_name, file_ext = ".XIN", depth = 8, width = 1, write_offset = 0):
+        Memory.__init__(self, file_name, file_ext = file_ext, depth = depth, width = width, write_offset = write_offset)
 

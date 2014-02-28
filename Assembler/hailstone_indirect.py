@@ -1,11 +1,13 @@
 #! /usr/bin/python
 
+"""Hailstone, but with indirect (R/W) access to the seed, and I/O again."""
+
 import empty
 from opcodes import *
 from memory_map import mem_map
 
-bench_dir  = "Hailstone"
-bench_file = "hailstone"
+bench_dir  = "Hailstone_indirect"
+bench_file = "hailstone_indirect"
 bench_name = bench_dir + "/" + bench_file
 SIMD_bench_name = bench_dir + "/" + "SIMD_" + bench_file
 
@@ -14,15 +16,15 @@ def partition_data_memory(memory_depth = 1024, literal_pool_depth = 32, thread_c
     offsets = [(thread * (thread_data_memory_depth / 8)) + literal_pool_depth for thread in range(0,thread_count)]
     return offsets
 
-# We don't have programmed offsets, so we can't modify them to reach a
-# literal pool, I/O or H mem. For now, the tesbench will have to run
-# "blind", with private data, and we'll check it's internal state for
-# correct operation.
-
 offsets = partition_data_memory(literal_pool_depth = 0)
 
 # Get empty instances with default parameters
 empty = empty.assemble_all()
+
+# ECL XXX bad hack, doing in A since it's write_offset is zero, thus the assembler won't mangle it.
+H = mem_map["H"]
+indirect_write_port = H["PO_INC_base"]
+indirect_write_port_offset = H["Origin"] + H["Depth"] - indirect_write_port + mem_map["A"]["IO_base"]
 
 def assemble_PC():
     # Nothing to do here.
@@ -34,6 +36,8 @@ def assemble_A():
     A = empty["A"]
     A.file_name = bench_name
     A.add_port_pair("READ_PORT", "WRITE_PORT", mem_map["A"]["IO_base"])
+    A.add_port("INDIRECT_WRITE_PORT", indirect_write_port)
+
     # Peel out zeroth iteration for naming
     A.ALIGN(offsets[0])
     A.L(0),                 A.N("zero")
@@ -41,6 +45,7 @@ def assemble_A():
     A.L(3),                 A.N("three")
     A.L(2**(A.width-1)),    A.N("right_shift_1")
     A.L(0),                 A.N("temp")
+    A.L(indirect_write_port_offset << mem_map["DPO"]["bit_offset"]), A.N("DPO_LOAD")
     # All other iterations implicitly use the same names via offsets
     for thread in range(1,8):
         A.ALIGN(offsets[thread])
@@ -49,6 +54,7 @@ def assemble_A():
         A.L(3)             
         A.L(2**(A.width-1))
         A.L(0)             
+        A.L(indirect_write_port_offset << mem_map["DPO"]["bit_offset"])
     return A
 
 def assemble_B():
@@ -76,17 +82,17 @@ def assemble_I(PC, A, B):
     I.NOP()
 
     I.ALIGN(PC.get_pc("THREAD0_START"))
-    # ECL XXX Flush pipeline of inital zeroes
-    I.NOP()
-    I.NOP()
-    I.NOP()
-    I.NOP()
-    I.NOP()
-    I.NOP()
-    I.NOP()
-    I.NOP()
-    I.NOP()
-    I.NOP()
+    
+    # Load the first DPO memory entry for each thread
+    # ECL XXX Quick hardcoded hack for testing only, see memory_map.py
+    I.I(ADD, 3080, (A,"DPO_LOAD"), 0)
+    I.I(ADD, 3081, (A,"DPO_LOAD"), 0)
+    I.I(ADD, 3082, (A,"DPO_LOAD"), 0)
+    I.I(ADD, 3083, (A,"DPO_LOAD"), 0)
+    I.I(ADD, 3084, (A,"DPO_LOAD"), 0)
+    I.I(ADD, 3085, (A,"DPO_LOAD"), 0)
+    I.I(ADD, 3086, (A,"DPO_LOAD"), 0)
+    I.I(ADD, 3087, (A,"DPO_LOAD"), 0)
 
     # Is the seed odd?
     I.I(AND, (A,"temp"), (A,"one"), (B,"seed")),   I.N("hailstone")
@@ -97,10 +103,9 @@ def assemble_I(PC, A, B):
     # Odd: seed = (3 * seed) + 1
     I.I(MLS, (B,"seed"), (A,"three"), (B,"seed")), I.RD("odd")
     I.I(ADD, (B,"seed"), (A,"one"), (B,"seed"))
-    # placeholder, as we are running "blind"
-    I.NOP(),                                     I.RD("output")
-    # I.I(ADD, (A,"WRITE_PORT"), 0, (B,seed)),   I.RD("output")
-    #I.I(ADD, (B,"WRITE_PORT"), 0, (B,seed))
+    # I.I(ADD, (A,"WRITE_PORT"), 0, (B,"seed")),   I.RD("output")
+    # I.I(ADD, (B,"WRITE_PORT"), 0, (B,"seed"))
+    I.I(ADD, (A,"INDIRECT_WRITE_PORT"), 0, (B,"seed")),   I.RD("output")
     I.I(JMP, "hailstone", 0, 0)
     return I
 
@@ -119,9 +124,9 @@ def assemble_XPO():
     APO.file_name = bench_name
     BPO.file_name = bench_name
     DPO.file_name = bench_name
-    for mem in APO, BPO, DPO:
-        for count in range(0,8):
-            mem.L(0)
+    # ECL Done in the above code now.
+    # for count in range(0,8):
+    #     DPO.L(indirect_write_port_offset)
     return APO, BPO, DPO
 
 def assemble_XIN():

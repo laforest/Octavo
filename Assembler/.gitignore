@@ -1,6 +1,11 @@
+*.pc
+*.mem
 *.pyc
 *.A
 *.I
 *.B
 *.PC
+*.?DO
+*.?PO
+*.?IN
 
