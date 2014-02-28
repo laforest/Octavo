@@ -1,8 +1,7 @@
 
-// Contains the new PC for taken parallel branches.
-// The D operand used to provide this value. (but it won't exist anymore)
+// Contains the binary-coded condition selector for the branch.
 
-module New_PC
+module Condition_Code
 #(
     parameter   WORD_WIDTH              = 0,
     parameter   ADDR_WIDTH              = 0,
@@ -16,9 +15,9 @@ module New_PC
     input   wire    [ADDR_WIDTH-1:0]    write_addr,
     input   wire    [WORD_WIDTH-1:0]    write_data,
     input   wire    [ADDR_WIDTH-1:0]    read_addr,
-    output  wire    [WORD_WIDTH-1:0]    new_PC
+    output  wire    [WORD_WIDTH-1:0]    cond_code
 );
-    wire    [WORD_WIDTH-1:0]    new_PC_raw;
+    wire    [WORD_WIDTH-1:0]    cond_code_raw;
 
     RAM_SDP_no_fw
     #(
@@ -28,14 +27,14 @@ module New_PC
         .RAMSTYLE           (RAMSTYLE),
         .INIT_FILE          (INIT_FILE)
     )
-    New_PC_Memory
+    CC_Memory
     (
         .clock              (clock),
         .wren               (wren),
         .write_addr         (write_addr),
         .write_data         (write_data),
         .read_addr          (read_addr),
-        .read_data          (new_PC_raw)
+        .read_data          (cond_code_raw)
     );
 
 // -----------------------------------------------------------
@@ -45,11 +44,11 @@ module New_PC
         .DEPTH  (2),
         .WIDTH  (WORD_WIDTH)
     )
-    NPC_pipeline
+    CC_pipeline
     (
         .clock  (clock),
-        .in     (new_PC_raw),
-        .out    (new_PC)
+        .in     (cond_code_raw),
+        .out    (cond_code)
     );
 
 endmodule
