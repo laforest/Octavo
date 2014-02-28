@@ -9,18 +9,51 @@ module Branch_Origin_Check
     input                           clock,
     input   wire    [PC_WIDTH-1:0]  PC,
     input   wire    [PC_WIDTH-1:0]  branch_origin,
-    output  reg                     hit
+    output  wire                    hit_stage2,
+    output  wire                    hit_stage3
 );
 
+// -----------------------------------------------------------
+
+    wire    hit_raw;
+
     // ECL XXX Technically an XNOR, but let's leave it to the synthesis tool...
-    always @(posedge clock) begin
+    always @(*) begin
         if (PC === branch_origin) begin
-            hit <= `HIGH;
+            hit_raw <= `HIGH;
         end
         else begin
-            hit <= `LOW;
+            hit_raw <= `LOW;
         end
     end
+
+// -----------------------------------------------------------
+
+    delay_line
+    #(
+        .DEPTH  (1),
+        .WIDTH  (1)
+    )
+    BOC_stage1to2
+    (
+        .clock  (clock),
+        .in     (hit_raw),
+        .out    (hit_stage2)
+    );
+
+// -----------------------------------------------------------
+
+    delay_line
+    #(
+        .DEPTH  (1),
+        .WIDTH  (1)
+    )
+    BOC_stage2to3
+    (
+        .clock  (clock),
+        .in     (hit_stage2),
+        .out    (hit_stage3)
+    );
 
 endmodule
 
