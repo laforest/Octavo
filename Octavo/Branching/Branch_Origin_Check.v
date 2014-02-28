@@ -1,7 +1,7 @@
 
 // Detects when current PC matches a branch origin.
 
-module Branch_Check
+module Branch_Origin_Check
 #(
     parameter   PC_WIDTH            = 0,
 )
