@@ -93,7 +93,7 @@ module Branching_Flags
 (
     input   wire                        clock,
     input   wire    [WORD_WIDTH-1:0]    R_prev,
-    output  wire    [COND_WIDTH-1:0]    flags,
+    output  wire    [COND_WIDTH-1:0]    flags
 );
     wire    R_zero;
 
