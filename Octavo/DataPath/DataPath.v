@@ -55,11 +55,8 @@ module DataPath
     input   wire                                                    A_wren_other,
     input   wire                                                    B_wren_other,
 
-    output  wire    [A_WORD_WIDTH-1:0]                              A_read_data,
-
     input   wire                                                    ALU_c_in,
     output  wire    [ALU_WORD_WIDTH-1:0]                            ALU_result_out,
-    output  wire    [OPCODE_WIDTH-1:0]                              ALU_op_out,
     output  wire    [D_OPERAND_WIDTH-1:0]                           ALU_D_out,
     output  wire                                                    ALU_c_out,
 
@@ -80,6 +77,9 @@ module DataPath
     output  wire    [(B_WORD_WIDTH * B_IO_WRITE_PORT_COUNT)-1:0]    B_io_out
 
 );
+
+// -----------------------------------------------------------
+
     delay_line 
     #(
         .DEPTH  (I_PASSTHRU_PIPELINE_DEPTH),
@@ -91,6 +91,8 @@ module DataPath
         .in     (I_read_data_in),
         .out    (I_read_data_out)
     );
+
+// -----------------------------------------------------------
 
     wire    [INSTR_WIDTH-1:0]   I_read_data_AB;
 
@@ -107,6 +109,8 @@ module DataPath
         .in     (I_read_data_in), // raw addr. stage 1
         .out    (I_read_data_AB)  // "translated" addr stage 3
     );
+
+// -----------------------------------------------------------
 
     wire    [A_OPERAND_WIDTH-1:0]  A_read_addr_in;
     wire    [B_OPERAND_WIDTH-1:0]  B_read_addr_in;
@@ -129,6 +133,8 @@ module DataPath
         .B                  (B_read_addr_in)
     );
 
+// -----------------------------------------------------------
+
     wire    [A_OPERAND_WIDTH-1:0]  A_read_addr_AB;
     wire    [B_OPERAND_WIDTH-1:0]  B_read_addr_AB;
     wire    [D_OPERAND_WIDTH-1:0]  D_write_addr_AB;
@@ -150,7 +156,10 @@ module DataPath
         .B                  (B_read_addr_AB)
     );
 
+// -----------------------------------------------------------
+
     wire    [A_WORD_WIDTH-1:0]      A_read_data_RAM;
+    wire    [A_WORD_WIDTH-1:0]      A_read_data;
     wire                            A_io_in_EF_masked;
 
     IO_Read
@@ -175,24 +184,34 @@ module DataPath
         .data_out                   (A_read_data)
     );
 
-    wire                A_wren_RAM;
-    wire                A_wren_ALU;
+// -----------------------------------------------------------
 
-    Write_Enable 
+    wire                A_wren_ALU_raw;
+
+    Address_Decoder 
     #(
-        .OPCODE_WIDTH   (OPCODE_WIDTH),
         .ADDR_COUNT     (A_DEPTH),
         .ADDR_BASE      (A_WRITE_ADDR_OFFSET),
-        .ADDR_WIDTH     (D_OPERAND_WIDTH)
+        .ADDR_WIDTH     (D_OPERAND_WIDTH),
+        .REGISTERED     (`FALSE)
 
     )
     A_wren
     (
-        .op             (ALU_op_out),
+        .clock          (clock),
         .addr           (ALU_D_out),
-        .wren_other     (A_wren_other),
-        .wren           (A_wren_ALU)
+        .hit            (A_wren_ALU_raw)
     );
+
+// -----------------------------------------------------------
+
+    reg     A_wren_ALU;
+
+    always @(*) begin
+        A_wren_ALU <= A_wren_ALU_raw & A_wren_other;
+    end
+
+// -----------------------------------------------------------
 
     wire        A_write_is_IO;
     wire        A_write_is_IO_ALU;
@@ -213,6 +232,9 @@ module DataPath
         .out    (A_write_is_IO_ALU)
     );
 
+// -----------------------------------------------------------
+
+    wire                            A_wren_RAM;
     wire    [A_WORD_WIDTH-1:0]      A_write_data;
     wire    [A_ADDR_WIDTH-1:0]      A_write_addr;
     wire                            A_io_out_EF_masked;
@@ -245,6 +267,8 @@ module DataPath
         .wren_RAM                   (A_wren_RAM)
     );
 
+// -----------------------------------------------------------
+
     RAM_SDP
     #(
         .WORD_WIDTH     (A_WORD_WIDTH),
@@ -262,6 +286,8 @@ module DataPath
         .read_addr      (A_read_addr_AB),
         .read_data      (A_read_data_RAM)
     );
+
+// -----------------------------------------------------------
 
 
     wire    [B_WORD_WIDTH-1:0]      B_read_data_RAM;
@@ -290,23 +316,33 @@ module DataPath
         .data_out                   (B_read_data)
     );
 
-    wire                B_wren_RAM;
-    wire                B_wren_ALU;
+// -----------------------------------------------------------
 
-    Write_Enable 
+    wire                B_wren_ALU_raw;
+
+    Address_Decoder 
     #(
-        .OPCODE_WIDTH   (OPCODE_WIDTH),
         .ADDR_COUNT     (B_DEPTH),
         .ADDR_BASE      (B_WRITE_ADDR_OFFSET),
-        .ADDR_WIDTH     (D_OPERAND_WIDTH)
+        .ADDR_WIDTH     (D_OPERAND_WIDTH),
+        .REGISTERED     (`FALSE)
     )
     B_wren
     (
-        .op             (ALU_op_out),
+        .clock          (clock),
         .addr           (ALU_D_out),
-        .wren_other     (B_wren_other),
-        .wren           (B_wren_ALU)
+        .hit            (B_wren_ALU_raw)
     );
+
+// -----------------------------------------------------------
+
+    reg     B_wren_ALU;
+
+    always @(*) begin
+        B_wren_ALU <= B_wren_ALU_raw & B_wren_other;
+    end
+
+// -----------------------------------------------------------
 
     wire        B_write_is_IO;
     wire        B_write_is_IO_ALU;
@@ -327,6 +363,9 @@ module DataPath
         .out    (B_write_is_IO_ALU)
     );
 
+// -----------------------------------------------------------
+
+    wire                            B_wren_RAM;
     wire    [B_WORD_WIDTH-1:0]      B_write_data;
     wire    [B_ADDR_WIDTH-1:0]      B_write_addr;
     wire                            B_io_out_EF_masked;
@@ -359,6 +398,8 @@ module DataPath
         .wren_RAM                   (B_wren_RAM)
     );
 
+// -----------------------------------------------------------
+
     RAM_SDP
     #(
         .WORD_WIDTH     (B_WORD_WIDTH),
@@ -377,6 +418,8 @@ module DataPath
         .read_data      (B_read_data_RAM)
     );
 
+// -----------------------------------------------------------
+
     IO_All_Ready
     #(
         .READ_PORT_COUNT    (2),
@@ -389,6 +432,8 @@ module DataPath
         .write_EF           ({A_io_out_EF_masked, B_io_out_EF_masked}),
         .ready              (IO_ready)
     );
+
+// -----------------------------------------------------------
 
     wire    [INSTR_WIDTH-1:0]   I_read_data_AB_masked;
 
@@ -403,6 +448,8 @@ module DataPath
         .instr_out      (I_read_data_AB_masked)
     ); 
 
+// -----------------------------------------------------------
+
     wire    [INSTR_WIDTH-1:0]   AB_instr;
 
     delay_line 
@@ -416,6 +463,8 @@ module DataPath
         .in     (I_read_data_AB_masked),
         .out    (AB_instr)
     );
+
+// -----------------------------------------------------------
 
     wire    [OPCODE_WIDTH-1:0]      ALU_op_in;
     wire    [D_OPERAND_WIDTH-1:0]   ALU_D_in;
@@ -436,6 +485,8 @@ module DataPath
         .A                  (),
         .B                  ()
     );
+
+// -----------------------------------------------------------
 
     ALU 
     #(
@@ -459,7 +510,7 @@ module DataPath
         .A                      (A_read_data),
         .B                      (B_read_data),
         .R                      (ALU_result_out),
-        .op_out                 (ALU_op_out),
+        .op_out                 (), // ECL XXX Unused for now
         .c_out                  (ALU_c_out),
         .D_out                  (ALU_D_out)
     );
