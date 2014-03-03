@@ -41,6 +41,10 @@ endmodule
 
 // -----------------------------------------------------------
 
+// Not optionally registered because we use the final PC in two ways at the
+// end, one of which might not have a pipelined output depending on the
+// Controlle's position in the ControlPath.
+
 module PC_Selector
 #(
     parameter       PC_WIDTH        = 0
@@ -66,10 +70,10 @@ module PC_Selector
 
     always @(*) begin
         if (IO_ready === `HIGH) begin
-            pc <= normal_pc;
+            PC <= normal_pc;
         end
         else begin
-            pc <= previous_pc;
+            PC <= previous_pc;
         end
     end
 endmodule
@@ -78,8 +82,6 @@ endmodule
 
 module Controller 
 #(
-    parameter       OPCODE_WIDTH        = 0,
-    parameter       A_WORD_WIDTH        = 0,
     parameter       PC_WIDTH            = 0,
     parameter       THREAD_ADDR_WIDTH   = 0,
     parameter       THREAD_COUNT        = 0,
@@ -97,12 +99,60 @@ module Controller
 
 // -----------------------------------------------------------
 
+    wire    IO_ready_synced;
+
+    delay_line 
+    #(
+        .DEPTH  (1),
+        .WIDTH  (1)
+    ) 
+    IO_ready_pipeline
+    (
+        .clock  (clock),
+        .in     (IO_ready),
+        .out    (IO_ready_synced)
+    );
+
+// -----------------------------------------------------------
+
+    wire    jump_synced;
+
+    delay_line 
+    #(
+        .DEPTH  (1),
+        .WIDTH  (1)
+    ) 
+    jump_pipeline
+    (
+        .clock  (clock),
+        .in     (jump),
+        .out    (jump_synced)
+    );
+
+// -----------------------------------------------------------
+
+    wire    [PC_WIDTH-1:0]  branch_destination_synced;
+
+    delay_line 
+    #(
+        .DEPTH  (1),
+        .WIDTH  (PC_WIDTH)
+    ) 
+    branch_destination_pipeline
+    (
+        .clock  (clock),
+        .in     (branch_destination),
+        .out    (branch_destination_synced)
+    );
+
+// -----------------------------------------------------------
+
     wire    [THREAD_ADDR_WIDTH-1:0] current_thread;
     wire    [THREAD_ADDR_WIDTH-1:0] next_thread;
 
     Thread_Number
     #(
-        .INITIAL_THREAD     (0),
+        .INITIAL_THREAD     (0), // ECL XXX hardcoded...but doesn't matter here, and see below.
         .THREAD_COUNT       (THREAD_COUNT),
         .THREAD_ADDR_WIDTH  (THREAD_ADDR_WIDTH)
     )
@@ -113,19 +163,26 @@ module Controller
         .next_thread        (next_thread)
     );
 
-    wire    [PC_WIDTH-1:0]  previous_pc;
-    wire    [PC_WIDTH-1:0]  current_pc;
-    reg     [PC_WIDTH-1:0]  next_pc;
+// -----------------------------------------------------------
 
     reg     [THREAD_ADDR_WIDTH-1:0] previous_thread;
 
+    // Used to store back next and current PCs, delayed by 1 cycle for adder.
     always @(posedge clock) begin
         previous_thread <= current_thread;
     end
 
+    // ECL XXX hardcoded...should be (INITIAL_THREAD - 1) % THREAD_COUNT
+    initial begin
+        previous_thread = 7;
+    end
+
 // -----------------------------------------------------------
 
-    reg     [PC_WIDTH-1:0] pc_reg;
+    wire    [PC_WIDTH-1:0]  previous_pc;
+    wire    [PC_WIDTH-1:0]  current_pc;
+    reg     [PC_WIDTH-1:0]  next_pc;
+    wire    [PC_WIDTH-1:0]  pc_reg;
 
     Controller_threads 
     #(
@@ -146,25 +203,53 @@ module Controller
 
 // -----------------------------------------------------------
 
+    wire    [PC_WIDTH-1:0]  pc_raw;
+
     PC_Selector
     #(
         .PC_WIDTH       (PC_WIDTH)
     )
     PC_Selector
     (
-        .jump           (jump),
-        .IO_ready       (IO_ready),
+        .jump           (jump_synced),
+        .IO_ready       (IO_ready_synced),
         .current_pc     (current_pc),
         .previous_pc    (previous_pc),
-        .jump_target    (branch_destination),
-        .PC             (PC)
+        .jump_target    (branch_destination_synced),
+        .PC             (pc_raw)
     );
 
 // -----------------------------------------------------------
 
-    always @(posedge clock) begin
-        pc_reg <= pc;
-    end
+    delay_line 
+    #(
+        .DEPTH  (1),
+        .WIDTH  (PC_WIDTH)
+    ) 
+    PC_pipeline
+    (
+        .clock  (clock),
+        .in     (pc_raw),
+        .out    (PC)
+    );
+
+// -----------------------------------------------------------
+
+    // prevents JMP->PCM critical path.
+    // Redundant with PC_pipeline, but better to duplicate and let tool deduplicate if needed.
+    delay_line 
+    #(
+        .DEPTH  (1),
+        .WIDTH  (PC_WIDTH)
+    ) 
+    pc_reg_pipeline
+    (
+        .clock  (clock),
+        .in     (pc_raw),
+        .out    (pc_reg)
+    );
+
+// -----------------------------------------------------------
 
     // Workaround to use bit vector selection to eliminate truncation warnings
     integer one = 1;
@@ -172,4 +257,5 @@ module Controller
     always @(*) begin
         next_pc  <= pc_reg + one[PC_WIDTH-1:0];
     end
+
 endmodule
