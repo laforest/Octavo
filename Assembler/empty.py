@@ -13,13 +13,13 @@ def assemble_PC():
     # Thread 0 must start its code at 1, as first PC is always 0 (register set at config)
     # Place a NOP at 0 for threads 1-7, and they will all be in sync, as well as flush out the pipeline of any initial zeroes.
     PC.L(PC.pack2(1,1)), PC.N("THREAD0_START")
-    PC.L(PC.pack2(0,0)), PC.N("THREAD1_START")
-    PC.L(PC.pack2(0,0)), PC.N("THREAD2_START")
-    PC.L(PC.pack2(0,0)), PC.N("THREAD3_START")
-    PC.L(PC.pack2(0,0)), PC.N("THREAD4_START")
-    PC.L(PC.pack2(0,0)), PC.N("THREAD5_START")
-    PC.L(PC.pack2(0,0)), PC.N("THREAD6_START")
-    PC.L(PC.pack2(0,0)), PC.N("THREAD7_START")
+    PC.L(PC.pack2(32,32)), PC.N("THREAD1_START")
+    PC.L(PC.pack2(64,64)), PC.N("THREAD2_START")
+    PC.L(PC.pack2(96,96)), PC.N("THREAD3_START")
+    PC.L(PC.pack2(128,128)), PC.N("THREAD4_START")
+    PC.L(PC.pack2(160,160)), PC.N("THREAD5_START")
+    PC.L(PC.pack2(192,192)), PC.N("THREAD6_START")
+    PC.L(PC.pack2(224,224)), PC.N("THREAD7_START")
     return PC
 
 def assemble_A():
@@ -52,6 +52,12 @@ def assemble_XIN():
     DIN = Assembler.Increments_Memory(bench_name, file_ext = ".DIN", write_offset = mem_map["DIN"]["Origin"])
     return AIN, BIN, DIN
 
+def assemble_branches():
+    BO = Assembler.Branch_Origin_Memory(bench_name, write_offset = mem_map["BO"]["Origin"])
+    BD = Assembler.Branch_Destination_Memory(bench_name, write_offset = mem_map["BD"]["Origin"])
+    BC = Assembler.Branch_Condition_Memory(bench_name, write_offset = mem_map["BC"]["Origin"])
+    return BO, BD, BC
+
 def assemble_all():
     PC = assemble_PC()
     A  = assemble_A()
@@ -60,10 +66,12 @@ def assemble_all():
     ADO, BDO, DDO = assemble_XDO()
     APO, BPO, DPO = assemble_XPO()
     AIN, BIN, DIN = assemble_XIN()
+    BO, BD, BC = assemble_branches()
     empty = {"PC":PC, "A":A, "B":B, "I":I, 
              "ADO":ADO, "BDO":BDO, "DDO":DDO,
              "APO":APO, "BPO":BPO, "DPO":DPO,
-             "AIN":AIN, "BIN":BIN, "DIN":DIN}
+             "AIN":AIN, "BIN":BIN, "DIN":DIN,
+             "BO":BO,   "BD":BD,   "BC":BC}
     return empty
 
 def dump_all(empty):
