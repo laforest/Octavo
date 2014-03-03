@@ -43,7 +43,6 @@ module Branch_Check_Mapped
     input   wire    [PC_WIDTH-1:0]                  PC,
     input   wire    [FLAGS_WORD_WIDTH-1:0]          flags,
     input   wire                                    IO_ready_previous,
-    input   wire                                    jump_previous,
 
     input   wire    [D_OPERAND_WIDTH-1:0]           ALU_write_addr,
     input   wire    [WORD_WIDTH-1:0]                ALU_write_data,
@@ -159,7 +158,6 @@ module Branch_Check_Mapped
         .PC                         (PC),
         .flags,
         .IO_ready_previous          (IO_ready_previous),
-        .jump_previous              (jump_previous),
 
         .ALU_wren_BO                (ALU_wren_BO),
         .ALU_wren_BD                (ALU_wren_BD),

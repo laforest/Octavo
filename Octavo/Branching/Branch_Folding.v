@@ -93,22 +93,6 @@ module Branch_Folding
 
 // -----------------------------------------------------------
 
-    wire    jump_previous;
-
-    delay_line
-    #(
-        .DEPTH  (7), // ECL XXX hardcoded...(-1 since jump registered out of stage 4)
-        .WIDTH  (1)
-    )
-    jump_pipeline
-    (
-        .clock  (clock),
-        .in     (jump),
-        .out    (jump_previous)
-    );
-
-// -----------------------------------------------------------
-
     wire    [(BRANCH_COUNT * PC_WIDTH)-1:0]     branch_destinations;
     wire    [ BRANCH_COUNT            -1:0]     jumps;
 
@@ -159,7 +143,6 @@ module Branch_Folding
                 .PC                             (PC),
                 .flags                          (flags),
                 .IO_ready_previous              (IO_ready_previous),
-                .jump_previous                  (jump_previous),
 
                 .ALU_write_addr                 (ALU_write_addr),
                 .ALU_write_data                 (ALU_write_data),

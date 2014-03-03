@@ -40,7 +40,6 @@ module Branch_Check
     input   wire    [PC_WIDTH-1:0]                  PC,
     input   wire    [FLAGS_WORD_WIDTH-1:0]          flags,
     input   wire                                    IO_ready_previous,
-    input   wire                                    jump_previous,
 
     input   wire                                    ALU_wren_BO, // Branch Origin Memory
     input   wire                                    ALU_wren_BD, // Branch Destination Memory
@@ -144,6 +143,22 @@ module Branch_Check
 
 // -----------------------------------------------------------
 
+    wire    [PC_WIDTH-1:0]  PC_synced;
+
+    delay_line
+    #(
+        .DEPTH  (1),
+        .WIDTH  (PC_WIDTH)
+    )
+    PC_synchronizer
+    (
+        .clock  (clock),
+        .in     (PC),
+        .out    (PC_synced)
+    );
+
+// -----------------------------------------------------------
+
     wire    branch_origin_hit_stage2;
     wire    branch_origin_hit_stage3;
 
@@ -154,7 +169,7 @@ module Branch_Check
     BOC
     (
         .clock          (clock),
-        .PC             (PC),
+        .PC             (PC_synced),
         .branch_origin  (branch_origin),
         .hit_stage2     (branch_origin_hit_stage2),
         .hit_stage3     (branch_origin_hit_stage3)
@@ -213,6 +228,7 @@ module Branch_Check
 
 // -----------------------------------------------------------
 
+    wire    jump_previous
     wire    flag;
 
     // ECL XXX If we return here because the instruction in parallel with the
@@ -291,6 +307,24 @@ module Branch_Check
         .in     (jump_raw),
         .out    (jump)
     );
+
+// -----------------------------------------------------------
+
+    // Recicrculate the local jump decision for re-issue of annulled instr.
+    // ECL XXX hardcoded...
+    // -1 from 8 since jump registered out of stage 4, after IO_ready
+    delay_line
+    #(
+        .DEPTH  (7),
+        .WIDTH  (1)
+    )
+    jump_previous_pipeline
+    (
+        .clock  (clock),
+        .in     (jump),
+        .out    (jump_previous)
+    );
+
 
 endmodule
 
