@@ -35,8 +35,6 @@ module Branch_Check_Mapped
     parameter   CONDITION_RAMSTYLE                  = 0,
     parameter   CONDITION_INIT_FILE                 = 0,
 
-    parameter   FLAGS_WRITE_WORD_OFFSET             = 0,
-    parameter   FLAGS_WRITE_ADDR_OFFSET             = 0,
     parameter   FLAGS_WORD_WIDTH                    = 0,
     parameter   FLAGS_ADDR_WIDTH                    = 0
 )
