@@ -262,6 +262,44 @@ def generate_addressing_parameters(common_values, parameters = {}):
     parameters_misc.override(addressing_parameters, parameters)
     return addressing_parameters
 
+def generate_branching_parameters(common_values, parameters = {}):
+
+    base_addr = common_values["H_WRITE_ADDR_OFFSET"] + 10 # ECL XXX Hardcoded, right after PO_INC (2 of them)
+    mem_init  = '"' + common_values["MEM_INIT_FILE"] + '"'
+    mem_style = '"MLAB,no_rw_check"'
+
+    branching_parameters = {
+        "ORIGIN_WRITE_WORD_OFFSET"      : 0,
+        "ORIGIN_WRITE_ADDR_OFFSET"      : base_addr,
+        "ORIGIN_WORD_WIDTH"             : 10,
+        "ORIGIN_ADDR_WIDTH"             : 3,
+        "ORIGIN_DEPTH"                  : 8,
+        "ORIGIN_RAMSTYLE"               : mem_style,
+        "ORIGIN_INIT_FILE"              : mem_init,
+
+        "BRANCH_COUNT"                  : 2,
+
+        "DESTINATION_WRITE_WORD_OFFSET" : 10,
+        "DESTINATION_WRITE_ADDR_OFFSET" : base_addr,
+        "DESTINATION_WORD_WIDTH"        : 10,
+        "DESTINATION_ADDR_WIDTH"        : 3,
+        "DESTINATION_DEPTH"             : 8,
+        "DESTINATION_RAMSTYLE"          : mem_style,
+        "DESTINATION_INIT_FILE"         : mem_init,
+
+        "CONDITION_WRITE_WORD_OFFSET"   : 20,
+        "CONDITION_WRITE_ADDR_OFFSET"   : base_addr,
+        "CONDITION_WORD_WIDTH"          : 3,
+        "CONDITION_ADDR_WIDTH"          : 3,
+        "CONDITION_DEPTH"               : 8,
+        "CONDITION_RAMSTYLE"            : mem_style,
+        "CONDITION_INIT_FILE"           : mem_init,
+
+        "FLAGS_WORD_WIDTH"              : 8,
+        "FLAGS_ADDR_WIDTH"              : 3,
+    }
+    parameters_misc.override(branching_parameters, parameters)
+    return branching_parameters
 
 def generate_resource_diversity_options(parameters = {}):
     resource_diversity_options = { 
@@ -319,6 +357,7 @@ def all_parameters(parameters = {}):
     common_values.update(generate_main_parameters(common_values, parameters))
     common_values.update(generate_thread_parameters(common_values, parameters))
     common_values.update(generate_addressing_parameters(common_values, parameters))
+    common_values.update(generate_branching_parameters(common_values, parameters))
     common_values.update(generate_cpu_name(common_values))
     return common_values
 

@@ -182,7 +182,38 @@ def definition(all_parameters):
     parameter   D_INCREMENTS_ADDR_WIDTH                     = ${D_INCREMENTS_ADDR_WIDTH},
     parameter   D_INCREMENTS_DEPTH                          = ${D_INCREMENTS_DEPTH},
     parameter   D_INCREMENTS_RAMSTYLE                       = ${D_INCREMENTS_RAMSTYLE},
-    parameter   D_INCREMENTS_INIT_FILE                      = ${D_INCREMENTS_INIT_FILE}
+    parameter   D_INCREMENTS_INIT_FILE                      = ${D_INCREMENTS_INIT_FILE},
+
+// -----------------------------------------------------------
+
+    parameter   ORIGIN_WRITE_WORD_OFFSET                    = ${ORIGIN_WRITE_WORD_OFFSET},
+    parameter   ORIGIN_WRITE_ADDR_OFFSET                    = ${ORIGIN_WRITE_ADDR_OFFSET},
+    parameter   ORIGIN_WORD_WIDTH                           = ${ORIGIN_WORD_WIDTH},
+    parameter   ORIGIN_ADDR_WIDTH                           = ${ORIGIN_ADDR_WIDTH},
+    parameter   ORIGIN_DEPTH                                = ${ORIGIN_DEPTH},
+    parameter   ORIGIN_RAMSTYLE                             = ${ORIGIN_RAMSTYLE},
+    parameter   ORIGIN_INIT_FILE                            = ${ORIGIN_INIT_FILE},
+
+    parameter   BRANCH_COUNT                                = ${BRANCH_COUNT},
+
+    parameter   DESTINATION_WRITE_WORD_OFFSET               = ${DESTINATION_WRITE_WORD_OFFSET},
+    parameter   DESTINATION_WRITE_ADDR_OFFSET               = ${DESTINATION_WRITE_ADDR_OFFSET},
+    parameter   DESTINATION_WORD_WIDTH                      = ${DESTINATION_WORD_WIDTH},
+    parameter   DESTINATION_ADDR_WIDTH                      = ${DESTINATION_ADDR_WIDTH},
+    parameter   DESTINATION_DEPTH                           = ${DESTINATION_DEPTH},
+    parameter   DESTINATION_RAMSTYLE                        = ${DESTINATION_RAMSTYLE},
+    parameter   DESTINATION_INIT_FILE                       = ${DESTINATION_INIT_FILE},
+
+    parameter   CONDITION_WRITE_WORD_OFFSET                 = ${CONDITION_WRITE_WORD_OFFSET},
+    parameter   CONDITION_WRITE_ADDR_OFFSET                 = ${CONDITION_WRITE_ADDR_OFFSET},
+    parameter   CONDITION_WORD_WIDTH                        = ${CONDITION_WORD_WIDTH},
+    parameter   CONDITION_ADDR_WIDTH                        = ${CONDITION_ADDR_WIDTH},
+    parameter   CONDITION_DEPTH                             = ${CONDITION_DEPTH},
+    parameter   CONDITION_RAMSTYLE                          = ${CONDITION_RAMSTYLE},
+    parameter   CONDITION_INIT_FILE                         = ${CONDITION_INIT_FILE},
+
+    parameter   FLAGS_WORD_WIDTH                            = ${FLAGS_WORD_WIDTH},
+    parameter   FLAGS_ADDR_WIDTH                            = ${FLAGS_ADDR_WIDTH}
 )
 (
     input   wire                                                    clock,
@@ -295,6 +326,8 @@ def definition(all_parameters):
         .MULT_HETEROGENEOUS                         (MULT_HETEROGENEOUS),
         .MULT_USE_DSP                               (MULT_USE_DSP),
 
+/*************************************************************
+
 // -----------------------------------------------------------
 
         .ADDRESS_TRANSLATION_INITIAL_THREAD         (ADDRESS_TRANSLATION_INITIAL_THREAD),
@@ -388,6 +421,40 @@ def definition(all_parameters):
         .D_INCREMENTS_DEPTH                         (D_INCREMENTS_DEPTH),
         .D_INCREMENTS_RAMSTYLE                      (D_INCREMENTS_RAMSTYLE),
         .D_INCREMENTS_INIT_FILE                     (D_INCREMENTS_INIT_FILE)
+
+*************************************************************/
+
+// -----------------------------------------------------------
+
+        .ORIGIN_WRITE_WORD_OFFSET                   (ORIGIN_WRITE_WORD_OFFSET),
+        .ORIGIN_WRITE_ADDR_OFFSET                   (ORIGIN_WRITE_ADDR_OFFSET),
+        .ORIGIN_WORD_WIDTH                          (ORIGIN_WORD_WIDTH),
+        .ORIGIN_ADDR_WIDTH                          (ORIGIN_ADDR_WIDTH),
+        .ORIGIN_DEPTH                               (ORIGIN_DEPTH),
+        .ORIGIN_RAMSTYLE                            (ORIGIN_RAMSTYLE),
+        .ORIGIN_INIT_FILE                           (ORIGIN_INIT_FILE),
+
+        .BRANCH_COUNT                               (BRANCH_COUNT),
+
+        .DESTINATION_WRITE_WORD_OFFSET              (DESTINATION_WRITE_WORD_OFFSET),
+        .DESTINATION_WRITE_ADDR_OFFSET              (DESTINATION_WRITE_ADDR_OFFSET),
+        .DESTINATION_WORD_WIDTH                     (DESTINATION_WORD_WIDTH),
+        .DESTINATION_ADDR_WIDTH                     (DESTINATION_ADDR_WIDTH),
+        .DESTINATION_DEPTH                          (DESTINATION_DEPTH),
+        .DESTINATION_RAMSTYLE                       (DESTINATION_RAMSTYLE),
+        .DESTINATION_INIT_FILE                      (DESTINATION_INIT_FILE),
+
+        .CONDITION_WRITE_WORD_OFFSET                (CONDITION_WRITE_WORD_OFFSET),
+        .CONDITION_WRITE_ADDR_OFFSET                (CONDITION_WRITE_ADDR_OFFSET),
+        .CONDITION_WORD_WIDTH                       (CONDITION_WORD_WIDTH),
+        .CONDITION_ADDR_WIDTH                       (CONDITION_ADDR_WIDTH),
+        .CONDITION_DEPTH                            (CONDITION_DEPTH),
+        .CONDITION_RAMSTYLE                         (CONDITION_RAMSTYLE),
+        .CONDITION_INIT_FILE                        (CONDITION_INIT_FILE),
+
+        .FLAGS_WORD_WIDTH                           (FLAGS_WORD_WIDTH),
+        .FLAGS_ADDR_WIDTH                           (FLAGS_ADDR_WIDTH)
+
     )
     Scalar
     (
