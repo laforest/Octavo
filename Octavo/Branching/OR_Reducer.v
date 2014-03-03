@@ -8,6 +8,7 @@ module OR_Reducer
     parameter       REGISTERED                      = `FALSE
 )
 (
+    input   wire                                    clock,
     input   wire    [(WORD_WIDTH * WORD_COUNT)-1:0] in,
     output  reg     [ WORD_WIDTH-1:0]               out
 );
