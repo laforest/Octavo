@@ -83,6 +83,7 @@ set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Branching/Branch
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Branching/Branching_Flags.v
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Branching/Branching_Thread_Number.v
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Branching/Branch_Origin.v
+set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Branching/Branch_Origin_Check.v
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Branching/OR_Reducer.v
 # set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Addressing/Address_Adder.v
 # set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Addressing/Addressing_Mapped_AB.v
