@@ -147,8 +147,8 @@ module Branch_Folding
                 .ALU_write_addr                 (ALU_write_addr),
                 .ALU_write_data                 (ALU_write_data),
 
-                .branch_destination             (branch_destinations),
-                .jump                           (jumps)
+                .branch_destination             (branch_destinations[PC_WIDTH + (PC_WIDTH * count)-1:(PC_WIDTH * count)]),
+                .jump                           (jumps[count])
             );
         end
     endgenerate
