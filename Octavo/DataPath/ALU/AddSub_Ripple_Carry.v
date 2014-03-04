@@ -85,6 +85,14 @@ module AddSub_Ripple_Carry
         datab_upper      <= upper_half_word(datab);
     end
 
+    initial begin
+        cout_lower_reg   = 0;
+        result_lower_reg = 0;
+        add_sub_upper    = 0;
+        dataa_upper      = 0;
+        datab_upper      = 0;
+    end
+
 // *************************************
 
     wire                            cout_upper;
@@ -112,6 +120,12 @@ module AddSub_Ripple_Carry
         cout_upper_reg     <= cout_upper;
         result_upper_reg   <= result_upper;
         result_lower_reg_1 <= result_lower_reg;
+    end
+
+    initial begin
+        cout_upper_reg     = 0;
+        result_upper_reg   = 0;
+        result_lower_reg_1 = 0;
     end
 
 // *************************************

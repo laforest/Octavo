@@ -31,6 +31,10 @@ module Bitwise
     always @(posedge clock) begin
         R <= result;
     end
+
+    initial begin
+        R = 0;
+    end
 endmodule
 
 
