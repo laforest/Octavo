@@ -105,7 +105,7 @@ class Instruction_Memory(Memory):
         self.L(instr)
 
     def RL(self, name):
-        """Resolve Literal: set named locatfile_name, depth = 1024, width = 36ion to current address"""
+        """Resolve Literal: set named location to current address"""
         address = self.names[name]
         self.data[address] = self.here
 
