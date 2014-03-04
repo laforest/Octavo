@@ -3,6 +3,7 @@
 import empty
 from opcodes import *
 from memory_map import mem_map
+from branching_flags import *
 
 bench_dir  = "Hailstone"
 bench_file = "hailstone"
@@ -57,20 +58,64 @@ def assemble_I(PC, A, B):
     # Align threads 1-7 with thread 0
     I.NOP()
 
+#    for thread in range(0,8):
+#        I.ALIGN(PC.get_pc("THREAD{}_START".format(thread)))
+#        # Is the seed odd?
+#        I.I(AND, (A,"temp_{}".format(thread)), (A,"one"), (B,"seed_{}".format(thread))),    I.N("hailstone_{}".format(thread))
+#        I.I(JNZ, 0, (A,"temp_{}".format(thread)), 0),                                       I.N("odd_{}".format(thread))
+#        # Even: seed = seed / 2
+#        I.I(MHU, (B,"seed_{}".format(thread)), (A,"right_shift_1"), (B,"seed_{}".format(thread)))
+#        I.I(JMP, 0, 0, 0),                                                                  I.N("output_{}".format(thread))
+#        # Odd: seed = (3 * seed) + 1
+#        I.I(MLS, (B,"seed_{}".format(thread)), (A,"three"), (B,"seed_{}".format(thread))),  I.RD("odd_{}".format(thread))
+#        I.I(ADD, (B,"seed_{}".format(thread)), (A,"one"), (B,"seed_{}".format(thread)))
+#        I.I(ADD, (A,"WRITE_PORT"), 0, (B,"seed_{}".format(thread))),                        I.RD("output_{}".format(thread))
+#        I.I(ADD, (B,"WRITE_PORT"), 0, (B,"seed_{}".format(thread)))
+#        I.I(JMP, "hailstone", 0, 0)
+
     for thread in range(0,8):
         I.ALIGN(PC.get_pc("THREAD{}_START".format(thread)))
+
+        # Placeholders for instructions to fill branch table
+        I.NOP(),                                                                            I.N("jmp_odd_{}".format(thread))
+        I.NOP(),                                                                            I.N("jmp_out_{}".format(thread))
+        I.NOP(),                                                                            I.N("jmp_hai_{}".format(thread))
+
         # Is the seed odd?
-        I.I(AND, (A,"temp_{}".format(thread)), (A,"one"), (B,"seed_{}".format(thread))),   I.N("hailstone")
-        I.I(JNZ, 0, (A,"temp_{}".format(thread)), 0),                    I.N("odd")
+        I.I(AND, (A,"temp_{}".format(thread)), (A,"one"), (B,"seed_{}".format(thread))),    I.N("hai_dest_{}".format(thread))
+        I.NOP(),                                                                            I.N("odd_orig_{}".format(thread))
+
         # Even: seed = seed / 2
         I.I(MHU, (B,"seed_{}".format(thread)), (A,"right_shift_1"), (B,"seed_{}".format(thread)))
-        I.I(JMP, 0, 0, 0),                             I.N("output")
+        I.NOP(),                                                                            I.N("out_orig_{}".format(thread))
+
         # Odd: seed = (3 * seed) + 1
-        I.I(MLS, (B,"seed_{}".format(thread)), (A,"three"), (B,"seed_{}".format(thread))), I.RD("odd")
+        I.I(MLS, (B,"seed_{}".format(thread)), (A,"three"), (B,"seed_{}".format(thread))),  I.N("odd_dest_{}".format(thread))
         I.I(ADD, (B,"seed_{}".format(thread)), (A,"one"), (B,"seed_{}".format(thread)))
-        I.I(ADD, (A,"WRITE_PORT"), 0, (B,"seed_{}".format(thread))),   I.RD("output")
+
+        I.I(ADD, (A,"WRITE_PORT"), 0, (B,"seed_{}".format(thread))),                        I.N("out_dest_{}".format(thread))
         I.I(ADD, (B,"WRITE_PORT"), 0, (B,"seed_{}".format(thread)))
-        I.I(JMP, "hailstone", 0, 0)
+        I.NOP(),                                                                            I.N("hai_orig_{}".format(thread))
+
+        # Now lets fill those branch table instructions
+        I.ALIGN(I.names["jmp_odd_{}".format(thread)])
+        origin      = I.names["odd_orig_{}".format(thread)]
+        destination = I.names["odd_dest_{}".format(thread)] << 10
+        condition   = JNZ                                   << 20
+        I.L(condition | destination | origin)
+
+        I.ALIGN(I.names["jmp_out_{}".format(thread)])
+        origin      = I.names["out_orig_{}".format(thread)]
+        destination = I.names["out_dest_{}".format(thread)] << 10
+        condition   = JMP                                   << 20
+        I.L(condition | destination | origin)
+
+        I.ALIGN(I.names["jmp_hai_{}".format(thread)])
+        origin      = I.names["hai_orig_{}".format(thread)]
+        destination = I.names["hai_dest_{}".format(thread)] << 10
+        condition   = JMP                                   << 20
+        I.L(condition | destination | origin)
+
     return I
 
 def assemble_XDO():
@@ -103,6 +148,13 @@ def assemble_XIN():
             mem.L(0)
     return AIN, BIN, DIN
 
+def assemble_branches():
+    BO, BD, BC = empty["BO"], empty["BD"], empty["BC"]
+    BO.file_name = bench_name    
+    BD.file_name = bench_name    
+    BC.file_name = bench_name    
+    return BO, BD, BC
+
 def assemble_all():
     PC = assemble_PC()
     A  = assemble_A()
@@ -111,10 +163,12 @@ def assemble_all():
     ADO, BDO, DDO = assemble_XDO()
     APO, BPO, DPO = assemble_XPO()
     AIN, BIN, DIN = assemble_XIN()
+    BO, BD, BC = assemble_branches()
     hailstone = {"PC":PC, "A":A, "B":B, "I":I, 
                  "ADO":ADO, "BDO":BDO, "DDO":DDO,
                  "APO":APO, "BPO":BPO, "DPO":DPO,
-                 "AIN":AIN, "BIN":BIN, "DIN":DIN}
+                 "AIN":AIN, "BIN":BIN, "DIN":DIN,
+                 "BO":BO, "BD":BD, "BC":BC}
     return hailstone
 
 def dump_all(hailstone):
