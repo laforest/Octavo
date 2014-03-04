@@ -15,16 +15,16 @@ module OR_Reducer
     reg     [WORD_WIDTH-1:0]    out_raw;
     reg     [WORD_COUNT-1:0]    slice;
     
-    integer                     bit,word;
+    integer                     bitpos,word;
     integer                     index;
 
     always @(*) begin
-        for(bit = 0; bit < WORD_WIDTH; bit = bit + 1) begin
+        for(bitpos = 0; bitpos < WORD_WIDTH; bitpos = bitpos + 1) begin
             for(word = 0; word < WORD_COUNT; word = word + 1) begin
-                index       <= (WORD_WIDTH * word) + bit;
+                index       <= (WORD_WIDTH * word) + bitpos;
                 slice[word] <= in[index];
             end
-            out_raw[bit]    <= | slice;
+            out_raw[bitpos]    <= | slice;
         end
     end
 

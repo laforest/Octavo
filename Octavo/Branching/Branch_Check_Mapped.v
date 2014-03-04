@@ -98,7 +98,7 @@ module Branch_Check_Mapped
     (
         .clock          (clock),
         .addr           (ALU_write_addr),
-        .hit            (ALU_wren_DO)
+        .hit            (ALU_wren_BD)
     );
 
 // -----------------------------------------------------------

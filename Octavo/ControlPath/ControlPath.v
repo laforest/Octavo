@@ -89,7 +89,8 @@ module ControlPath
 
 // -----------------------------------------------------------
 
-    wire    [INSTR_WIDTH-1:0]       I_read_data_bram;
+    wire    [I_ADDR_WIDTH-1:0]  PC;
+    wire    [INSTR_WIDTH-1:0]   I_read_data_bram;
 
     RAM_SDP
     #(
@@ -105,7 +106,7 @@ module ControlPath
         .wren           (I_wren),
         .write_addr     (ALU_write_addr[I_ADDR_WIDTH-1:0]),
         .write_data     (ALU_write_data[I_WORD_WIDTH-1:0]),
-        .read_addr      (I_read_addr),
+        .read_addr      (PC),
         .read_data      (I_read_data_bram)
     );
 
@@ -145,7 +146,6 @@ module ControlPath
 
 // -----------------------------------------------------------
 
-    wire    [I_ADDR_WIDTH-1:0]  PC;
     wire    [I_ADDR_WIDTH-1:0]  branch_destination;
     wire                        jump;
 

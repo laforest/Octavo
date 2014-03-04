@@ -197,7 +197,7 @@ module Scalar
         .ALU_write_data                 (ALU_result_mem),
         .IO_ready                       (IO_ready),
 
-        .I_read_data                    (I_read_data_DataPath),
+        .I_read_data                    (I_read_data_DataPath)
     );
 
 // -----------------------------------------------------------

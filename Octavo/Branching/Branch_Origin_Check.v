@@ -3,7 +3,7 @@
 
 module Branch_Origin_Check
 #(
-    parameter   PC_WIDTH            = 0,
+    parameter   PC_WIDTH            = 0
 )
 (
     input                           clock,
@@ -15,7 +15,7 @@ module Branch_Origin_Check
 
 // -----------------------------------------------------------
 
-    wire    hit_raw;
+    reg     hit_raw;
 
     // ECL XXX Technically an XNOR, but let's leave it to the synthesis tool...
     always @(*) begin
