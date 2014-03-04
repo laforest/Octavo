@@ -6,7 +6,7 @@ import sys
 
 from Misc import misc, parameters_misc
 
-default_bench = "Hailstone_indirect/hailstone_indirect"
+default_bench = "Hailstone/hailstone"
 install_base = misc.base_install_path()
 quartus_base_path = misc.quartus_base_path
 
@@ -29,15 +29,22 @@ def test_bench(parameters, default_bench = default_bench, install_base = install
     parameter       B_INIT_FILE                 = "${assembler_base}/${default_bench}.B",
     parameter       I_INIT_FILE                 = "${assembler_base}/${default_bench}.I",
     parameter       PC_INIT_FILE                = "${assembler_base}/${default_bench}.PC",
+
     parameter       A_DEFAULT_OFFSET_INIT_FILE  = "${assembler_base}/${default_bench}.ADO",
     parameter       B_DEFAULT_OFFSET_INIT_FILE  = "${assembler_base}/${default_bench}.BDO",
     parameter       D_DEFAULT_OFFSET_INIT_FILE  = "${assembler_base}/${default_bench}.DDO",
+
     parameter       A_PROGRAMMED_OFFSETS_INIT_FILE  = "${assembler_base}/${default_bench}.APO",
     parameter       B_PROGRAMMED_OFFSETS_INIT_FILE  = "${assembler_base}/${default_bench}.BPO",
     parameter       D_PROGRAMMED_OFFSETS_INIT_FILE  = "${assembler_base}/${default_bench}.DPO",
+
     parameter       A_INCREMENTS_INIT_FILE  = "${assembler_base}/${default_bench}.AIN",
     parameter       B_INCREMENTS_INIT_FILE  = "${assembler_base}/${default_bench}.BIN",
-    parameter       D_INCREMENTS_INIT_FILE  = "${assembler_base}/${default_bench}.DIN"
+    parameter       D_INCREMENTS_INIT_FILE  = "${assembler_base}/${default_bench}.DIN",
+
+    parameter       ORIGIN_INIT_FILE       = "${assembler_base}/${default_bench}.BO",
+    parameter       DESTINATION_INIT_FILE  = "${assembler_base}/${default_bench}.BD",
+    parameter       CONDITION_INIT_FILE    = "${assembler_base}/${default_bench}.BC"
 )
 (
     output  wire    [INSTR_WIDTH-1:0]                           I_read_data,
@@ -125,15 +132,22 @@ def test_bench(parameters, default_bench = default_bench, install_base = install
         .B_INIT_FILE                    (B_INIT_FILE),
         .I_INIT_FILE                    (I_INIT_FILE),
         .PC_INIT_FILE                   (PC_INIT_FILE),
+
         .A_DEFAULT_OFFSET_INIT_FILE     (A_DEFAULT_OFFSET_INIT_FILE),
         .B_DEFAULT_OFFSET_INIT_FILE     (B_DEFAULT_OFFSET_INIT_FILE),
         .D_DEFAULT_OFFSET_INIT_FILE     (D_DEFAULT_OFFSET_INIT_FILE),
+
         .A_PROGRAMMED_OFFSETS_INIT_FILE     (A_PROGRAMMED_OFFSETS_INIT_FILE),
         .B_PROGRAMMED_OFFSETS_INIT_FILE     (B_PROGRAMMED_OFFSETS_INIT_FILE),
         .D_PROGRAMMED_OFFSETS_INIT_FILE     (D_PROGRAMMED_OFFSETS_INIT_FILE),
+
         .A_INCREMENTS_INIT_FILE     (A_INCREMENTS_INIT_FILE),
         .B_INCREMENTS_INIT_FILE     (B_INCREMENTS_INIT_FILE),
-        .D_INCREMENTS_INIT_FILE     (D_INCREMENTS_INIT_FILE)
+        .D_INCREMENTS_INIT_FILE     (D_INCREMENTS_INIT_FILE),
+
+        .ORIGIN_INIT_FILE           (ORIGIN_INIT_FILE),
+        .DESTINATION_INIT_FILE      (DESTINATION_INIT_FILE),
+        .CONDITION_INIT_FILE        (CONDITION_INIT_FILE)
     )
     DUT 
     (
@@ -181,6 +195,50 @@ TESTBENCH="./$${TOP_LEVEL_MODULE}.v"
 LPM_LIBRARY="${quartus_base_path}/eda/sim_lib/220model.v"
 ALT_LIBRARY="${quartus_base_path}/eda/sim_lib/altera_mf.v"
 
+# OCTAVO="$$INSTALL_BASE/Octavo/Misc/params.v \\
+#         $$INSTALL_BASE/Octavo/Misc/delay_line.v \\
+#         $$INSTALL_BASE/Octavo/Misc/Address_Decoder.v \\
+#         $$INSTALL_BASE/Octavo/Misc/Address_Translator.v \\
+#         $$INSTALL_BASE/Octavo/Misc/Addressed_Mux.v \\
+#         $$INSTALL_BASE/Octavo/Misc/Translated_Addressed_Mux.v \\
+#         $$INSTALL_BASE/Octavo/Misc/Instruction_Annuller.v \\
+#         $$INSTALL_BASE/Octavo/Misc/Thread_Number.v \\
+#         $$INSTALL_BASE/Octavo/Misc/Instr_Decoder.v \\
+#         $$INSTALL_BASE/Octavo/DataPath/ALU/AddSub_Carry_Select.v \\
+#         $$INSTALL_BASE/Octavo/DataPath/ALU/AddSub_Ripple_Carry.v \\
+#         $$INSTALL_BASE/Octavo/DataPath/ALU/Mult.v \\
+#         $$INSTALL_BASE/Octavo/DataPath/ALU/Bitwise.v \\
+#         $$INSTALL_BASE/Octavo/DataPath/ALU/ALU.v \\
+#         $$INSTALL_BASE/Octavo/DataPath/DataPath.v \\
+#         $$INSTALL_BASE/Octavo/ControlPath/Controller.v \\
+#         $$INSTALL_BASE/Octavo/ControlPath/ControlPath.v \\
+#         $$INSTALL_BASE/Octavo/Memory/RAM_SDP.v \\
+#         $$INSTALL_BASE/Octavo/Memory/RAM_SDP_no_fw.v \\
+#         $$INSTALL_BASE/Octavo/Memory/Write_Enable.v \\
+#         $$INSTALL_BASE/Octavo/Memory/Memory.v \\
+#         $$INSTALL_BASE/Octavo/Addressing/Address_Adder.v \\
+#         $$INSTALL_BASE/Octavo/Addressing/Addressing_Mapped_AB.v \\
+#         $$INSTALL_BASE/Octavo/Addressing/Addressing_Mapped_D.v \\
+#         $$INSTALL_BASE/Octavo/Addressing/Addressing_Thread_Number.v \\
+#         $$INSTALL_BASE/Octavo/Addressing/Addressing.v \\
+#         $$INSTALL_BASE/Octavo/Addressing/Address_Translation.v \\
+#         $$INSTALL_BASE/Octavo/Addressing/Default_Offset.v \\
+#         $$INSTALL_BASE/Octavo/Addressing/Increment_Adder.v \\
+#         $$INSTALL_BASE/Octavo/Addressing/Increments.v \\
+#         $$INSTALL_BASE/Octavo/Addressing/Programmed_Offsets.v \\
+#         $$INSTALL_BASE/Octavo/Addressing/Write_Priority.v \\
+#         $$INSTALL_BASE/Octavo/Addressing/Write_Synchronize.v \\
+#         $$INSTALL_BASE/Octavo/IO/EmptyFullBit.v \\
+#         $$INSTALL_BASE/Octavo/IO/IO_Active.v \\
+#         $$INSTALL_BASE/Octavo/IO/IO_All_Ready.v \\
+#         $$INSTALL_BASE/Octavo/IO/IO_Check.v \\
+#         $$INSTALL_BASE/Octavo/IO/IO_Read.v \\
+#         $$INSTALL_BASE/Octavo/IO/IO_Write.v \\
+#         $$INSTALL_BASE/Octavo/IO/Port_Active.v \\
+#         $$INSTALL_BASE/Octavo/Octavo/Scalar.v \\
+#         ../${CPU_NAME}.v \\
+# "
+
 OCTAVO="$$INSTALL_BASE/Octavo/Misc/params.v \\
         $$INSTALL_BASE/Octavo/Misc/delay_line.v \\
         $$INSTALL_BASE/Octavo/Misc/Address_Decoder.v \\
@@ -189,6 +247,7 @@ OCTAVO="$$INSTALL_BASE/Octavo/Misc/params.v \\
         $$INSTALL_BASE/Octavo/Misc/Translated_Addressed_Mux.v \\
         $$INSTALL_BASE/Octavo/Misc/Instruction_Annuller.v \\
         $$INSTALL_BASE/Octavo/Misc/Thread_Number.v \\
+        $$INSTALL_BASE/Octavo/Misc/Instr_Decoder.v \\
         $$INSTALL_BASE/Octavo/DataPath/ALU/AddSub_Carry_Select.v \\
         $$INSTALL_BASE/Octavo/DataPath/ALU/AddSub_Ripple_Carry.v \\
         $$INSTALL_BASE/Octavo/DataPath/ALU/Mult.v \\
@@ -196,24 +255,21 @@ OCTAVO="$$INSTALL_BASE/Octavo/Misc/params.v \\
         $$INSTALL_BASE/Octavo/DataPath/ALU/ALU.v \\
         $$INSTALL_BASE/Octavo/DataPath/DataPath.v \\
         $$INSTALL_BASE/Octavo/ControlPath/Controller.v \\
-        $$INSTALL_BASE/Octavo/ControlPath/Instr_Decoder.v \\
         $$INSTALL_BASE/Octavo/ControlPath/ControlPath.v \\
         $$INSTALL_BASE/Octavo/Memory/RAM_SDP.v \\
         $$INSTALL_BASE/Octavo/Memory/RAM_SDP_no_fw.v \\
         $$INSTALL_BASE/Octavo/Memory/Write_Enable.v \\
         $$INSTALL_BASE/Octavo/Memory/Memory.v \\
-        $$INSTALL_BASE/Octavo/Addressing/Address_Adder.v \\
-        $$INSTALL_BASE/Octavo/Addressing/Addressing_Mapped_AB.v \\
-        $$INSTALL_BASE/Octavo/Addressing/Addressing_Mapped_D.v \\
-        $$INSTALL_BASE/Octavo/Addressing/Addressing_Thread_Number.v \\
-        $$INSTALL_BASE/Octavo/Addressing/Addressing.v \\
-        $$INSTALL_BASE/Octavo/Addressing/Address_Translation.v \\
-        $$INSTALL_BASE/Octavo/Addressing/Default_Offset.v \\
-        $$INSTALL_BASE/Octavo/Addressing/Increment_Adder.v \\
-        $$INSTALL_BASE/Octavo/Addressing/Increments.v \\
-        $$INSTALL_BASE/Octavo/Addressing/Programmed_Offsets.v \\
-        $$INSTALL_BASE/Octavo/Addressing/Write_Priority.v \\
-        $$INSTALL_BASE/Octavo/Addressing/Write_Synchronize.v \\
+        $$INSTALL_BASE/Octavo/Branching/Branch_Check_Mapped.v \\
+        $$INSTALL_BASE/Octavo/Branching/Branch_Check.v \\
+        $$INSTALL_BASE/Octavo/Branching/Branch_Condition.v \\
+        $$INSTALL_BASE/Octavo/Branching/Branch_Destination.v \\
+        $$INSTALL_BASE/Octavo/Branching/Branch_Folding.v \\
+        $$INSTALL_BASE/Octavo/Branching/Branching_Flags.v \\
+        $$INSTALL_BASE/Octavo/Branching/Branching_Thread_Number.v \\
+        $$INSTALL_BASE/Octavo/Branching/Branch_Origin.v \\
+        $$INSTALL_BASE/Octavo/Branching/Branch_Origin_Check.v \\
+        $$INSTALL_BASE/Octavo/Branching/OR_Reducer.v \\
         $$INSTALL_BASE/Octavo/IO/EmptyFullBit.v \\
         $$INSTALL_BASE/Octavo/IO/IO_Active.v \\
         $$INSTALL_BASE/Octavo/IO/IO_All_Ready.v \\

@@ -40,6 +40,10 @@ def assemble_A():
     for thread in range(0,8):
         A.ALIGN(offsets[thread])
         A.L(0), A.N("temp_{}".format(thread))
+        # Placeholders for branch table entries
+        A.L(0), A.N("jmp_odd_{}".format(thread))
+        A.L(0), A.N("jmp_out_{}".format(thread))
+        A.L(0), A.N("jmp_hai_{}".format(thread))
     return A
 
 def assemble_B():
@@ -76,10 +80,16 @@ def assemble_I(PC, A, B):
     for thread in range(0,8):
         I.ALIGN(PC.get_pc("THREAD{}_START".format(thread)))
 
-        # Placeholders for instructions to fill branch table
-        I.NOP(),                                                                            I.N("jmp_odd_{}".format(thread))
-        I.NOP(),                                                                            I.N("jmp_out_{}".format(thread))
-        I.NOP(),                                                                            I.N("jmp_hai_{}".format(thread))
+        I.NOP()
+        I.NOP()
+        I.NOP()
+
+        # Instructions to fill branch table
+        base_addr = mem_map["BO"]["Origin"]
+        index = thread * 8
+        I.I(ADD, base_addr+index+0, (A,"jmp_odd_{}".format(thread)), 0)
+        I.I(ADD, base_addr+index+1, (A,"jmp_out_{}".format(thread)), 0)
+        I.I(ADD, base_addr+index+2, (A,"jmp_hai_{}".format(thread)), 0)
 
         # Is the seed odd?
         I.I(AND, (A,"temp_{}".format(thread)), (A,"one"), (B,"seed_{}".format(thread))),    I.N("hai_dest_{}".format(thread))
@@ -97,24 +107,24 @@ def assemble_I(PC, A, B):
         I.I(ADD, (B,"WRITE_PORT"), 0, (B,"seed_{}".format(thread)))
         I.NOP(),                                                                            I.N("hai_orig_{}".format(thread))
 
-        # Now lets fill those branch table instructions
-        I.ALIGN(I.names["jmp_odd_{}".format(thread)])
+        # Now lets fill those branch table values
         origin      = I.names["odd_orig_{}".format(thread)]
         destination = I.names["odd_dest_{}".format(thread)] << 10
         condition   = JNZ                                   << 20
-        I.L(condition | destination | origin)
+        A.ALIGN(A.names["jmp_odd_{}".format(thread)])
+        A.L(condition | destination | origin)
 
-        I.ALIGN(I.names["jmp_out_{}".format(thread)])
         origin      = I.names["out_orig_{}".format(thread)]
         destination = I.names["out_dest_{}".format(thread)] << 10
         condition   = JMP                                   << 20
-        I.L(condition | destination | origin)
+        A.ALIGN(A.names["jmp_out_{}".format(thread)])
+        A.L(condition | destination | origin)
 
-        I.ALIGN(I.names["jmp_hai_{}".format(thread)])
         origin      = I.names["hai_orig_{}".format(thread)]
         destination = I.names["hai_dest_{}".format(thread)] << 10
         condition   = JMP                                   << 20
-        I.L(condition | destination | origin)
+        A.ALIGN(A.names["jmp_hai_{}".format(thread)])
+        A.L(condition | destination | origin)
 
     return I
 
