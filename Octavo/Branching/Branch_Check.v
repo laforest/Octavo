@@ -164,7 +164,7 @@ module Branch_Check
 
     Branch_Origin_Check
     #(
-        .PC_WIDTH       (PC_WIDTH),
+        .PC_WIDTH       (PC_WIDTH)
     )
     BOC
     (
@@ -228,8 +228,8 @@ module Branch_Check
 
 // -----------------------------------------------------------
 
-    wire    jump_previous
-    wire    flag;
+    wire    jump_previous;
+    reg     flag;
 
     // ECL XXX If we return here because the instruction in parallel with the
     // branch was re-issued while waiting for I/O, then use the original jump
@@ -284,7 +284,7 @@ module Branch_Check
 
 // -----------------------------------------------------------
 
-    wire    jump_raw;
+    reg     jump_raw;
 
     // If the branch origin doesn't match, zero-out the jump decision We only
     // branch if the branch origin *and* the branch condition match.

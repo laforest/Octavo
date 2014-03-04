@@ -93,7 +93,7 @@ module Branching_Flags
 (
     input   wire                        clock,
     input   wire    [WORD_WIDTH-1:0]    R_prev,
-    output  wire    [COND_WIDTH-1:0]    flags
+    output  reg     [COND_WIDTH-1:0]    flags
 );
     wire    R_zero;
 
@@ -142,7 +142,7 @@ module Branching_Flags
 
     // Even, undef, undef, negative, positive, non-zero, zero, always
     always @(*) begin
-        flags <= {R_even, `LOW, `LOW, !R_positive, R_positive, !R_zero, R_zero, `HIGH},
+        flags <= {R_even, `LOW, `LOW, !R_positive, R_positive, !R_zero, R_zero, `HIGH};
     end
 
 endmodule

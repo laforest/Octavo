@@ -55,9 +55,9 @@ module Branch_Check_Mapped
 
     // Subsets of above, so we can align multiple memories along a single word.
     // We want to keep all memory map knowledge in *this* module.
-    wire    [ORIGIN_WORD_WIDTH-1:0]         ALU_write_data_BO,
-    wire    [DESTINATION_WORD_WIDTH-1:0]    ALU_write_data_BD,
-    wire    [CONDITION_WORD_WIDTH-1:0]      ALU_write_data_BC,
+    reg     [ORIGIN_WORD_WIDTH-1:0]         ALU_write_data_BO;
+    reg     [DESTINATION_WORD_WIDTH-1:0]    ALU_write_data_BD;
+    reg     [CONDITION_WORD_WIDTH-1:0]      ALU_write_data_BC;
 
     always @(*) begin
         ALU_write_data_BO  <= ALU_write_data[ORIGIN_WORD_WIDTH + ORIGIN_WRITE_WORD_OFFSET-1:ORIGIN_WRITE_WORD_OFFSET];
@@ -156,7 +156,7 @@ module Branch_Check_Mapped
     (
         .clock                      (clock),
         .PC                         (PC),
-        .flags,
+        .flags                      (flags),
         .IO_ready_previous          (IO_ready_previous),
 
         .ALU_wren_BO                (ALU_wren_BO),

@@ -70,9 +70,9 @@ module Branch_Folding
     )
     BF
     (
-        clock       (clock),
-        R_prev      (R_prev),
-        flags       (flags)
+        .clock       (clock),
+        .R_prev      (R_prev),
+        .flags       (flags)
     );
 
 // -----------------------------------------------------------
@@ -99,7 +99,7 @@ module Branch_Folding
     genvar count;
 
     generate
-        for(count = 0; count < BRANCH_COUNT; count = count + 1) begin
+        for(count = 0; count < BRANCH_COUNT; count = count + 1) begin : BCM_generated
             Branch_Check_Mapped
             #(
                 .PC_WIDTH                       (PC_WIDTH),

@@ -58,7 +58,7 @@ module ControlPath
     input   wire    [ALU_WORD_WIDTH-1:0]        ALU_write_data,
     input   wire                                IO_ready,
 
-    output  wire    [INSTR_WIDTH-1:0]           I_read_data,
+    output  wire    [INSTR_WIDTH-1:0]           I_read_data
 );
 
 // -----------------------------------------------------------
@@ -75,7 +75,7 @@ module ControlPath
     I_mem_wren
     (
         .clock          (clock),
-        .addr           (I_write_addr),
+        .addr           (ALU_write_addr),
         .hit            (I_wren_raw)
     );
 
@@ -103,8 +103,8 @@ module ControlPath
     (
         .clock          (clock),
         .wren           (I_wren),
-        .write_addr     (I_write_addr[I_ADDR_WIDTH-1:0]),
-        .write_data     (I_write_data[I_WORD_WIDTH-1:0]),
+        .write_addr     (ALU_write_addr[I_ADDR_WIDTH-1:0]),
+        .write_data     (ALU_write_data[I_WORD_WIDTH-1:0]),
         .read_addr      (I_read_addr),
         .read_data      (I_read_data_bram)
     );
@@ -145,7 +145,7 @@ module ControlPath
 
 // -----------------------------------------------------------
 
-    wire    [I_ADDR_WIDTH-1:0]  PC
+    wire    [I_ADDR_WIDTH-1:0]  PC;
     wire    [I_ADDR_WIDTH-1:0]  branch_destination;
     wire                        jump;
 
