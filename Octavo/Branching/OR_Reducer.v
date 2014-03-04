@@ -12,26 +12,42 @@ module OR_Reducer
     input   wire    [(WORD_WIDTH * WORD_COUNT)-1:0] in,
     output  reg     [ WORD_WIDTH-1:0]               out
 );
-    reg     [WORD_WIDTH-1:0]    out_raw;
-    reg     [WORD_COUNT-1:0]    slice;
-    
-    integer                     bitpos,word;
-    integer                     index;
 
-    always @(*) begin
-        for(bitpos = 0; bitpos < WORD_WIDTH; bitpos = bitpos + 1) begin
-            for(word = 0; word < WORD_COUNT; word = word + 1) begin
-                index       <= (WORD_WIDTH * word) + bitpos;
-                slice[word] <= in[index];
-            end
-            out_raw[bitpos]    <= | slice;
+// ECL XXX Basically a fold operation, necessarily done in the most manual way possible...*sigh*
+
+// -----------------------------------------------------------
+
+    reg     [WORD_WIDTH-1:0]    out_raw     [WORD_COUNT-1:0];
+
+    integer count;
+    initial begin
+        for(count = 0; count < WORD_COUNT; count = count + 1) begin
+            out_raw[count] = {WORD_WIDTH{`LOW}};
         end
     end
+
+// -----------------------------------------------------------
+
+    reg     [WORD_COUNT-1:0]    slice;
+
+    genvar  word;
+    generate
+        always @(*) begin
+            out_raw[0] <= in[WORD_WIDTH-1:0];
+        end
+        for(word = 1; word < WORD_COUNT; word = word + 1) begin : OR_reduction
+            always @(*) begin
+                out_raw[word] <= out_raw[word-1] | in[WORD_WIDTH + (WORD_WIDTH * word)-1:(WORD_WIDTH * word)];
+            end
+        end
+    endgenerate
+
+// -----------------------------------------------------------
 
     generate
         if (REGISTERED == `TRUE) begin
             always @(posedge clock) begin
-                out <= out_raw;
+                out <= out_raw[WORD_COUNT-1];
             end
 
             initial begin
@@ -40,7 +56,7 @@ module OR_Reducer
         end
         else begin
             always @(*) begin
-                out <= out_raw;
+                out <= out_raw[WORD_COUNT-1];
             end
         end
     endgenerate
