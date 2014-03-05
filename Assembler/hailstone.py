@@ -60,7 +60,7 @@ def assemble_I(PC, A, B):
     I = empty["I"]
     I.file_name = bench_name
     # Align threads 1-7 with thread 0
-    I.NOP()
+    #I.NOP()
 
 #    for thread in range(0,8):
 #        I.ALIGN(PC.get_pc("THREAD{}_START".format(thread)))
@@ -80,16 +80,15 @@ def assemble_I(PC, A, B):
     for thread in range(0,8):
         I.ALIGN(PC.get_pc("THREAD{}_START".format(thread)))
 
-        I.NOP()
-        I.NOP()
-        I.NOP()
+        #I.NOP()
+        #I.NOP()
+        #I.NOP()
 
         # Instructions to fill branch table
-        base_addr = mem_map["BO"]["Origin"]
-        index = thread * 8
-        I.I(ADD, base_addr+index+0, (A,"jmp_odd_{}".format(thread)), 0)
-        I.I(ADD, base_addr+index+1, (A,"jmp_out_{}".format(thread)), 0)
-        I.I(ADD, base_addr+index+2, (A,"jmp_hai_{}".format(thread)), 0)
+        base_addr = mem_map["BO"]["Origin"] + thread
+        I.I(ADD, base_addr     , (A,"jmp_odd_{}".format(thread)), 0)
+        I.I(ADD, base_addr + 8 , (A,"jmp_out_{}".format(thread)), 0)
+        I.I(ADD, base_addr + 16, (A,"jmp_hai_{}".format(thread)), 0)
 
         # Is the seed odd?
         I.I(AND, (A,"temp_{}".format(thread)), (A,"one"), (B,"seed_{}".format(thread))),    I.N("hai_dest_{}".format(thread))
