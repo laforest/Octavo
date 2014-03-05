@@ -78,6 +78,14 @@ module ALU
 
     reg     [WORD_WIDTH-1:0]   A_delay     [ALU_LATENCY-1:0];
     reg     [WORD_WIDTH-1:0]   B_delay     [ALU_LATENCY-1:0];
+
+    initial begin
+        for(i = 0; i < ALU_LATENCY; i = i + 1) begin
+            A_delay[i] = 0;
+            B_delay[i] = 0;
+        end
+    end
+
     always @(*) begin
         A_delay[0] <= A;
         B_delay[0] <= B;
