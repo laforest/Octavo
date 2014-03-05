@@ -155,7 +155,7 @@ module ControlPath
         .D_OPERAND_WIDTH                (D_OPERAND_WIDTH),
         .WORD_WIDTH                     (ALU_WORD_WIDTH),
 
-        .INITIAL_THREAD                 (5), // ECL XXX Hardcoded!!!
+        .INITIAL_THREAD                 (0), // ECL XXX Hardcoded!!!
         .THREAD_COUNT                   (THREAD_COUNT),
         .THREAD_ADDR_WIDTH              (THREAD_ADDR_WIDTH),
 
