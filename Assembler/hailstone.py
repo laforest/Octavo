@@ -80,9 +80,10 @@ def assemble_I(PC, A, B):
     for thread in range(0,8):
         I.ALIGN(PC.get_pc("THREAD{}_START".format(thread)))
 
-        #I.NOP()
-        #I.NOP()
-        #I.NOP()
+        # Delay threads 1-7 to align with thread 0, so thread 0 ends up first in the cycle.
+        # At least, until an I/O stall scrambles the thread phase.:
+        if (thread != 0):
+            I.NOP()
 
         # Instructions to fill branch table
         base_addr = mem_map["BO"]["Origin"] + thread
