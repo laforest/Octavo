@@ -147,7 +147,7 @@ module Branch_Check
 
     delay_line
     #(
-        .DEPTH  (1),
+        .DEPTH  (2),
         .WIDTH  (PC_WIDTH)
     )
     PC_synchronizer

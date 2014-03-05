@@ -103,7 +103,7 @@ module Controller
 
     delay_line 
     #(
-        .DEPTH  (1),
+        .DEPTH  (2),
         .WIDTH  (1)
     ) 
     IO_ready_pipeline
@@ -119,7 +119,7 @@ module Controller
 
     delay_line 
     #(
-        .DEPTH  (1),
+        .DEPTH  (2),
         .WIDTH  (1)
     ) 
     jump_pipeline
@@ -135,7 +135,7 @@ module Controller
 
     delay_line 
     #(
-        .DEPTH  (1),
+        .DEPTH  (2),
         .WIDTH  (PC_WIDTH)
     ) 
     branch_destination_pipeline
@@ -172,9 +172,9 @@ module Controller
         previous_thread <= current_thread;
     end
 
-    // ECL XXX hardcoded...should be (INITIAL_THREAD - 1) % THREAD_COUNT
+    // ECL XXX hardcoded...must be zero to overwrite PC of Thread 0, thus its first NOP runs twice.
     initial begin
-        previous_thread = 7;
+        previous_thread = 0;
     end
 
 // -----------------------------------------------------------
@@ -223,7 +223,7 @@ module Controller
 
     delay_line 
     #(
-        .DEPTH  (1),
+        .DEPTH  (0),
         .WIDTH  (PC_WIDTH)
     ) 
     PC_pipeline
