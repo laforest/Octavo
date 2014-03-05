@@ -121,6 +121,56 @@ module Branch_Check_Mapped
 
 // -----------------------------------------------------------
 
+    // Translates the original address LSB to internal zero-based address
+    // Cancels-out non-aligned memory mappings.
+    wire    [ORIGIN_ADDR_WIDTH-1:0]     ALU_write_addr_BO;
+
+    Address_Translator
+    #(
+        .ADDR_COUNT         (ORIGIN_DEPTH),
+        .ADDR_BASE          (ORIGIN_WRITE_ADDR_OFFSET),
+        .ADDR_WIDTH         (ORIGIN_ADDR_WIDTH)
+    )
+    BO_addr
+    (
+        .raw_address        (ALU_write_addr[ORIGIN_ADDR_WIDTH-1:0]),
+        .translated_address (ALU_write_addr_BO)
+    );
+
+// -----------------------------------------------------------
+
+    wire    [DESTINATION_ADDR_WIDTH-1:0]     ALU_write_addr_BD;
+
+    Address_Translator
+    #(
+        .ADDR_COUNT         (DESTINATION_DEPTH),
+        .ADDR_BASE          (DESTINATION_WRITE_ADDR_OFFSET),
+        .ADDR_WIDTH         (DESTINATION_ADDR_WIDTH)
+    )
+    BD_addr
+    (
+        .raw_address        (ALU_write_addr[DESTINATION_ADDR_WIDTH-1:0]),
+        .translated_address (ALU_write_addr_BD)
+    );
+
+// -----------------------------------------------------------
+
+    wire    [CONDITION_ADDR_WIDTH-1:0]     ALU_write_addr_BC;
+
+    Address_Translator
+    #(
+        .ADDR_COUNT         (CONDITION_DEPTH),
+        .ADDR_BASE          (CONDITION_WRITE_ADDR_OFFSET),
+        .ADDR_WIDTH         (CONDITION_ADDR_WIDTH)
+    )
+    BC_addr
+    (
+        .raw_address        (ALU_write_addr[CONDITION_ADDR_WIDTH-1:0]),
+        .translated_address (ALU_write_addr_BC)
+    );
+
+// -----------------------------------------------------------
+
     Branch_Check
     #(
         .PC_WIDTH                   (PC_WIDTH),
@@ -163,7 +213,9 @@ module Branch_Check_Mapped
         .ALU_wren_BD                (ALU_wren_BD),
         .ALU_wren_BC                (ALU_wren_BC),
 
-        .ALU_write_addr             (ALU_write_addr),
+        .ALU_write_addr_BO          (ALU_write_addr_BO),
+        .ALU_write_addr_BD          (ALU_write_addr_BD),
+        .ALU_write_addr_BC          (ALU_write_addr_BC),
 
         .ALU_write_data_BO          (ALU_write_data_BO),
         .ALU_write_data_BD          (ALU_write_data_BD),

@@ -45,9 +45,11 @@ module Branch_Check
     input   wire                                    ALU_wren_BD, // Branch Destination Memory
     input   wire                                    ALU_wren_BC, // Branch Condition Memory
 
-    input   wire    [D_OPERAND_WIDTH-1:0]           ALU_write_addr,
+    input   wire    [ORIGIN_ADDR_WIDTH-1:0]         ALU_write_addr_BO,
+    input   wire    [DESTINATION_ADDR_WIDTH-1:0]    ALU_write_addr_BD,
+    input   wire    [CONDITION_ADDR_WIDTH-1:0]      ALU_write_addr_BC,
 
-    // Subsets of above, so we can align multiple memories along a single word.
+    // Subsets of full data word, so we can align multiple memories along a single word.
     // We want to keep all memory map knowledge in the encapsulating module.
     input   wire    [ORIGIN_WORD_WIDTH-1:0]         ALU_write_data_BO,
     input   wire    [DESTINATION_WORD_WIDTH-1:0]    ALU_write_data_BD,
@@ -91,7 +93,7 @@ module Branch_Check
     (
         .clock          (clock),
         .wren           (ALU_wren_BO),
-        .write_addr     (ALU_write_addr[ORIGIN_ADDR_WIDTH-1:0]),
+        .write_addr     (ALU_write_addr_BO),
         .write_data     (ALU_write_data_BO),
         .read_addr      (read_thread),
         .branch_origin  (branch_origin)
@@ -113,7 +115,7 @@ module Branch_Check
     (
         .clock              (clock),
         .wren               (ALU_wren_BD),
-        .write_addr         (ALU_write_addr[DESTINATION_ADDR_WIDTH-1:0]),
+        .write_addr         (ALU_write_addr_BD),
         .write_data         (ALU_write_data_BD),
         .read_addr          (read_thread),
         .branch_destination (branch_destination_raw)
@@ -135,7 +137,7 @@ module Branch_Check
     (
         .clock              (clock),
         .wren               (ALU_wren_BC),
-        .write_addr         (ALU_write_addr[CONDITION_ADDR_WIDTH-1:0]),
+        .write_addr         (ALU_write_addr_BC),
         .write_data         (ALU_write_data_BC),
         .read_addr          (read_thread),
         .branch_condition   (branch_condition)
