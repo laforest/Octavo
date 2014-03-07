@@ -43,6 +43,22 @@ module Branch_Folding
     parameter   CONDITION_RAMSTYLE                  = 0,
     parameter   CONDITION_INIT_FILE                 = 0,
 
+    parameter   PREDICTION_WRITE_WORD_OFFSET        = 0,
+    parameter   PREDICTION_WRITE_ADDR_OFFSET        = 0,
+    parameter   PREDICTION_WORD_WIDTH               = 0,
+    parameter   PREDICTION_ADDR_WIDTH               = 0,
+    parameter   PREDICTION_DEPTH                    = 0,
+    parameter   PREDICTION_RAMSTYLE                 = 0,
+    parameter   PREDICTION_INIT_FILE                = 0,
+
+    parameter   PREDICTION_ENABLE_WRITE_WORD_OFFSET = 0,
+    parameter   PREDICTION_ENABLE_WRITE_ADDR_OFFSET = 0,
+    parameter   PREDICTION_ENABLE_WORD_WIDTH        = 0,
+    parameter   PREDICTION_ENABLE_ADDR_WIDTH        = 0,
+    parameter   PREDICTION_ENABLE_DEPTH             = 0,
+    parameter   PREDICTION_ENABLE_RAMSTYLE          = 0,
+    parameter   PREDICTION_ENABLE_INIT_FILE         = 0,
+
     parameter   FLAGS_WORD_WIDTH                    = 0,
     parameter   FLAGS_ADDR_WIDTH                    = 0
 )
@@ -56,7 +72,8 @@ module Branch_Folding
     input   wire    [WORD_WIDTH-1:0]                ALU_write_data,
 
     output  wire    [PC_WIDTH-1:0]                  branch_destination,
-    output  wire                                    jump
+    output  wire                                    jump,
+    output  wire                                    cancel
 );
 
 // -----------------------------------------------------------
@@ -95,6 +112,7 @@ module Branch_Folding
 
     wire    [(BRANCH_COUNT * PC_WIDTH)-1:0]     branch_destinations;
     wire    [ BRANCH_COUNT            -1:0]     jumps;
+    wire    [ BRANCH_COUNT            -1:0]     cancels;
 
     genvar count;
 
@@ -134,6 +152,22 @@ module Branch_Folding
                 .CONDITION_RAMSTYLE             (CONDITION_RAMSTYLE),
                 .CONDITION_INIT_FILE            (CONDITION_INIT_FILE),
 
+                .PREDICTION_WRITE_WORD_OFFSET   (PREDICTION_WRITE_WORD_OFFSET),
+                .PREDICTION_WRITE_ADDR_OFFSET   (PREDICTION_WRITE_ADDR_OFFSET + (PREDICTION_DEPTH * count)),
+                .PREDICTION_WORD_WIDTH          (PREDICTION_WORD_WIDTH),
+                .PREDICTION_ADDR_WIDTH          (PREDICTION_ADDR_WIDTH),
+                .PREDICTION_DEPTH               (PREDICTION_DEPTH),
+                .PREDICTION_RAMSTYLE            (PREDICTION_RAMSTYLE),
+                .PREDICTION_INIT_FILE           (PREDICTION_INIT_FILE),
+
+                .PREDICTION_ENABLE_WRITE_WORD_OFFSET   (PREDICTION_ENABLE_WRITE_WORD_OFFSET),
+                .PREDICTION_ENABLE_WRITE_ADDR_OFFSET   (PREDICTION_ENABLE_WRITE_ADDR_OFFSET + (PREDICTION_ENABLE_DEPTH * count)),
+                .PREDICTION_ENABLE_WORD_WIDTH          (PREDICTION_ENABLE_WORD_WIDTH),
+                .PREDICTION_ENABLE_ADDR_WIDTH          (PREDICTION_ENABLE_ADDR_WIDTH),
+                .PREDICTION_ENABLE_DEPTH               (PREDICTION_ENABLE_DEPTH),
+                .PREDICTION_ENABLE_RAMSTYLE            (PREDICTION_ENABLE_RAMSTYLE),
+                .PREDICTION_ENABLE_INIT_FILE           (PREDICTION_ENABLE_INIT_FILE),
+
                 .FLAGS_WORD_WIDTH               (FLAGS_WORD_WIDTH),
                 .FLAGS_ADDR_WIDTH               (FLAGS_ADDR_WIDTH)
             )
@@ -148,12 +182,15 @@ module Branch_Folding
                 .ALU_write_data                 (ALU_write_data),
 
                 .branch_destination             (branch_destinations[PC_WIDTH + (PC_WIDTH * count)-1:(PC_WIDTH * count)]),
-                .jump                           (jumps[count])
+                .jump                           (jumps  [count]),
+                .cancel                         (cancels[count])
             );
         end
     endgenerate
 
 // -----------------------------------------------------------
+
+    // Stage 5
 
     OR_Reducer
     #(
@@ -170,6 +207,8 @@ module Branch_Folding
 
 // -----------------------------------------------------------
 
+    // Stage 5
+
     OR_Reducer
     #(
         .WORD_WIDTH     (1),
@@ -181,6 +220,23 @@ module Branch_Folding
         .clock          (clock),
         .in             (jumps),
         .out            (jump)
+    );
+
+// -----------------------------------------------------------
+
+    // ECL XXX *** Stage 3 ***
+
+    OR_Reducer
+    #(
+        .WORD_WIDTH     (1),
+        .WORD_COUNT     (BRANCH_COUNT),
+        .REGISTERED     (`FALSE)
+    )
+    cancel_reducer
+    (
+        .clock          (clock),
+        .in             (cancels),
+        .out            (cancel)
     );
 
 endmodule

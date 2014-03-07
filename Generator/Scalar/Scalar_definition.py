@@ -211,6 +211,22 @@ def definition(all_parameters):
     parameter   CONDITION_RAMSTYLE                          = ${CONDITION_RAMSTYLE},
     parameter   CONDITION_INIT_FILE                         = ${CONDITION_INIT_FILE},
 
+    parameter   PREDICTION_WRITE_WORD_OFFSET                = ${PREDICTION_WRITE_WORD_OFFSET},
+    parameter   PREDICTION_WRITE_ADDR_OFFSET                = ${PREDICTION_WRITE_ADDR_OFFSET},
+    parameter   PREDICTION_WORD_WIDTH                       = ${PREDICTION_WORD_WIDTH},
+    parameter   PREDICTION_ADDR_WIDTH                       = ${PREDICTION_ADDR_WIDTH},
+    parameter   PREDICTION_DEPTH                            = ${PREDICTION_DEPTH},
+    parameter   PREDICTION_RAMSTYLE                         = ${PREDICTION_RAMSTYLE},
+    parameter   PREDICTION_INIT_FILE                        = ${PREDICTION_INIT_FILE},
+
+    parameter   PREDICTION_ENABLE_WRITE_WORD_OFFSET         = ${PREDICTION_ENABLE_WRITE_WORD_OFFSET},
+    parameter   PREDICTION_ENABLE_WRITE_ADDR_OFFSET         = ${PREDICTION_ENABLE_WRITE_ADDR_OFFSET},
+    parameter   PREDICTION_ENABLE_WORD_WIDTH                = ${PREDICTION_ENABLE_WORD_WIDTH},
+    parameter   PREDICTION_ENABLE_ADDR_WIDTH                = ${PREDICTION_ENABLE_ADDR_WIDTH},
+    parameter   PREDICTION_ENABLE_DEPTH                     = ${PREDICTION_ENABLE_DEPTH},
+    parameter   PREDICTION_ENABLE_RAMSTYLE                  = ${PREDICTION_ENABLE_RAMSTYLE},
+    parameter   PREDICTION_ENABLE_INIT_FILE                 = ${PREDICTION_ENABLE_INIT_FILE},
+
     parameter   FLAGS_WORD_WIDTH                            = ${FLAGS_WORD_WIDTH},
     parameter   FLAGS_ADDR_WIDTH                            = ${FLAGS_ADDR_WIDTH}
 )
@@ -449,6 +465,22 @@ def definition(all_parameters):
         .CONDITION_DEPTH                            (CONDITION_DEPTH),
         .CONDITION_RAMSTYLE                         (CONDITION_RAMSTYLE),
         .CONDITION_INIT_FILE                        (CONDITION_INIT_FILE),
+
+        .PREDICTION_WRITE_WORD_OFFSET               (PREDICTION_WRITE_WORD_OFFSET),       
+        .PREDICTION_WRITE_ADDR_OFFSET               (PREDICTION_WRITE_ADDR_OFFSET),
+        .PREDICTION_WORD_WIDTH                      (PREDICTION_WORD_WIDTH),
+        .PREDICTION_ADDR_WIDTH                      (PREDICTION_ADDR_WIDTH),
+        .PREDICTION_DEPTH                           (PREDICTION_DEPTH),
+        .PREDICTION_RAMSTYLE                        (PREDICTION_RAMSTYLE),
+        .PREDICTION_INIT_FILE                       (PREDICTION_INIT_FILE),
+                                            
+        .PREDICTION_ENABLE_WRITE_WORD_OFFSET        (PREDICTION_ENABLE_WRITE_WORD_OFFSET),
+        .PREDICTION_ENABLE_WRITE_ADDR_OFFSET        (PREDICTION_ENABLE_WRITE_ADDR_OFFSET),
+        .PREDICTION_ENABLE_WORD_WIDTH               (PREDICTION_ENABLE_WORD_WIDTH),
+        .PREDICTION_ENABLE_ADDR_WIDTH               (PREDICTION_ENABLE_ADDR_WIDTH),
+        .PREDICTION_ENABLE_DEPTH                    (PREDICTION_ENABLE_DEPTH),
+        .PREDICTION_ENABLE_RAMSTYLE                 (PREDICTION_ENABLE_RAMSTYLE),
+        .PREDICTION_ENABLE_INIT_FILE                (PREDICTION_ENABLE_INIT_FILE),
 
         .FLAGS_WORD_WIDTH                           (FLAGS_WORD_WIDTH),
         .FLAGS_ADDR_WIDTH                           (FLAGS_ADDR_WIDTH)

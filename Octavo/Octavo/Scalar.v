@@ -93,6 +93,22 @@ module Scalar
     parameter   CONDITION_RAMSTYLE              = 0,
     parameter   CONDITION_INIT_FILE             = 0,
 
+    parameter   PREDICTION_WRITE_WORD_OFFSET        = 0,
+    parameter   PREDICTION_WRITE_ADDR_OFFSET        = 0,
+    parameter   PREDICTION_WORD_WIDTH               = 0,
+    parameter   PREDICTION_ADDR_WIDTH               = 0,
+    parameter   PREDICTION_DEPTH                    = 0,
+    parameter   PREDICTION_RAMSTYLE                 = 0,
+    parameter   PREDICTION_INIT_FILE                = 0,
+
+    parameter   PREDICTION_ENABLE_WRITE_WORD_OFFSET = 0,
+    parameter   PREDICTION_ENABLE_WRITE_ADDR_OFFSET = 0,
+    parameter   PREDICTION_ENABLE_WORD_WIDTH        = 0,
+    parameter   PREDICTION_ENABLE_ADDR_WIDTH        = 0,
+    parameter   PREDICTION_ENABLE_DEPTH             = 0,
+    parameter   PREDICTION_ENABLE_RAMSTYLE          = 0,
+    parameter   PREDICTION_ENABLE_INIT_FILE         = 0,
+
     parameter   FLAGS_WORD_WIDTH                = 0,
     parameter   FLAGS_ADDR_WIDTH                = 0
 )
@@ -136,6 +152,7 @@ module Scalar
 
     wire    [INSTR_WIDTH-1:0]       I_read_data_DataPath;
 
+    wire                            cancel;
     wire                            IO_ready;
 
     ControlPath
@@ -185,6 +202,22 @@ module Scalar
         .CONDITION_RAMSTYLE             (CONDITION_RAMSTYLE),
         .CONDITION_INIT_FILE            (CONDITION_INIT_FILE),
 
+        .PREDICTION_WRITE_WORD_OFFSET   (PREDICTION_WRITE_WORD_OFFSET),       
+        .PREDICTION_WRITE_ADDR_OFFSET   (PREDICTION_WRITE_ADDR_OFFSET),
+        .PREDICTION_WORD_WIDTH          (PREDICTION_WORD_WIDTH),
+        .PREDICTION_ADDR_WIDTH          (PREDICTION_ADDR_WIDTH),
+        .PREDICTION_DEPTH               (PREDICTION_DEPTH),
+        .PREDICTION_RAMSTYLE            (PREDICTION_RAMSTYLE),
+        .PREDICTION_INIT_FILE           (PREDICTION_INIT_FILE),
+                                            
+        .PREDICTION_ENABLE_WRITE_WORD_OFFSET    (PREDICTION_ENABLE_WRITE_WORD_OFFSET),
+        .PREDICTION_ENABLE_WRITE_ADDR_OFFSET    (PREDICTION_ENABLE_WRITE_ADDR_OFFSET),
+        .PREDICTION_ENABLE_WORD_WIDTH           (PREDICTION_ENABLE_WORD_WIDTH),
+        .PREDICTION_ENABLE_ADDR_WIDTH           (PREDICTION_ENABLE_ADDR_WIDTH),
+        .PREDICTION_ENABLE_DEPTH                (PREDICTION_ENABLE_DEPTH),
+        .PREDICTION_ENABLE_RAMSTYLE             (PREDICTION_ENABLE_RAMSTYLE),
+        .PREDICTION_ENABLE_INIT_FILE            (PREDICTION_ENABLE_INIT_FILE),
+
         .FLAGS_WORD_WIDTH               (FLAGS_WORD_WIDTH),
         .FLAGS_ADDR_WIDTH               (FLAGS_ADDR_WIDTH)
     )
@@ -197,7 +230,8 @@ module Scalar
         .ALU_write_data                 (ALU_result_mem),
         .IO_ready                       (IO_ready),
 
-        .I_read_data                    (I_read_data_DataPath)
+        .I_read_data                    (I_read_data_DataPath),
+        .cancel                         (cancel)
     );
 
 // -----------------------------------------------------------
@@ -265,6 +299,7 @@ module Scalar
         .ALU_D_out                      (ALU_D_mem),
         .ALU_c_out                      (ALU_c_out),
 
+        .cancel                         (cancel),
         .IO_ready                       (IO_ready),
 
         .A_io_in_EF                     (A_io_in_EF),

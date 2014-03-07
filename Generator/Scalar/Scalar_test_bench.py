@@ -44,7 +44,9 @@ def test_bench(parameters, default_bench = default_bench, install_base = install
 
     parameter       ORIGIN_INIT_FILE       = "${assembler_base}/${default_bench}.BO",
     parameter       DESTINATION_INIT_FILE  = "${assembler_base}/${default_bench}.BD",
-    parameter       CONDITION_INIT_FILE    = "${assembler_base}/${default_bench}.BC"
+    parameter       CONDITION_INIT_FILE    = "${assembler_base}/${default_bench}.BC",
+    parameter       PREDICTION_INIT_FILE    = "${assembler_base}/${default_bench}.BP",
+    parameter       PREDICTION_ENABLE_INIT_FILE    = "${assembler_base}/${default_bench}.BPE"
 )
 (
     output  wire    [INSTR_WIDTH-1:0]                           I_read_data,
@@ -147,7 +149,9 @@ def test_bench(parameters, default_bench = default_bench, install_base = install
 
         .ORIGIN_INIT_FILE           (ORIGIN_INIT_FILE),
         .DESTINATION_INIT_FILE      (DESTINATION_INIT_FILE),
-        .CONDITION_INIT_FILE        (CONDITION_INIT_FILE)
+        .CONDITION_INIT_FILE        (CONDITION_INIT_FILE),
+        .PREDICTION_INIT_FILE        (PREDICTION_INIT_FILE),
+        .PREDICTION_ENABLE_INIT_FILE        (PREDICTION_ENABLE_INIT_FILE)
     )
     DUT 
     (
@@ -269,6 +273,9 @@ OCTAVO="$$INSTALL_BASE/Octavo/Misc/params.v \\
         $$INSTALL_BASE/Octavo/Branching/Branching_Thread_Number.v \\
         $$INSTALL_BASE/Octavo/Branching/Branch_Origin.v \\
         $$INSTALL_BASE/Octavo/Branching/Branch_Origin_Check.v \\
+        $$INSTALL_BASE/Octavo/Branching/Branch_Cancel.v \\
+        $$INSTALL_BASE/Octavo/Branching/Branch_Prediction.v \\
+        $$INSTALL_BASE/Octavo/Branching/Branch_Prediction_Enable.v \\
         $$INSTALL_BASE/Octavo/Branching/OR_Reducer.v \\
         $$INSTALL_BASE/Octavo/IO/EmptyFullBit.v \\
         $$INSTALL_BASE/Octavo/IO/IO_Active.v \\

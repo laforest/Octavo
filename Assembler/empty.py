@@ -56,7 +56,9 @@ def assemble_branches():
     BO = Assembler.Branch_Origin_Memory(bench_name, write_offset = mem_map["BO"]["Origin"])
     BD = Assembler.Branch_Destination_Memory(bench_name, write_offset = mem_map["BD"]["Origin"])
     BC = Assembler.Branch_Condition_Memory(bench_name, write_offset = mem_map["BC"]["Origin"])
-    return BO, BD, BC
+    BP = Assembler.Branch_Prediction_Memory(bench_name, write_offset = mem_map["BP"]["Origin"])
+    BPE = Assembler.Branch_Prediction_Enable_Memory(bench_name, write_offset = mem_map["BPE"]["Origin"])
+    return BO, BD, BC, BP, BPE
 
 def assemble_all():
     PC = assemble_PC()
@@ -66,12 +68,12 @@ def assemble_all():
     ADO, BDO, DDO = assemble_XDO()
     APO, BPO, DPO = assemble_XPO()
     AIN, BIN, DIN = assemble_XIN()
-    BO, BD, BC = assemble_branches()
+    BO, BD, BC, BP, BPE = assemble_branches()
     empty = {"PC":PC, "A":A, "B":B, "I":I, 
              "ADO":ADO, "BDO":BDO, "DDO":DDO,
              "APO":APO, "BPO":BPO, "DPO":DPO,
              "AIN":AIN, "BIN":BIN, "DIN":DIN,
-             "BO":BO,   "BD":BD,   "BC":BC}
+             "BO":BO,   "BD":BD,   "BC":BC,   "BP":BP, "BPE":BPE}
     return empty
 
 def dump_all(empty):

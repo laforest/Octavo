@@ -35,6 +35,22 @@ module Branch_Check_Mapped
     parameter   CONDITION_RAMSTYLE                  = 0,
     parameter   CONDITION_INIT_FILE                 = 0,
 
+    parameter   PREDICTION_WRITE_WORD_OFFSET        = 0,
+    parameter   PREDICTION_WRITE_ADDR_OFFSET        = 0,
+    parameter   PREDICTION_WORD_WIDTH               = 0,
+    parameter   PREDICTION_ADDR_WIDTH               = 0,
+    parameter   PREDICTION_DEPTH                    = 0,
+    parameter   PREDICTION_RAMSTYLE                 = 0,
+    parameter   PREDICTION_INIT_FILE                = 0,
+
+    parameter   PREDICTION_ENABLE_WRITE_WORD_OFFSET = 0,
+    parameter   PREDICTION_ENABLE_WRITE_ADDR_OFFSET = 0,
+    parameter   PREDICTION_ENABLE_WORD_WIDTH        = 0,
+    parameter   PREDICTION_ENABLE_ADDR_WIDTH        = 0,
+    parameter   PREDICTION_ENABLE_DEPTH             = 0,
+    parameter   PREDICTION_ENABLE_RAMSTYLE          = 0,
+    parameter   PREDICTION_ENABLE_INIT_FILE         = 0,
+
     parameter   FLAGS_WORD_WIDTH                    = 0,
     parameter   FLAGS_ADDR_WIDTH                    = 0
 )
@@ -48,7 +64,8 @@ module Branch_Check_Mapped
     input   wire    [WORD_WIDTH-1:0]                ALU_write_data,
 
     output  wire    [PC_WIDTH-1:0]                  branch_destination,
-    output  wire                                    jump
+    output  wire                                    jump,
+    output  wire                                    cancel
 );
 
 // -----------------------------------------------------------
@@ -58,11 +75,15 @@ module Branch_Check_Mapped
     reg     [ORIGIN_WORD_WIDTH-1:0]         ALU_write_data_BO;
     reg     [DESTINATION_WORD_WIDTH-1:0]    ALU_write_data_BD;
     reg     [CONDITION_WORD_WIDTH-1:0]      ALU_write_data_BC;
+    reg     [PREDICTION_WORD_WIDTH-1:0]     ALU_write_data_BP;
+    reg     [PREDICTION_ENABLE_WORD_WIDTH-1:0]     ALU_write_data_BPE;
 
     always @(*) begin
         ALU_write_data_BO  <= ALU_write_data[ORIGIN_WORD_WIDTH + ORIGIN_WRITE_WORD_OFFSET-1:ORIGIN_WRITE_WORD_OFFSET];
         ALU_write_data_BD  <= ALU_write_data[DESTINATION_WORD_WIDTH + DESTINATION_WRITE_WORD_OFFSET-1:DESTINATION_WRITE_WORD_OFFSET];
-        ALU_write_data_BC <= ALU_write_data[CONDITION_WORD_WIDTH + CONDITION_WRITE_WORD_OFFSET-1:CONDITION_WRITE_WORD_OFFSET];
+        ALU_write_data_BC  <= ALU_write_data[CONDITION_WORD_WIDTH + CONDITION_WRITE_WORD_OFFSET-1:CONDITION_WRITE_WORD_OFFSET];
+        ALU_write_data_BP  <= ALU_write_data[PREDICTION_WORD_WIDTH + PREDICTION_WRITE_WORD_OFFSET-1:PREDICTION_WRITE_WORD_OFFSET];
+        ALU_write_data_BPE <= ALU_write_data[PREDICTION_ENABLE_WORD_WIDTH + PREDICTION_ENABLE_WRITE_WORD_OFFSET-1:PREDICTION_ENABLE_WRITE_WORD_OFFSET];
     end
 
 // -----------------------------------------------------------
@@ -121,6 +142,42 @@ module Branch_Check_Mapped
 
 // -----------------------------------------------------------
 
+    wire    ALU_wren_BP; // Branch Prediction
+
+    Address_Decoder
+    #(
+        .ADDR_COUNT     (PREDICTION_DEPTH),
+        .ADDR_BASE      (PREDICTION_WRITE_ADDR_OFFSET),
+        .ADDR_WIDTH     (D_OPERAND_WIDTH),
+        .REGISTERED     (`FALSE)
+    )
+    BP
+    (
+        .clock          (clock),
+        .addr           (ALU_write_addr),
+        .hit            (ALU_wren_BP)
+    );
+
+// -----------------------------------------------------------
+
+    wire    ALU_wren_BPE; // Branch Prediction Enable
+
+    Address_Decoder
+    #(
+        .ADDR_COUNT     (PREDICTION_ENABLE_DEPTH),
+        .ADDR_BASE      (PREDICTION_ENABLE_WRITE_ADDR_OFFSET),
+        .ADDR_WIDTH     (D_OPERAND_WIDTH),
+        .REGISTERED     (`FALSE)
+    )
+    BPE
+    (
+        .clock          (clock),
+        .addr           (ALU_write_addr),
+        .hit            (ALU_wren_BPE)
+    );
+
+// -----------------------------------------------------------
+
     // Translates the original address LSB to internal zero-based address
     // Cancels-out non-aligned memory mappings.
     wire    [ORIGIN_ADDR_WIDTH-1:0]     ALU_write_addr_BO;
@@ -171,6 +228,38 @@ module Branch_Check_Mapped
 
 // -----------------------------------------------------------
 
+    wire    [PREDICTION_ADDR_WIDTH-1:0]     ALU_write_addr_BP;
+
+    Address_Translator
+    #(
+        .ADDR_COUNT         (PREDICTION_DEPTH),
+        .ADDR_BASE          (PREDICTION_WRITE_ADDR_OFFSET),
+        .ADDR_WIDTH         (PREDICTION_ADDR_WIDTH)
+    )
+    BP_addr
+    (
+        .raw_address        (ALU_write_addr[PREDICTION_ADDR_WIDTH-1:0]),
+        .translated_address (ALU_write_addr_BP)
+    );
+
+// -----------------------------------------------------------
+
+    wire    [PREDICTION_ENABLE_ADDR_WIDTH-1:0]     ALU_write_addr_BPE;
+
+    Address_Translator
+    #(
+        .ADDR_COUNT         (PREDICTION_ENABLE_DEPTH),
+        .ADDR_BASE          (PREDICTION_ENABLE_WRITE_ADDR_OFFSET),
+        .ADDR_WIDTH         (PREDICTION_ENABLE_ADDR_WIDTH)
+    )
+    BPE_addr
+    (
+        .raw_address        (ALU_write_addr[PREDICTION_ENABLE_ADDR_WIDTH-1:0]),
+        .translated_address (ALU_write_addr_BPE)
+    );
+
+// -----------------------------------------------------------
+
     Branch_Check
     #(
         .PC_WIDTH                   (PC_WIDTH),
@@ -199,6 +288,18 @@ module Branch_Check_Mapped
         .CONDITION_RAMSTYLE         (CONDITION_RAMSTYLE),
         .CONDITION_INIT_FILE        (CONDITION_INIT_FILE),
 
+        .PREDICTION_WORD_WIDTH      (PREDICTION_WORD_WIDTH),
+        .PREDICTION_ADDR_WIDTH      (PREDICTION_ADDR_WIDTH),
+        .PREDICTION_DEPTH           (PREDICTION_DEPTH),
+        .PREDICTION_RAMSTYLE        (PREDICTION_RAMSTYLE),
+        .PREDICTION_INIT_FILE       (PREDICTION_INIT_FILE),
+
+        .PREDICTION_ENABLE_WORD_WIDTH   (PREDICTION_ENABLE_WORD_WIDTH),
+        .PREDICTION_ENABLE_ADDR_WIDTH   (PREDICTION_ENABLE_ADDR_WIDTH),
+        .PREDICTION_ENABLE_DEPTH        (PREDICTION_ENABLE_DEPTH),
+        .PREDICTION_ENABLE_RAMSTYLE     (PREDICTION_ENABLE_RAMSTYLE),
+        .PREDICTION_ENABLE_INIT_FILE    (PREDICTION_ENABLE_INIT_FILE),
+
         .FLAGS_WORD_WIDTH           (FLAGS_WORD_WIDTH),
         .FLAGS_ADDR_WIDTH           (FLAGS_ADDR_WIDTH)
     )
@@ -212,17 +313,24 @@ module Branch_Check_Mapped
         .ALU_wren_BO                (ALU_wren_BO),
         .ALU_wren_BD                (ALU_wren_BD),
         .ALU_wren_BC                (ALU_wren_BC),
+        .ALU_wren_BP                (ALU_wren_BP),
+        .ALU_wren_BPE               (ALU_wren_BPE),
 
         .ALU_write_addr_BO          (ALU_write_addr_BO),
         .ALU_write_addr_BD          (ALU_write_addr_BD),
         .ALU_write_addr_BC          (ALU_write_addr_BC),
+        .ALU_write_addr_BP          (ALU_write_addr_BP),
+        .ALU_write_addr_BPE         (ALU_write_addr_BPE),
 
         .ALU_write_data_BO          (ALU_write_data_BO),
         .ALU_write_data_BD          (ALU_write_data_BD),
         .ALU_write_data_BC          (ALU_write_data_BC),
+        .ALU_write_data_BP          (ALU_write_data_BP),
+        .ALU_write_data_BPE         (ALU_write_data_BPE),
 
         .branch_destination         (branch_destination),
-        .jump                       (jump)
+        .jump                       (jump),
+        .cancel                     (cancel)
     );
 
 endmodule

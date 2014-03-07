@@ -111,20 +111,26 @@ def assemble_I(PC, A, B):
         origin      = I.names["odd_orig_{}".format(thread)]
         destination = I.names["odd_dest_{}".format(thread)] << 10
         condition   = JNZ                                   << 20
+        prediction  = 0                                     << 23
+        prediction_enable = 0                               << 24
         A.ALIGN(A.names["jmp_odd_{}".format(thread)])
-        A.L(condition | destination | origin)
+        A.L(prediction_enable | prediction | condition | destination | origin)
 
         origin      = I.names["out_orig_{}".format(thread)]
         destination = I.names["out_dest_{}".format(thread)] << 10
         condition   = JMP                                   << 20
+        prediction  = 0                                     << 23
+        prediction_enable = 0                               << 24
         A.ALIGN(A.names["jmp_out_{}".format(thread)])
-        A.L(condition | destination | origin)
+        A.L(prediction_enable | prediction | condition | destination | origin)
 
         origin      = I.names["hai_orig_{}".format(thread)]
         destination = I.names["hai_dest_{}".format(thread)] << 10
         condition   = JMP                                   << 20
+        prediction  = 0                                     << 23
+        prediction_enable = 0                               << 24
         A.ALIGN(A.names["jmp_hai_{}".format(thread)])
-        A.L(condition | destination | origin)
+        A.L(prediction_enable | prediction | condition | destination | origin)
 
     return I
 
@@ -159,11 +165,13 @@ def assemble_XIN():
     return AIN, BIN, DIN
 
 def assemble_branches():
-    BO, BD, BC = empty["BO"], empty["BD"], empty["BC"]
+    BO, BD, BC, BP, BPE = empty["BO"], empty["BD"], empty["BC"], empty["BP"], empty["BPE"]
     BO.file_name = bench_name    
     BD.file_name = bench_name    
     BC.file_name = bench_name    
-    return BO, BD, BC
+    BP.file_name = bench_name    
+    BPE.file_name = bench_name    
+    return BO, BD, BC, BP, BPE
 
 def assemble_all():
     PC = assemble_PC()
@@ -173,12 +181,12 @@ def assemble_all():
     ADO, BDO, DDO = assemble_XDO()
     APO, BPO, DPO = assemble_XPO()
     AIN, BIN, DIN = assemble_XIN()
-    BO, BD, BC = assemble_branches()
+    BO, BD, BC, BP, BPE = assemble_branches()
     hailstone = {"PC":PC, "A":A, "B":B, "I":I, 
                  "ADO":ADO, "BDO":BDO, "DDO":DDO,
                  "APO":APO, "BPO":BPO, "DPO":DPO,
                  "AIN":AIN, "BIN":BIN, "DIN":DIN,
-                 "BO":BO, "BD":BD, "BC":BC}
+                 "BO":BO, "BD":BD, "BC":BC, "BP":BP, "BPE":BPE}
     return hailstone
 
 def dump_all(hailstone):

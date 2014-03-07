@@ -32,6 +32,18 @@ module Branch_Check
     parameter   CONDITION_RAMSTYLE                  = 0,
     parameter   CONDITION_INIT_FILE                 = 0,
 
+    parameter   PREDICTION_WORD_WIDTH               = 0,
+    parameter   PREDICTION_ADDR_WIDTH               = 0,
+    parameter   PREDICTION_DEPTH                    = 0,
+    parameter   PREDICTION_RAMSTYLE                 = 0,
+    parameter   PREDICTION_INIT_FILE                = 0,
+
+    parameter   PREDICTION_ENABLE_WORD_WIDTH        = 0,
+    parameter   PREDICTION_ENABLE_ADDR_WIDTH        = 0,
+    parameter   PREDICTION_ENABLE_DEPTH             = 0,
+    parameter   PREDICTION_ENABLE_RAMSTYLE          = 0,
+    parameter   PREDICTION_ENABLE_INIT_FILE         = 0,
+
     parameter   FLAGS_WORD_WIDTH                    = 0,
     parameter   FLAGS_ADDR_WIDTH                    = 0
 )
@@ -41,22 +53,29 @@ module Branch_Check
     input   wire    [FLAGS_WORD_WIDTH-1:0]          flags,
     input   wire                                    IO_ready_previous,
 
-    input   wire                                    ALU_wren_BO, // Branch Origin Memory
-    input   wire                                    ALU_wren_BD, // Branch Destination Memory
-    input   wire                                    ALU_wren_BC, // Branch Condition Memory
+    input   wire                                    ALU_wren_BO,    // Branch Origin Memory
+    input   wire                                    ALU_wren_BD,    // Branch Destination Memory
+    input   wire                                    ALU_wren_BC,    // Branch Condition Memory
+    input   wire                                    ALU_wren_BP,    // Branch Prediction Memory
+    input   wire                                    ALU_wren_BPE,   // Branch Prediction Enable Memory
 
     input   wire    [ORIGIN_ADDR_WIDTH-1:0]         ALU_write_addr_BO,
     input   wire    [DESTINATION_ADDR_WIDTH-1:0]    ALU_write_addr_BD,
     input   wire    [CONDITION_ADDR_WIDTH-1:0]      ALU_write_addr_BC,
+    input   wire    [PREDICTION_ADDR_WIDTH-1:0]     ALU_write_addr_BP,
+    input   wire    [PREDICTION_ENABLE_ADDR_WIDTH-1:0]  ALU_write_addr_BPE,
 
     // Subsets of full data word, so we can align multiple memories along a single word.
     // We want to keep all memory map knowledge in the encapsulating module.
     input   wire    [ORIGIN_WORD_WIDTH-1:0]         ALU_write_data_BO,
     input   wire    [DESTINATION_WORD_WIDTH-1:0]    ALU_write_data_BD,
     input   wire    [CONDITION_WORD_WIDTH-1:0]      ALU_write_data_BC,
+    input   wire    [PREDICTION_WORD_WIDTH-1:0]     ALU_write_data_BP,
+    input   wire    [PREDICTION_ENABLE_WORD_WIDTH-1:0]  ALU_write_data_BPE,
 
     output  wire    [PC_WIDTH-1:0]                  branch_destination,
-    output  wire                                    jump
+    output  wire                                    jump,
+    output  wire                                    cancel
 );
 
 // -----------------------------------------------------------
@@ -145,6 +164,50 @@ module Branch_Check
 
 // -----------------------------------------------------------
 
+    wire    [PREDICTION_WORD_WIDTH-1:0]      branch_prediction;
+
+    Branch_Prediction
+    #(
+        .WORD_WIDTH         (PREDICTION_WORD_WIDTH),
+        .ADDR_WIDTH         (PREDICTION_ADDR_WIDTH),
+        .DEPTH              (PREDICTION_DEPTH),
+        .RAMSTYLE           (PREDICTION_RAMSTYLE),
+        .INIT_FILE          (PREDICTION_INIT_FILE)
+    )
+    BP
+    (
+        .clock              (clock),
+        .wren               (ALU_wren_BP),
+        .write_addr         (ALU_write_addr_BP),
+        .write_data         (ALU_write_data_BP),
+        .read_addr          (read_thread),
+        .branch_prediction  (branch_prediction)
+    );
+
+// -----------------------------------------------------------
+
+    wire    [PREDICTION_ENABLE_WORD_WIDTH-1:0]  branch_prediction_enable;
+
+    Branch_Prediction_Enable
+    #(
+        .WORD_WIDTH         (PREDICTION_ENABLE_WORD_WIDTH),
+        .ADDR_WIDTH         (PREDICTION_ENABLE_ADDR_WIDTH),
+        .DEPTH              (PREDICTION_ENABLE_DEPTH),
+        .RAMSTYLE           (PREDICTION_ENABLE_RAMSTYLE),
+        .INIT_FILE          (PREDICTION_ENABLE_INIT_FILE)
+    )
+    BPE
+    (
+        .clock              (clock),
+        .wren               (ALU_wren_BPE),
+        .write_addr         (ALU_write_addr_BPE),
+        .write_data         (ALU_write_data_BPE),
+        .read_addr          (read_thread),
+        .branch_prediction_enable   (branch_prediction_enable)
+    );
+
+// -----------------------------------------------------------
+
     wire    [PC_WIDTH-1:0]  PC_synced;
 
     delay_line
@@ -181,7 +244,7 @@ module Branch_Check
 
     wire    [PC_WIDTH-1:0]  branch_destination_origin_masked_raw;
 
-    // If the branch origin doesn'2yyt match, zero-out the branch destination
+    // If the branch origin doesn't match, zero-out the branch destination
 
     Instruction_Annuller
     #(
@@ -252,6 +315,23 @@ module Branch_Check
             flag <= jump_previous;
         end
     end
+
+// -----------------------------------------------------------
+
+    // Note we use the IO_ready adjusted flag, as we would want to cancel a
+    // pending annulled instruction because the flags changed.
+
+    Branch_Cancel
+    // No parameters
+    Cancel
+    (
+        .clock                      (clock),
+        .branch_prediction          (branch_prediction),
+        .branch_prediction_enable   (branch_prediction_enable),
+        .branch_origin_hit          (branch_origin_hit_stage3),
+        .flag                       (flag),
+        .cancel                     (cancel)
+    );
 
 // -----------------------------------------------------------
 

@@ -226,3 +226,13 @@ class Branch_Condition_Memory(Memory):
     def __init__(self, file_name, file_ext = ".BC", depth = 8, width = 3, write_offset = 0):
         Memory.__init__(self, file_name, file_ext = file_ext, depth = depth, width = width, write_offset = write_offset)
 
+class Branch_Prediction_Memory(Memory):
+    "Cancelling Branch prediction bit: 1 means Predict Taken. One per branch."
+    def __init__(self, file_name, file_ext = ".BP", depth = 8, width = 1, write_offset = 0):
+        Memory.__init__(self, file_name, file_ext = file_ext, depth = depth, width = width, write_offset = write_offset)
+
+class Branch_Prediction_Enable_Memory(Memory):
+    "Cancelling Branch prediction enable: 1 means use Prediction bit, else never cancel. One per branch."
+    def __init__(self, file_name, file_ext = ".BPE", depth = 8, width = 1, write_offset = 0):
+        Memory.__init__(self, file_name, file_ext = file_ext, depth = depth, width = width, write_offset = write_offset)
+

@@ -295,6 +295,22 @@ def generate_branching_parameters(common_values, parameters = {}):
         "CONDITION_RAMSTYLE"            : mem_style,
         "CONDITION_INIT_FILE"           : mem_init,
 
+        "PREDICTION_WRITE_WORD_OFFSET"        : 23,
+        "PREDICTION_WRITE_ADDR_OFFSET"        : base_addr,
+        "PREDICTION_WORD_WIDTH"               : 1,
+        "PREDICTION_ADDR_WIDTH"               : 3,
+        "PREDICTION_DEPTH"                    : 8,
+        "PREDICTION_RAMSTYLE"                 : mem_style,
+        "PREDICTION_INIT_FILE"                : mem_init,
+
+        "PREDICTION_ENABLE_WRITE_WORD_OFFSET" : 24,
+        "PREDICTION_ENABLE_WRITE_ADDR_OFFSET" : base_addr,
+        "PREDICTION_ENABLE_WORD_WIDTH"        : 1,
+        "PREDICTION_ENABLE_ADDR_WIDTH"        : 3,
+        "PREDICTION_ENABLE_DEPTH"             : 8,
+        "PREDICTION_ENABLE_RAMSTYLE"          : mem_style,
+        "PREDICTION_ENABLE_INIT_FILE"         : mem_init,
+
         "FLAGS_WORD_WIDTH"              : 8,
         "FLAGS_ADDR_WIDTH"              : 3,
     }

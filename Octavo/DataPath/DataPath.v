@@ -60,7 +60,8 @@ module DataPath
     output  wire    [D_OPERAND_WIDTH-1:0]                           ALU_D_out,
     output  wire                                                    ALU_c_out,
 
-    output  wire                                                    IO_ready,
+    input   wire                                                    cancel,
+    output  reg                                                     IO_ready,
 
     input   wire    [A_IO_READ_PORT_COUNT-1:0]                      A_io_in_EF,
     output  wire    [A_IO_READ_PORT_COUNT-1:0]                      A_io_rden,
@@ -420,6 +421,8 @@ module DataPath
 
 // -----------------------------------------------------------
 
+    wire    IO_ready_raw;
+
     IO_All_Ready
     #(
         .READ_PORT_COUNT    (2),
@@ -430,8 +433,18 @@ module DataPath
         .clock              (clock),
         .read_EF            ({A_io_in_EF_masked,  B_io_in_EF_masked}),
         .write_EF           ({A_io_out_EF_masked, B_io_out_EF_masked}),
-        .ready              (IO_ready)
+        .ready              (IO_ready_raw)
     );
+
+// -----------------------------------------------------------
+
+    // If we cancel the instruction, annull it.
+    // Avoid any I/O side-effects.
+    // The ControlPath will force IO_ready high internally to prevent re-issue.
+
+    always @(*) begin
+        IO_ready <= IO_ready_raw & ~cancel;
+    end
 
 // -----------------------------------------------------------
 

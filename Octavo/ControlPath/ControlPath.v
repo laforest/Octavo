@@ -46,6 +46,22 @@ module ControlPath
     parameter   CONDITION_RAMSTYLE              = 0,
     parameter   CONDITION_INIT_FILE             = 0,
 
+    parameter   PREDICTION_WRITE_WORD_OFFSET        = 0,
+    parameter   PREDICTION_WRITE_ADDR_OFFSET        = 0,
+    parameter   PREDICTION_WORD_WIDTH               = 0,
+    parameter   PREDICTION_ADDR_WIDTH               = 0,
+    parameter   PREDICTION_DEPTH                    = 0,
+    parameter   PREDICTION_RAMSTYLE                 = 0,
+    parameter   PREDICTION_INIT_FILE                = 0,
+
+    parameter   PREDICTION_ENABLE_WRITE_WORD_OFFSET = 0,
+    parameter   PREDICTION_ENABLE_WRITE_ADDR_OFFSET = 0,
+    parameter   PREDICTION_ENABLE_WORD_WIDTH        = 0,
+    parameter   PREDICTION_ENABLE_ADDR_WIDTH        = 0,
+    parameter   PREDICTION_ENABLE_DEPTH             = 0,
+    parameter   PREDICTION_ENABLE_RAMSTYLE          = 0,
+    parameter   PREDICTION_ENABLE_INIT_FILE         = 0,
+
     parameter   FLAGS_WORD_WIDTH                = 0,
     parameter   FLAGS_ADDR_WIDTH                = 0
 
@@ -58,7 +74,8 @@ module ControlPath
     input   wire    [ALU_WORD_WIDTH-1:0]        ALU_write_data,
     input   wire                                IO_ready,
 
-    output  wire    [INSTR_WIDTH-1:0]           I_read_data
+    output  wire    [INSTR_WIDTH-1:0]           I_read_data,
+    output  wire                                cancel
 );
 
 // -----------------------------------------------------------
@@ -129,20 +146,13 @@ module ControlPath
 
 // -----------------------------------------------------------
 
-    wire    IO_ready_ctrl;
+    reg     IO_ready_ControlPath;
 
-    // Synchronize with A/B memory reads.
-    delay_line 
-    #(
-        .DEPTH  (AB_READ_PIPELINE_DEPTH),
-        .WIDTH  (1)
-    ) 
-    AB_IO_ready_pipeline
-    (
-        .clock  (clock),
-        .in     (IO_ready),
-        .out    (IO_ready_ctrl)
-    );
+    // We force a cancelled instruction as "ready" to prevent re-issue.
+
+    always @(*) begin
+        IO_ready_ControlPath <= IO_ready | cancel;
+    end
 
 // -----------------------------------------------------------
 
@@ -185,6 +195,22 @@ module ControlPath
         .CONDITION_RAMSTYLE             (CONDITION_RAMSTYLE),
         .CONDITION_INIT_FILE            (CONDITION_INIT_FILE),
 
+        .PREDICTION_WRITE_WORD_OFFSET    (PREDICTION_WRITE_WORD_OFFSET),
+        .PREDICTION_WRITE_ADDR_OFFSET    (PREDICTION_WRITE_ADDR_OFFSET),
+        .PREDICTION_WORD_WIDTH           (PREDICTION_WORD_WIDTH),
+        .PREDICTION_ADDR_WIDTH           (PREDICTION_ADDR_WIDTH),
+        .PREDICTION_DEPTH                (PREDICTION_DEPTH),
+        .PREDICTION_RAMSTYLE             (PREDICTION_RAMSTYLE),
+        .PREDICTION_INIT_FILE            (PREDICTION_INIT_FILE),
+
+        .PREDICTION_ENABLE_WRITE_WORD_OFFSET    (PREDICTION_ENABLE_WRITE_WORD_OFFSET),
+        .PREDICTION_ENABLE_WRITE_ADDR_OFFSET    (PREDICTION_ENABLE_WRITE_ADDR_OFFSET),
+        .PREDICTION_ENABLE_WORD_WIDTH           (PREDICTION_ENABLE_WORD_WIDTH),
+        .PREDICTION_ENABLE_ADDR_WIDTH           (PREDICTION_ENABLE_ADDR_WIDTH),
+        .PREDICTION_ENABLE_DEPTH                (PREDICTION_ENABLE_DEPTH),
+        .PREDICTION_ENABLE_RAMSTYLE             (PREDICTION_ENABLE_RAMSTYLE),
+        .PREDICTION_ENABLE_INIT_FILE            (PREDICTION_ENABLE_INIT_FILE),
+
         .FLAGS_WORD_WIDTH               (FLAGS_WORD_WIDTH),
         .FLAGS_ADDR_WIDTH               (FLAGS_ADDR_WIDTH)
     )
@@ -193,13 +219,31 @@ module ControlPath
         .clock                          (clock),
         .PC                             (PC),
         .R_prev                         (ALU_write_data),
-        .IO_ready                       (IO_ready),
+        .IO_ready                       (IO_ready_ControlPath),
 
         .ALU_write_addr                 (ALU_write_addr),
         .ALU_write_data                 (ALU_write_data),
 
         .branch_destination             (branch_destination),
-        .jump                           (jump)
+        .jump                           (jump),
+        .cancel                         (cancel)
+    );
+
+// -----------------------------------------------------------
+
+    wire    IO_ready_ctrl;
+
+    // Synchronize with A/B memory reads.
+    delay_line 
+    #(
+        .DEPTH  (AB_READ_PIPELINE_DEPTH),
+        .WIDTH  (1)
+    ) 
+    AB_IO_ready_pipeline
+    (
+        .clock  (clock),
+        .in     (IO_ready_ControlPath),
+        .out    (IO_ready_ctrl)
     );
 
 // -----------------------------------------------------------
