@@ -21,11 +21,10 @@ module Branch_Cancel
     // Basically, if we *can* branch and predict, then cancel if the branch
     // prediction and the branch flag don't agree.
 
-    // Inputs from stage 3, outputs at stage 4
-    // always @(posedge clock) begin
-    // Inputs from stage 3, outputs at stage 3
-    always @(*) begin
+    // Inputs from stage 2, outputs at stage 3
+    always @(posedge clock) begin
         cancel <= (branch_prediction ^ flag) & (branch_origin_hit & branch_prediction_enable);
     end
 
 endmodule
+

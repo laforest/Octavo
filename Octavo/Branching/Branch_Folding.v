@@ -98,7 +98,7 @@ module Branch_Folding
 
     delay_line
     #(
-        .DEPTH  (8), // ECL XXX hardcoded...
+        .DEPTH  (7), // ECL XXX hardcoded...-1 from 8 since we use it in stage 3, not 4
         .WIDTH  (1)
     )
     IO_ready_pipeline

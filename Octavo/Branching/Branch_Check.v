@@ -281,7 +281,7 @@ module Branch_Check
         .WORD_WIDTH     (1),
         .ADDR_WIDTH     (FLAGS_ADDR_WIDTH),
         .INPUT_COUNT    (FLAGS_WORD_WIDTH),
-        .REGISTERED     (`TRUE)
+        .REGISTERED     (`FALSE)
     )
     flag_selector
     (
@@ -294,7 +294,7 @@ module Branch_Check
 // -----------------------------------------------------------
 
     wire    jump_previous;
-    reg     flag;
+    wire    adjusted_flag;
 
     // ECL XXX If we return here because the instruction in parallel with the
     // branch was re-issued while waiting for I/O, then use the original jump
@@ -307,18 +307,50 @@ module Branch_Check
     // interactions between branches and I/O predication if branch conditions
     // depend on I/O.
 
-    always @(*) begin
-        if (IO_ready_previous === `HIGH) begin
-            flag <= flag_raw;
-        end
-        else begin
-            flag <= jump_previous;
-        end
-    end
+    // always @(*) begin
+    //     if (IO_ready_previous === `HIGH) begin
+    //         flag <= flag_raw;
+    //     end
+    //     else begin
+    //         flag <= jump_previous;
+    //     end
+    // end
+
+    Addressed_Mux
+    #(
+        .WORD_WIDTH     (1),
+        .ADDR_WIDTH     (1),
+        .INPUT_COUNT    (2),
+        .REGISTERED     (`FALSE)
+    )
+    adjusted_flag_selector
+    (
+        .clock          (clock),
+        .addr           (IO_ready_previous),
+        .data_in        ({flag_raw, jump_previous}),
+        .data_out       (adjusted_flag)
+    );
 
 // -----------------------------------------------------------
 
-    // Note we use the IO_ready adjusted flag, as we would want to cancel a
+    wire    flag;
+
+    delay_line
+    #(
+        .DEPTH  (1),
+        .WIDTH  (1)
+    )
+    flag_pipeline
+    (
+        .clock  (clock),
+        .in     (adjusted_flag),
+        .out    (flag)
+    );
+
+
+// -----------------------------------------------------------
+
+    // Note we use the IO_ready adjusted flag, as we would not want to cancel a
     // pending annulled instruction because the flags changed.
 
     Branch_Cancel
@@ -328,8 +360,8 @@ module Branch_Check
         .clock                      (clock),
         .branch_prediction          (branch_prediction),
         .branch_prediction_enable   (branch_prediction_enable),
-        .branch_origin_hit          (branch_origin_hit_stage3),
-        .flag                       (flag),
+        .branch_origin_hit          (branch_origin_hit_stage2),
+        .flag                       (adjusted_flag),
         .cancel                     (cancel)
     );
 
@@ -394,10 +426,10 @@ module Branch_Check
 
     // Recicrculate the local jump decision for re-issue of annulled instr.
     // ECL XXX hardcoded...
-    // -1 from 8 since jump registered out of stage 4, after IO_ready
+    // -2 from 8 since jump registered out of stage 4, after IO_ready, and we use in stage 3
     delay_line
     #(
-        .DEPTH  (7),
+        .DEPTH  (6),
         .WIDTH  (1)
     )
     jump_previous_pipeline

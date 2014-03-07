@@ -42,11 +42,11 @@ module Branch_Prediction
 
 // -----------------------------------------------------------
 
-    // Outputs at stage 3
+    // Outputs at stage 2
 
     delay_line
     #(
-        .DEPTH  (3),
+        .DEPTH  (2),
         .WIDTH  (WORD_WIDTH)
     )
     BP_pipeline
