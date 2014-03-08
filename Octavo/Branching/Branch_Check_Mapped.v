@@ -70,6 +70,25 @@ module Branch_Check_Mapped
 
 // -----------------------------------------------------------
 
+    wire    [WORD_WIDTH-1:0]  ALU_write_data_reg;
+
+    // Sync with regsitered address decoders and translators
+
+    delay_line
+    #(
+        .DEPTH  (1),
+        .WIDTH  (WORD_WIDTH)
+    )
+    write_data_synchronizer
+    (
+        .clock  (clock),
+        .in     (ALU_write_data),
+        .out    (ALU_write_data_reg)
+    );
+
+
+// -----------------------------------------------------------
+
     // Subsets of above, so we can align multiple memories along a single word.
     // We want to keep all memory map knowledge in *this* module.
     reg     [ORIGIN_WORD_WIDTH-1:0]         ALU_write_data_BO;
@@ -79,11 +98,11 @@ module Branch_Check_Mapped
     reg     [PREDICTION_ENABLE_WORD_WIDTH-1:0]     ALU_write_data_BPE;
 
     always @(*) begin
-        ALU_write_data_BO  <= ALU_write_data[ORIGIN_WORD_WIDTH + ORIGIN_WRITE_WORD_OFFSET-1:ORIGIN_WRITE_WORD_OFFSET];
-        ALU_write_data_BD  <= ALU_write_data[DESTINATION_WORD_WIDTH + DESTINATION_WRITE_WORD_OFFSET-1:DESTINATION_WRITE_WORD_OFFSET];
-        ALU_write_data_BC  <= ALU_write_data[CONDITION_WORD_WIDTH + CONDITION_WRITE_WORD_OFFSET-1:CONDITION_WRITE_WORD_OFFSET];
-        ALU_write_data_BP  <= ALU_write_data[PREDICTION_WORD_WIDTH + PREDICTION_WRITE_WORD_OFFSET-1:PREDICTION_WRITE_WORD_OFFSET];
-        ALU_write_data_BPE <= ALU_write_data[PREDICTION_ENABLE_WORD_WIDTH + PREDICTION_ENABLE_WRITE_WORD_OFFSET-1:PREDICTION_ENABLE_WRITE_WORD_OFFSET];
+        ALU_write_data_BO  <= ALU_write_data_reg[ORIGIN_WORD_WIDTH + ORIGIN_WRITE_WORD_OFFSET-1:ORIGIN_WRITE_WORD_OFFSET];
+        ALU_write_data_BD  <= ALU_write_data_reg[DESTINATION_WORD_WIDTH + DESTINATION_WRITE_WORD_OFFSET-1:DESTINATION_WRITE_WORD_OFFSET];
+        ALU_write_data_BC  <= ALU_write_data_reg[CONDITION_WORD_WIDTH + CONDITION_WRITE_WORD_OFFSET-1:CONDITION_WRITE_WORD_OFFSET];
+        ALU_write_data_BP  <= ALU_write_data_reg[PREDICTION_WORD_WIDTH + PREDICTION_WRITE_WORD_OFFSET-1:PREDICTION_WRITE_WORD_OFFSET];
+        ALU_write_data_BPE <= ALU_write_data_reg[PREDICTION_ENABLE_WORD_WIDTH + PREDICTION_ENABLE_WRITE_WORD_OFFSET-1:PREDICTION_ENABLE_WRITE_WORD_OFFSET];
     end
 
 // -----------------------------------------------------------
@@ -95,7 +114,7 @@ module Branch_Check_Mapped
         .ADDR_COUNT     (ORIGIN_DEPTH),
         .ADDR_BASE      (ORIGIN_WRITE_ADDR_OFFSET),
         .ADDR_WIDTH     (D_OPERAND_WIDTH),
-        .REGISTERED     (`FALSE)
+        .REGISTERED     (`TRUE)
     )
     BO
     (
@@ -113,7 +132,7 @@ module Branch_Check_Mapped
         .ADDR_COUNT     (DESTINATION_DEPTH),
         .ADDR_BASE      (DESTINATION_WRITE_ADDR_OFFSET),
         .ADDR_WIDTH     (D_OPERAND_WIDTH),
-        .REGISTERED     (`FALSE)
+        .REGISTERED     (`TRUE)
     )
     BD
     (
@@ -131,7 +150,7 @@ module Branch_Check_Mapped
         .ADDR_COUNT     (CONDITION_DEPTH),
         .ADDR_BASE      (CONDITION_WRITE_ADDR_OFFSET),
         .ADDR_WIDTH     (D_OPERAND_WIDTH),
-        .REGISTERED     (`FALSE)
+        .REGISTERED     (`TRUE)
     )
     BC
     (
@@ -149,7 +168,7 @@ module Branch_Check_Mapped
         .ADDR_COUNT     (PREDICTION_DEPTH),
         .ADDR_BASE      (PREDICTION_WRITE_ADDR_OFFSET),
         .ADDR_WIDTH     (D_OPERAND_WIDTH),
-        .REGISTERED     (`FALSE)
+        .REGISTERED     (`TRUE)
     )
     BP
     (
@@ -167,7 +186,7 @@ module Branch_Check_Mapped
         .ADDR_COUNT     (PREDICTION_ENABLE_DEPTH),
         .ADDR_BASE      (PREDICTION_ENABLE_WRITE_ADDR_OFFSET),
         .ADDR_WIDTH     (D_OPERAND_WIDTH),
-        .REGISTERED     (`FALSE)
+        .REGISTERED     (`TRUE)
     )
     BPE
     (
@@ -186,10 +205,12 @@ module Branch_Check_Mapped
     #(
         .ADDR_COUNT         (ORIGIN_DEPTH),
         .ADDR_BASE          (ORIGIN_WRITE_ADDR_OFFSET),
-        .ADDR_WIDTH         (ORIGIN_ADDR_WIDTH)
+        .ADDR_WIDTH         (ORIGIN_ADDR_WIDTH),
+        .REGISTERED         (`TRUE)
     )
     BO_addr
     (
+        .clock              (clock),
         .raw_address        (ALU_write_addr[ORIGIN_ADDR_WIDTH-1:0]),
         .translated_address (ALU_write_addr_BO)
     );
@@ -202,10 +223,12 @@ module Branch_Check_Mapped
     #(
         .ADDR_COUNT         (DESTINATION_DEPTH),
         .ADDR_BASE          (DESTINATION_WRITE_ADDR_OFFSET),
-        .ADDR_WIDTH         (DESTINATION_ADDR_WIDTH)
+        .ADDR_WIDTH         (DESTINATION_ADDR_WIDTH),
+        .REGISTERED         (`TRUE)
     )
     BD_addr
     (
+        .clock              (clock),
         .raw_address        (ALU_write_addr[DESTINATION_ADDR_WIDTH-1:0]),
         .translated_address (ALU_write_addr_BD)
     );
@@ -218,10 +241,12 @@ module Branch_Check_Mapped
     #(
         .ADDR_COUNT         (CONDITION_DEPTH),
         .ADDR_BASE          (CONDITION_WRITE_ADDR_OFFSET),
-        .ADDR_WIDTH         (CONDITION_ADDR_WIDTH)
+        .ADDR_WIDTH         (CONDITION_ADDR_WIDTH),
+        .REGISTERED         (`TRUE)
     )
     BC_addr
     (
+        .clock              (clock),
         .raw_address        (ALU_write_addr[CONDITION_ADDR_WIDTH-1:0]),
         .translated_address (ALU_write_addr_BC)
     );
@@ -234,10 +259,12 @@ module Branch_Check_Mapped
     #(
         .ADDR_COUNT         (PREDICTION_DEPTH),
         .ADDR_BASE          (PREDICTION_WRITE_ADDR_OFFSET),
-        .ADDR_WIDTH         (PREDICTION_ADDR_WIDTH)
+        .ADDR_WIDTH         (PREDICTION_ADDR_WIDTH),
+        .REGISTERED         (`TRUE)
     )
     BP_addr
     (
+        .clock              (clock),
         .raw_address        (ALU_write_addr[PREDICTION_ADDR_WIDTH-1:0]),
         .translated_address (ALU_write_addr_BP)
     );
@@ -250,10 +277,12 @@ module Branch_Check_Mapped
     #(
         .ADDR_COUNT         (PREDICTION_ENABLE_DEPTH),
         .ADDR_BASE          (PREDICTION_ENABLE_WRITE_ADDR_OFFSET),
-        .ADDR_WIDTH         (PREDICTION_ENABLE_ADDR_WIDTH)
+        .ADDR_WIDTH         (PREDICTION_ENABLE_ADDR_WIDTH),
+        .REGISTERED         (`TRUE)
     )
     BPE_addr
     (
+        .clock              (clock),
         .raw_address        (ALU_write_addr[PREDICTION_ENABLE_ADDR_WIDTH-1:0]),
         .translated_address (ALU_write_addr_BPE)
     );
