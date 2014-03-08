@@ -106,6 +106,24 @@ module ControlPath
 
 // -----------------------------------------------------------
 
+    wire    [D_OPERAND_WIDTH-1:0]     ALU_write_addr_translated;
+
+    Address_Translator
+    #(
+        .ADDR_COUNT         (I_DEPTH),
+        .ADDR_BASE          (I_WRITE_ADDR_OFFSET),
+        .ADDR_WIDTH         (D_OPERAND_WIDTH),
+        .REGISTERED         (`FALSE)
+    )
+    I_write_addr_translator
+    (
+        .clock              (clock),
+        .raw_address        (ALU_write_addr),
+        .translated_address (ALU_write_addr_translated)
+    );
+
+// -----------------------------------------------------------
+
     wire    [I_ADDR_WIDTH-1:0]  PC;
     wire    [INSTR_WIDTH-1:0]   I_read_data_bram;
 
@@ -121,7 +139,7 @@ module ControlPath
     (
         .clock          (clock),
         .wren           (I_wren),
-        .write_addr     (ALU_write_addr[I_ADDR_WIDTH-1:0]),
+        .write_addr     (ALU_write_addr_translated[I_ADDR_WIDTH-1:0]),
         .write_data     (ALU_write_data[I_WORD_WIDTH-1:0]),
         .read_addr      (PC),
         .read_data      (I_read_data_bram)

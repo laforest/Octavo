@@ -270,6 +270,24 @@ module DataPath
 
 // -----------------------------------------------------------
 
+    wire    [A_ADDR_WIDTH-1:0]     A_write_addr_translated;
+
+    Address_Translator
+    #(
+        .ADDR_COUNT         (A_DEPTH),
+        .ADDR_BASE          (A_WRITE_ADDR_OFFSET),
+        .ADDR_WIDTH         (A_ADDR_WIDTH),
+        .REGISTERED         (`FALSE)
+    )
+    A_write_addr_translator
+    (
+        .clock              (clock),
+        .raw_address        (A_write_addr),
+        .translated_address (A_write_addr_translated)
+    );
+
+// -----------------------------------------------------------
+
     RAM_SDP
     #(
         .WORD_WIDTH     (A_WORD_WIDTH),
@@ -282,7 +300,7 @@ module DataPath
     (
         .clock          (clock),
         .wren           (A_wren_RAM),
-        .write_addr     (A_write_addr),
+        .write_addr     (A_write_addr_translated),
         .write_data     (A_write_data),
         .read_addr      (A_read_addr_AB),
         .read_data      (A_read_data_RAM)
@@ -401,6 +419,24 @@ module DataPath
 
 // -----------------------------------------------------------
 
+    wire    [A_ADDR_WIDTH-1:0]     B_write_addr_translated;
+
+    Address_Translator
+    #(
+        .ADDR_COUNT         (B_DEPTH),
+        .ADDR_BASE          (B_WRITE_ADDR_OFFSET),
+        .ADDR_WIDTH         (B_ADDR_WIDTH),
+        .REGISTERED         (`FALSE)
+    )
+    B_write_addr_translator
+    (
+        .clock              (clock),
+        .raw_address        (B_write_addr),
+        .translated_address (B_write_addr_translated)
+    );
+
+// -----------------------------------------------------------
+
     RAM_SDP
     #(
         .WORD_WIDTH     (B_WORD_WIDTH),
@@ -413,7 +449,7 @@ module DataPath
     (
         .clock          (clock),
         .wren           (B_wren_RAM),
-        .write_addr     (B_write_addr),
+        .write_addr     (B_write_addr_translated),
         .write_data     (B_write_data),
         .read_addr      (B_read_addr_AB),
         .read_data      (B_read_data_RAM)
