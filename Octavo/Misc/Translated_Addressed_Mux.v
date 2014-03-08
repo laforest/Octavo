@@ -24,10 +24,12 @@ module Translated_Addressed_Mux
     #(
         .ADDR_COUNT             (INPUT_COUNT),
         .ADDR_BASE              (INPUT_BASE_ADDR),
-        .ADDR_WIDTH             (INPUT_ADDR_WIDTH)
+        .ADDR_WIDTH             (INPUT_ADDR_WIDTH),
+        .REGISTERED             (`FALSE)
     )
     Address_Translator
     (
+        .clock                  (clock),
         .raw_address            (addr[INPUT_ADDR_WIDTH-1:0]),
         .translated_address     (addr_translated)
     );         
