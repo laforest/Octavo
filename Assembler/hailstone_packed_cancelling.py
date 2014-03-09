@@ -5,8 +5,8 @@ from opcodes import *
 from memory_map import mem_map
 from branching_flags import *
 
-bench_dir  = "Hailstone"
-bench_file = "hailstone"
+bench_dir  = "Hailstone_Packed_Cancelling"
+bench_file = "hailstone_packed_cancelling"
 bench_name = bench_dir + "/" + bench_file
 SIMD_bench_name = bench_dir + "/" + "SIMD_" + bench_file
 
@@ -92,27 +92,30 @@ def assemble_I(PC, A, B):
         I.I(ADD, base_addr + 16, (A,"jmp_hai_{}".format(thread)), 0)
 
         # Is the seed odd?
-        I.I(AND, (A,"temp_{}".format(thread)), (A,"one"), (B,"seed_{}".format(thread))),    I.N("hai_dest_{}".format(thread))
-        I.NOP(),                                                                            I.N("odd_orig_{}".format(thread))
+        I.I(AND, (A,"temp_{}".format(thread)), (A,"one"), (B,"seed_{}".format(thread))),            I.N("hai_dest_{}".format(thread))
+        # I.NOP(),                                                                                    I.N("odd_orig_{}".format(thread))
+        # Hoisted from destination, Predict Taken
+        I.I(MLS, (B,"seed_{}".format(thread)), (A,"three"), (B,"seed_{}".format(thread))),          I.N("odd_orig_{}".format(thread))
+        
 
         # Even: seed = seed / 2
-        I.I(MHU, (B,"seed_{}".format(thread)), (A,"right_shift_1"), (B,"seed_{}".format(thread)))
-        I.NOP(),                                                                            I.N("out_orig_{}".format(thread))
+        I.I(MHU, (B,"seed_{}".format(thread)), (A,"right_shift_1"), (B,"seed_{}".format(thread))),  I.N("out_orig_{}".format(thread))
 
         # Odd: seed = (3 * seed) + 1
-        I.I(MLS, (B,"seed_{}".format(thread)), (A,"three"), (B,"seed_{}".format(thread))),  I.N("odd_dest_{}".format(thread))
-        I.I(ADD, (B,"seed_{}".format(thread)), (A,"one"), (B,"seed_{}".format(thread)))
+        # I.I(MLS, (B,"seed_{}".format(thread)), (A,"three"), (B,"seed_{}".format(thread))),          I.N("odd_dest_{}".format(thread))
+        # I.I(ADD, (B,"seed_{}".format(thread)), (A,"one"), (B,"seed_{}".format(thread)))
+        # Hoisted to branch origin
+        I.I(ADD, (B,"seed_{}".format(thread)), (A,"one"), (B,"seed_{}".format(thread))),            I.N("odd_dest_{}".format(thread))
 
-        I.I(ADD, (A,"WRITE_PORT"), 0, (B,"seed_{}".format(thread))),                        I.N("out_dest_{}".format(thread))
-        I.I(ADD, (B,"WRITE_PORT"), 0, (B,"seed_{}".format(thread)))
-        I.NOP(),                                                                            I.N("hai_orig_{}".format(thread))
+        I.I(ADD, (A,"WRITE_PORT"), 0, (B,"seed_{}".format(thread))),                                I.N("out_dest_{}".format(thread))
+        I.I(ADD, (B,"WRITE_PORT"), 0, (B,"seed_{}".format(thread))),                                I.N("hai_orig_{}".format(thread))
 
         # Now lets fill those branch table values
         origin      = I.names["odd_orig_{}".format(thread)]
         destination = I.names["odd_dest_{}".format(thread)] << 10
         condition   = JNZ                                   << 20
-        prediction  = 0                                     << 23
-        prediction_enable = 0                               << 24
+        prediction  = 1                                     << 23 # Predict Taken
+        prediction_enable = 1                               << 24
         A.ALIGN(A.names["jmp_odd_{}".format(thread)])
         A.L(prediction_enable | prediction | condition | destination | origin)
 

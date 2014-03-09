@@ -29,7 +29,16 @@ mem_map = {
     "AIN":  {"Origin":3080, "Depth":8, "bit_offset":33},
     "BIN":  {"Origin":3080, "Depth":8, "bit_offset":32},
 
-    # Flow Control Structures here after
+    # Branch Origins
+    "BO":   {"Origin":3082, "Depth":8, "bit_offset":0},
+    # Branch Destinations
+    "BD":   {"Origin":3082, "Depth":8, "bit_offset":10},
+    # Branch Conditions
+    "BC":   {"Origin":3082, "Depth":8, "bit_offset":20},
+    # Branch Predictions
+    "BP":   {"Origin":3082, "Depth":8, "bit_offset":23},
+    # Branch Prediction Enables
+    "BPE":  {"Origin":3082, "Depth":8, "bit_offset":24},
 
     # Memory ends at 4095
 }

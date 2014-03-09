@@ -174,7 +174,66 @@ module Scalar
     parameter   D_INCREMENTS_ADDR_WIDTH                     = 0,
     parameter   D_INCREMENTS_DEPTH                          = 0,
     parameter   D_INCREMENTS_RAMSTYLE                       = 0,
-    parameter   D_INCREMENTS_INIT_FILE                      = 0
+    parameter   D_INCREMENTS_INIT_FILE                      = 0,
+
+// -----------------------------------------------------------
+
+    parameter   ORIGIN_WRITE_WORD_OFFSET        = 0,
+    parameter   ORIGIN_WRITE_ADDR_OFFSET        = 0,
+    parameter   ORIGIN_WORD_WIDTH               = 0,
+    parameter   ORIGIN_ADDR_WIDTH               = 0,
+    parameter   ORIGIN_DEPTH                    = 0,
+    parameter   ORIGIN_RAMSTYLE                 = 0,
+    parameter   ORIGIN_INIT_FILE                = 0,
+
+// -----------------------------------------------------------
+
+    parameter   BRANCH_COUNT                    = 0,
+
+// -----------------------------------------------------------
+
+    parameter   DESTINATION_WRITE_WORD_OFFSET   = 0,
+    parameter   DESTINATION_WRITE_ADDR_OFFSET   = 0,
+    parameter   DESTINATION_WORD_WIDTH          = 0,
+    parameter   DESTINATION_ADDR_WIDTH          = 0,
+    parameter   DESTINATION_DEPTH               = 0,
+    parameter   DESTINATION_RAMSTYLE            = 0,
+    parameter   DESTINATION_INIT_FILE           = 0,
+
+// -----------------------------------------------------------
+
+    parameter   CONDITION_WRITE_WORD_OFFSET     = 0,
+    parameter   CONDITION_WRITE_ADDR_OFFSET     = 0,
+    parameter   CONDITION_WORD_WIDTH            = 0,
+    parameter   CONDITION_ADDR_WIDTH            = 0,
+    parameter   CONDITION_DEPTH                 = 0,
+    parameter   CONDITION_RAMSTYLE              = 0,
+    parameter   CONDITION_INIT_FILE             = 0,
+
+// -----------------------------------------------------------
+
+    parameter   PREDICTION_WRITE_WORD_OFFSET        = 0,
+    parameter   PREDICTION_WRITE_ADDR_OFFSET        = 0,
+    parameter   PREDICTION_WORD_WIDTH               = 0,
+    parameter   PREDICTION_ADDR_WIDTH               = 0,
+    parameter   PREDICTION_DEPTH                    = 0,
+    parameter   PREDICTION_RAMSTYLE                 = 0,
+    parameter   PREDICTION_INIT_FILE                = 0,
+
+// -----------------------------------------------------------
+
+    parameter   PREDICTION_ENABLE_WRITE_WORD_OFFSET = 0,
+    parameter   PREDICTION_ENABLE_WRITE_ADDR_OFFSET = 0,
+    parameter   PREDICTION_ENABLE_WORD_WIDTH        = 0,
+    parameter   PREDICTION_ENABLE_ADDR_WIDTH        = 0,
+    parameter   PREDICTION_ENABLE_DEPTH             = 0,
+    parameter   PREDICTION_ENABLE_RAMSTYLE          = 0,
+    parameter   PREDICTION_ENABLE_INIT_FILE         = 0,
+
+// -----------------------------------------------------------
+
+    parameter   FLAGS_WORD_WIDTH                = 0,
+    parameter   FLAGS_ADDR_WIDTH                = 0
 )
 (
     input   wire                                                    clock,
@@ -210,65 +269,92 @@ module Scalar
 
 // -----------------------------------------------------------
 
-    // The Controller feeds the PC back to its Instruction Memory input.
-    wire    [I_ADDR_WIDTH-1:0]      Controller_pc_I;
-    // DataPath output back to A/B Data Memory 
+    // DataPath output back to all Memories 
     wire    [D_OPERAND_WIDTH-1:0]   ALU_D_mem;
     wire    [ALU_WORD_WIDTH-1:0]    ALU_result_mem;
-    wire    [OPCODE_WIDTH-1:0]      ALU_op_mem;
-    // Only the Scalar Datapath A Memory connects to the Controller to affect program control
-    wire    [A_WORD_WIDTH-1:0]      A_read_data_Controller;
+
     wire    [INSTR_WIDTH-1:0]       I_read_data_DataPath;
 
+    wire                            cancel;
     wire                            IO_ready;
 
     ControlPath
     #(
-        .ALU_WORD_WIDTH             (ALU_WORD_WIDTH),
+        .ALU_WORD_WIDTH                 (ALU_WORD_WIDTH),
 
-        .A_WORD_WIDTH               (A_WORD_WIDTH),
-        .A_ADDR_WIDTH               (A_ADDR_WIDTH),
-        .B_ADDR_WIDTH               (B_ADDR_WIDTH),
+        .INSTR_WIDTH                    (INSTR_WIDTH),
+        .D_OPERAND_WIDTH                (D_OPERAND_WIDTH),
 
-        .INSTR_WIDTH                (INSTR_WIDTH),
-        .OPCODE_WIDTH               (OPCODE_WIDTH),
-        .D_OPERAND_WIDTH            (D_OPERAND_WIDTH),
-        .A_OPERAND_WIDTH            (A_OPERAND_WIDTH),
-        .B_OPERAND_WIDTH            (B_OPERAND_WIDTH),
+        .I_WRITE_ADDR_OFFSET            (I_WRITE_ADDR_OFFSET),
+        .I_WORD_WIDTH                   (I_WORD_WIDTH),
+        .I_ADDR_WIDTH                   (I_ADDR_WIDTH),
+        .I_DEPTH                        (I_DEPTH),
+        .I_RAMSTYLE                     (I_RAMSTYLE),
+        .I_INIT_FILE                    (I_INIT_FILE),
 
-        .I_WRITE_ADDR_OFFSET        (I_WRITE_ADDR_OFFSET),
-        .I_WORD_WIDTH               (I_WORD_WIDTH),
-        .I_ADDR_WIDTH               (I_ADDR_WIDTH),
-        .I_DEPTH                    (I_DEPTH),
-        .I_RAMSTYLE                 (I_RAMSTYLE),
-        .I_INIT_FILE                (I_INIT_FILE),
+        .PC_RAMSTYLE                    (PC_RAMSTYLE),
+        .PC_INIT_FILE                   (PC_INIT_FILE),
+        .THREAD_COUNT                   (THREAD_COUNT), 
+        .THREAD_ADDR_WIDTH              (THREAD_ADDR_WIDTH), 
 
-        .PC_RAMSTYLE                (PC_RAMSTYLE),
-        .PC_INIT_FILE               (PC_INIT_FILE),
-        .THREAD_COUNT               (THREAD_COUNT), 
-        .THREAD_ADDR_WIDTH          (THREAD_ADDR_WIDTH), 
+        .I_TAP_PIPELINE_DEPTH           (I_TAP_PIPELINE_DEPTH),
+        .AB_READ_PIPELINE_DEPTH         (AB_READ_PIPELINE_DEPTH),
+        .ORIGIN_WRITE_WORD_OFFSET       (ORIGIN_WRITE_WORD_OFFSET),
+        .ORIGIN_WRITE_ADDR_OFFSET       (ORIGIN_WRITE_ADDR_OFFSET),
+        .ORIGIN_WORD_WIDTH              (ORIGIN_WORD_WIDTH),
+        .ORIGIN_ADDR_WIDTH              (ORIGIN_ADDR_WIDTH),
+        .ORIGIN_DEPTH                   (ORIGIN_DEPTH),
+        .ORIGIN_RAMSTYLE                (ORIGIN_RAMSTYLE),
+        .ORIGIN_INIT_FILE               (ORIGIN_INIT_FILE),
 
-        .PC_PIPELINE_DEPTH          (PC_PIPELINE_DEPTH),
-        .I_TAP_PIPELINE_DEPTH       (I_TAP_PIPELINE_DEPTH),
-        .TAP_AB_PIPELINE_DEPTH      (TAP_AB_PIPELINE_DEPTH),
-        .AB_READ_PIPELINE_DEPTH     (AB_READ_PIPELINE_DEPTH) 
+        .BRANCH_COUNT                   (BRANCH_COUNT),
+
+        .DESTINATION_WRITE_WORD_OFFSET  (DESTINATION_WRITE_WORD_OFFSET),
+        .DESTINATION_WRITE_ADDR_OFFSET  (DESTINATION_WRITE_ADDR_OFFSET),
+        .DESTINATION_WORD_WIDTH         (DESTINATION_WORD_WIDTH),
+        .DESTINATION_ADDR_WIDTH         (DESTINATION_ADDR_WIDTH),
+        .DESTINATION_DEPTH              (DESTINATION_DEPTH),
+        .DESTINATION_RAMSTYLE           (DESTINATION_RAMSTYLE),
+        .DESTINATION_INIT_FILE          (DESTINATION_INIT_FILE),
+
+        .CONDITION_WRITE_WORD_OFFSET    (CONDITION_WRITE_WORD_OFFSET),
+        .CONDITION_WRITE_ADDR_OFFSET    (CONDITION_WRITE_ADDR_OFFSET),
+        .CONDITION_WORD_WIDTH           (CONDITION_WORD_WIDTH),
+        .CONDITION_ADDR_WIDTH           (CONDITION_ADDR_WIDTH),
+        .CONDITION_DEPTH                (CONDITION_DEPTH),
+        .CONDITION_RAMSTYLE             (CONDITION_RAMSTYLE),
+        .CONDITION_INIT_FILE            (CONDITION_INIT_FILE),
+
+        .PREDICTION_WRITE_WORD_OFFSET   (PREDICTION_WRITE_WORD_OFFSET),       
+        .PREDICTION_WRITE_ADDR_OFFSET   (PREDICTION_WRITE_ADDR_OFFSET),
+        .PREDICTION_WORD_WIDTH          (PREDICTION_WORD_WIDTH),
+        .PREDICTION_ADDR_WIDTH          (PREDICTION_ADDR_WIDTH),
+        .PREDICTION_DEPTH               (PREDICTION_DEPTH),
+        .PREDICTION_RAMSTYLE            (PREDICTION_RAMSTYLE),
+        .PREDICTION_INIT_FILE           (PREDICTION_INIT_FILE),
+                                            
+        .PREDICTION_ENABLE_WRITE_WORD_OFFSET    (PREDICTION_ENABLE_WRITE_WORD_OFFSET),
+        .PREDICTION_ENABLE_WRITE_ADDR_OFFSET    (PREDICTION_ENABLE_WRITE_ADDR_OFFSET),
+        .PREDICTION_ENABLE_WORD_WIDTH           (PREDICTION_ENABLE_WORD_WIDTH),
+        .PREDICTION_ENABLE_ADDR_WIDTH           (PREDICTION_ENABLE_ADDR_WIDTH),
+        .PREDICTION_ENABLE_DEPTH                (PREDICTION_ENABLE_DEPTH),
+        .PREDICTION_ENABLE_RAMSTYLE             (PREDICTION_ENABLE_RAMSTYLE),
+        .PREDICTION_ENABLE_INIT_FILE            (PREDICTION_ENABLE_INIT_FILE),
+
+        .FLAGS_WORD_WIDTH               (FLAGS_WORD_WIDTH),
+        .FLAGS_ADDR_WIDTH               (FLAGS_ADDR_WIDTH)
     )
     ControlPath
     (
         .clock                      (clock),
 
         .I_wren_other               (I_wren_other),
-        .I_write_op                 (ALU_op_mem),
-        .I_write_addr               (ALU_D_mem),
-        .I_write_data               (ALU_result_mem),
-        .I_read_addr                (Controller_pc_I),
-
-        .A_read_data                (A_read_data_Controller), 
-
+        .ALU_write_addr             (ALU_D_mem),
+        .ALU_write_data             (ALU_result_mem),
         .IO_ready                   (IO_ready),
 
         .I_read_data                (I_read_data_DataPath),
-        .pc                         (Controller_pc_I)
+        .cancel                     (cancel)
     );
 
 // -----------------------------------------------------------
@@ -531,14 +617,12 @@ module Scalar
         .A_wren_other                   (A_wren_other),
         .B_wren_other                   (B_wren_other),
 
-        .A_read_data                    (A_read_data_Controller),
-
         .ALU_c_in                       (ALU_c_in),
         .ALU_result_out                 (ALU_result_mem),
-        .ALU_op_out                     (ALU_op_mem),
         .ALU_D_out                      (ALU_D_mem),
         .ALU_c_out                      (ALU_c_out),
 
+        .cancel                         (cancel),
         .IO_ready                       (IO_ready),
 
         .A_io_in_EF                     (A_io_in_EF),
@@ -555,5 +639,6 @@ module Scalar
         .B_io_wren                      (B_io_wren),
         .B_io_out                       (B_io_out)
     );
+
 endmodule
 

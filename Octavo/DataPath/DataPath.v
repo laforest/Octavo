@@ -59,15 +59,13 @@ module DataPath
     input   wire                                                    A_wren_other,
     input   wire                                                    B_wren_other,
 
-    output  wire    [A_WORD_WIDTH-1:0]                              A_read_data,
-
     input   wire                                                    ALU_c_in,
     output  wire    [ALU_WORD_WIDTH-1:0]                            ALU_result_out,
-    output  wire    [OPCODE_WIDTH-1:0]                              ALU_op_out,
     output  wire    [D_OPERAND_WIDTH-1:0]                           ALU_D_out,
     output  wire                                                    ALU_c_out,
 
-    output  wire                                                    IO_ready,
+    input   wire                                                    cancel,
+    output  reg                                                     IO_ready,
 
     input   wire    [A_IO_READ_PORT_COUNT-1:0]                      A_io_in_EF,
     output  wire    [A_IO_READ_PORT_COUNT-1:0]                      A_io_rden,
@@ -84,7 +82,8 @@ module DataPath
     output  wire    [(B_WORD_WIDTH * B_IO_WRITE_PORT_COUNT)-1:0]    B_io_out
 
 );
-// ----------------------------------------------------------
+
+// -----------------------------------------------------------
 
     delay_line 
     #(
@@ -122,12 +121,12 @@ module DataPath
         .B                  (B_read_addr_in)
     );
 
-// ----------------------------------------------------------
+// -----------------------------------------------------------
 
-    wire    [OPCODE_WIDTH-1:0]      OP_AB;
-    wire    [D_OPERAND_WIDTH-1:0]   D_write_addr_AB;
-    wire    [A_OPERAND_WIDTH-1:0]   A_read_addr_AB;
-    wire    [A_OPERAND_WIDTH-1:0]   B_read_addr_AB;
+    wire    [OPCODE_WIDTH-1:0]     OP_AB;
+    wire    [A_OPERAND_WIDTH-1:0]  A_read_addr_AB;
+    wire    [B_OPERAND_WIDTH-1:0]  B_read_addr_AB;
+    wire    [D_OPERAND_WIDTH-1:0]  D_write_addr_AB;
 
     Instr_Decoder
     #(
@@ -157,6 +156,7 @@ module DataPath
 // ----------------------------------------------------------
 
     wire    [A_WORD_WIDTH-1:0]      A_read_data_RAM;
+    wire    [A_WORD_WIDTH-1:0]      A_read_data;
     wire                            A_io_in_EF_masked;
 
     IO_Read
@@ -181,28 +181,34 @@ module DataPath
         .data_out                   (A_read_data)
     );
 
-// ----------------------------------------------------------
+// -----------------------------------------------------------
 
-    wire                A_wren_RAM;
-    wire                A_wren_ALU;
+    wire                A_wren_ALU_raw;
 
-    Write_Enable 
+    Address_Decoder 
     #(
-        .OPCODE_WIDTH   (OPCODE_WIDTH),
         .ADDR_COUNT     (A_DEPTH),
         .ADDR_BASE      (A_WRITE_ADDR_OFFSET),
-        .ADDR_WIDTH     (D_OPERAND_WIDTH)
+        .ADDR_WIDTH     (D_OPERAND_WIDTH),
+        .REGISTERED     (`FALSE)
 
     )
     A_wren
     (
-        .op             (ALU_op_out),
+        .clock          (clock),
         .addr           (ALU_D_out),
-        .wren_other     (A_wren_other),
-        .wren           (A_wren_ALU)
+        .hit            (A_wren_ALU_raw)
     );
 
-// ----------------------------------------------------------
+// -----------------------------------------------------------
+
+    reg     A_wren_ALU;
+
+    always @(*) begin
+        A_wren_ALU <= A_wren_ALU_raw & A_wren_other;
+    end
+
+// -----------------------------------------------------------
 
     wire        A_write_is_IO;
     wire        A_write_is_IO_ALU;
@@ -223,8 +229,9 @@ module DataPath
         .out    (A_write_is_IO_ALU)
     );
 
-// ----------------------------------------------------------
+// -----------------------------------------------------------
 
+    wire                            A_wren_RAM;
     wire    [A_WORD_WIDTH-1:0]      A_write_data;
     wire    [A_ADDR_WIDTH-1:0]      A_write_addr;
     wire                            A_io_out_EF_masked;
@@ -257,7 +264,25 @@ module DataPath
         .wren_RAM                   (A_wren_RAM)
     );
 
-// ----------------------------------------------------------
+// -----------------------------------------------------------
+
+    wire    [A_ADDR_WIDTH-1:0]     A_write_addr_translated;
+
+    Address_Translator
+    #(
+        .ADDR_COUNT         (A_DEPTH),
+        .ADDR_BASE          (A_WRITE_ADDR_OFFSET),
+        .ADDR_WIDTH         (A_ADDR_WIDTH),
+        .REGISTERED         (`FALSE)
+    )
+    A_write_addr_translator
+    (
+        .clock              (clock),
+        .raw_address        (A_write_addr),
+        .translated_address (A_write_addr_translated)
+    );
+
+// -----------------------------------------------------------
 
     RAM_SDP
     #(
@@ -271,13 +296,14 @@ module DataPath
     (
         .clock          (clock),
         .wren           (A_wren_RAM),
-        .write_addr     (A_write_addr),
+        .write_addr     (A_write_addr_translated),
         .write_data     (A_write_data),
         .read_addr      (A_read_addr_AB),
         .read_data      (A_read_data_RAM)
     );
 
-// ----------------------------------------------------------
+// -----------------------------------------------------------
+
 
     wire    [B_WORD_WIDTH-1:0]      B_read_data_RAM;
     wire    [B_WORD_WIDTH-1:0]      B_read_data;
@@ -305,27 +331,33 @@ module DataPath
         .data_out                   (B_read_data)
     );
 
-// ----------------------------------------------------------
+// -----------------------------------------------------------
 
-    wire                B_wren_RAM;
-    wire                B_wren_ALU;
+    wire                B_wren_ALU_raw;
 
-    Write_Enable 
+    Address_Decoder 
     #(
-        .OPCODE_WIDTH   (OPCODE_WIDTH),
         .ADDR_COUNT     (B_DEPTH),
         .ADDR_BASE      (B_WRITE_ADDR_OFFSET),
-        .ADDR_WIDTH     (D_OPERAND_WIDTH)
+        .ADDR_WIDTH     (D_OPERAND_WIDTH),
+        .REGISTERED     (`FALSE)
     )
     B_wren
     (
-        .op             (ALU_op_out),
+        .clock          (clock),
         .addr           (ALU_D_out),
-        .wren_other     (B_wren_other),
-        .wren           (B_wren_ALU)
+        .hit            (B_wren_ALU_raw)
     );
 
-// ----------------------------------------------------------
+// -----------------------------------------------------------
+
+    reg     B_wren_ALU;
+
+    always @(*) begin
+        B_wren_ALU <= B_wren_ALU_raw & B_wren_other;
+    end
+
+// -----------------------------------------------------------
 
     wire        B_write_is_IO;
     wire        B_write_is_IO_ALU;
@@ -346,8 +378,9 @@ module DataPath
         .out    (B_write_is_IO_ALU)
     );
 
-// ----------------------------------------------------------
+// -----------------------------------------------------------
 
+    wire                            B_wren_RAM;
     wire    [B_WORD_WIDTH-1:0]      B_write_data;
     wire    [B_ADDR_WIDTH-1:0]      B_write_addr;
     wire                            B_io_out_EF_masked;
@@ -380,7 +413,25 @@ module DataPath
         .wren_RAM                   (B_wren_RAM)
     );
 
-// ----------------------------------------------------------
+// -----------------------------------------------------------
+
+    wire    [A_ADDR_WIDTH-1:0]     B_write_addr_translated;
+
+    Address_Translator
+    #(
+        .ADDR_COUNT         (B_DEPTH),
+        .ADDR_BASE          (B_WRITE_ADDR_OFFSET),
+        .ADDR_WIDTH         (B_ADDR_WIDTH),
+        .REGISTERED         (`FALSE)
+    )
+    B_write_addr_translator
+    (
+        .clock              (clock),
+        .raw_address        (B_write_addr),
+        .translated_address (B_write_addr_translated)
+    );
+
+// -----------------------------------------------------------
 
     RAM_SDP
     #(
@@ -394,13 +445,15 @@ module DataPath
     (
         .clock          (clock),
         .wren           (B_wren_RAM),
-        .write_addr     (B_write_addr),
+        .write_addr     (B_write_addr_translated),
         .write_data     (B_write_data),
         .read_addr      (B_read_addr_AB),
         .read_data      (B_read_data_RAM)
     );
 
-// ----------------------------------------------------------
+// -----------------------------------------------------------
+
+    wire    IO_ready_raw;
 
     IO_All_Ready
     #(
@@ -412,10 +465,20 @@ module DataPath
         .clock              (clock),
         .read_EF            ({A_io_in_EF_masked,  B_io_in_EF_masked}),
         .write_EF           ({A_io_out_EF_masked, B_io_out_EF_masked}),
-        .ready              (IO_ready)
+        .ready              (IO_ready_raw)
     );
 
-// ----------------------------------------------------------
+// -----------------------------------------------------------
+
+    // If we cancel the instruction, annull it.
+    // Avoid any I/O side-effects.
+    // The ControlPath will force IO_ready high internally to prevent re-issue.
+
+    always @(*) begin
+        IO_ready <= IO_ready_raw & ~cancel;
+    end
+
+// -----------------------------------------------------------
 
     wire    [INSTR_WIDTH-1:0]   I_read_data_AB_masked;
 
@@ -430,7 +493,7 @@ module DataPath
         .instr_out      (I_read_data_AB_masked)
     ); 
 
-// ----------------------------------------------------------
+// -----------------------------------------------------------
 
     wire    [INSTR_WIDTH-1:0]   AB_instr;
 
@@ -446,7 +509,7 @@ module DataPath
         .out    (AB_instr)
     );
 
-// ----------------------------------------------------------
+// -----------------------------------------------------------
 
     wire    [OPCODE_WIDTH-1:0]      ALU_op_in;
     wire    [D_OPERAND_WIDTH-1:0]   ALU_D_in;
@@ -468,7 +531,7 @@ module DataPath
         .B                  ()
     );
 
-// ----------------------------------------------------------
+// -----------------------------------------------------------
 
     ALU 
     #(
@@ -492,7 +555,7 @@ module DataPath
         .A                      (A_read_data),
         .B                      (B_read_data),
         .R                      (ALU_result_out),
-        .op_out                 (ALU_op_out),
+        .op_out                 (), // ECL XXX Unused for now
         .c_out                  (ALU_c_out),
         .D_out                  (ALU_D_out)
     );

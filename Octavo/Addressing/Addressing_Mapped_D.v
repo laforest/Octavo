@@ -167,10 +167,12 @@ module Addressing_Mapped_D
     #(
         .ADDR_COUNT         (PO_INC_COUNT),
         .ADDR_BASE          (PO_INC_READ_BASE_ADDR),
-        .ADDR_WIDTH         (PO_INC_COUNT_ADDR_WIDTH)
+        .ADDR_WIDTH         (PO_INC_COUNT_ADDR_WIDTH),
+        .REGISTERED         (`FALSE)
     )
     PO_addr
     (
+        .clock              (clock),
         .raw_address        (addr_in[PO_INC_COUNT_ADDR_WIDTH-1:0]),
         .translated_address (PO_INC_index)
     );

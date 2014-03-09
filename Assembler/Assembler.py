@@ -105,7 +105,7 @@ class Instruction_Memory(Memory):
         self.L(instr)
 
     def RL(self, name):
-        """Resolve Literal: set named locatfile_name, depth = 1024, width = 36ion to current address"""
+        """Resolve Literal: set named location to current address"""
         address = self.names[name]
         self.data[address] = self.here
 
@@ -191,25 +191,48 @@ class PC_Memory(Memory):
         self.word_mask  = self.width_mask(word_width)
 
 
-
 class Default_Offset_Memory(Memory):
     "Default offsets to add to A/B/D operands. One per thread."
-
     # Change extension to match: s/X/A/ for example.
     def __init__(self, file_name, file_ext = ".XDO", depth = 8, width = 10, write_offset = 0):
         Memory.__init__(self, file_name, file_ext = file_ext, depth = depth, width = width, write_offset = write_offset)
 
 class Programmed_Offset_Memory(Memory):
     "Programmed offsets to add to A/B/D operands. One per thread."
-
     # Change extension to match: s/X/A/ for example.
     def __init__(self, file_name, file_ext = ".XPO", depth = 8, width = 10, write_offset = 0):
         Memory.__init__(self, file_name, file_ext = file_ext, depth = depth, width = width, write_offset = write_offset)
 
 class Increments_Memory(Memory):
     "Increments to A/B/D Programmed Offsets after access. One per thread."
-
     # Change extension to match: s/X/A/ for example.
     def __init__(self, file_name, file_ext = ".XIN", depth = 8, width = 1, write_offset = 0):
+        Memory.__init__(self, file_name, file_ext = file_ext, depth = depth, width = width, write_offset = write_offset)
+
+
+
+class Branch_Origin_Memory(Memory):
+    "Origin address of branches. One per thread min. Only one instance of this memory."
+    def __init__(self, file_name, file_ext = ".BO", depth = 8, width = 10, write_offset = 0):
+        Memory.__init__(self, file_name, file_ext = file_ext, depth = depth, width = width, write_offset = write_offset)
+
+class Branch_Destination_Memory(Memory):
+    "Destination address of branches. One per thread min. Only one instance of this memory."
+    def __init__(self, file_name, file_ext = ".BD", depth = 8, width = 10, write_offset = 0):
+        Memory.__init__(self, file_name, file_ext = file_ext, depth = depth, width = width, write_offset = write_offset)
+
+class Branch_Condition_Memory(Memory):
+    "Condition of branches. One per thread min. Only one instance of this memory."
+    def __init__(self, file_name, file_ext = ".BC", depth = 8, width = 3, write_offset = 0):
+        Memory.__init__(self, file_name, file_ext = file_ext, depth = depth, width = width, write_offset = write_offset)
+
+class Branch_Prediction_Memory(Memory):
+    "Cancelling Branch prediction bit: 1 means Predict Taken. One per branch."
+    def __init__(self, file_name, file_ext = ".BP", depth = 8, width = 1, write_offset = 0):
+        Memory.__init__(self, file_name, file_ext = file_ext, depth = depth, width = width, write_offset = write_offset)
+
+class Branch_Prediction_Enable_Memory(Memory):
+    "Cancelling Branch prediction enable: 1 means use Prediction bit, else never cancel. One per branch."
+    def __init__(self, file_name, file_ext = ".BPE", depth = 8, width = 1, write_offset = 0):
         Memory.__init__(self, file_name, file_ext = file_ext, depth = depth, width = width, write_offset = write_offset)
 

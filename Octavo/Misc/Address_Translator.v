@@ -16,12 +16,46 @@ module Address_Translator
 #(
     parameter       ADDR_COUNT          = 0,
     parameter       ADDR_BASE           = 0,
-    parameter       ADDR_WIDTH          = 0
+    parameter       ADDR_WIDTH          = 0,
+    parameter       REGISTERED          = `FALSE
 )
 (
+    input   wire                        clock,
     input   wire    [ADDR_WIDTH-1:0]    raw_address,
     output  reg     [ADDR_WIDTH-1:0]    translated_address
 );
+
+// -----------------------------------------------------------
+
+    // ECL XXX *********  DO NOT MOVE! ************
+
+    // Doing the obvious thing of placing a register at the output prevents
+    // Quartus from reducing the translation table to simple LUT configuration
+    // change or input rewiring, and creates a small RAM, which works too
+    // slowly. It appears the translation table trick only works when
+    // outputting straight into a RAM.
+
+    reg     [ADDR_WIDTH-1:0]    cooked_address;
+
+    generate
+        if (REGISTERED == `TRUE) begin
+            always @(posedge clock) begin
+                cooked_address <= raw_address;
+            end
+
+            initial begin
+                cooked_address = 0;
+            end
+        end
+        else begin
+            always @(*) begin
+                cooked_address <= raw_address;
+            end
+        end
+    endgenerate
+
+// -----------------------------------------------------------
+
     localparam ADDR_DEPTH = 2**ADDR_WIDTH;
 
     integer                     i, j;
@@ -43,8 +77,11 @@ module Address_Translator
         end
     end
 
+// -----------------------------------------------------------
+
     always @(*) begin
-        translated_address <= translation_table[raw_address];
+        translated_address <= translation_table[cooked_address];
     end
+
 endmodule
 

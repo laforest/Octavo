@@ -60,6 +60,13 @@ module ALU
     integer i;
 
     reg     [OPCODE_WIDTH-1:0]  op_delay    [ALU_LATENCY-1:0];
+
+    initial begin
+        for(i = 0; i < ALU_LATENCY; i = i + 1) begin
+            op_delay[i] = 0;
+        end
+    end
+
     always @(*) begin
         op_delay[0] <= op_in;
     end
@@ -71,6 +78,14 @@ module ALU
 
     reg     [WORD_WIDTH-1:0]   A_delay     [ALU_LATENCY-1:0];
     reg     [WORD_WIDTH-1:0]   B_delay     [ALU_LATENCY-1:0];
+
+    initial begin
+        for(i = 0; i < ALU_LATENCY; i = i + 1) begin
+            A_delay[i] = 0;
+            B_delay[i] = 0;
+        end
+    end
+
     always @(*) begin
         A_delay[0] <= A;
         B_delay[0] <= B;
@@ -209,5 +224,10 @@ module ALU
 
     always @(posedge clock) begin
         op_out <= op_delay[ALU_LATENCY-1];
+    end
+
+    initial begin
+        op_out = 0;
+        R      = 0;
     end
 endmodule

@@ -5,8 +5,8 @@ from opcodes import *
 from memory_map import mem_map
 from branching_flags import *
 
-bench_dir  = "Hailstone"
-bench_file = "hailstone"
+bench_dir  = "Hailstone_Packed"
+bench_file = "hailstone_packed"
 bench_name = bench_dir + "/" + bench_file
 SIMD_bench_name = bench_dir + "/" + "SIMD_" + bench_file
 
@@ -92,45 +92,37 @@ def assemble_I(PC, A, B):
         I.I(ADD, base_addr + 16, (A,"jmp_hai_{}".format(thread)), 0)
 
         # Is the seed odd?
-        I.I(AND, (A,"temp_{}".format(thread)), (A,"one"), (B,"seed_{}".format(thread))),    I.N("hai_dest_{}".format(thread))
-        I.NOP(),                                                                            I.N("odd_orig_{}".format(thread))
+        I.I(AND, (A,"temp_{}".format(thread)), (A,"one"), (B,"seed_{}".format(thread))),            I.N("hai_dest_{}".format(thread))
+        I.NOP(),                                                                                    I.N("odd_orig_{}".format(thread))
 
         # Even: seed = seed / 2
-        I.I(MHU, (B,"seed_{}".format(thread)), (A,"right_shift_1"), (B,"seed_{}".format(thread)))
-        I.NOP(),                                                                            I.N("out_orig_{}".format(thread))
+        I.I(MHU, (B,"seed_{}".format(thread)), (A,"right_shift_1"), (B,"seed_{}".format(thread))),  I.N("out_orig_{}".format(thread))
 
         # Odd: seed = (3 * seed) + 1
-        I.I(MLS, (B,"seed_{}".format(thread)), (A,"three"), (B,"seed_{}".format(thread))),  I.N("odd_dest_{}".format(thread))
+        I.I(MLS, (B,"seed_{}".format(thread)), (A,"three"), (B,"seed_{}".format(thread))),          I.N("odd_dest_{}".format(thread))
         I.I(ADD, (B,"seed_{}".format(thread)), (A,"one"), (B,"seed_{}".format(thread)))
 
-        I.I(ADD, (A,"WRITE_PORT"), 0, (B,"seed_{}".format(thread))),                        I.N("out_dest_{}".format(thread))
-        I.I(ADD, (B,"WRITE_PORT"), 0, (B,"seed_{}".format(thread)))
-        I.NOP(),                                                                            I.N("hai_orig_{}".format(thread))
+        I.I(ADD, (A,"WRITE_PORT"), 0, (B,"seed_{}".format(thread))),                                I.N("out_dest_{}".format(thread))
+        I.I(ADD, (B,"WRITE_PORT"), 0, (B,"seed_{}".format(thread))),                                I.N("hai_orig_{}".format(thread))
 
         # Now lets fill those branch table values
         origin      = I.names["odd_orig_{}".format(thread)]
         destination = I.names["odd_dest_{}".format(thread)] << 10
         condition   = JNZ                                   << 20
-        prediction  = 0                                     << 23
-        prediction_enable = 0                               << 24
         A.ALIGN(A.names["jmp_odd_{}".format(thread)])
-        A.L(prediction_enable | prediction | condition | destination | origin)
+        A.L(condition | destination | origin)
 
         origin      = I.names["out_orig_{}".format(thread)]
         destination = I.names["out_dest_{}".format(thread)] << 10
         condition   = JMP                                   << 20
-        prediction  = 0                                     << 23
-        prediction_enable = 0                               << 24
         A.ALIGN(A.names["jmp_out_{}".format(thread)])
-        A.L(prediction_enable | prediction | condition | destination | origin)
+        A.L(condition | destination | origin)
 
         origin      = I.names["hai_orig_{}".format(thread)]
         destination = I.names["hai_dest_{}".format(thread)] << 10
         condition   = JMP                                   << 20
-        prediction  = 0                                     << 23
-        prediction_enable = 0                               << 24
         A.ALIGN(A.names["jmp_hai_{}".format(thread)])
-        A.L(prediction_enable | prediction | condition | destination | origin)
+        A.L(condition | destination | origin)
 
     return I
 
@@ -165,13 +157,11 @@ def assemble_XIN():
     return AIN, BIN, DIN
 
 def assemble_branches():
-    BO, BD, BC, BP, BPE = empty["BO"], empty["BD"], empty["BC"], empty["BP"], empty["BPE"]
+    BO, BD, BC = empty["BO"], empty["BD"], empty["BC"]
     BO.file_name = bench_name    
     BD.file_name = bench_name    
     BC.file_name = bench_name    
-    BP.file_name = bench_name    
-    BPE.file_name = bench_name    
-    return BO, BD, BC, BP, BPE
+    return BO, BD, BC
 
 def assemble_all():
     PC = assemble_PC()
@@ -181,12 +171,12 @@ def assemble_all():
     ADO, BDO, DDO = assemble_XDO()
     APO, BPO, DPO = assemble_XPO()
     AIN, BIN, DIN = assemble_XIN()
-    BO, BD, BC, BP, BPE = assemble_branches()
+    BO, BD, BC = assemble_branches()
     hailstone = {"PC":PC, "A":A, "B":B, "I":I, 
                  "ADO":ADO, "BDO":BDO, "DDO":DDO,
                  "APO":APO, "BPO":BPO, "DPO":DPO,
                  "AIN":AIN, "BIN":BIN, "DIN":DIN,
-                 "BO":BO, "BD":BD, "BC":BC, "BP":BP, "BPE":BPE}
+                 "BO":BO, "BD":BD, "BC":BC}
     return hailstone
 
 def dump_all(hailstone):

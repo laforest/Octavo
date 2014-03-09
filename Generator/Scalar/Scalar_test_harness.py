@@ -40,6 +40,12 @@ def test_harness(parameters, default_memory_init = default_memory_init, install_
     parameter       B_INCREMENTS_INIT_FILE  = "${assembler_base}/${default_memory_init}.BIN",
     parameter       D_INCREMENTS_INIT_FILE  = "${assembler_base}/${default_memory_init}.DIN",
 
+    parameter       ORIGIN_INIT_FILE       = "${assembler_base}/${default_memory_init}.BO",
+    parameter       DESTINATION_INIT_FILE  = "${assembler_base}/${default_memory_init}.BD",
+    parameter       CONDITION_INIT_FILE    = "${assembler_base}/${default_memory_init}.BC",
+    parameter       PREDICTION_INIT_FILE   = "${assembler_base}/${default_memory_init}.BP",
+    parameter       PREDICTION_ENABLE_INIT_FILE   = "${assembler_base}/${default_memory_init}.BPE",
+
     // ****** These are computed for brevity later. Do not redefine at module instantiation. ******
     parameter       A_IO_READ_PORT_WIDTH        = (A_WORD_WIDTH * A_IO_READ_PORT_COUNT),
     parameter       A_IO_WRITE_PORT_WIDTH       = (A_WORD_WIDTH * A_IO_WRITE_PORT_COUNT),
@@ -91,7 +97,12 @@ def test_harness(parameters, default_memory_init = default_memory_init, install_
         .D_PROGRAMMED_OFFSETS_INIT_FILE     (D_PROGRAMMED_OFFSETS_INIT_FILE),
         .A_INCREMENTS_INIT_FILE     (A_INCREMENTS_INIT_FILE),
         .B_INCREMENTS_INIT_FILE     (B_INCREMENTS_INIT_FILE),
-        .D_INCREMENTS_INIT_FILE     (D_INCREMENTS_INIT_FILE)
+        .D_INCREMENTS_INIT_FILE     (D_INCREMENTS_INIT_FILE),
+        .ORIGIN_INIT_FILE       (ORIGIN_INIT_FILE),
+        .DESTINATION_INIT_FILE  (DESTINATION_INIT_FILE),
+        .CONDITION_INIT_FILE    (CONDITION_INIT_FILE),
+        .PREDICTION_INIT_FILE    (PREDICTION_INIT_FILE),
+        .PREDICTION_ENABLE_INIT_FILE    (PREDICTION_ENABLE_INIT_FILE)
     )
     DUT
     (
