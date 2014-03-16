@@ -111,7 +111,7 @@ module Branch_Check_Mapped
 
     Address_Decoder
     #(
-        .ADDR_COUNT     (ORIGIN_DEPTH),
+        .ADDR_COUNT     (1),
         .ADDR_BASE      (ORIGIN_WRITE_ADDR_OFFSET),
         .ADDR_WIDTH     (D_OPERAND_WIDTH),
         .REGISTERED     (`TRUE)
@@ -129,7 +129,7 @@ module Branch_Check_Mapped
 
     Address_Decoder
     #(
-        .ADDR_COUNT     (DESTINATION_DEPTH),
+        .ADDR_COUNT     (1),
         .ADDR_BASE      (DESTINATION_WRITE_ADDR_OFFSET),
         .ADDR_WIDTH     (D_OPERAND_WIDTH),
         .REGISTERED     (`TRUE)
@@ -147,7 +147,7 @@ module Branch_Check_Mapped
 
     Address_Decoder
     #(
-        .ADDR_COUNT     (CONDITION_DEPTH),
+        .ADDR_COUNT     (1),
         .ADDR_BASE      (CONDITION_WRITE_ADDR_OFFSET),
         .ADDR_WIDTH     (D_OPERAND_WIDTH),
         .REGISTERED     (`TRUE)
@@ -165,7 +165,7 @@ module Branch_Check_Mapped
 
     Address_Decoder
     #(
-        .ADDR_COUNT     (PREDICTION_DEPTH),
+        .ADDR_COUNT     (1),
         .ADDR_BASE      (PREDICTION_WRITE_ADDR_OFFSET),
         .ADDR_WIDTH     (D_OPERAND_WIDTH),
         .REGISTERED     (`TRUE)
@@ -183,7 +183,7 @@ module Branch_Check_Mapped
 
     Address_Decoder
     #(
-        .ADDR_COUNT     (PREDICTION_ENABLE_DEPTH),
+        .ADDR_COUNT     (1),
         .ADDR_BASE      (PREDICTION_ENABLE_WRITE_ADDR_OFFSET),
         .ADDR_WIDTH     (D_OPERAND_WIDTH),
         .REGISTERED     (`TRUE)
@@ -193,98 +193,6 @@ module Branch_Check_Mapped
         .clock          (clock),
         .addr           (ALU_write_addr),
         .hit            (ALU_wren_BPE)
-    );
-
-// -----------------------------------------------------------
-
-    // Translates the original address LSB to internal zero-based address
-    // Cancels-out non-aligned memory mappings.
-    wire    [ORIGIN_ADDR_WIDTH-1:0]     ALU_write_addr_BO;
-
-    Address_Translator
-    #(
-        .ADDR_COUNT         (ORIGIN_DEPTH),
-        .ADDR_BASE          (ORIGIN_WRITE_ADDR_OFFSET),
-        .ADDR_WIDTH         (ORIGIN_ADDR_WIDTH),
-        .REGISTERED         (`TRUE)
-    )
-    BO_addr
-    (
-        .clock              (clock),
-        .raw_address        (ALU_write_addr[ORIGIN_ADDR_WIDTH-1:0]),
-        .translated_address (ALU_write_addr_BO)
-    );
-
-// -----------------------------------------------------------
-
-    wire    [DESTINATION_ADDR_WIDTH-1:0]     ALU_write_addr_BD;
-
-    Address_Translator
-    #(
-        .ADDR_COUNT         (DESTINATION_DEPTH),
-        .ADDR_BASE          (DESTINATION_WRITE_ADDR_OFFSET),
-        .ADDR_WIDTH         (DESTINATION_ADDR_WIDTH),
-        .REGISTERED         (`TRUE)
-    )
-    BD_addr
-    (
-        .clock              (clock),
-        .raw_address        (ALU_write_addr[DESTINATION_ADDR_WIDTH-1:0]),
-        .translated_address (ALU_write_addr_BD)
-    );
-
-// -----------------------------------------------------------
-
-    wire    [CONDITION_ADDR_WIDTH-1:0]     ALU_write_addr_BC;
-
-    Address_Translator
-    #(
-        .ADDR_COUNT         (CONDITION_DEPTH),
-        .ADDR_BASE          (CONDITION_WRITE_ADDR_OFFSET),
-        .ADDR_WIDTH         (CONDITION_ADDR_WIDTH),
-        .REGISTERED         (`TRUE)
-    )
-    BC_addr
-    (
-        .clock              (clock),
-        .raw_address        (ALU_write_addr[CONDITION_ADDR_WIDTH-1:0]),
-        .translated_address (ALU_write_addr_BC)
-    );
-
-// -----------------------------------------------------------
-
-    wire    [PREDICTION_ADDR_WIDTH-1:0]     ALU_write_addr_BP;
-
-    Address_Translator
-    #(
-        .ADDR_COUNT         (PREDICTION_DEPTH),
-        .ADDR_BASE          (PREDICTION_WRITE_ADDR_OFFSET),
-        .ADDR_WIDTH         (PREDICTION_ADDR_WIDTH),
-        .REGISTERED         (`TRUE)
-    )
-    BP_addr
-    (
-        .clock              (clock),
-        .raw_address        (ALU_write_addr[PREDICTION_ADDR_WIDTH-1:0]),
-        .translated_address (ALU_write_addr_BP)
-    );
-
-// -----------------------------------------------------------
-
-    wire    [PREDICTION_ENABLE_ADDR_WIDTH-1:0]     ALU_write_addr_BPE;
-
-    Address_Translator
-    #(
-        .ADDR_COUNT         (PREDICTION_ENABLE_DEPTH),
-        .ADDR_BASE          (PREDICTION_ENABLE_WRITE_ADDR_OFFSET),
-        .ADDR_WIDTH         (PREDICTION_ENABLE_ADDR_WIDTH),
-        .REGISTERED         (`TRUE)
-    )
-    BPE_addr
-    (
-        .clock              (clock),
-        .raw_address        (ALU_write_addr[PREDICTION_ENABLE_ADDR_WIDTH-1:0]),
-        .translated_address (ALU_write_addr_BPE)
     );
 
 // -----------------------------------------------------------
@@ -344,12 +252,6 @@ module Branch_Check_Mapped
         .ALU_wren_BC                (ALU_wren_BC),
         .ALU_wren_BP                (ALU_wren_BP),
         .ALU_wren_BPE               (ALU_wren_BPE),
-
-        .ALU_write_addr_BO          (ALU_write_addr_BO),
-        .ALU_write_addr_BD          (ALU_write_addr_BD),
-        .ALU_write_addr_BC          (ALU_write_addr_BC),
-        .ALU_write_addr_BP          (ALU_write_addr_BP),
-        .ALU_write_addr_BPE         (ALU_write_addr_BPE),
 
         .ALU_write_data_BO          (ALU_write_data_BO),
         .ALU_write_data_BD          (ALU_write_data_BD),

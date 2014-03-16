@@ -232,7 +232,7 @@ module Addressing
     (
         .clock          (clock),
         .wren           (ALU_wren_DO_synced),
-        .write_addr     (ALU_write_addr_synced[DEFAULT_OFFSET_ADDR_WIDTH-1:0]),
+        .write_addr     (write_thread),
         .write_data     (ALU_write_data_DO_synced),
         .read_addr      (read_thread),
         .offset         (default_offset)
@@ -297,7 +297,8 @@ module Addressing
     (
         .clock              (clock),
         .ALU_wren           (ALU_wren_PO_synced),
-        .ALU_write_addr     (ALU_write_addr_synced[PROGRAMMED_OFFSETS_ADDR_WIDTH-1:0]),
+        // ECL XXX The addr mux in here should go away now...Maybe trim this later.
+        .ALU_write_addr     (write_thread),
         .ALU_write_data     (ALU_write_data_PO_synced),
         .local_wren         (local_PO_wren),
         .local_write_addr   (write_thread),

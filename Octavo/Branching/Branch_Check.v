@@ -59,12 +59,6 @@ module Branch_Check
     input   wire                                    ALU_wren_BP,    // Branch Prediction Memory
     input   wire                                    ALU_wren_BPE,   // Branch Prediction Enable Memory
 
-    input   wire    [ORIGIN_ADDR_WIDTH-1:0]         ALU_write_addr_BO,
-    input   wire    [DESTINATION_ADDR_WIDTH-1:0]    ALU_write_addr_BD,
-    input   wire    [CONDITION_ADDR_WIDTH-1:0]      ALU_write_addr_BC,
-    input   wire    [PREDICTION_ADDR_WIDTH-1:0]     ALU_write_addr_BP,
-    input   wire    [PREDICTION_ENABLE_ADDR_WIDTH-1:0]  ALU_write_addr_BPE,
-
     // Subsets of full data word, so we can align multiple memories along a single word.
     // We want to keep all memory map knowledge in the encapsulating module.
     input   wire    [ORIGIN_WORD_WIDTH-1:0]         ALU_write_data_BO,
@@ -112,7 +106,7 @@ module Branch_Check
     (
         .clock          (clock),
         .wren           (ALU_wren_BO),
-        .write_addr     (ALU_write_addr_BO),
+        .write_addr     (write_thread),
         .write_data     (ALU_write_data_BO),
         .read_addr      (read_thread),
         .branch_origin  (branch_origin)
@@ -134,7 +128,7 @@ module Branch_Check
     (
         .clock              (clock),
         .wren               (ALU_wren_BD),
-        .write_addr         (ALU_write_addr_BD),
+        .write_addr         (write_thread),
         .write_data         (ALU_write_data_BD),
         .read_addr          (read_thread),
         .branch_destination (branch_destination_raw)
@@ -156,7 +150,7 @@ module Branch_Check
     (
         .clock              (clock),
         .wren               (ALU_wren_BC),
-        .write_addr         (ALU_write_addr_BC),
+        .write_addr         (write_thread),
         .write_data         (ALU_write_data_BC),
         .read_addr          (read_thread),
         .branch_condition   (branch_condition)
@@ -178,7 +172,7 @@ module Branch_Check
     (
         .clock              (clock),
         .wren               (ALU_wren_BP),
-        .write_addr         (ALU_write_addr_BP),
+        .write_addr         (write_thread),
         .write_data         (ALU_write_data_BP),
         .read_addr          (read_thread),
         .branch_prediction  (branch_prediction)
@@ -200,7 +194,7 @@ module Branch_Check
     (
         .clock              (clock),
         .wren               (ALU_wren_BPE),
-        .write_addr         (ALU_write_addr_BPE),
+        .write_addr         (write_thread),
         .write_data         (ALU_write_data_BPE),
         .read_addr          (read_thread),
         .branch_prediction_enable   (branch_prediction_enable)

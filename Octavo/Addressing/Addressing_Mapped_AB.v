@@ -134,7 +134,7 @@ module Addressing_Mapped_AB
 
     Address_Decoder
     #(
-        .ADDR_COUNT     (DEFAULT_OFFSET_DEPTH),
+        .ADDR_COUNT     (1),
         .ADDR_BASE      (DEFAULT_OFFSET_WRITE_ADDR_OFFSET),
         .ADDR_WIDTH     (D_OPERAND_WIDTH),
         .REGISTERED     (`FALSE)
@@ -148,7 +148,7 @@ module Addressing_Mapped_AB
 
 // -----------------------------------------------------------
 
-    // Generate one per PO_INC_COUNT, consecutively mapped in write address space
+    // Generate one per PO_INC_COUNT, consecutively mapped in write address space, thread-muxed internally
     wire    [PO_INC_COUNT-1:0]  ALU_wren_PO;
     wire    [PO_INC_COUNT-1:0]  ALU_wren_INC;
 
@@ -159,8 +159,8 @@ module Addressing_Mapped_AB
 
             Address_Decoder
             #(
-                .ADDR_COUNT     (PROGRAMMED_OFFSETS_DEPTH),
-                .ADDR_BASE      (PROGRAMMED_OFFSETS_WRITE_ADDR_OFFSET + (PROGRAMMED_OFFSETS_DEPTH * count)),
+                .ADDR_COUNT     (1),
+                .ADDR_BASE      (PROGRAMMED_OFFSETS_WRITE_ADDR_OFFSET + count),
                 .ADDR_WIDTH     (D_OPERAND_WIDTH),
                 .REGISTERED     (`FALSE)
             )
@@ -173,8 +173,8 @@ module Addressing_Mapped_AB
 
             Address_Decoder
             #(
-                .ADDR_COUNT     (INCREMENTS_DEPTH),
-                .ADDR_BASE      (INCREMENTS_WRITE_ADDR_OFFSET + (INCREMENTS_DEPTH * count)),
+                .ADDR_COUNT     (1),
+                .ADDR_BASE      (INCREMENTS_WRITE_ADDR_OFFSET + count),
                 .ADDR_WIDTH     (D_OPERAND_WIDTH),
                 .REGISTERED     (`FALSE)
             )
