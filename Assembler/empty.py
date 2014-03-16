@@ -11,15 +11,15 @@ SIMD_bench_name = bench_dir + "/" + "SIMD_" + bench_file
 def assemble_PC():
     PC = Assembler.PC_Memory(bench_name)
     # Thread 0 must start its code at 1, as first PC is always 0 (register set at config)
-    # Place a NOP at 0 for threads 1-7, and they will all be in sync, as well as flush out the pipeline of any initial zeroes.
+    # All threads must start at 1 anyway, else the branch folding unit will trigger on its empty entries.
     PC.L(PC.pack2(1,1)), PC.N("THREAD0_START")
-    PC.L(PC.pack2(0,0)), PC.N("THREAD1_START")
-    PC.L(PC.pack2(0,0)), PC.N("THREAD2_START")
-    PC.L(PC.pack2(0,0)), PC.N("THREAD3_START")
-    PC.L(PC.pack2(0,0)), PC.N("THREAD4_START")
-    PC.L(PC.pack2(0,0)), PC.N("THREAD5_START")
-    PC.L(PC.pack2(0,0)), PC.N("THREAD6_START")
-    PC.L(PC.pack2(0,0)), PC.N("THREAD7_START")
+    PC.L(PC.pack2(1,1)), PC.N("THREAD1_START")
+    PC.L(PC.pack2(1,1)), PC.N("THREAD2_START")
+    PC.L(PC.pack2(1,1)), PC.N("THREAD3_START")
+    PC.L(PC.pack2(1,1)), PC.N("THREAD4_START")
+    PC.L(PC.pack2(1,1)), PC.N("THREAD5_START")
+    PC.L(PC.pack2(1,1)), PC.N("THREAD6_START")
+    PC.L(PC.pack2(1,1)), PC.N("THREAD7_START")
     return PC
 
 def assemble_A():
