@@ -6,7 +6,7 @@ import sys
 
 from Misc import misc, parameters_misc
 
-default_bench = "Hailstone_packed_cancelling/hailstone_packed_cancelling"
+default_bench = "Hailstone_Packed_Cancelling/hailstone_packed_cancelling"
 install_base = misc.base_install_path()
 quartus_base_path = misc.quartus_base_path
 
