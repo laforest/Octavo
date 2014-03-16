@@ -17,17 +17,17 @@ mem_map = {
     "H":    {"Origin":3072, "Depth":1024,
              "PO_INC_base":4093, "PO_INC_count":2},
     # Default Offsets, alongside in same words at operand positions
-    "DDO":  {"Origin":3079, "Depth":1, "bit_offset":20},
-    "ADO":  {"Origin":3079, "Depth":1, "bit_offset":10},
-    "BDO":  {"Origin":3079, "Depth":1, "bit_offset":0},
+    "DDO":  {"Origin":3073, "Depth":1, "bit_offset":20},
+    "ADO":  {"Origin":3073, "Depth":1, "bit_offset":10},
+    "BDO":  {"Origin":3073, "Depth":1, "bit_offset":0},
     # Programmed Offsets, alongside in same words at operand positions
-    "DPO":  {"Origin":3080, "Depth":1, "bit_offset":20},
-    "APO":  {"Origin":3080, "Depth":1, "bit_offset":10},
-    "BPO":  {"Origin":3080, "Depth":1, "bit_offset":0},
+    "DPO":  {"Origin":3075, "Depth":1, "bit_offset":20},
+    "APO":  {"Origin":3075, "Depth":1, "bit_offset":10},
+    "BPO":  {"Origin":3075, "Depth":1, "bit_offset":0},
     # Increments, alongside in same words at operand positions, but shifted above PO
-    "DIN":  {"Origin":3080, "Depth":1, "bit_offset":34},
-    "AIN":  {"Origin":3080, "Depth":1, "bit_offset":33},
-    "BIN":  {"Origin":3080, "Depth":1, "bit_offset":32},
+    "DIN":  {"Origin":3075, "Depth":1, "bit_offset":34},
+    "AIN":  {"Origin":3075, "Depth":1, "bit_offset":33},
+    "BIN":  {"Origin":3075, "Depth":1, "bit_offset":32},
 
     # Branch Origins
     "BO":   {"Origin":3082, "Depth":1, "bit_offset":0},

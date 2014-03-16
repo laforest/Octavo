@@ -187,7 +187,7 @@ def generate_addressing_parameters(common_values, parameters = {}):
 
     default_DO_parameters = {
         "_DEFAULT_OFFSET_WRITE_WORD_OFFSET" : None,
-        "_DEFAULT_OFFSET_WRITE_ADDR_OFFSET" : base_addr,
+        "_DEFAULT_OFFSET_WRITE_ADDR_OFFSET" : base_addr + 1, # ECL not a round number to test address translation
         "_DEFAULT_OFFSET_WORD_WIDTH"        : 10,
         "_DEFAULT_OFFSET_ADDR_WIDTH"        : 3,
         "_DEFAULT_OFFSET_DEPTH"             : 8, # ECL XXX hardcoded...one per thread
@@ -217,7 +217,7 @@ def generate_addressing_parameters(common_values, parameters = {}):
 
     default_PO_parameters = {
         "_PROGRAMMED_OFFSETS_WRITE_WORD_OFFSET" : None,
-        "_PROGRAMMED_OFFSETS_WRITE_ADDR_OFFSET" : base_addr + 8,
+        "_PROGRAMMED_OFFSETS_WRITE_ADDR_OFFSET" : base_addr + 3, # ECL test of address transl.
         "_PROGRAMMED_OFFSETS_WORD_WIDTH"        : 10,
         "_PROGRAMMED_OFFSETS_ADDR_WIDTH"        : 3,
         "_PROGRAMMED_OFFSETS_DEPTH"             : 8,
@@ -234,7 +234,7 @@ def generate_addressing_parameters(common_values, parameters = {}):
 
     default_INC_parameters = {
         "_INCREMENTS_WRITE_WORD_OFFSET" : None,
-        "_INCREMENTS_WRITE_ADDR_OFFSET" : base_addr + 8,
+        "_INCREMENTS_WRITE_ADDR_OFFSET" : base_addr + 3, # ECL test of address transl.
         "_INCREMENTS_WORD_WIDTH"        : 1,
         "_INCREMENTS_ADDR_WIDTH"        : 3,
         "_INCREMENTS_DEPTH"             : 8,
@@ -264,7 +264,7 @@ def generate_addressing_parameters(common_values, parameters = {}):
 
 def generate_branching_parameters(common_values, parameters = {}):
 
-    base_addr = common_values["H_WRITE_ADDR_OFFSET"] + 10 # ECL XXX Hardcoded, right after PO_INC (2 of them)
+    base_addr = common_values["H_WRITE_ADDR_OFFSET"] + 10 # ECL XXX Hardcoded
     mem_init  = '"' + common_values["MEM_INIT_FILE"] + '"'
     mem_style = '"MLAB,no_rw_check"'
 
