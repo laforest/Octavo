@@ -59,14 +59,20 @@ def assemble_B():
     B = empty["B"]
     B.file_name = bench_name
     B.add_port_pair("READ_PORT", "WRITE_PORT", mem_map["B"]["IO_base"])
+    B.add_port("INDIRECT_SEED_READ", mem_map["B"]["PO_INC_base"])
+    B.add_port("INDIRECT_SEED_WRITE", mem_map["H"]["PO_INC_base"] - mem_map["B"]["Origin"]) # ECL workaround assembler write offset calculation
     seeds = [27, 47, 67, 87, 107, 127, 234, 335]
     B.ALIGN(offsets[0])
-    B.L(0),                 B.N("zero")
+    B.L(0),            B.N("zero")
     B.L(seeds[0]),     B.N("seed")
+    # Placeholders for programmed branch offsets (no increments)
+    B.L(0),            B.N("seed_PO")
     for thread in range(1,8):
         B.ALIGN(offsets[thread])
         B.L(0)
         B.L(seeds[thread])
+        # Placeholders for programmed branch offsets (no increments)
+        B.L(0)
     return B
 
 def assemble_I(PC, A, B):
@@ -96,6 +102,11 @@ def assemble_I(PC, A, B):
     # All other threads start at 0 and will execute this NOP, so they should all be in step
     #I.NOP()
 
+    # Instruction to set indirect access
+    # Like all control memory writes: has a RAW latency on 1 thread cycle.
+    base_addr = mem_map["BPO"]["Origin"] # ECL All same for now
+    I.I(ADD, base_addr,                 0, (B,"seed_PO"))
+
     # Instructions to fill branch table
     base_addr = mem_map["BO"]["Origin"]
     depth     = mem_map["BO"]["Depth"]
@@ -104,22 +115,22 @@ def assemble_I(PC, A, B):
     I.I(ADD, base_addr + (depth * 2),   (A,"jmp_hai"), 0)
 
     # Is the seed odd?
-    I.I(AND, (A,"temp"), (A,"one"), (B,"seed")),            I.N("hai_dest")
+    I.I(AND, (A,"temp"), (A,"one"), (B,"INDIRECT_SEED_READ")),            I.N("hai_dest")
     # I.NOP(),                                              I.N("odd_orig")
     # Hoisted from destination, Predict Taken
-    I.I(MLS, (B,"seed"), (A,"three"), (B,"seed")),          I.N("odd_orig")
+    I.I(MLS, (B,"INDIRECT_SEED_WRITE"), (A,"three"), (B,"INDIRECT_SEED_READ")),          I.N("odd_orig")
 
     # Even: seed = seed / 2
-    I.I(MHU, (B,"seed"), (A,"right_shift_1"), (B,"seed")),  I.N("out_orig")
+    I.I(MHU, (B,"INDIRECT_SEED_WRITE"), (A,"right_shift_1"), (B,"INDIRECT_SEED_READ")),  I.N("out_orig")
 
     # Odd: seed = (3 * seed) + 1
     # I.I(MLS, (B,"seed"), (A,"three"), (B,"seed")),          I.N("odd_dest")
     # I.I(ADD, (B,"seed"), (A,"one"), (B,"seed"))
     # Hoisted to branch origin
-    I.I(ADD, (B,"seed"), (A,"one"), (B,"seed")),            I.N("odd_dest")
+    I.I(ADD, (B,"INDIRECT_SEED_WRITE"), (A,"one"), (B,"INDIRECT_SEED_READ")),            I.N("odd_dest")
 
-    I.I(ADD, (A,"WRITE_PORT"), 0, (B,"seed")),              I.N("out_dest")
-    I.I(ADD, (B,"WRITE_PORT"), 0, (B,"seed")),              I.N("hai_orig")
+    I.I(ADD, (A,"WRITE_PORT"), 0, (B,"INDIRECT_SEED_READ")),              I.N("out_dest")
+    I.I(ADD, (B,"WRITE_PORT"), 0, (B,"INDIRECT_SEED_READ")),              I.N("hai_orig")
 
     # Now lets fill those branch table values
     for offset in offsets:
@@ -146,6 +157,13 @@ def assemble_I(PC, A, B):
         prediction_enable = 0             << 24
         A.ALIGN(A.names["jmp_hai"] + offset)
         A.L(prediction_enable | prediction | condition | destination | origin)
+
+    for offset in offsets:
+        read_PO  = (mem_map["B"]["Depth"] - mem_map["B"]["PO_INC_base"] + B.names["seed"] + offset) & 0x3FF
+        write_PO = (4096 - mem_map["H"]["PO_INC_base"] + B.names["seed"] + offset + mem_map["B"]["Origin"]) & 0xFFF
+        PO = (write_PO << 20) | read_PO
+        B.ALIGN(B.names["seed_PO"] + offset)
+        B.L(PO)
 
     return I
 
