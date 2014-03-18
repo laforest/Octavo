@@ -33,8 +33,8 @@ module Branching_Thread_Number
 
 // -----------------------------------------------------------
 
-   // If write is on T6, then read on T0
-   // ECL XXX This will break for INITIAL_THREAD < 5
+   // If write is on T5, then read on T0
+   // ECL XXX This will break for INITIAL_THREAD < 4
    reg     [THREAD_ADDR_WIDTH-1:0]     read_delay_1;
    reg     [THREAD_ADDR_WIDTH-1:0]     read_delay_2;
    reg     [THREAD_ADDR_WIDTH-1:0]     read_delay_3;
@@ -45,14 +45,12 @@ module Branching_Thread_Number
    integer two   = 2;
    integer three = 3;
    integer four  = 4;
-   integer five  = 5;
 
    initial begin
        read_delay_1    = INITIAL_THREAD - one[THREAD_ADDR_WIDTH-1:0];
        read_delay_2    = INITIAL_THREAD - two[THREAD_ADDR_WIDTH-1:0];
        read_delay_3    = INITIAL_THREAD - three[THREAD_ADDR_WIDTH-1:0];
        read_delay_4    = INITIAL_THREAD - four[THREAD_ADDR_WIDTH-1:0];
-       read_delay_5    = INITIAL_THREAD - five[THREAD_ADDR_WIDTH-1:0];
    end
 
    always @(posedge clock) begin
@@ -60,13 +58,12 @@ module Branching_Thread_Number
        read_delay_2    <=  read_delay_1;
        read_delay_3    <=  read_delay_2;
        read_delay_4    <=  read_delay_3;
-       read_delay_5    <=  read_delay_4;
    end
 
 // -----------------------------------------------------------
 
     always @(*) begin
-        read_thread     <=  read_delay_5;
+        read_thread     <=  read_delay_4;
         write_thread    <=  next_thread;
     end
 endmodule
