@@ -1,44 +1,79 @@
 #! /usr/bin/python
 
 from opcodes import *
+from branching_flags import *
 
 class Memory:
-    "A basic Memory capable of assembling literals, naming locations, and dumping its contents into a format $readmemh can use."
+    """A basic Memory capable of assembling literals, naming locations, and dumping its contents into a format $readmemh can use."""
 
     def width_mask(self, width):
         return (1 << width) - 1
 
     def dump_format(self):
-        "Numbers must be represented as zero-padded whole hex numbers" 
+        """Numbers must be represented as zero-padded whole hex numbers"""
         characters = self.width // 4
         remainder = self.width % 4
         characters += min(1, remainder)
         format_string = "{:0" + str(characters) + "x}"
         return format_string
 
-    def find_unresolved(self):
-        unresolved = []
-        for key, value in self.names.items():
-            if value == -1:
-                unresolved.append(key)
-        assert len(unresolved) == 0,  "ERROR: Unresolved references in {0}?: {1}".format(self.__class__.__name__, unresolved)   
+    #def find_unresolved(self, names):
+    #    unresolved = [key for key, value in self.names.items() if value is None]
+    #    assert len(unresolved) == 0,  "ERROR: Unresolved references in {0}?: {1}".format(self.__class__.__name__, unresolved)   
 
-    def file_dump(self):
-        self.find_unresolved()
-        with open(self.file_name + self.file_ext, 'w') as f:
+    def file_dump(self, begin = 0, end = 0, file_name = "", file_ext = ""):
+        """Allows dumping a slice of memory."""
+        if end == 0:
+            end = self.depth
+        if file_name == "":
+            file_name = self.file_name
+        if file_ext == "":
+            file_ext = self.file_ext
+    #    self.find_unresolved(self.read_names)
+    #    self.find_unresolved(self.write_names)
+        with open(file_name + file_ext, 'w') as f:
             f.write(self.file_header + "\n")
             format_string = self.dump_format()
-            for entry in self.data:
+            for entry in self.data[begin:end]:
                 output = format_string.format(entry)
                 f.write(output + "\n")
 
-    def ALIGN(self, addr):
+    def A(self, addr):
         """Continue assembling at new address. Assumes pre-incr 'here'"""
         self.here = addr - 1
 
-    def N(self, name):
-        """Name current location. Must place after L."""
-        self.names.update({name:(self.here)})
+    def P(self, name, read_addr, write_addr = None):
+        """Name a given location. Useful for ports and other mem-mapped hardware."""
+        if write_addr is None:
+            write_addr = read_addr + self.write_offset
+        self.read_names.update({name:read_addr})
+        self.write_names.update({name:write_addr})
+
+    def N(self, name, write_addr = None):
+        """Name current location. Must place after L or I, which pre-increment 'here'."""
+        self.P(name, self.here, write_addr)
+
+    def R(self, name):
+        """Shortcut to resolve local names into READ addresses, with special case handling."""
+        if type(name) == type(int()):
+            return name
+        return self.read_names.get(name, None)
+
+    def W(self, name):
+        """Shortcut to resolve local names into WRITE addresses, with special case handling."""
+        if type(name) == type(int()):
+            return name
+        return self.write_names.get(name, None)
+
+    def RL(self, name):
+        """Resolve Literal: set named location to current READ address"""
+        address = self.read_names[name]
+        self.data[address] = self.here
+
+    def WL(self, name):
+        """Resolve Literal: set named location to current WRITE address"""
+        address = self.write_names[name]
+        self.data[address] = self.here
 
     def L(self, number):
         """Assemble a literal number"""
@@ -53,7 +88,9 @@ class Memory:
         self.write_offset = write_offset
         self.mask         = self.width_mask(self.width)
         self.data         = [(0 & self.mask)] * self.depth
-        self.names        = {}
+        self.read_names   = {}
+        # Write names must be globaly unique.
+        self.write_names  = {}
         self.here         = -1
         # Lifted from Modelsim's output of $writememh
         self.file_header  = """// format=hex addressradix=h dataradix=h version=1.0 wordsperline=1 noaddress"""
@@ -61,109 +98,128 @@ class Memory:
 
 
 class Instruction_Memory(Memory):
-    "Extends Memory to assemble instructions, and resolve forward name/field references"
+    """Extends Memory to assemble instructions. Requires a reference to the memories addressed by the operands, to resolve read/write addresses."""
 
-    def lookup_read(self, entry):
-        """Shortcut to dereference local names into read addresses."""
-        if type(entry) == type(int()):
-            return entry
-
-        if type(entry) == type(str()):
-            mem = self
-            name = entry
-
-        if type(entry) == type(tuple()):
-            assert len(entry) == 2, "ERROR: Address tuple {0} must be of format (mem, name).".format(entry)
-            mem, name = entry
-
-        try:
-            addr = mem.names[name]
-        except KeyError:
-            # Assume it's a forward reference
-            addr = -1
-            mem.names.update({name:addr})
+    def lookup_write(self, dest, mem_list):
+        if type(dest) == type(int()):
+            return dest
+        mem_pairs = [mem.write_names.items() for mem in mem_list]
+        pairs = []
+        for sublist in mem_pairs:
+            for pair in sublist:
+                pairs.append(pair)
+        valid_pairs = [(name, addr) for name, addr in pairs if name == dest and addr is not None] 
+        assert len(valid_pairs) > 0,   "ERROR: Cannot resolve undefined write name: {0}".format(dest)   
+        assert len(valid_pairs) == 1,  "ERROR: Cannot resolve multiple identical write names: {0}".format(valid_pairs)   
+        name, addr = valid_pairs[0]
         return addr
 
-    def lookup_write(self, entry):
-        "Tack on write address offset for (mem, name) references"
-        addr = self.lookup_read(entry)
-        if type(entry) == type(tuple()):
-            mem, name = entry
-            addr += mem.write_offset
-        return addr 
+    def lookup_read(self, src, mem):
+        addr = mem.R(src)
+        assert addr is not None, "ERROR: Name {0} does not exist in {1}".format(src, mem.__class__.__name__)
+        return addr
 
-    def I(self, OP, D, A, B):
+    def I(self, op, dest, src1, src2):
         """Assemble an instruction"""
-        D = self.lookup_write(D)
-        A = self.lookup_read(A)
-        B = self.lookup_read(B)
-        # print OP, D, A, B
-        instr  = ((OP & self.OP_mask) << self.OP_shift) 
-        instr |= ((D  & self.D_mask)  << self.D_shift) 
-        instr |= ((A  & self.A_mask)  << self.A_shift) 
-        instr |= ((B  & self.B_mask)  << self.B_shift)
+        mem_list = [self.A_mem] + [self.B_mem] + self.other_mem
+        D = self.lookup_write(dest, mem_list)
+        S1 = self.lookup_read(src1, self.A_mem)
+        S2 = self.lookup_read(src2, self.B_mem)
+        instr  = ((op & self.op_mask  ) << self.op_shift  ) 
+        instr |= ((D  & self.dest_mask) << self.dest_shift) 
+        instr |= ((S1 & self.src1_mask) << self.src1_shift) 
+        instr |= ((S2 & self.src2_mask) << self.src2_shift)
         self.L(instr)
 
-    def RL(self, name):
-        """Resolve Literal: set named location to current address"""
-        address = self.names[name]
-        self.data[address] = self.here
+    def branch_entry(self, origin, target, storage, condition, predict_taken):
+        destination = self.R(target) 
+        if destination is None:
+            self.unresolved_jumps.append([origin, target, storage, condition, predict_taken])
+            return 0
+        # ECL XXX we should mask these...
+        destination = destination << 10
+        condition   = condition   << 20
+        prediction_settings = {
+            True:  (1,1),
+            False: (0,1),
+            None:  (0,0)
+        }
+        prediction, prediction_enable = prediction_settings[predict_taken]
+        prediction        = prediction        << 23 
+        prediction_enable = prediction_enable << 24
+        return (prediction_enable | prediction | condition | destination | origin)
 
-    # XXX clear field before setting
+    def resolve_forward_jumps(self):
+        while len(self.unresolved_jumps) > 0:
+            jump = self.unresolved_jumps.pop()
+            origin, target, storage, condition, predict_taken = jump
+            entry = self.branch_entry(origin, target, storage, condition, predict_taken)
+            self.A_mem.A(self.A_mem.R(storage))
+            self.A_mem.L(entry)
+        assert len(self.unresolved_jumps) == 0, "ERROR: Unresolvable jump(s)!: {0}".format(self.unresolved_jumps)
+        
+    def JMP(self, target, storage):
+        entry = self.branch_entry(self.here, target, storage, JMP, None)
+        # ECL XXX Storing in A mem as convention for now
+        self.A_mem.A(self.A_mem.R(storage))
+        self.A_mem.L(entry)
 
-    def RD(self, name):
-        """Set *empty* D field at named address with current address"""
-        address = self.names[name]
-        self.data[address] |= (self.here & self.D_mask) << self.D_shift
+    def JZE(self, target, predict_taken, storage):
+        entry = self.branch_entry(self.here, target, storage, JZE, predict_taken)
+        self.A_mem.A(self.A_mem.R(storage))
+        self.A_mem.L(entry)
 
-    def RA(self, name):
-        """Set *empty* A field at named address with current address"""
-        address = self.names[name]
-        self.data[address] |= (self.here & self.A_mask) << self.A_shift
+    def JNZ(self, target, predict_taken, storage):
+        entry = self.branch_entry(self.here, target, storage, JNZ, predict_taken)
+        self.A_mem.A(self.A_mem.R(storage))
+        self.A_mem.L(entry)
 
-    def RB(self, name):
-        """Set *empty* B field at named address with current address"""
-        address = self.names[name]
-        self.data[address] |= (self.here & self.B_mask) << self.B_shift
+    def JPO(self, target, predict_taken, storage):
+        entry = self.branch_entry(self.here, target, storage, JPO, predict_taken)
+        self.A_mem.A(self.A_mem.R(storage))
+        self.A_mem.L(entry)
+
+    def JNE(self, target, predict_taken, storage):
+        entry = self.branch_entry(self.here, target, storage, JNE, predict_taken)
+        self.A_mem.A(self.A_mem.R(storage))
+        self.A_mem.L(entry)
+
+    def JEV(self, target, predict_taken, storage):
+        entry = self.branch_entry(self.here, target, storage, JEV, predict_taken)
+        self.A_mem.A(self.A_mem.R(storage))
+        self.A_mem.L(entry)
 
     # Never change this encoding. NOP must be all zero, and zero-out location 0
     def NOP(self):
         self.I(XOR, 0, 0, 0)
 
-    def __init__(self, file_name, file_ext = ".I", depth = 1024, width = 36, OP_width = 4, D_width = 12, A_width = 10, B_width = 10, write_offset = 0):
+    def __init__(self, file_name, A_mem, B_mem, other_mem = [], file_ext = ".I", depth = 1024, width = 36, op_width = 4, dest_width = 12, src1_width = 10, src2_width = 10, write_offset = 0):
         Memory.__init__(self, file_name, file_ext = file_ext, depth = depth, width = width, write_offset = write_offset)
-        self.OP_width       = OP_width
-        self.D_width        = D_width
-        self.A_width        = A_width
-        self.B_width        = B_width
-        self.instr_width    = OP_width + D_width + A_width + B_width
+        self.op_width       = op_width
+        self.dest_width     = dest_width
+        self.src1_width     = src1_width
+        self.src2_width     = src2_width
+        self.instr_width    = op_width + dest_width + src1_width + src2_width
 
         assert self.instr_width <= self.width, "ERROR: Instruction width {0} greater than Memory word width {1}".format(self.instr_width, self.width)
 
-        self.B_shift        = 0
-        self.A_shift        = A_width
-        self.D_shift        = self.A_shift + B_width
-        self.OP_shift       = self.D_shift + D_width
+        self.src2_shift     = 0
+        self.src1_shift     = src1_width
+        self.dest_shift     = self.src1_shift + src2_width
+        self.op_shift       = self.dest_shift + dest_width
 
-        self.OP_mask        = self.width_mask(OP_width)
-        self.D_mask         = self.width_mask(D_width)
-        self.A_mask         = self.width_mask(A_width)
-        self.B_mask         = self.width_mask(B_width)
+        self.op_mask        = self.width_mask(op_width)
+        self.dest_mask      = self.width_mask(dest_width)
+        self.src1_mask      = self.width_mask(src1_width)
+        self.src2_mask      = self.width_mask(src2_width)
 
+        # List of all other memories addressed in instructions
+        self.A_mem          = A_mem
+        self.B_mem          = B_mem
+        self.other_mem      = other_mem
 
-
-class Data_Memory(Instruction_Memory):
-    "Extends Instruction_Memory to support I/O ports as names. Done this way so we can assemble code in Data Memory."
-
-    def add_port(self, name, addr):
-        self.names.update({name:addr})
-
-    def add_port_pair(self, read_name, write_name, addr):
-        self.add_port(read_name, addr)
-        self.add_port(write_name, addr)
-
-    def __init__(self, file_name, file_ext = ".AB", depth = 1024, width = 36, OP_width = 4, D_width = 12, A_width = 10, B_width = 10, write_offset = 0):
-        Instruction_Memory.__init__(self, file_name, file_ext = file_ext, depth = depth, width = width, OP_width = OP_width, D_width = D_width, A_width = A_width, B_width = B_width, write_offset = write_offset)
+        # List of unresolved jumps, to fix-up at the end
+        self.unresolved_jumps = []
 
 
 
@@ -175,13 +231,14 @@ class PC_Memory(Memory):
         lower =   (lsw & self.word_mask) 
         return (upper | lower) & self.mask
 
-    def set_pc(self, start, name):
-        # next and current PCs
-        self.L(self.pack2(start, start)), self.N(name)
+    def set_pc(self, pc, name):
+        # next and current PCs, both the same at assemble-time
+        self.L(self.pack2(pc, pc)), self.N(name)
 
     def get_pc(self, name):
-        # Both next and current PC are the same at assemble-time
-        return self.data[self.names[name]] & self.word_mask
+        # We don't use the write names, as only branches change the PC
+        addr = self.read_names[name]
+        return self.data[addr] & self.word_mask
 
     def __init__(self, file_name, file_ext = ".PC", depth = 8, width = 20, write_offset = 0, word_width = 10):
         assert word_width > 0, "ERROR: Word width must be > 0 to pack anything into PC memory."

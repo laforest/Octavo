@@ -10,12 +10,13 @@ bench_file = "hailstone"
 bench_name = bench_dir + "/" + bench_file
 SIMD_bench_name = bench_dir + "/" + "SIMD_" + bench_file
 
-def partition_data_memory(memory_depth = 1024, literal_pool_depth = 32, thread_count = 8):
-    thread_data_memory_depth = memory_depth - literal_pool_depth;
-    offsets = [(thread * (thread_data_memory_depth / 8)) + literal_pool_depth for thread in range(0,thread_count)]
-    return offsets
+# literal pool not supported yet. Must use 0-based addressing in the code.
+#def partition_data_memory(memory_depth = 1024, literal_pool_depth = 0, thread_count = 8):
+#    thread_data_memory_depth = memory_depth - literal_pool_depth;
+#    offsets = [(thread * (thread_data_memory_depth / 8)) + literal_pool_depth for thread in range(0,thread_count)]
+#    return offsets
 
-offsets = partition_data_memory()
+#offsets = partition_data_memory()
 
 # Get empty instances with default parameters
 empty = empty.assemble_all()
@@ -29,119 +30,100 @@ def assemble_PC():
 def assemble_A():
     A = empty["A"]
     A.file_name = bench_name
-    A.add_port_pair("READ_PORT", "WRITE_PORT", mem_map["A"]["IO_base"])
-    # Shared read-only literal pool
-    A.ALIGN(0)
-    A.L(0),                 A.N("zero")
+    A.P("A_IO", mem_map["A"]["IO_base"])
+    A.A(0)
+    A.L(0)
     A.L(1),                 A.N("one")
     A.L(3),                 A.N("three")
     A.L(2**(A.width-1)),    A.N("right_shift_1")
-    # Thread Private Data
-    for thread in range(0,8):
-        A.ALIGN(offsets[thread])
-        A.L(0), A.N("temp_{}".format(thread))
-        # Placeholders for branch table entries
-        A.L(0), A.N("jmp_odd_{}".format(thread))
-        A.L(0), A.N("jmp_out_{}".format(thread))
-        A.L(0), A.N("jmp_hai_{}".format(thread))
+    A.L(0),                 A.N("temp")
+    # Placeholders for branch table entries
+    A.L(0),                 A.N("jmp0")
+    A.L(0),                 A.N("jmp1")
+    A.L(0),                 A.N("jmp2")
+    A.L(0),                 A.N("jmp3")
     return A
 
 def assemble_B():
     B = empty["B"]
     B.file_name = bench_name
-    B.add_port_pair("READ_PORT", "WRITE_PORT", mem_map["B"]["IO_base"])
-    seeds = [27, 47, 67, 87, 107, 127, 234, 335]
-    for thread in range(0,8):
-        B.ALIGN(offsets[thread])
-        B.L(seeds[thread]),  B.N("seed_{}".format(thread))
+    B.P("B_IO", mem_map["B"]["IO_base"])
+    B.P("INDIRECT_SEED", mem_map["B"]["PO_INC_base"], write_addr = mem_map["H"]["PO_INC_base"])
+    B.A(0)
+    B.L(0)
+    B.L(27),     B.N("seed")
+    # Placeholders for programmed offset
+    B.L(0),      B.N("seed_PO")
     return B
 
 def assemble_I(PC, A, B):
     I = empty["I"]
     I.file_name = bench_name
-    # Align threads 1-7 with thread 0
-    #I.NOP()
 
+# Original code for reference
 #    for thread in range(0,8):
-#        I.ALIGN(PC.get_pc("THREAD{}_START".format(thread)))
+#        I.ALIGN(PC.get_pc("THREAD{}_START"))
 #        # Is the seed odd?
-#        I.I(AND, (A,"temp_{}".format(thread)), (A,"one"), (B,"seed_{}".format(thread))),    I.N("hailstone_{}".format(thread))
-#        I.I(JNZ, 0, (A,"temp_{}".format(thread)), 0),                                       I.N("odd_{}".format(thread))
+#        I.I(AND, (A,"temp"), (A,"one"), (B,"seed")),           I.N("hailstone")
+#        I.I(JNZ, 0, (A,"temp"), 0),                            I.N("odd")
 #        # Even: seed = seed / 2
-#        I.I(MHU, (B,"seed_{}".format(thread)), (A,"right_shift_1"), (B,"seed_{}".format(thread)))
-#        I.I(JMP, 0, 0, 0),                                                                  I.N("output_{}".format(thread))
+#        I.I(MHU, (B,"seed"), (A,"right_shift_1"), (B,"seed"))
+#        I.I(JMP, 0, 0, 0),                                     I.N("output")
 #        # Odd: seed = (3 * seed) + 1
-#        I.I(MLS, (B,"seed_{}".format(thread)), (A,"three"), (B,"seed_{}".format(thread))),  I.RD("odd_{}".format(thread))
-#        I.I(ADD, (B,"seed_{}".format(thread)), (A,"one"), (B,"seed_{}".format(thread)))
-#        I.I(ADD, (A,"WRITE_PORT"), 0, (B,"seed_{}".format(thread))),                        I.RD("output_{}".format(thread))
-#        I.I(ADD, (B,"WRITE_PORT"), 0, (B,"seed_{}".format(thread)))
+#        I.I(MLS, (B,"seed"), (A,"three"), (B,"seed")),         I.RD("odd")
+#        I.I(ADD, (B,"seed"), (A,"one"), (B,"seed"))
+#        I.I(ADD, (A,"WRITE_PORT"), 0, (B,"seed")),             I.RD("output")
+#        I.I(ADD, (B,"WRITE_PORT"), 0, (B,"seed"))
 #        I.I(JMP, "hailstone", 0, 0)
 
-    for thread in range(0,8):
-        I.ALIGN(PC.get_pc("THREAD{}_START".format(thread)))
+    # Thread 0 has implicit first NOP from pipeline, so starts at 1
+    # All threads start at 1, to avoid triggering branching unit at 0.
+    I.A(1)
 
-        # Delay threads 1-7 to align with thread 0, so thread 0 ends up first in the cycle.
-        # At least, until an I/O stall scrambles the thread phase.:
-        if (thread != 0):
-            I.NOP()
+    # Instruction to set indirect access
+    # Like all control memory writes: has a RAW latency on 1 thread cycle.
+    base_addr = mem_map["BPO"]["Origin"] 
+    I.I(ADD, base_addr, 0, "seed_PO")
 
-        # Instructions to fill branch table
-        base_addr = mem_map["BO"]["Origin"] + thread
-        I.I(ADD, base_addr     , (A,"jmp_odd_{}".format(thread)), 0)
-        I.I(ADD, base_addr + 8 , (A,"jmp_out_{}".format(thread)), 0)
-        I.I(ADD, base_addr + 16, (A,"jmp_hai_{}".format(thread)), 0)
+    # Instructions to fill branch table
+    base_addr = mem_map["BO"]["Origin"]
+    depth     = mem_map["BO"]["Depth"]
+    I.I(ADD, base_addr,               "jmp0", 0)
+    I.I(ADD, base_addr +  depth,      "jmp1", 0)
+    I.I(ADD, base_addr + (depth * 2), "jmp2", 0)
+    I.I(ADD, base_addr + (depth * 3), "jmp3", 0)
+    I.NOP()
 
-        # Is the seed odd?
-        I.I(AND, (A,"temp_{}".format(thread)), (A,"one"), (B,"seed_{}".format(thread))),    I.N("hai_dest_{}".format(thread))
-        I.NOP(),                                                                            I.N("odd_orig_{}".format(thread))
+    # Is the seed odd?
+    I.I(AND, "temp", "one", "INDIRECT_SEED"),                       I.N("hailstone")
+    # Hoisted from destination, Predict Taken
+    I.I(MLS, "INDIRECT_SEED", "three", "INDIRECT_SEED"),            I.JNZ("odd", True, "jmp0")
+    # Even: seed = seed / 2
+    I.I(MHU, "INDIRECT_SEED", "right_shift_1", "INDIRECT_SEED"),    I.JMP("output", "jmp1")
+    # Odd: seed = (3 * seed) + 1
+    I.I(ADD, "INDIRECT_SEED", "one", "INDIRECT_SEED"),              I.N("odd")
+    # Output
+    I.I(ADD, "A_IO", 0, "INDIRECT_SEED"),                           I.N("output")
+    I.I(ADD, "B_IO", 0, "INDIRECT_SEED"),                           I.JMP("hailstone", "jmp2")
 
-        # Even: seed = seed / 2
-        I.I(MHU, (B,"seed_{}".format(thread)), (A,"right_shift_1"), (B,"seed_{}".format(thread)))
-        I.NOP(),                                                                            I.N("out_orig_{}".format(thread))
+    I.resolve_forward_jumps()
 
-        # Odd: seed = (3 * seed) + 1
-        I.I(MLS, (B,"seed_{}".format(thread)), (A,"three"), (B,"seed_{}".format(thread))),  I.N("odd_dest_{}".format(thread))
-        I.I(ADD, (B,"seed_{}".format(thread)), (A,"one"), (B,"seed_{}".format(thread)))
-
-        I.I(ADD, (A,"WRITE_PORT"), 0, (B,"seed_{}".format(thread))),                        I.N("out_dest_{}".format(thread))
-        I.I(ADD, (B,"WRITE_PORT"), 0, (B,"seed_{}".format(thread)))
-        I.NOP(),                                                                            I.N("hai_orig_{}".format(thread))
-
-        # Now lets fill those branch table values
-        origin      = I.names["odd_orig_{}".format(thread)]
-        destination = I.names["odd_dest_{}".format(thread)] << 10
-        condition   = JNZ                                   << 20
-        prediction  = 0                                     << 23
-        prediction_enable = 0                               << 24
-        A.ALIGN(A.names["jmp_odd_{}".format(thread)])
-        A.L(prediction_enable | prediction | condition | destination | origin)
-
-        origin      = I.names["out_orig_{}".format(thread)]
-        destination = I.names["out_dest_{}".format(thread)] << 10
-        condition   = JMP                                   << 20
-        prediction  = 0                                     << 23
-        prediction_enable = 0                               << 24
-        A.ALIGN(A.names["jmp_out_{}".format(thread)])
-        A.L(prediction_enable | prediction | condition | destination | origin)
-
-        origin      = I.names["hai_orig_{}".format(thread)]
-        destination = I.names["hai_dest_{}".format(thread)] << 10
-        condition   = JMP                                   << 20
-        prediction  = 0                                     << 23
-        prediction_enable = 0                               << 24
-        A.ALIGN(A.names["jmp_hai_{}".format(thread)])
-        A.L(prediction_enable | prediction | condition | destination | origin)
+    read_PO  = (mem_map["B"]["Depth"] - mem_map["B"]["PO_INC_base"] + B.R("seed")) & 0x3FF
+    write_PO = (mem_map["H"]["Origin"] + mem_map["H"]["Depth"] - mem_map["H"]["PO_INC_base"] + B.W("seed")) & 0xFFF
+    PO = (write_PO << 20) | read_PO
+    B.A(B.R("seed_PO"))
+    B.L(PO)
 
     return I
+
+# Leave these all zero for now: only zero-based thread will do something, all
+# others will hang at 0 due to empty branch tables.
 
 def assemble_XDO():
     ADO, BDO, DDO = empty["ADO"], empty["BDO"], empty["DDO"]
     ADO.file_name = bench_name
     BDO.file_name = bench_name
     DDO.file_name = bench_name
-    for mem in ADO, BDO, DDO:
-        for offset in offsets:
-            mem.L(offset)
     return ADO, BDO, DDO
 
 def assemble_XPO():
@@ -149,9 +131,6 @@ def assemble_XPO():
     APO.file_name = bench_name
     BPO.file_name = bench_name
     DPO.file_name = bench_name
-    for mem in APO, BPO, DPO:
-        for count in range(0,8):
-            mem.L(0)
     return APO, BPO, DPO
 
 def assemble_XIN():
@@ -159,9 +138,6 @@ def assemble_XIN():
     AIN.file_name = bench_name
     BIN.file_name = bench_name
     DIN.file_name = bench_name
-    for mem in AIN, BIN, DIN:
-        for count in range(0,8):
-            mem.L(0)
     return AIN, BIN, DIN
 
 def assemble_branches():

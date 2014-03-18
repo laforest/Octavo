@@ -1,6 +1,7 @@
 #! /usr/bin/python
 
 # Opcodes, assigned their integer values, carefully chosen.
+# XOR must always be 0, since XOR, O, O, O makes a useful NOP
 
 # XOR, AND, OR, SUB, ADD, UND1, UND2, UND3, MHS, MLS, MHU, JMP, JZE, JNZ, JPO, JNE = range(16)
 
