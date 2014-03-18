@@ -6,7 +6,7 @@ import sys
 
 from Misc import misc, parameters_misc
 
-default_bench = "Hailstone_Packed_Cancelling/hailstone_packed_cancelling"
+default_bench = "Hailstone_Stencil/hailstone_stencil"
 install_base = misc.base_install_path()
 quartus_base_path = misc.quartus_base_path
 
@@ -91,39 +91,39 @@ def test_bench(parameters, default_bench = default_bench, install_base = install
     end
 
     always @(posedge clock) begin
-        cycle = cycle + 1;
+        cycle <= cycle + 1;
     end
 
-    always begin
-        // Read Empty, Write Full
-        `DELAY_CLOCK_CYCLES(100)
-        A_in_EF  = 0;
-        A_out_EF = -1;
-        B_in_EF  = 0;
-        B_out_EF = -1;
+//    always begin
+//        // Read Empty, Write Full
+//        `DELAY_CLOCK_CYCLES(100)
+//        A_in_EF  = 0;
+//        A_out_EF = -1;
+//        B_in_EF  = 0;
+//        B_out_EF = -1;
         
-        // Read Full, Write Empty
-        `DELAY_CLOCK_CYCLES(100)
-        A_in_EF  = -1;
-        A_out_EF = 0;
-        B_in_EF  = -1;
-        B_out_EF = 0;
+//        // Read Full, Write Empty
+//        `DELAY_CLOCK_CYCLES(100)
+//        A_in_EF  = -1;
+//        A_out_EF = 0;
+//        B_in_EF  = -1;
+//        B_out_EF = 0;
 
-        // Read Empty, Write Empty
-        `DELAY_CLOCK_CYCLES(100)
-        A_in_EF  = 0;
-        A_out_EF = 0;
-        B_in_EF  = 0;
-        B_out_EF = 0;
+//        // Read Empty, Write Empty
+//        `DELAY_CLOCK_CYCLES(100)
+//        A_in_EF  = 0;
+//        A_out_EF = 0;
+//        B_in_EF  = 0;
+//        B_out_EF = 0;
 
-        // Read Full, Write Full
-        `DELAY_CLOCK_CYCLES(100)
-        A_in_EF  = -1;
-        A_out_EF = -1;
-        B_in_EF  = -1;
-        B_out_EF = -1;
+//        // Read Full, Write Full
+//        `DELAY_CLOCK_CYCLES(100)
+//        A_in_EF  = -1;
+//        A_out_EF = -1;
+//        B_in_EF  = -1;
+//        B_out_EF = -1;
 
-    end
+//    end
 
     localparam WREN_OTHER_DEFAULT = `HIGH;
     localparam ALU_C_IN_DEFAULT   = `LOW;
