@@ -39,17 +39,20 @@ def assemble_B():
     B = empty["B"]
     B.file_name = bench_name
     B.P("B_IO", mem_map["B"]["IO_base"])
-    B.P("INDIRECT_SEED", mem_map["B"]["PO_INC_base"], write_addr = mem_map["H"]["PO_INC_base"])
+    B.P("seed_pointer",   mem_map["B"]["PO_INC_base"],   write_addr = mem_map["H"]["PO_INC_base"])
+    B.P("output_pointer", mem_map["B"]["PO_INC_base"]+1, write_addr = mem_map["H"]["PO_INC_base"]+1)
     B.A(0)
     B.L(0)
     B.L(0),     B.N("temp")
-    stencil_length = 16
-    B.L(stencil_length),     B.N("stencil_length") 
-    B.L(27),    B.N("seed"), B.N("stencil_start")
-    B.A(B.here + stencil_length) # 'here' hasn't been pre-incremented, so the '-1' isn't required.
-    B.L(-1),                 B.N("stencil_end")
+    B.L(27),    B.N("seeds")
+    B.L(37)
+    B.L(47)
+    B.L(57)
+    B.L(67)
+    B.L(-1)
     # Placeholders for programmed offset
-    B.L(0),     B.N("seed_PO")
+    B.L(0),     B.N("seed_pointer_init")
+    B.L(0),     B.N("output_pointer_init")
     return B
 
 def assemble_I(PC, A, B):
@@ -76,11 +79,6 @@ def assemble_I(PC, A, B):
     # All threads start at 1, to avoid triggering branching unit at 0.
     I.A(1)
 
-    # Instruction to set indirect access
-    # Like all control memory writes: has a RAW latency on 1 thread cycle.
-    base_addr = mem_map["BPO"]["Origin"] 
-    I.I(ADD, base_addr, 0, "seed_PO")
-
     # Instructions to fill branch table
     base_addr = mem_map["BO"]["Origin"]
     depth     = mem_map["BO"]["Depth"]
@@ -88,25 +86,37 @@ def assemble_I(PC, A, B):
     I.I(ADD, base_addr +  depth,      "jmp1", 0)
     I.I(ADD, base_addr + (depth * 2), "jmp2", 0)
     I.I(ADD, base_addr + (depth * 3), "jmp3", 0)
-    I.NOP()
+
+    # Instruction to set indirect access
+    base_addr = mem_map["BPO"]["Origin"] 
+    I.I(ADD, base_addr,     0, "seed_pointer_init"),    I.N("init")
+    I.I(ADD, base_addr + 1, 0, "output_pointer_init")
+    # Like all control memory writes: has a RAW latency on 1 thread cycle.
+    # Don't need it since output_pointer won't be used right away
+    #I.NOP()
 
     # Is the seed odd?
-    I.I(ADD, "temp", 0, "INDIRECT_SEED"),                           I.N("hailstone")
+    I.I(ADD, "temp", 0, "seed_pointer"),                I.N("hailstone")
     # Odd: seed = (3 * seed) + 1
-    I.I(MLS, "temp", "three", "temp"),                              I.JEV("even", False, "jmp0")
-    I.I(ADD, "INDIRECT_SEED", "one", "temp"),                       I.JMP("output", "jmp1")
+    I.I(MLS, "temp", "three", "temp"),                  I.JEV("even", False, "jmp0"), I.JNE("init", False, "jmp1")
+    I.I(ADD, "seed_pointer", "one", "temp"),            I.JMP("output", "jmp2")
     # Even: seed = seed / 2
-    I.I(MHU, "INDIRECT_SEED", "right_shift_1", "temp"),             I.N("even")
+    I.I(MHU, "seed_pointer", "right_shift_1", "temp"),  I.N("even")
     # Output
-    I.I(ADD, "A_IO", 0, "INDIRECT_SEED"),                           I.N("output")
-    I.I(ADD, "B_IO", 0, "INDIRECT_SEED"),                           I.JMP("hailstone", "jmp2")
+    I.I(ADD, "A_IO", 0, "output_pointer"),              I.N("output"), I.JMP("hailstone", "jmp3")
 
     I.resolve_forward_jumps()
 
-    read_PO  = (mem_map["B"]["Depth"] - mem_map["B"]["PO_INC_base"] + B.R("seed")) & 0x3FF
-    write_PO = (mem_map["H"]["Origin"] + mem_map["H"]["Depth"] - mem_map["H"]["PO_INC_base"] + B.W("seed")) & 0xFFF
-    PO = (write_PO << 20) | read_PO
-    B.A(B.R("seed_PO"))
+    read_PO  = (mem_map["B"]["Depth"] - mem_map["B"]["PO_INC_base"] + B.R("seeds")) & 0x3FF
+    write_PO = (mem_map["H"]["Origin"] + mem_map["H"]["Depth"] - mem_map["H"]["PO_INC_base"] + B.W("seeds")) & 0xFFF
+    PO = (1 << 34) | (1 << 32) | (write_PO << 20) | read_PO
+    B.A(B.R("seed_pointer_init"))
+    B.L(PO)
+    # Since the indirect memory address is one further down
+    read_PO -= 1
+    write_PO -= 1
+    PO = (1 << 34) | (1 << 32) | (write_PO << 20) | read_PO
+    B.A(B.R("output_pointer_init"))
     B.L(PO)
 
     return I
