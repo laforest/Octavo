@@ -19,7 +19,7 @@ module Increment_Adder
 
     delay_line
     #(
-        .DEPTH  (1),
+        .DEPTH  (0),
         .WIDTH  (INCREMENT_WORD_WIDTH)
     )
     increment_pipeline

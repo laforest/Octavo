@@ -324,7 +324,7 @@ module Addressing
     (
         .clock          (clock),
         .wren           (ALU_wren_INC_synced),
-        .write_addr     (ALU_write_addr_synced[INCREMENTS_ADDR_WIDTH-1:0]),
+        .write_addr     (write_thread),
         .write_data     (ALU_write_data_INC_synced),
         .read_addr      (read_thread),
         .increment      (increments)
