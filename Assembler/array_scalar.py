@@ -26,10 +26,10 @@ def assemble_A():
     A.A(0)
     A.L(0)
     A.L(1),     A.N("one")
-    A.L(10),    A.N("loop_count_init")
-    A.L(0),     A.N("loop_count")
+    A.L(-1),    A.N("minus_one")
     # Placeholders for branch table entries
     A.L(0),     A.N("jmp0")
+    A.L(0),     A.N("jmp0a")
     A.L(0),     A.N("jmp1")
     A.L(0),     A.N("jmp2")
     A.L(0),     A.N("jmp3")
@@ -42,6 +42,8 @@ def assemble_B():
     B.P("loop_pointer",     mem_map["B"]["PO_INC_base"],     write_addr = mem_map["H"]["PO_INC_base"])
     B.A(0)
     B.L(0)
+    B.L(10),    B.N("loop_count_init")
+    B.L(0),     B.N("loop_count")
     B.L(0),     B.N("temp")
     B.L(0),     B.N("array")
     B.L(1)
@@ -134,70 +136,94 @@ def assemble_I(PC, A, B):
     I.A(1)
 
     # Instructions to fill branch table
-    base_addr = mem_map["BO"]["Origin"]
-    depth     = mem_map["BO"]["Depth"]
-    I.I(ADD, base_addr,               "jmp0", 0)
-    I.I(ADD, base_addr +  depth,      "jmp1", 0)
-    I.I(ADD, base_addr + (depth * 2), "jmp2", 0)
-    I.I(ADD, base_addr + (depth * 3), "jmp3", 0)
+    branch_base_addr = mem_map["BO"]["Origin"]
+    branch_depth     = mem_map["BO"]["Depth"]
+    I.I(ADD, branch_base_addr,                      "jmp0", 0)
+    I.I(ADD, branch_base_addr +  branch_depth,      "jmp1", 0)
+    I.I(ADD, branch_base_addr + (branch_depth * 2), "jmp2", 0)
+    I.I(ADD, branch_base_addr + (branch_depth * 3), "jmp3", 0)
 
 
 # Efficient version
-    I.I(ADD, "loop_count", "loop_count_init", 0),       I.N("init")
-    base_addr = mem_map["BPO"]["Origin"] 
-    I.I(ADD, base_addr, 0, "loop_pointer_init"),        I.N("outer")
-    I.I(ADD, "temp", 0, "loop_pointer"),                I.N("inner")
-    I.I(ADD, "temp", "one", "temp")
-    I.I(ADD, "loop_pointer", 0, "temp")
-    I.I(XOR, "temp", "
-
-# Overhead version
-#    I.I(ADD, "temp", 0, "seed_pointer"),                I.N("hailstone")
-#    I.I(AND, "temp2", "one", "temp")
-#    I.I(ADD, "temp2", 0, "temp"),                       I.JZE("even", None, "jmp0")
-#    I.NOP(),                                            I.JNE("init", None, "jmp1")
-#    I.I(MLS, "temp", "three", "temp")
-#    I.I(ADD, "seed_pointer", "one", "temp")
-#    I.NOP(),                                            I.JMP("output", "jmp2")
-#    I.I(MHU, "seed_pointer", "right_shift_1", "temp"),  I.N("even")
-#    I.I(ADD, "A_IO", 0, "output_pointer"),              I.N("output")
-#    I.NOP()
-#    I.NOP(),                                            I.JMP("hailstone", "jmp3")
-#
-# Even path: 7 cycles  (3 support) 57.1% ALU efficiency
-# Odd path:  10 cycles (5 support) 50%
-# Init path: 6 cycles  (4 support) 33%
-#
-# Prediction:
-# Assume 5-entry array, 50% even/odd paths, 1 init every 5 average even/odd path
-# (7+10)/2 = 8.5 cycles avg.
-# 8.5 * 5 = 42.5 cycles for 5 entries
-# 42.5 + 6 = 48.5 cycles with init every 5 entries
-# 48.5 / 5 = 9.7 cycles avg per run per entry
-# +2.1% from MIPS prediction
+#    PO_base_addr = mem_map["BPO"]["Origin"] 
+#    I.I(ADD, branch_base_addr, "jmp0", 0),              I.N("init")
+#    I.I(ADD, "loop_count", 0, "loop_count_init")
+#    I.I(ADD, PO_base_addr, 0, "loop_pointer_init"),     I.N("outer") # un-branched-to
+#    I.NOP(),                                            I.N("inner1")
+#    I.I(ADD, "temp", 0, "loop_pointer"),                I.N("inner2")
+#    I.I(ADD, "temp", "one", "temp"),                    I.JNE("break", False, "jmp0")
+#    I.I(ADD, "loop_pointer", 0, "temp"),                I.JMP("inner2", "jmp1")
+#    I.I(ADD, "loop_count", "minus_one", "loop_count"),  I.N("break")
+#    I.I(ADD, PO_base_addr, 0, "loop_pointer_init"),     I.JNZ("inner1", None, "jmp2")
+#    I.I(ADD, branch_base_addr, "jmp0a", 0)
+#    I.I(ADD, "temp", 0, "loop_pointer"),                I.N("output")
+#    I.I(ADD, "A_IO", 0, "temp"),                        I.N("output2"), I.JNE("init", False, "jmp3"), I.JPO("output", None, "jmp0a")
+#    #I.I(ADD, "loop_pointer", 0, "temp"),                I.N("output2"), I.JNE("init", False, "jmp3")
+#    #I.I(ADD, "temp", 0, "loop_pointer"),                I.JMP("output2", "jmp0a")
 #
 # Experiment:
-# 1753 cycles for 5 runs though 5-entry array
-# 1753 / 8 = 219.125 useful cycles
-# 219.125 / 5 = 43.825 cycles for 5 runs on a single entry
-# 43.825 / 5 = 8.765 avg cycles per run per entry (even + odd + init)
-# 7.7% lower than MIPS prediction
-# 9.6% lower than own prediction
+#
+# 3009 cycles for one run through entire process
+# 3009 / 8 = 376.125 useful cycles
+# 376.125 / 100 = 3.761 cycles/element
+# Static code size: 13 instructions
+# -49.4% cycle count relative to nested MIPS
+# -18.8% static code size relative to nested MIPS
+# -23.7% cycle count relative to Unrolled Inner MIPS
+# -75% static code size relative to Unrolled Inner MIPS
+# -17% cycle count relative to Totally Unrolled MIPS
+# -97.1% static code size relative to Totally Unrolled MIPS
 
 
-    # Resolve jumps and set programmed offsets
+
+# Overhead version
+    PO_base_addr = mem_map["BPO"]["Origin"] 
+    I.I(ADD, branch_base_addr, "jmp0", 0),              I.N("init")
+    I.I(ADD, "loop_count", 0, "loop_count_init")
+    I.I(ADD, PO_base_addr, 0, "loop_pointer_init"),     I.N("outer")
+    I.NOP(),                                            I.N("inner1")
+    I.I(ADD, "temp", 0, "loop_pointer"),                I.N("inner2")
+    I.NOP(),                                            I.JNE("break", None, "jmp0")
+    I.I(ADD, "temp", "one", "temp")
+    I.I(ADD, "loop_pointer", 0, "temp")
+    I.NOP()                                             # ADD     loop_pointer, loop_pointer, 1
+    I.NOP(),                                            I.JMP("inner2", "jmp1")
+    I.I(ADD, "loop_count", "minus_one", "loop_count"),  I.N("break")
+    I.NOP(),                                            I.JNZ("outer", None, "jmp2")
+    I.I(ADD, PO_base_addr, 0, "loop_pointer_init")
+    I.I(ADD, branch_base_addr, "jmp0a", 0)
+    I.I(ADD, "temp", 0, "loop_pointer"),                I.N("output")
+    I.NOP(),                                            I.JNE("init", None, "jmp3")
+    I.I(ADD, "A_IO", 0, "temp")
+    I.NOP()                                             # ADD     loop_pointer, loop_pointer, 1
+    I.NOP(),                                            I.JMP("output", "jmp0a")
+
+# Experiment:
+#
+# 5719 cycles for one run through entire process
+# 5719 / 8 = 714.125 useful cycles
+# 714.125 / 100 = 7.141 cycles/element
+# Static code size: 19 instructions
+# -3.9% cycle count relative to nested MIPS (*** This seems impossible. Did I make an error somewhere? ***)
+# +18.8% static code size relative to nested MIPS
+
+
+
+    # Resolve jumps
     I.resolve_forward_jumps()
-    read_PO  = (mem_map["B"]["Depth"] - mem_map["B"]["PO_INC_base"] + B.R("seeds")) & 0x3FF
-    write_PO = (mem_map["H"]["Origin"] + mem_map["H"]["Depth"] - mem_map["H"]["PO_INC_base"] + B.W("seeds")) & 0xFFF
+
+    # Set programmed offsets
+    read_PO  = (mem_map["B"]["Depth"] - mem_map["B"]["PO_INC_base"] + B.R("array")) & 0x3FF
+    write_PO = (mem_map["H"]["Origin"] + mem_map["H"]["Depth"] - mem_map["H"]["PO_INC_base"] + B.W("array")) & 0xFFF
     PO = (1 << 34) | (1 << 32) | (write_PO << 20) | read_PO
-    B.A(B.R("seed_pointer_init"))
+    B.A(B.R("loop_pointer_init"))
     B.L(PO)
     # Since the next indirect memory address is one further down
-    read_PO -= 1
-    write_PO -= 1
-    PO = (1 << 34) | (1 << 32) | (write_PO << 20) | read_PO
-    B.A(B.R("output_pointer_init"))
-    B.L(PO)
+    #read_PO -= 1
+    #write_PO -= 1
+    #PO = (1 << 34) | (1 << 32) | (write_PO << 20) | read_PO
+    #B.A(B.R("output_pointer_init"))
+    #B.L(PO)
 
     return I
 
