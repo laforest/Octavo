@@ -97,26 +97,26 @@ def assemble_I(PC, A, B):
 
 
 # Overhead version
-#    PO_base_addr = mem_map["BPO"]["Origin"] 
-#    I.I(ADD, branch_base_addr, "jmp0", 0),              I.N("init")                     # init:         ADD     loop_count, loop_count_init, 0
-#    I.I(ADD, "loop_count", 0, "loop_count_init")                                        # !!! ^^^
-#    I.I(ADD, PO_base_addr, 0, "loop_pointer_init"),     I.N("outer")                    # outer:        ADD     loop_pointer, loop_pointer_init, 0
-#    I.NOP(),                                            I.N("inner1")                   # !!!
-#    I.I(ADD, "temp", 0, "loop_pointer"),                I.N("inner2")                   # inner:        LW      temp, loop_pointer
-#    I.NOP(),                                            I.JNE("break", None, "jmp0")    #               BLTZ    break, temp
-#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
-#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
-#    I.NOP()                                                                             #               ADD     loop_pointer, loop_pointer, 1
-#    I.NOP(),                                            I.JMP("inner2", "jmp1")         #               JMP     inner
-#    I.I(ADD, "loop_count", "minus_one", "loop_count"),  I.N("break")                    # break:        SUB     loop_count, loop_count, 1
-#    I.NOP(),                                            I.JNZ("outer", None, "jmp2")    #               BGTZ    outer, loop_count  
-#    I.I(ADD, PO_base_addr, 0, "loop_pointer_init")                                      #               ADD     loop_pointer, loop_pointer_init, 0
-#    I.I(ADD, branch_base_addr, "jmp0a", 0)                                              # !!!
-#    I.I(ADD, "temp", 0, "loop_pointer"),                I.N("output")                   # output:       LW      temp, loop_pointer
-#    I.NOP(),                                            I.JNE("init", None, "jmp3")     #               BLTZ    init, temp
-#    I.I(ADD, "A_IO", 0, "temp")                                                         #               SW      temp, output_port
-#    I.NOP()                                                                             #               ADD     loop_pointer, loop_pointer, 1
-#    I.NOP(),                                            I.JMP("output", "jmp0a")        #               JMP     output
+    PO_base_addr = mem_map["BPO"]["Origin"] 
+    I.I(ADD, branch_base_addr, "jmp0", 0),              I.N("init")                     # init:         ADD     loop_count, loop_count_init, 0
+    I.I(ADD, "loop_count", 0, "loop_count_init")                                        # !!! ^^^
+    I.I(ADD, PO_base_addr, 0, "loop_pointer_init"),     I.N("outer")                    # outer:        ADD     loop_pointer, loop_pointer_init, 0
+    I.NOP(),                                            I.N("inner1")                   # !!!
+    I.I(ADD, "temp", 0, "loop_pointer"),                I.N("inner2")                   # inner:        LW      temp, loop_pointer
+    I.NOP(),                                            I.JNE("break", None, "jmp0")    #               BLTZ    break, temp
+    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+    I.NOP()                                                                             #               ADD     loop_pointer, loop_pointer, 1
+    I.NOP(),                                            I.JMP("inner2", "jmp1")         #               JMP     inner
+    I.I(ADD, "loop_count", "minus_one", "loop_count"),  I.N("break")                    # break:        SUB     loop_count, loop_count, 1
+    I.NOP(),                                            I.JNZ("outer", None, "jmp2")    #               BGTZ    outer, loop_count  
+    I.I(ADD, PO_base_addr, 0, "loop_pointer_init")                                      #               ADD     loop_pointer, loop_pointer_init, 0
+    I.I(ADD, branch_base_addr, "jmp0a", 0)                                              # !!!
+    I.I(ADD, "temp", 0, "loop_pointer"),                I.N("output")                   # output:       LW      temp, loop_pointer
+    I.NOP(),                                            I.JNE("init", None, "jmp3")     #               BLTZ    init, temp
+    I.I(ADD, "A_IO", 0, "temp")                                                         #               SW      temp, output_port
+    I.NOP()                                                                             #               ADD     loop_pointer, loop_pointer, 1
+    I.NOP(),                                            I.JMP("output", "jmp0a")        #               JMP     output
 
 # Experiment:
 # Code size: 19 instructions
@@ -125,22 +125,55 @@ def assemble_I(PC, A, B):
 # Useful cycles: 194752 / 8 = 24344
 # Cycles per pass: 24344 / 34 = 716
 
+# PC Tally
+# 
+#      1 1  # setup
+#      1 2  # setup
+#      1 3  # setup
+#      1 4  # setup
+#     35 5  # N !!!
+#     35 6  # N
+#    350 7  # N
+#    350 8  # N !!!
+#   3848 9  # U
+#   3848 10 # N
+#   3499 11 # U
+#   3499 12 # U
+#   3499 13 # N
+#   3498 14 # N
+#    349 15 # N
+#    349 16 # N
+#     34 17 # N
+#     34 18 # N !!!
+#    374 19 # U
+#    374 20 # N
+#    340 21 # U
+#    340 22 # N
+#    340 23 # N
+#
+# Useful:         3848 + 3499 + 3499 + 374 + 340                                                   = 11560
+# Not Useful:     35 + 35 + 350 + 350 + 3848 + 3499 + 3498 + 349 + 349 + 34 + 34 + 374 + 340 + 340 = 13435
+# Total:                                                                                             24995
+# ALU efficiency: 11560 / 24995                                                                    = 0.46249
+
+
+
 # Efficient version
-    PO_base_addr = mem_map["BPO"]["Origin"] 
-    I.I(ADD, branch_base_addr, "jmp0", 0),              I.N("init")
-    I.I(ADD, "loop_count", 0, "loop_count_init")
-    I.I(ADD, PO_base_addr, 0, "loop_pointer_init"),     I.N("outer") # un-branched-to
-    I.NOP(),                                            I.N("inner1")
-    I.I(ADD, "temp", 0, "loop_pointer"),                I.N("inner2")
-    I.I(ADD, "temp", "one", "temp"),                    I.JNE("break", False, "jmp0")
-    I.I(ADD, "loop_pointer", 0, "temp"),                I.JMP("inner2", "jmp1")
-    I.I(ADD, "loop_count", "minus_one", "loop_count"),  I.N("break")
-    I.I(ADD, PO_base_addr, 0, "loop_pointer_init"),     I.JNZ("inner1", None, "jmp2")
-    I.I(ADD, branch_base_addr, "jmp0a", 0)
-    I.I(ADD, "temp", 0, "loop_pointer"),                I.N("output")
-    I.I(ADD, "A_IO", 0, "temp"),                        I.N("output2"), I.JNE("init", False, "jmp3"), I.JPO("output", None, "jmp0a")
-    #I.I(ADD, "loop_pointer", 0, "temp"),                I.N("output2"), I.JNE("init", False, "jmp3")
-    #I.I(ADD, "temp", 0, "loop_pointer"),                I.JMP("output2", "jmp0a")
+#    PO_base_addr = mem_map["BPO"]["Origin"] 
+#    I.I(ADD, branch_base_addr, "jmp0", 0),              I.N("init")
+#    I.I(ADD, "loop_count", 0, "loop_count_init")
+#    I.I(ADD, PO_base_addr, 0, "loop_pointer_init"),     I.N("outer") # un-branched-to
+#    I.NOP(),                                            I.N("inner1")
+#    I.I(ADD, "temp", 0, "loop_pointer"),                I.N("inner2")
+#    I.I(ADD, "temp", "one", "temp"),                    I.JNE("break", False, "jmp0")
+#    I.I(ADD, "loop_pointer", 0, "temp"),                I.JMP("inner2", "jmp1")
+#    I.I(ADD, "loop_count", "minus_one", "loop_count"),  I.N("break")
+#    I.I(ADD, PO_base_addr, 0, "loop_pointer_init"),     I.JNZ("inner1", None, "jmp2")
+#    I.I(ADD, branch_base_addr, "jmp0a", 0)
+#    I.I(ADD, "temp", 0, "loop_pointer"),                I.N("output")
+#    I.I(ADD, "A_IO", 0, "temp"),                        I.N("output2"), I.JNE("init", False, "jmp3"), I.JPO("output", None, "jmp0a")
+#    #I.I(ADD, "loop_pointer", 0, "temp"),                I.N("output2"), I.JNE("init", False, "jmp3")
+#    #I.I(ADD, "temp", 0, "loop_pointer"),                I.JMP("output2", "jmp0a")
 
 # Experiment:
 # Code size: 12 instructions
@@ -151,17 +184,410 @@ def assemble_I(PC, A, B):
 
 # Speedup relative to MIPS equivalent: 716 / 376 = 1.904x (or +47%)
 
+# PC Tally
+#
+#      1 1  # setup
+#      1 2  # setup
+#      1 3  # setup
+#      1 4  # setup
+#     67 5  # N
+#     67 6  # N
+#     67 7  # N
+#    666 8  # N
+#   7315 9  # U
+#   7315 10 # U
+#   6650 11 # U
+#    665 12 # N
+#    665 13 # N
+#     66 14 # N
+#    726 15 # U
+#    726 16 # U
+#
+# Useful Total:     7315 + 7315 + 6650 + 726 + 726      = 22732
+# Not USeful Total: 67 + 67 + 67 + 666 + 665 + 665 + 66 =  2263
+# Total:                                                  24995 (includes runt pass at end)
+# ALU efficiency:   22732 / 24995                       = 0.90946
+# Ratio to "MIPS":  0.90946 / 0.46249                   = 1.9664 (or 49%)
+
+
 # Overhead Unrolled
 #    PO_base_addr = mem_map["BPO"]["Origin"] 
-#    I.I(ADD, PO_base_addr, 0, "loop_pointer_init"),     I.N("outer")                    # outer:        ADD     loop_pointer, loop_pointer_init, 0
-#    I.NOP(),                                            I.N("inner1")                   # !!!
-#    I.I(ADD, "temp", 0, "loop_pointer"),                I.N("inner2")                   # inner:        LW      temp, loop_pointer
+#    I.I(ADD, PO_base_addr, 0, "loop_pointer_init"),      I.N("init")                    # outer:        ADD     loop_pointer, loop_pointer_init, 0
+#    I.NOP(),                                                                            # !!!
+#    # 01 ----------------------------------------------------------------------------------------------------------------------------
+#    #I.I(ADD, PO_base_addr, 0, "loop_pointer_init"),     I.N("outer")                    # outer:        ADD     loop_pointer, loop_pointer_init, 0
+#    #I.NOP(),                                                                            # !!!
+#    I.I(ADD, "temp", 0, "loop_pointer"),                 I.N("outer")                   # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
 #    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
 #    I.I(ADD, PO_base_addr, 0, "loop_pointer_init")                                      #               ADD     loop_pointer, loop_pointer_init, 0
 #    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
-#    I.NOP()                                                                             #               ADD     loop_pointer, loop_pointer, 1
+#    # 02 ----------------------------------------------------------------------------------------------------------------------------
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, PO_base_addr, 0, "loop_pointer_init")                                      #               ADD     loop_pointer, loop_pointer_init, 0
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    # 03 ----------------------------------------------------------------------------------------------------------------------------
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, PO_base_addr, 0, "loop_pointer_init")                                      #               ADD     loop_pointer, loop_pointer_init, 0
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    # 04 ----------------------------------------------------------------------------------------------------------------------------
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, PO_base_addr, 0, "loop_pointer_init")                                      #               ADD     loop_pointer, loop_pointer_init, 0
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    # 05 ----------------------------------------------------------------------------------------------------------------------------
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, PO_base_addr, 0, "loop_pointer_init")                                      #               ADD     loop_pointer, loop_pointer_init, 0
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    # 06 ----------------------------------------------------------------------------------------------------------------------------
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, PO_base_addr, 0, "loop_pointer_init")                                      #               ADD     loop_pointer, loop_pointer_init, 0
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    # 07 ----------------------------------------------------------------------------------------------------------------------------
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, PO_base_addr, 0, "loop_pointer_init")                                      #               ADD     loop_pointer, loop_pointer_init, 0
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    # 08 ----------------------------------------------------------------------------------------------------------------------------
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, PO_base_addr, 0, "loop_pointer_init")                                      #               ADD     loop_pointer, loop_pointer_init, 0
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    # 09 ----------------------------------------------------------------------------------------------------------------------------
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, PO_base_addr, 0, "loop_pointer_init")                                      #               ADD     loop_pointer, loop_pointer_init, 0
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    # 10 ----------------------------------------------------------------------------------------------------------------------------
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # inner:        LW      temp, loop_pointer
+#    I.I(ADD, "temp", "one", "temp")                                                     #               ADD     temp, temp, 1
+#    I.I(ADD, PO_base_addr, 0, "loop_pointer_init")                                      #               ADD     loop_pointer, loop_pointer_init, 0
+#    I.I(ADD, "loop_pointer", 0, "temp")                                                 #               SW      temp, loop_pointer
+#    # OUTPUT ---------------------------------------------------------------------------------------------------------------------
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # output:       LW      temp, loop_pointer
+#    I.I(ADD, "A_IO", 0, "temp")                                                         #               SW      temp, output_port
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # output:       LW      temp, loop_pointer
+#    I.I(ADD, "A_IO", 0, "temp")                                                         #               SW      temp, output_port
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # output:       LW      temp, loop_pointer
+#    I.I(ADD, "A_IO", 0, "temp")                                                         #               SW      temp, output_port
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # output:       LW      temp, loop_pointer
+#    I.I(ADD, "A_IO", 0, "temp")                                                         #               SW      temp, output_port
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # output:       LW      temp, loop_pointer
+#    I.I(ADD, "A_IO", 0, "temp")                                                         #               SW      temp, output_port
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # output:       LW      temp, loop_pointer
+#    I.I(ADD, "A_IO", 0, "temp")                                                         #               SW      temp, output_port
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # output:       LW      temp, loop_pointer
+#    I.I(ADD, "A_IO", 0, "temp")                                                         #               SW      temp, output_port
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # output:       LW      temp, loop_pointer
+#    I.I(ADD, "A_IO", 0, "temp")                                                         #               SW      temp, output_port
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # output:       LW      temp, loop_pointer
+#    I.I(ADD, "A_IO", 0, "temp")                                                         #               SW      temp, output_port
+#    I.I(ADD, "temp", 0, "loop_pointer"),                                                # output:       LW      temp, loop_pointer
+#    I.I(ADD, PO_base_addr, 0, "loop_pointer_init")                                      #               ADD     loop_pointer, loop_pointer_init, 0
+#    I.I(ADD, "A_IO", 0, "temp"),                        I.JMP("outer", "jmp0")          #               SW      temp, output_port
 
+# Experiment:
+# Code size: 331 instructions
+# 75 passes over array of 10 elements, 10 times, over 200,000 simulation cycles
+# Cycles: 198656 - 56 = 198600
+# Useful cycles: 198656 / 8 = 24825
+# Cycles per pass: 24825 / 75 = 331
 
+# Speedup over MIPS-equivalent: 716 / 331 =  2.163x
+# Speedup over Efficient:       376 / 331 =  1.135x
+# Code size over Efficient:     331 / 12  = 27.58x
+
+# PC Tally (0 and 1023 are not counted)
+# 1-6:      1
+# 7-174:   76 (times 168 = 12768)
+# 175-337: 75 (times 163 = 12225)
+# Total:                   24993 all
+#
+# Non-useful instructions (pointer resets)
+# Split the 11 pointer resets between both halves
+# 168 - 6 = 162
+# 163 - 5 = 158
+# Actual useful instructions
+# 162 * 76 = 12312
+# 158 * 75 = 11850
+# Total:     24162 useful
+#
+# ALU efficiency
+# 24162 / 24993 = 0.96675
+# Ratio to Efficient: 0.96675 / 0.90946 = 1.063
 
     # Resolve jumps
     I.resolve_forward_jumps()

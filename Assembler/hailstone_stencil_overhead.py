@@ -225,6 +225,33 @@ def assemble_I(PC, A, B):
 # Cycles per pass: 24254 / 25 = 970.16
 # Cycles per output: 970.16 / 100 = 9.7016
 
+# PC Tally:
+#      1 1   # setup
+#      1 2   # setup
+#      1 3   # setup
+#      1 4   # setup
+#     26 5   # N
+#     26 6   # N
+#   2601 7   # U
+#   2601 8   # N
+#   2576 9   # U
+#   2576 10  # N
+#    856 11  # U
+#    856 12  # U
+#    856 13  # N
+#   1720 14  # U
+#   2576 15  # U
+#   2575 16  # N
+#   2575 17  # U
+#   2575 18  # N
+#
+# Useful:         2601 + 2576 + 856 + 856 + 1720 + 2576 + 2575 = 13760
+# Not Useful:     26 + 26 + 2601 + 2576 + 856 + 2575 + 2575    = 11235
+# Total:                                                         24995
+# ALU Efficiency: 13760 / 24995                                = 0.55051
+
+
+
 # Efficient version
     I.I(ADD, "temp", 0, "seed_pointer"),        I.N("hailstone")
     I.I(MLS, "temp", "three", "temp"),          I.JEV("even", False, "jmp0"), I.JNE("init", False, "jmp1")
@@ -247,6 +274,27 @@ def assemble_I(PC, A, B):
 # 135 bits / 36 bits per instruction = 3.75 instruction 
 # 8 + 3.75 = 11.75, only 16% smaller at best. (table storage isn't perfectly efficient)
 # or count storage words for initialization data: 8 + 4 + 1 = 13, so it basically breaks even.
+
+# PC Tally
+#      1 1   # setup
+#      1 2   # setup
+#      1 3   # setup
+#      1 4   # setup
+#     50 5   # N
+#     50 6   # N
+#   5009 7   # U
+#   2504 8a  # U (executed)
+#   2505 8b  # N (cancelled)
+#   1631 9   # U
+#   3328 10  # U
+#   4959 11  # U
+#   4959 12  # U
+#
+# Useful:         5009 + 2504 + 1631 + 3328 + 4959 + 4959 = 22390
+# Not Useful:     50 + 50 + 2505                          = 2605
+# Total:                                                    24995
+# ALU Efficiency: 22390 / 24995                           = 0.89578
+
 
     # Resolve jumps and set programmed offsets
     I.resolve_forward_jumps()
