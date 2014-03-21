@@ -6,7 +6,7 @@ import sys
 
 from Misc import misc, parameters_misc
 
-default_bench = "Hailstone_Stencil_Overhead/hailstone_stencil_overhead"
+default_bench = "Array_Scalar/array_scalar"
 install_base = misc.base_install_path()
 quartus_base_path = misc.quartus_base_path
 
