@@ -40,20 +40,113 @@ def assemble_B():
     B.file_name = bench_name
     B.P("B_IO", mem_map["B"]["IO_base"])
     B.P("seed_pointer",   mem_map["B"]["PO_INC_base"],   write_addr = mem_map["H"]["PO_INC_base"])
-    B.P("output_pointer", mem_map["B"]["PO_INC_base"]+1, write_addr = mem_map["H"]["PO_INC_base"]+1)
     B.A(0)
     B.L(0)
     B.L(0),     B.N("temp")
     B.L(0),     B.N("temp2")
-    B.L(27),    B.N("seeds")
-    B.L(37)
-    B.L(47)
-    B.L(57)
-    B.L(67)
+    B.L(333),    B.N("seeds") # 100 elements
+    B.L(15093)
+    B.L(53956)
+    B.L(91327)
+    B.L(26294)
+    B.L(85971)
+    B.L(25760)
+    B.L(51582)
+    B.L(30794)
+    B.L(69334)
+    B.L(62299)
+    B.L(49438)
+    B.L(84916)
+    B.L(58898)
+    B.L(64309)
+    B.L(95439)
+    B.L(76368)
+    B.L(36062)
+    B.L(92253)
+    B.L(38435)
+    B.L(14227)
+    B.L(40480)
+    B.L(87357)
+    B.L(87055)
+    B.L(56934)
+    B.L(58240)
+    B.L(44037)
+    B.L(43602)
+    B.L(46250)
+    B.L(24175)
+    B.L(14299)
+    B.L(91354)
+    B.L(31251)
+    B.L(56785)
+    B.L(55811)
+    B.L(49030)
+    B.L(17973)
+    B.L(35340)
+    B.L(45723)
+    B.L(47437)
+    B.L(30536)
+    B.L(76451)
+    B.L(68232)
+    B.L(93312)
+    B.L(36248)
+    B.L(99951)
+    B.L(92797)
+    B.L(27659)
+    B.L(59184)
+    B.L(51654)
+    B.L(87317)
+    B.L(81803)
+    B.L(69681)
+    B.L(43028)
+    B.L(14176)
+    B.L(88215)
+    B.L(42476)
+    B.L(30393)
+    B.L(93081)
+    B.L(81433)
+    B.L(12647)
+    B.L(40314)
+    B.L(59206)
+    B.L(76654)
+    B.L(2331)
+    B.L(13004)
+    B.L(69549)
+    B.L(71920)
+    B.L(36328)
+    B.L(67928)
+    B.L(25851)
+    B.L(12980)
+    B.L(72936)
+    B.L(90323)
+    B.L(94762)
+    B.L(18764)
+    B.L(435)
+    B.L(86581)
+    B.L(402)
+    B.L(41511)
+    B.L(36071)
+    B.L(4237)
+    B.L(16356)
+    B.L(40304)
+    B.L(6110)
+    B.L(11919)
+    B.L(18517)
+    B.L(45699)
+    B.L(34058)
+    B.L(16748)
+    B.L(49922)
+    B.L(18452)
+    B.L(34965)
+    B.L(8700)
+    B.L(81423)
+    B.L(37177)
+    B.L(6577)
+    B.L(12411)
+    B.L(58089)
+    B.L(56872)
     B.L(-1)
     # Placeholders for programmed offset
     B.L(0),     B.N("seed_pointer_init")
-    B.L(0),     B.N("output_pointer_init")
     return B
 
 def assemble_I(PC, A, B):
@@ -80,28 +173,17 @@ def assemble_I(PC, A, B):
 #
 # init:     ADD     seed_pointer, seed_pointer_init, 0
 # begin:    LW      temp, seed_pointer
+#           BLTZ    init, temp
 #           AND     temp2, temp, 1
 #           BEQ     even, temp2, 0
-#           BLTZ    init, temp2
 #           MULT    temp, temp, 3
 #           ADDI    temp, temp, 1
 #           JMP     output
 # even:     SRA     temp, 1
 # output:   SW      temp, seed_pointer
 #           ADD     seed_pointer, seed_pointer, 1
+#           SW      temp, IO_PORT
 #           JMP     begin
-#
-# Analysis:
-# Even path: 7 cycles  (3 support) 57.1% ALU efficiency
-# Odd path:  10 cycles (5 support) 50%
-# Init path: 5 cycles  (3 support) 40%
-#
-# Prediction:
-# Assume 5-entry array, 50% even/odd paths, 1 init every 5 average even/odd path
-# (7+10)/2 = 8.5 cycles avg.
-# 8.5 * 5 = 42.5 cycles for 5 entries
-# 42.5 + 5 = 47.5 cycles with init every 5 entries
-# 47.5 / 5 = 9.5 cycles avg per run per entry
 
     # Thread 0 has implicit first NOP from pipeline, so starts at 1
     # All threads start at 1, to avoid triggering branching unit at 0.
@@ -117,77 +199,54 @@ def assemble_I(PC, A, B):
 
     # Instruction to set indirect access
     base_addr = mem_map["BPO"]["Origin"] 
-    I.I(ADD, base_addr,     0, "seed_pointer_init"),    I.N("init")
-    I.I(ADD, base_addr + 1, 0, "output_pointer_init")
+    I.I(ADD, base_addr,     0, "seed_pointer_init"),    I.N("init")                 # init:     ADD     seed_pointer, seed_pointer_init, 0
     # Like all control memory writes: has a RAW latency on 1 thread cycle.
-    # Don't need it since output_pointer won't be used right away
-    #I.NOP()
+    I.NOP()                                                                         # !!!
 
 # Overhead version
-    I.I(ADD, "temp", 0, "seed_pointer"),                I.N("hailstone")
-    I.I(AND, "temp2", "one", "temp")
-    I.I(ADD, "temp2", 0, "temp"),                       I.JZE("even", None, "jmp0")
-    I.NOP(),                                            I.JNE("init", None, "jmp1")
-    I.I(MLS, "temp", "three", "temp")
-    I.I(ADD, "seed_pointer", "one", "temp")
-    I.NOP(),                                            I.JMP("output", "jmp2")
-    I.I(MHU, "seed_pointer", "right_shift_1", "temp"),  I.N("even")
-    I.I(ADD, "A_IO", 0, "output_pointer"),              I.N("output")
-    I.NOP()
-    I.NOP(),                                            I.JMP("hailstone", "jmp3")
+#    I.I(ADD, "temp", 0, "seed_pointer"),                I.N("hailstone")            # begin:    LW      temp, seed_pointer
+#    I.NOP(),                                            I.JNE("init", None, "jmp1") #           BLTZ    init, temp
+#    I.I(AND, "temp2", "one", "temp")                                                #           AND     temp2, temp, 1
+#    I.NOP(),                                            I.JZE("even", None, "jmp0") #           BEQ     even, temp2, 0
+#    I.I(MLS, "temp", "three", "temp")                                               #           MULT    temp, temp, 3
+#    I.I(ADD, "temp", "one", "temp")                                                 #           ADDI    temp, temp, 1
+#    I.NOP(),                                            I.JMP("output", "jmp2")     #           JMP     output
+#    I.I(MHU, "temp", "right_shift_1", "temp"),          I.N("even")                 # even:     SRA     temp, 1
+#    I.I(ADD, "seed_pointer", 0, "temp"),                I.N("output")               # output:   SW      temp, seed_pointer
+#    I.NOP()                                                                         #           ADD     seed_pointer, seed_pointer, 1
+#    I.I(ADD, "A_IO", 0, "temp"),                                                    #           SW      temp, IO_PORT
+#    I.NOP(),                                            I.JMP("hailstone", "jmp3")  #           JMP     begin
 
-# Even path: 7 cycles  (3 support) 57.1% ALU efficiency
-# Odd path:  10 cycles (5 support) 50%
-# Init path: 6 cycles  (4 support) 33%
-#
-# Prediction:
-# Assume 5-entry array, 50% even/odd paths, 1 init every 5 average even/odd path
-# (7+10)/2 = 8.5 cycles avg.
-# 8.5 * 5 = 42.5 cycles for 5 entries
-# 42.5 + 6 = 48.5 cycles with init every 5 entries
-# 48.5 / 5 = 9.7 cycles avg per run per entry
-# +2.1% from MIPS prediction
-#
 # Experiment:
-# 1753 cycles for 5 runs though 5-entry array
-# 1753 / 8 = 219.125 useful cycles
-# 219.125 / 5 = 43.825 cycles for 5 runs on a single entry
-# 43.825 / 5 = 8.765 avg cycles per run per entry (even + odd + init)
-# 7.7% lower than MIPS prediction
-# 9.6% lower than own prediction
+# Code size: 14 instructions
+# 25 passes over 100 elements inside 200,000 simulation cycles
+# Cycles: 194072 - 40 = 194032
+# Useful cycles: 194032 / 8 = 24254
+# Cycles per pass: 24254 / 25 = 970.16
+# Cycles per output: 970.16 / 100 = 9.7016
 
 # Efficient version
-#    # Is the seed odd?
-#    I.I(ADD, "temp", 0, "seed_pointer"),                I.N("hailstone")
-#    # Odd: seed = (3 * seed) + 1
-#    I.I(MLS, "temp", "three", "temp"),                  I.JEV("even", False, "jmp0"), I.JNE("init", False, "jmp1")
-#    I.I(ADD, "seed_pointer", "one", "temp"),            I.JMP("output", "jmp2")
-#    # Even: seed = seed / 2
-#    I.I(MHU, "seed_pointer", "right_shift_1", "temp"),  I.N("even")
-#    # Output
-#    I.I(ADD, "A_IO", 0, "output_pointer"),              I.N("output"), I.JMP("hailstone", "jmp3")
+    I.I(ADD, "temp", 0, "seed_pointer"),        I.N("hailstone")
+    I.I(MLS, "temp", "three", "temp"),          I.JEV("even", False, "jmp0"), I.JNE("init", False, "jmp1")
+    I.I(ADD, "temp", "one", "temp"),            I.JMP("output", "jmp2")
+    I.I(MHU, "temp", "right_shift_1", "temp"),  I.N("even")
+    I.I(ADD, "seed_pointer", 0, "temp"),        I.N("output")
+    I.I(ADD, "A_IO", 0, "temp"),                I.JMP("hailstone", "jmp3")
 
-# Even path: 4 cycles (1 support) 75% ALU efficiency
-# Odd path: 4 cycles  (0 support) 100%
-# Init path: 4 cycles (3 support) 25%
-#
-# Prediction:
-# Assume 5-entry array, 50% even/odd paths, 1 init every 5 average even/odd path
-# (4+4)/2 = 4 cycles avg.
-# 4 * 5 = 20 cycles for 5 entries
-# 20 + 4 = 24 cycles with init every 5 entries
-# 24 / 5 = 4.8 cycles avg per run per entry
-#
 # Experiment:
-# 1857 cycles for 10 runs though 5-entry array
-# 1857 / 8 = 232.125 useful cycles
-# 232.125 / 10 = 23.2125 cycles for 10 runs on a single entry
-# 23.2125 / 5 = 4.6425 avg cycles per run per entry (even + odd + init)
-# 51.1% lower than MIPS prediction
-# 3.3% lower than own prediction
-# 47% lower than overhead experiment
-# 47% - 7% (Fmax slowdown of new hardware) = 40% wall-clock time reduction.
+# Code size: 8 instructions
+# 49 passes over 100 elements inside 200,000 simulation cycles
+# Cycles: 197608 - 40 = 197568
+# Useful cycles: 197568 / 8 = 24696
+# Cycles per pass: 24696 / 49 = 504.00
+# Cycles per output: 504 / 100 = 5.04
 
+# Speedup: 9.7016 / 5.04 = 1.92492 (or +48%)
+# Code size ratio: 8 / 14 = 0.5714 (or -43%)
+# But account for tables: 4 branch tables at 10+10+3+2 = 25 bits each = 100 bits, 1 PO table: 10+10+12+3 = 35 bits
+# 135 bits / 36 bits per instruction = 3.75 instruction 
+# 8 + 3.75 = 11.75, only 16% smaller at best. (table storage isn't perfectly efficient)
+# or count storage words for initialization data: 8 + 4 + 1 = 13, so it basically breaks even.
 
     # Resolve jumps and set programmed offsets
     I.resolve_forward_jumps()
@@ -197,11 +256,11 @@ def assemble_I(PC, A, B):
     B.A(B.R("seed_pointer_init"))
     B.L(PO)
     # Since the next indirect memory address is one further down
-    read_PO -= 1
-    write_PO -= 1
-    PO = (1 << 34) | (1 << 32) | (write_PO << 20) | read_PO
-    B.A(B.R("output_pointer_init"))
-    B.L(PO)
+    #read_PO -= 1
+    #write_PO -= 1
+    #PO = (1 << 34) | (1 << 32) | (write_PO << 20) | read_PO
+    #B.A(B.R("output_pointer_init"))
+    #B.L(PO)
 
     return I
 
