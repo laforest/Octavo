@@ -80,6 +80,10 @@ class Memory:
         self.here += 1
         self.data[self.here] = number & self.mask
 
+    def C(self, character):
+        """Assemble a character, one per word"""
+        self.L(ord(character))
+
     def __init__(self, file_name, file_ext = ".MEM", depth = 1024, width = 36, write_offset = 0):
         self.file_name    = file_name
         self.file_ext     = file_ext
