@@ -213,7 +213,7 @@ def assemble_I(PC, A, B):
     # First few branches in state0
     I.I(ADD, "BTT0", "br00", 0) # Used throughout
     I.I(ADD, "BTT1", "br33", 0) # Saves a cycle in state7!!!
-    I.I(ADD, "BTT2", "br02", 0) # unused
+    I.I(ADD, "BTT2", "br32", 0) # Needed to save a cycle to keep equivalency
     I.I(ADD, "BTT3", "br03", 0) # unused
 
 # "ideal" MIPS-like equivalent 
@@ -223,20 +223,20 @@ def assemble_I(PC, A, B):
 
 
     I.I(ADD, "BTT0", "br00", 0),                            I.N("state0")                             
-    I.I(ADD, temp, 0, "array_top_pointer")
+    I.I(ADD, "temp", 0, "array_top_pointer")
     I.I(ADD, "BTT0", "br01", 0),                            I.JNE("init",   False, "br00")
     #I.NOP()                                                 # pointer incr
-    I.I(XOR, temp2, "space", temp)
+    I.I(XOR, "temp2", "space", "temp")
     I.I(ADD, "BTT0", "br02", 0),                            I.JZE("state0", False, "br01")
-    I.I(XOR, temp2, "plus", temp)
+    I.I(XOR, "temp2", "plus", "temp")
     I.I(ADD, "BTT0", "br03", 0),                            I.JZE("state1", False, "br02")
-    I.I(XOR, temp2, "minus", temp)
+    I.I(XOR, "temp2", "minus", "temp")
     I.I(ADD, "BTT0", "br04", 0),                            I.JZE("state1", False, "br03")
-    I.I(XOR, temp2, "dot", temp)
+    I.I(XOR, "temp2", "dot", "temp")
     I.I(ADD, "BTT0", "br05", 0),                            I.JZE("state2", False, "br04")
-    I.I(ADD, temp2, "zero_char_neg", temp)
+    I.I(ADD, "temp2", "zero_char_neg", "temp")
     I.I(ADD, "BTT0", "br06", 0),                            I.JNE("state7", False, "br05")
-    I.I(SUB, temp2, "nine_char", temp2)
+    I.I(SUB, "temp2", "nine_char", "temp2")
     I.I(ADD, "BTT0", "br07", 0),                            I.JPO("state4", False, "br06")
     I.I(ADD, "BTT0", "br07", 0)
     I.I(ADD, "B_IO", "one", 0)                              # State 7 folded
@@ -244,14 +244,14 @@ def assemble_I(PC, A, B):
 
 
     I.I(ADD, "BTT0", "br08", 0),                            I.N("state1")
-    I.I(ADD, temp, 0, "array_top_pointer")
+    I.I(ADD, "temp", 0, "array_top_pointer")
     I.I(ADD, "BTT0", "br09", 0),                            I.JNE("init",   False, "br08")
     #I.NOP()                                                 # pointer incr
-    I.I(XOR, temp2, "dot", temp)
+    I.I(XOR, "temp2", "dot", "temp")
     I.I(ADD, "BTT0", "br10", 0),                            I.JZE("state2", False, "br09")
-    I.I(ADD, temp2, "zero_char_neg", temp)
+    I.I(ADD, "temp2", "zero_char_neg", "temp")
     I.I(ADD, "BTT0", "br11", 0),                            I.JNE("state7", False, "br10")
-    I.I(SUB, temp2, "nine_char", temp2)
+    I.I(SUB, "temp2", "nine_char", "temp2")
     I.I(ADD, "BTT0", "br12", 0),                            I.JPO("state4", False, "br11")
     I.I(ADD, "BTT0", "br12", 0)
     I.I(ADD, "B_IO", "one", 0)                              # State 7 folded
@@ -259,12 +259,12 @@ def assemble_I(PC, A, B):
 
 
     I.I(ADD, "BTT0", "br13", 0),                            I.N("state2")
-    I.I(ADD, temp, 0, "array_top_pointer")
+    I.I(ADD, "temp", 0, "array_top_pointer")
     I.I(ADD, "BTT0", "br14", 0),                            I.JNE("init",   False, "br13")
     #I.NOP()                                                 # pointer incr
-    I.I(ADD, temp2, "zero_char_neg", temp)
+    I.I(ADD, "temp2", "zero_char_neg", "temp")
     I.I(ADD, "BTT0", "br15", 0),                            I.JNE("state7", False, "br14")
-    I.I(SUB, temp2, "nine_char", temp2)
+    I.I(SUB, "temp2", "nine_char", "temp2")
     I.I(ADD, "BTT0", "br16", 0),                            I.JPO("state3", False, "br15")
     I.I(ADD, "BTT0", "br16", 0)
     I.I(ADD, "B_IO", "one", 0)                              # State 7 folded
@@ -272,45 +272,45 @@ def assemble_I(PC, A, B):
 
 
     I.I(ADD, "BTT0", "br17", 0),                            I.N("state3")
-    I.I(ADD, temp, 0, "array_top_pointer")
+    I.I(ADD, "temp", 0, "array_top_pointer")
     I.I(ADD, "BTT0", "br18", 0),                            I.JNE("init",   False, "br17")
     #I.NOP()                                                 # pointer incr
-    I.I(ADD, temp2, "zero_char_neg", temp)
-    I.I(ADD, "BTT0", "br19", 0),                            I.JNE("state7", False, "br18")
-    I.I(SUB, temp2, "nine_char", temp2)
-    I.I(ADD, "BTT0", "br20", 0),                            I.JPO("state3", False, "br19")
-    I.I(XOR, temp2, "space", temp)
-    I.I(ADD, "BTT0", "br32", 0),                            I.JZE("state6", True,  "br20")
+    I.I(XOR, "temp2", "space", "temp")
+    I.I(ADD, "BTT0", "br19", 0),                            I.JZE("state6", True,  "br18")
+    I.I(ADD, "temp2", "zero_char_neg", "temp")
+    I.I(ADD, "BTT0", "br20", 0),                            I.JNE("state7", False, "br19")
+    I.I(SUB, "temp2", "nine_char", "temp2")
+    I.I(ADD, "BTT0", "br21", 0),                            I.JPO("state3", False, "br20")
     I.I(ADD, "BTT0", "br21", 0)
     I.I(ADD, "B_IO", "one", 0)                              # State 7 folded
     I.NOP(),                                                I.JMP("state0",        "br21")
 
 
     I.I(ADD, "BTT0", "br22", 0),                            I.N("state4")
-    I.I(ADD, temp, 0, "array_top_pointer")
+    I.I(ADD, "temp", 0, "array_top_pointer")
     I.I(ADD, "BTT0", "br23", 0),                            I.JNE("init",   False, "br22")
     #I.NOP()                                                 # pointer incr
-    I.I(ADD, temp2, "zero_char_neg", temp)
-    I.I(ADD, "BTT0", "br24", 0),                            I.JNE("state7", False, "br23")
-    I.I(SUB, temp2, "nine_char", temp2)
-    I.I(ADD, "BTT0", "br25", 0),                            I.JPO("state4", False, "br24")
-    I.I(XOR, temp2, "dor", temp)
-    I.I(ADD, "BTT0", "br26", 0),                            I.JZE("state5", False, "br25")
+    I.I(XOR, "temp2", "dot", "temp")
+    I.I(ADD, "BTT0", "br24", 0),                            I.JZE("state5", False, "br23")
+    I.I(ADD, "temp2", "zero_char_neg", "temp")
+    I.I(ADD, "BTT0", "br25", 0),                            I.JNE("state7", False, "br24")
+    I.I(SUB, "temp2", "nine_char", "temp2")
+    I.I(ADD, "BTT0", "br26", 0),                            I.JPO("state4", False, "br25")
     I.I(ADD, "BTT0", "br26", 0)
     I.I(ADD, "B_IO", "one", 0)                              # State 7 folded
     I.NOP(),                                                I.JMP("state0",        "br26")
 
 
     I.I(ADD, "BTT0", "br27", 0),                            I.N("state5")
-    I.I(ADD, temp, 0, "array_top_pointer")
+    I.I(ADD, "temp", 0, "array_top_pointer")
     I.I(ADD, "BTT0", "br28", 0),                            I.JNE("init",   False, "br27")
     #I.NOP()                                                 # pointer incr
-    I.I(ADD, temp2, "zero_char_neg", temp)
-    I.I(ADD, "BTT0", "br29", 0),                            I.JNE("state7", False, "br28")
-    I.I(SUB, temp2, "nine_char", temp2)
-    I.I(ADD, "BTT0", "br30", 0),                            I.JPO("state3", False, "br29")
-    I.I(XOR, temp2, "space", temp)
-    I.I(ADD, "BTT0", "br32", 0),                            I.JZE("state6", True,  "br30")
+    I.I(XOR, "temp2", "space", "temp")
+    I.I(ADD, "BTT0", "br29", 0),                            I.JZE("state6", True,  "br28")
+    I.I(ADD, "temp2", "zero_char_neg", "temp")
+    I.I(ADD, "BTT0", "br30", 0),                            I.JNE("state7", False, "br29")
+    I.I(SUB, "temp2", "nine_char", "temp2")
+    I.I(ADD, "BTT0", "br31", 0),                            I.JPO("state3", False, "br30")
     I.I(ADD, "BTT0", "br31", 0)
     I.I(ADD, "B_IO", "one", 0)                              # State 7 folded
     I.NOP(),                                                I.JMP("state0",        "br31")
