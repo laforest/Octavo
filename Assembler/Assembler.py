@@ -220,7 +220,7 @@ class Instruction_Memory(Memory):
         # List of all other memories addressed in instructions
         self.A_mem          = A_mem
         self.B_mem          = B_mem
-        self.other_mem      = other_mem
+        self.other_mem      = other_mem + [self]
 
         # List of unresolved jumps, to fix-up at the end
         self.unresolved_jumps = []
