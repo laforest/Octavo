@@ -189,6 +189,12 @@ def assemble_B():
     B.L(0),     B.N("array_top_pointer_init")
     return B
 
+###
+# Implements: [+-]?(\.[0-9]+|[0-9]+\.[0-9]*)
+# Matches simple Python FP numbers
+# See: http://www.regexper.com/#[%2B-]%3F%28\.[0-9]%2B|[0-9]%2B\.[0-9]*%29
+###
+
 # "ideal" MIPS-like
 # init:   
 #         ADD  array_top,    0, array_top_init
