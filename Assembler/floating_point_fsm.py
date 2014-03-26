@@ -82,7 +82,7 @@ def assemble_B():
     B.L(0),     B.N("temp")
     B.L(0),     B.N("temp2")
     B.L(-2)     # Guard value for debugging
-    B.C(' '),   B.N("array_top") # 100 elements
+    B.C(' '),   B.N("array_top") # 103 elements, including final guard (-1)
     B.C('-')
     B.C('.')
     B.C('9')
@@ -106,6 +106,83 @@ def assemble_B():
     B.C('.')
     B.C('2')
     B.C(' ') # Accept 4 5 3
+    B.C('-')
+    B.C('.')
+    B.C('9')
+    B.C(' ') # Accept 1 2 3 
+    B.C('+')
+    B.C('8')
+    B.C('.')
+    B.C('6')
+    B.C(' ') # Accept 1 4 5 3
+    B.C('-')
+    B.C('5')
+    B.C('.')
+    B.C(' ') # Accept 1 4 5 
+    B.C('.')
+    B.C('7')
+    B.C(' ') # Accept 2 3
+    B.C('4')
+    B.C('.')
+    B.C(' ') # Accept 4 5
+    B.C('5') 
+    B.C('.')
+    B.C('2')
+    B.C(' ') # Accept 4 5 3
+    B.C('-')
+    B.C('.')
+    B.C('9')
+    B.C(' ') # Accept 1 2 3 
+    B.C('+')
+    B.C('8')
+    B.C('.')
+    B.C('6')
+    B.C(' ') # Accept 1 4 5 3
+    B.C('-')
+    B.C('5')
+    B.C('.')
+    B.C(' ') # Accept 1 4 5 
+    B.C('.')
+    B.C('7')
+    B.C(' ') # Accept 2 3
+    B.C('4')
+    B.C('.')
+    B.C(' ') # Accept 4 5
+    B.C('5') 
+    B.C('.')
+    B.C('2')
+    B.C(' ') # Accept 4 5 3
+    B.C('-')
+    B.C('.')
+    B.C('9')
+    B.C(' ') # Accept 1 2 3 
+    B.C('+')
+    B.C('8')
+    B.C('.')
+    B.C('6')
+    B.C(' ') # Accept 1 4 5 3
+    B.C('-')
+    B.C('5')
+    B.C('.')
+    B.C(' ') # Accept 1 4 5 
+    B.C('.')
+    B.C('7')
+    B.C(' ') # Accept 2 3
+    B.C('4')
+    B.C('.')
+    B.C(' ') # Accept 4 5
+    B.C('5') 
+    B.C('.')
+    B.C('2')
+    B.C(' ') # Accept 4 5 3
+    B.C('-')
+    B.C('.')
+    B.C('9')
+    B.C(' ') # Accept 1 2 3 
+    B.C('-')
+    B.C('.')
+    B.C('9')
+    B.C('A') # Reject 1 2 3
     B.C(' '),   B.N("array_bottom")
     B.L(-1)     # Guard value for debugging and outer loop
     # Placeholders for programmed offset
@@ -130,8 +207,8 @@ def assemble_B():
 #         BEQZ state2, temp2
 #         SUB  temp2,  temp,  zero_char
 #         BLTZ state7, temp2
-#         SUB  temp2,  temp,  nine_char
-#         BLEZ state4, temp2
+#         SUB  temp2,  10,    temp2
+#         BGEZ state4, temp2
 #         JMP  state7
 
 # state1: 
@@ -142,8 +219,8 @@ def assemble_B():
 #         BEQZ state2, temp2
 #         SUB  temp2,  temp,  zero_char
 #         BLTZ state7, temp2
-#         SUB  temp2,  temp,  nine_char
-#         BLEZ state4, temp2
+#         SUB  temp2,  10,    temp2
+#         BGEZ state4, temp2
 #         JMP  state7
 
 # state2:
@@ -152,44 +229,44 @@ def assemble_B():
 #         ADD  array_top, 1, array_top
 #         SUB  temp2,  temp,  zero_char
 #         BLTZ state7, temp2
-#         SUB  temp2,  temp,  nine_char
-#         BLEZ state3, temp2
+#         SUB  temp2,  10,    temp2
+#         BGEZ state3, temp2
 #         JMP  state7
 
 # state3:
 #         LW   temp, array_top
 #         BLTZ init, temp
 #         ADD  array_top, 1, array_top
-#         SUB  temp2,  temp,  zero_char
-#         BLTZ state7, temp2
-#         SUB  temp2,  temp,  nine_char
-#         BLEZ state3, temp2
 #         XOR  temp2,  temp,  space
 #         BEQZ state6, temp2
+#         SUB  temp2,  temp,  zero_char
+#         BLTZ state7, temp2
+#         SUB  temp2,  10,    temp2
+#         BGEZ state3, temp2
 #         JMP  state7
 
 # state4:
 #         LW   temp, array_top
 #         BLTZ init, temp
 #         ADD  array_top, 1, array_top
-#         SUB  temp2,  temp,  zero_char
-#         BLTZ state7, temp2
-#         SUB  temp2,  temp,  nine_char
-#         BLEZ state4, temp2
 #         XOR  temp2,  temp,  dot
 #         BEQZ state5, temp2
+#         SUB  temp2,  temp,  zero_char
+#         BLTZ state7, temp2
+#         SUB  temp2,  10,    temp2
+#         BGEZ state4, temp2
 #         JMP  state7
 
 # state5:
 #         LW   temp, array_top
 #         BLTZ init, temp
 #         ADD  array_top, 1, array_top
-#         SUB  temp2,  temp,  zero_char
-#         BLTZ state7, temp2
-#         SUB  temp2,  temp,  nine_char
-#         BLEZ state3, temp2
 #         XOR  temp2,  temp,  space
 #         BEQZ state6, temp2
+#         SUB  temp2,  temp,  zero_char
+#         BLTZ state7, temp2
+#         SUB  temp2,  10,    temp2
+#         BGEZ state3, temp2
 #         JMP  state7
 
 # state6:
@@ -336,6 +413,93 @@ def assemble_I(PC, A, B):
     #I.I(ADD, "BTT0", "br33", 0),                            I.N("state7")
     I.I(ADD, "B_IO", "one", 0),                             I.N("state7")
     I.NOP(),                                                I.JMP("state0",        "br33")
+
+# Experiment (MIPS-equiv)
+# 30 runs over 103 input symbols, including outer loop guard
+# Cycles: 193720 - 40 = 193680
+# Useful cycles: 193680 / 8 = 24210
+# Cycles per run (25 Accepts, 1 Reject): 24210 / 30 = 807
+# Cycles per Accept/Reject: 807 / 26 = 31.038
+# Cycles per input symbol: 807 / 103 = 7.835
+# Input symbols per Accept/Reject: 103 / 26 = 3.9615
+# Input symbols per Accept/Reject:  31.038 / 7.835 = 3.9615 (accuracy cross-check)
+
+# PC Tally:
+#
+#  To generate matching numbered instruction list:
+#  cat floating_point_fsm.py | egrep " I\.[NI]" | nl | gview -
+#
+#      1 1   # setup
+#      1 2   # setup
+#      1 3   # setup
+#      1 4   # setup
+#     31 5   # N
+#    897 6   # N
+#    897 7   # U
+#    897 8   # U
+#    867 9   # U
+#    867 10  # U
+#    806 11  # U
+#    806 12  # U
+#    682 13  # U
+#    682 14  # U
+#    372 15  # U
+#    372 16  # U
+#    248 17  # U 
+#    248 18  # U
+#    248 19  # U
+#    248 20  # U
+#    434 24  # N
+#    434 25  # U
+#    434 26  # U
+#    434 27  # U
+#    434 28  # U
+#    248 29  # U
+#    248 30  # U
+#    248 31  # U
+#    248 32  # U
+#    310 36  # N
+#    310 37  # U
+#    310 38  # U
+#    310 39  # U
+#    310 40  # U
+#    309 41  # U
+#    309 42  # U
+#    557 46  # N
+#    557 47  # U
+#    557 48  # U
+#    557 49  # U
+#    557 50  # U
+#     30 51  # U
+#     30 52  # U
+#     30 53  # U
+#     30 54  # U
+#     30 55  # N
+#     30 56  # U
+#     30 57  # U
+#    496 58  # N
+#    496 59  # U
+#    496 60  # U
+#    496 61  # U
+#    496 62  # U
+#    496 70  # N
+#    496 71  # U
+#    496 72  # U
+#    496 73  # U
+#    496 74  # U
+#    248 75  # U
+#    248 76  # U
+#    248 77  # U
+#    248 78  # U
+#    775 82  # U
+#    775 83  # U
+#
+# (sums done externally: cat foo | sed -E -e's/\s+/ /g' | grep "# U" | cut -d' ' -f 2 | awk '{ sum+=$1} END {print sum}'
+# Useful:     21744
+# Not Useful:  3251
+# Total:      24995
+# ALU Efficiency:  21744 / 24995 = 0.86993
+
 
     I.resolve_forward_jumps()
 
