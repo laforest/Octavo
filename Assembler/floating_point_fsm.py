@@ -28,13 +28,13 @@ def assemble_A():
     A.L(0)
     A.L(1),                 A.N("one")
     A.L(-1),                A.N("minus_one")
+    A.L(10),                A.N("ten")
     # FSM input alphabet
     A.C(' '),               A.N("space")
     A.C('-'),               A.N("minus")
     A.C('+'),               A.N("plus")
     A.C('.'),               A.N("dot")
     A.L(-ord('0')),         A.N("zero_char_neg")
-    A.C('9'),               A.N("nine_char")
     # Placeholders for branch table entries
     A.L(0),                 A.N("br00")
     A.L(0),                 A.N("br01")
@@ -84,16 +84,28 @@ def assemble_B():
     B.L(-2)     # Guard value for debugging
     B.C(' '),   B.N("array_top") # 100 elements
     B.C('-')
-    B.C('3')
     B.C('.')
-    B.C('1')
+    B.C('9')
+    B.C(' ') # Accept 1 2 3 
+    B.C('+')
+    B.C('8')
+    B.C('.')
+    B.C('6')
+    B.C(' ') # Accept 1 4 5 3
+    B.C('-')
+    B.C('5')
+    B.C('.')
+    B.C(' ') # Accept 1 4 5 
+    B.C('.')
+    B.C('7')
+    B.C(' ') # Accept 2 3
     B.C('4')
-    B.C(' ')
-    B.C('3')
     B.C('.')
-    B.C('1')
-    B.C('a')
-    B.C(' ')
+    B.C(' ') # Accept 4 5
+    B.C('5') 
+    B.C('.')
+    B.C('2')
+    B.C(' ') # Accept 4 5 3
     B.C(' '),   B.N("array_bottom")
     B.L(-1)     # Guard value for debugging and outer loop
     # Placeholders for programmed offset
@@ -236,7 +248,7 @@ def assemble_I(PC, A, B):
     I.I(ADD, "BTT0", "br05", 0),                            I.JZE("state2", False, "br04")
     I.I(ADD, "temp2", "zero_char_neg", "temp")
     I.I(ADD, "BTT0", "br06", 0),                            I.JNE("state7", False, "br05")
-    I.I(SUB, "temp2", "nine_char", "temp2")
+    I.I(SUB, "temp2", "ten", "temp2")
     I.I(ADD, "BTT0", "br07", 0),                            I.JPO("state4", False, "br06")
     I.I(ADD, "BTT0", "br07", 0)
     I.I(ADD, "B_IO", "one", 0)                              # State 7 folded
@@ -251,7 +263,7 @@ def assemble_I(PC, A, B):
     I.I(ADD, "BTT0", "br10", 0),                            I.JZE("state2", False, "br09")
     I.I(ADD, "temp2", "zero_char_neg", "temp")
     I.I(ADD, "BTT0", "br11", 0),                            I.JNE("state7", False, "br10")
-    I.I(SUB, "temp2", "nine_char", "temp2")
+    I.I(SUB, "temp2", "ten", "temp2")
     I.I(ADD, "BTT0", "br12", 0),                            I.JPO("state4", False, "br11")
     I.I(ADD, "BTT0", "br12", 0)
     I.I(ADD, "B_IO", "one", 0)                              # State 7 folded
@@ -264,7 +276,7 @@ def assemble_I(PC, A, B):
     #I.NOP()                                                 # pointer incr
     I.I(ADD, "temp2", "zero_char_neg", "temp")
     I.I(ADD, "BTT0", "br15", 0),                            I.JNE("state7", False, "br14")
-    I.I(SUB, "temp2", "nine_char", "temp2")
+    I.I(SUB, "temp2", "ten", "temp2")
     I.I(ADD, "BTT0", "br16", 0),                            I.JPO("state3", False, "br15")
     I.I(ADD, "BTT0", "br16", 0)
     I.I(ADD, "B_IO", "one", 0)                              # State 7 folded
@@ -276,10 +288,10 @@ def assemble_I(PC, A, B):
     I.I(ADD, "BTT0", "br18", 0),                            I.JNE("init",   False, "br17")
     #I.NOP()                                                 # pointer incr
     I.I(XOR, "temp2", "space", "temp")
-    I.I(ADD, "BTT0", "br19", 0),                            I.JZE("state6", True,  "br18")
+    I.I(ADD, "BTT0", "br19", 0),                            I.JZE("state6", False, "br18")
     I.I(ADD, "temp2", "zero_char_neg", "temp")
     I.I(ADD, "BTT0", "br20", 0),                            I.JNE("state7", False, "br19")
-    I.I(SUB, "temp2", "nine_char", "temp2")
+    I.I(SUB, "temp2", "ten", "temp2")
     I.I(ADD, "BTT0", "br21", 0),                            I.JPO("state3", False, "br20")
     I.I(ADD, "BTT0", "br21", 0)
     I.I(ADD, "B_IO", "one", 0)                              # State 7 folded
@@ -294,7 +306,7 @@ def assemble_I(PC, A, B):
     I.I(ADD, "BTT0", "br24", 0),                            I.JZE("state5", False, "br23")
     I.I(ADD, "temp2", "zero_char_neg", "temp")
     I.I(ADD, "BTT0", "br25", 0),                            I.JNE("state7", False, "br24")
-    I.I(SUB, "temp2", "nine_char", "temp2")
+    I.I(SUB, "temp2", "ten", "temp2")
     I.I(ADD, "BTT0", "br26", 0),                            I.JPO("state4", False, "br25")
     I.I(ADD, "BTT0", "br26", 0)
     I.I(ADD, "B_IO", "one", 0)                              # State 7 folded
@@ -306,10 +318,10 @@ def assemble_I(PC, A, B):
     I.I(ADD, "BTT0", "br28", 0),                            I.JNE("init",   False, "br27")
     #I.NOP()                                                 # pointer incr
     I.I(XOR, "temp2", "space", "temp")
-    I.I(ADD, "BTT0", "br29", 0),                            I.JZE("state6", True,  "br28")
+    I.I(ADD, "BTT0", "br29", 0),                            I.JZE("state6", False,  "br28")
     I.I(ADD, "temp2", "zero_char_neg", "temp")
     I.I(ADD, "BTT0", "br30", 0),                            I.JNE("state7", False, "br29")
-    I.I(SUB, "temp2", "nine_char", "temp2")
+    I.I(SUB, "temp2", "ten", "temp2")
     I.I(ADD, "BTT0", "br31", 0),                            I.JPO("state3", False, "br30")
     I.I(ADD, "BTT0", "br31", 0)
     I.I(ADD, "B_IO", "one", 0)                              # State 7 folded

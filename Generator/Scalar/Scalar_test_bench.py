@@ -6,7 +6,7 @@ import sys
 
 from Misc import misc, parameters_misc
 
-default_bench = "Array_Reverse/array_reverse"
+default_bench = "Floating_Point_FSM/floating_point_fsm"
 install_base = misc.base_install_path()
 quartus_base_path = misc.quartus_base_path
 
@@ -79,7 +79,7 @@ def test_bench(parameters, default_bench = default_bench, install_base = install
         A_out_EF    = 0;
         B_in_EF     = -1;
         B_out_EF    = 0;
-        `DELAY_CLOCK_CYCLES(200000) $$stop;
+        `DELAY_CLOCK_CYCLES(20000) $$stop;
     end
 
     always begin
