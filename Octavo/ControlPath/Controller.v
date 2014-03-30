@@ -99,6 +99,11 @@ module Controller
     output  wire    [PC_WIDTH-1:0]      PC 
 );
 
+    // ECL XXX For simulation, to measure ALU usage
+    always @(posedge clock) begin
+        $display("PC: %d", PC);
+    end
+
 // -----------------------------------------------------------
 
     wire    IO_ready_synced;
