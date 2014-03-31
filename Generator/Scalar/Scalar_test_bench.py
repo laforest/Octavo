@@ -6,7 +6,7 @@ import sys
 
 from Misc import misc, parameters_misc
 
-default_bench = "Floating_Point_FSM/floating_point_fsm"
+default_bench = "FIR_Filter/fir_filter"
 install_base = misc.base_install_path()
 quartus_base_path = misc.quartus_base_path
 
