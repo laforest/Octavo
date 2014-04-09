@@ -306,119 +306,119 @@ def assemble_I(PC, A, B):
     I.P("BTT2", None, write_addr = base_addr + 2)
     I.P("BTT3", None, write_addr = base_addr + 3)
 #    # First few branches in state0
-#    I.I(ADD, "BTT0", "br00", 0) # Used throughout
-#    I.I(ADD, "BTT1", "br33", 0) # Saves a cycle in state7!!!
-#    I.I(ADD, "BTT2", "br32", 0) # Needed to save a cycle to keep equivalency
-#    I.I(ADD, "BTT3", "br03", 0) # unused
-#
+    I.I(ADD, "BTT0", "br00", 0) # Used throughout
+    I.I(ADD, "BTT1", "br33", 0) # Saves a cycle in state7!!!
+    I.I(ADD, "BTT2", "br32", 0) # Needed to save a cycle to keep equivalency
+    I.I(ADD, "BTT3", "br03", 0) # unused
+
 ## "ideal" MIPS-like equivalent 
-#    # Instruction to set indirect access
-#    base_addr = mem_map["BPO"]["Origin"] 
-#    I.I(ADD, base_addr,   0, "array_top_pointer_init"),     I.N("init")
-#
-#
-#    I.I(ADD, "BTT0", "br00", 0),                            I.N("state0")                             
-#    I.I(ADD, "temp", 0, "array_top_pointer")
-#    I.I(ADD, "BTT0", "br01", 0),                            I.JNE("init",   False, "br00")
-#    #I.NOP()                                                 # pointer incr
-#    I.I(XOR, "temp2", "space", "temp")
-#    I.I(ADD, "BTT0", "br02", 0),                            I.JZE("state0", False, "br01")
-#    I.I(XOR, "temp2", "plus", "temp")
-#    I.I(ADD, "BTT0", "br03", 0),                            I.JZE("state1", False, "br02")
-#    I.I(XOR, "temp2", "minus", "temp")
-#    I.I(ADD, "BTT0", "br04", 0),                            I.JZE("state1", False, "br03")
-#    I.I(XOR, "temp2", "dot", "temp")
-#    I.I(ADD, "BTT0", "br05", 0),                            I.JZE("state2", False, "br04")
-#    I.I(ADD, "temp2", "zero_char_neg", "temp")
-#    I.I(ADD, "BTT0", "br06", 0),                            I.JNE("state7", False, "br05")
-#    I.I(SUB, "temp2", "ten", "temp2")
-#    I.I(ADD, "BTT0", "br07", 0),                            I.JPO("state4", False, "br06")
-#    I.I(ADD, "BTT0", "br07", 0)
-#    I.I(ADD, "B_IO", "one", 0)                              # State 7 folded
-#    I.NOP(),                                                I.JMP("state0",        "br07")
-#
-#
-#    I.I(ADD, "BTT0", "br08", 0),                            I.N("state1")
-#    I.I(ADD, "temp", 0, "array_top_pointer")
-#    I.I(ADD, "BTT0", "br09", 0),                            I.JNE("init",   False, "br08")
-#    #I.NOP()                                                 # pointer incr
-#    I.I(XOR, "temp2", "dot", "temp")
-#    I.I(ADD, "BTT0", "br10", 0),                            I.JZE("state2", False, "br09")
-#    I.I(ADD, "temp2", "zero_char_neg", "temp")
-#    I.I(ADD, "BTT0", "br11", 0),                            I.JNE("state7", False, "br10")
-#    I.I(SUB, "temp2", "ten", "temp2")
-#    I.I(ADD, "BTT0", "br12", 0),                            I.JPO("state4", False, "br11")
-#    I.I(ADD, "BTT0", "br12", 0)
-#    I.I(ADD, "B_IO", "one", 0)                              # State 7 folded
-#    I.NOP(),                                                I.JMP("state0",        "br12")
-#
-#
-#    I.I(ADD, "BTT0", "br13", 0),                            I.N("state2")
-#    I.I(ADD, "temp", 0, "array_top_pointer")
-#    I.I(ADD, "BTT0", "br14", 0),                            I.JNE("init",   False, "br13")
-#    #I.NOP()                                                 # pointer incr
-#    I.I(ADD, "temp2", "zero_char_neg", "temp")
-#    I.I(ADD, "BTT0", "br15", 0),                            I.JNE("state7", False, "br14")
-#    I.I(SUB, "temp2", "ten", "temp2")
-#    I.I(ADD, "BTT0", "br16", 0),                            I.JPO("state3", False, "br15")
-#    I.I(ADD, "BTT0", "br16", 0)
-#    I.I(ADD, "B_IO", "one", 0)                              # State 7 folded
-#    I.NOP(),                                                I.JMP("state0",        "br16")
-#
-#
-#    I.I(ADD, "BTT0", "br17", 0),                            I.N("state3")
-#    I.I(ADD, "temp", 0, "array_top_pointer")
-#    I.I(ADD, "BTT0", "br18", 0),                            I.JNE("init",   False, "br17")
-#    #I.NOP()                                                 # pointer incr
-#    I.I(XOR, "temp2", "space", "temp")
-#    I.I(ADD, "BTT0", "br19", 0),                            I.JZE("state6", False, "br18")
-#    I.I(ADD, "temp2", "zero_char_neg", "temp")
-#    I.I(ADD, "BTT0", "br20", 0),                            I.JNE("state7", False, "br19")
-#    I.I(SUB, "temp2", "ten", "temp2")
-#    I.I(ADD, "BTT0", "br21", 0),                            I.JPO("state3", False, "br20")
-#    I.I(ADD, "BTT0", "br21", 0)
-#    I.I(ADD, "B_IO", "one", 0)                              # State 7 folded
-#    I.NOP(),                                                I.JMP("state0",        "br21")
-#
-#
-#    I.I(ADD, "BTT0", "br22", 0),                            I.N("state4")
-#    I.I(ADD, "temp", 0, "array_top_pointer")
-#    I.I(ADD, "BTT0", "br23", 0),                            I.JNE("init",   False, "br22")
-#    #I.NOP()                                                 # pointer incr
-#    I.I(XOR, "temp2", "dot", "temp")
-#    I.I(ADD, "BTT0", "br24", 0),                            I.JZE("state5", False, "br23")
-#    I.I(ADD, "temp2", "zero_char_neg", "temp")
-#    I.I(ADD, "BTT0", "br25", 0),                            I.JNE("state7", False, "br24")
-#    I.I(SUB, "temp2", "ten", "temp2")
-#    I.I(ADD, "BTT0", "br26", 0),                            I.JPO("state4", False, "br25")
-#    I.I(ADD, "BTT0", "br26", 0)
-#    I.I(ADD, "B_IO", "one", 0)                              # State 7 folded
-#    I.NOP(),                                                I.JMP("state0",        "br26")
-#
-#
-#    I.I(ADD, "BTT0", "br27", 0),                            I.N("state5")
-#    I.I(ADD, "temp", 0, "array_top_pointer")
-#    I.I(ADD, "BTT0", "br28", 0),                            I.JNE("init",   False, "br27")
-#    #I.NOP()                                                 # pointer incr
-#    I.I(XOR, "temp2", "space", "temp")
-#    I.I(ADD, "BTT0", "br29", 0),                            I.JZE("state6", False,  "br28")
-#    I.I(ADD, "temp2", "zero_char_neg", "temp")
-#    I.I(ADD, "BTT0", "br30", 0),                            I.JNE("state7", False, "br29")
-#    I.I(SUB, "temp2", "ten", "temp2")
-#    I.I(ADD, "BTT0", "br31", 0),                            I.JPO("state3", False, "br30")
-#    I.I(ADD, "BTT0", "br31", 0)
-#    I.I(ADD, "B_IO", "one", 0)                              # State 7 folded
-#    I.NOP(),                                                I.JMP("state0",        "br31")
-#
-#
-#    I.I(ADD, "A_IO", "one", 0),                             I.N("state6") # ACCEPT
-#    I.NOP(),                                                I.JMP("state0",        "br32")
-#
-#
-#    # +1 over "ideal" MIPS-like, so stored in BTT1!
-#    #I.I(ADD, "BTT0", "br33", 0),                            I.N("state7")
-#    I.I(ADD, "B_IO", "one", 0),                             I.N("state7")
-#    I.NOP(),                                                I.JMP("state0",        "br33")
+    # Instruction to set indirect access
+    base_addr = mem_map["BPO"]["Origin"] 
+    I.I(ADD, base_addr,   0, "array_top_pointer_init"),     I.N("init")
+
+
+    I.I(ADD, "BTT0", "br00", 0),                            I.N("state0")                             
+    I.I(ADD, "temp", 0, "array_top_pointer")
+    I.I(ADD, "BTT0", "br01", 0),                            I.JNE("init",   False, "br00")
+    #I.NOP()                                                 # pointer incr
+    I.I(XOR, "temp2", "space", "temp")
+    I.I(ADD, "BTT0", "br02", 0),                            I.JZE("state0", False, "br01")
+    I.I(XOR, "temp2", "plus", "temp")
+    I.I(ADD, "BTT0", "br03", 0),                            I.JZE("state1", False, "br02")
+    I.I(XOR, "temp2", "minus", "temp")
+    I.I(ADD, "BTT0", "br04", 0),                            I.JZE("state1", False, "br03")
+    I.I(XOR, "temp2", "dot", "temp")
+    I.I(ADD, "BTT0", "br05", 0),                            I.JZE("state2", False, "br04")
+    I.I(ADD, "temp2", "zero_char_neg", "temp")
+    I.I(ADD, "BTT0", "br06", 0),                            I.JNE("state7", False, "br05")
+    I.I(SUB, "temp2", "ten", "temp2")
+    I.I(ADD, "BTT0", "br07", 0),                            I.JPO("state4", False, "br06")
+    I.I(ADD, "BTT0", "br07", 0)
+    I.I(ADD, "B_IO", "one", 0)                              # State 7 folded
+    I.NOP(),                                                I.JMP("state0",        "br07")
+
+
+    I.I(ADD, "BTT0", "br08", 0),                            I.N("state1")
+    I.I(ADD, "temp", 0, "array_top_pointer")
+    I.I(ADD, "BTT0", "br09", 0),                            I.JNE("init",   False, "br08")
+    #I.NOP()                                                 # pointer incr
+    I.I(XOR, "temp2", "dot", "temp")
+    I.I(ADD, "BTT0", "br10", 0),                            I.JZE("state2", False, "br09")
+    I.I(ADD, "temp2", "zero_char_neg", "temp")
+    I.I(ADD, "BTT0", "br11", 0),                            I.JNE("state7", False, "br10")
+    I.I(SUB, "temp2", "ten", "temp2")
+    I.I(ADD, "BTT0", "br12", 0),                            I.JPO("state4", False, "br11")
+    I.I(ADD, "BTT0", "br12", 0)
+    I.I(ADD, "B_IO", "one", 0)                              # State 7 folded
+    I.NOP(),                                                I.JMP("state0",        "br12")
+
+
+    I.I(ADD, "BTT0", "br13", 0),                            I.N("state2")
+    I.I(ADD, "temp", 0, "array_top_pointer")
+    I.I(ADD, "BTT0", "br14", 0),                            I.JNE("init",   False, "br13")
+    #I.NOP()                                                 # pointer incr
+    I.I(ADD, "temp2", "zero_char_neg", "temp")
+    I.I(ADD, "BTT0", "br15", 0),                            I.JNE("state7", False, "br14")
+    I.I(SUB, "temp2", "ten", "temp2")
+    I.I(ADD, "BTT0", "br16", 0),                            I.JPO("state3", False, "br15")
+    I.I(ADD, "BTT0", "br16", 0)
+    I.I(ADD, "B_IO", "one", 0)                              # State 7 folded
+    I.NOP(),                                                I.JMP("state0",        "br16")
+
+
+    I.I(ADD, "BTT0", "br17", 0),                            I.N("state3")
+    I.I(ADD, "temp", 0, "array_top_pointer")
+    I.I(ADD, "BTT0", "br18", 0),                            I.JNE("init",   False, "br17")
+    #I.NOP()                                                 # pointer incr
+    I.I(XOR, "temp2", "space", "temp")
+    I.I(ADD, "BTT0", "br19", 0),                            I.JZE("state6", False, "br18")
+    I.I(ADD, "temp2", "zero_char_neg", "temp")
+    I.I(ADD, "BTT0", "br20", 0),                            I.JNE("state7", False, "br19")
+    I.I(SUB, "temp2", "ten", "temp2")
+    I.I(ADD, "BTT0", "br21", 0),                            I.JPO("state3", False, "br20")
+    I.I(ADD, "BTT0", "br21", 0)
+    I.I(ADD, "B_IO", "one", 0)                              # State 7 folded
+    I.NOP(),                                                I.JMP("state0",        "br21")
+
+
+    I.I(ADD, "BTT0", "br22", 0),                            I.N("state4")
+    I.I(ADD, "temp", 0, "array_top_pointer")
+    I.I(ADD, "BTT0", "br23", 0),                            I.JNE("init",   False, "br22")
+    #I.NOP()                                                 # pointer incr
+    I.I(XOR, "temp2", "dot", "temp")
+    I.I(ADD, "BTT0", "br24", 0),                            I.JZE("state5", False, "br23")
+    I.I(ADD, "temp2", "zero_char_neg", "temp")
+    I.I(ADD, "BTT0", "br25", 0),                            I.JNE("state7", False, "br24")
+    I.I(SUB, "temp2", "ten", "temp2")
+    I.I(ADD, "BTT0", "br26", 0),                            I.JPO("state4", False, "br25")
+    I.I(ADD, "BTT0", "br26", 0)
+    I.I(ADD, "B_IO", "one", 0)                              # State 7 folded
+    I.NOP(),                                                I.JMP("state0",        "br26")
+
+
+    I.I(ADD, "BTT0", "br27", 0),                            I.N("state5")
+    I.I(ADD, "temp", 0, "array_top_pointer")
+    I.I(ADD, "BTT0", "br28", 0),                            I.JNE("init",   False, "br27")
+    #I.NOP()                                                 # pointer incr
+    I.I(XOR, "temp2", "space", "temp")
+    I.I(ADD, "BTT0", "br29", 0),                            I.JZE("state6", False,  "br28")
+    I.I(ADD, "temp2", "zero_char_neg", "temp")
+    I.I(ADD, "BTT0", "br30", 0),                            I.JNE("state7", False, "br29")
+    I.I(SUB, "temp2", "ten", "temp2")
+    I.I(ADD, "BTT0", "br31", 0),                            I.JPO("state3", False, "br30")
+    I.I(ADD, "BTT0", "br31", 0)
+    I.I(ADD, "B_IO", "one", 0)                              # State 7 folded
+    I.NOP(),                                                I.JMP("state0",        "br31")
+
+
+    I.I(ADD, "A_IO", "one", 0),                             I.N("state6") # ACCEPT
+    I.NOP(),                                                I.JMP("state0",        "br32")
+
+
+    # +1 over "ideal" MIPS-like, so stored in BTT1!
+    #I.I(ADD, "BTT0", "br33", 0),                            I.N("state7")
+    I.I(ADD, "B_IO", "one", 0),                             I.N("state7")
+    I.NOP(),                                                I.JMP("state0",        "br33")
 
 # Experiment (MIPS-equiv)
 # 30 runs over 103 input symbols, including outer loop guard
@@ -443,172 +443,176 @@ def assemble_I(PC, A, B):
 #      1 2   # setup
 #      1 3   # setup
 #      1 4   # setup
-#     31 5   # N
-#    897 6   # N
+#     31 5   # U
+#    897 6   # U
 #    897 7   # U
 #    897 8   # N
 #    867 9   # U
-#    867 10  # U
+#    867 10  # N
 #    806 11  # U
-#    806 12  # U
+#    806 12  # N
 #    682 13  # U
-#    682 14  # U
+#    682 14  # N
 #    372 15  # U
-#    372 16  # U
+#    372 16  # N
 #    248 17  # U 
-#    248 18  # U
+#    248 18  # N
 #    248 19  # U
-#    248 20  # U
-#    434 24  # N
+#    248 20  # N
+#    434 24  # U
 #    434 25  # U
 #    434 26  # N
 #    434 27  # U
-#    434 28  # U
+#    434 28  # N
 #    248 29  # U
-#    248 30  # U
+#    248 30  # N
 #    248 31  # U
-#    248 32  # U
-#    310 36  # N
+#    248 32  # N
+#    310 36  # U
 #    310 37  # U
 #    310 38  # N
 #    310 39  # U
-#    310 40  # U
+#    310 40  # N
 #    309 41  # U
-#    309 42  # U
-#    557 46  # N
+#    309 42  # N
+#    557 46  # U
 #    557 47  # U
 #    557 48  # N
 #    557 49  # U
-#    557 50  # U
+#    557 50  # N
 #     30 51  # U
-#     30 52  # U
+#     30 52  # N
 #     30 53  # U
-#     30 54  # U
+#     30 54  # N
 #     30 55  # N
 #     30 56  # U
-#     30 57  # U
-#    496 58  # N
+#     30 57  # N
+#    496 58  # U
 #    496 59  # U
 #    496 60  # N
 #    496 61  # U
-#    496 62  # U
-#    496 70  # N
+#    496 62  # N
+#    496 70  # U
 #    496 71  # U
 #    496 72  # N
 #    496 73  # U
-#    496 74  # U
+#    496 74  # N
 #    248 75  # U
-#    248 76  # U
+#    248 76  # N
 #    248 77  # U
-#    248 78  # U
+#    248 78  # N
 #    775 82  # U
-#    775 83  # U
+#    775 83  # N
 #
 # (sums done externally: cat foo | sed -E -e's/\s+/ /g' | grep "# U" | cut -d' ' -f 2 | awk '{ sum+=$1} END {print sum}'
-# Useful:     18554
-# Not Useful:  6441
+# Useful:     14093
+# Not Useful: 10902
 # Total:      24995
-# ALU Efficiency:  18554 / 24995 = 0.74231
+# ALU Efficiency:  14093 / 24995 = 0.56383 (> 50% since naked BTM updates at state start replace a pointer increment, thus counted as useful)
+
+
+
+
 
 # Optimized
-    # First few branches in state0
-    I.I(ADD, "BTT0",      0, 0) # Used throughout at temp storage
-    I.I(ADD, "BTT1", "br33", 0) # Saves a cycle in state7!!!
-    I.I(ADD, "BTT2", "br32", 0) # Needed to save a cycle to keep equivalency
-    I.I(ADD, "BTT3", "br00", 0) # Saves a cycle each time we restart scanning
-
-    # Instruction to set indirect access
-    base_addr = mem_map["BPO"]["Origin"] 
-    I.I(ADD, base_addr,   0, "array_top_pointer_init"),     I.N("init")
-    I.NOP()
-
-    # Stored in BTT
-    #I.I(ADD, "BTT0", "br00", 0),                            I.N("state0")
-    I.I(ADD, "temp", 0, "array_top_pointer"),               I.N("state0")
-    I.I(ADD, "BTT0", "br01", 0),                            I.JNE("init",   False, "br00")
-    I.I(XOR, "temp2", "space", "temp")
-    I.I(ADD, "BTT0", "br02", 0),                            I.JZE("state0", False, "br01")
-    I.I(XOR, "temp2", "plus", "temp")
-    I.I(ADD, "BTT0", "br03", 0),                            I.JZE("state1", False, "br02")
-    I.I(XOR, "temp2", "minus", "temp")
-    I.I(ADD, "BTT0", "br04", 0),                            I.JZE("state1", False, "br03")
-    I.I(XOR, "temp2", "dot", "temp")
-    I.I(ADD, "BTT0", "br05", 0),                            I.JZE("state2", False, "br04")
-    I.I(ADD, "temp2", "zero_char_neg", "temp")
-    I.I(ADD, "BTT0", "br06", 0),                            I.JNE("state7", False, "br05")
-    I.I(SUB, "temp2", "ten", "temp2")
-    I.I(ADD, "BTT0", "br07", 0),                            I.JPO("state4", False, "br06")
-    I.I(ADD, "B_IO", "one", 0)                              # State 7 folded
-    I.NOP(),                                                I.JMP("state0",        "br07")
-
-
-    I.I(ADD, "BTT0", "br08", 0),                            I.N("state1")
-    I.I(ADD, "temp", 0, "array_top_pointer")
-    I.I(ADD, "BTT0", "br09", 0),                            I.JNE("init",   False, "br08")
-    I.I(XOR, "temp2", "dot", "temp")
-    I.I(ADD, "BTT0", "br10", 0),                            I.JZE("state2", False, "br09")
-    I.I(ADD, "temp2", "zero_char_neg", "temp")
-    I.I(ADD, "BTT0", "br11", 0),                            I.JNE("state7", False, "br10")
-    I.I(SUB, "temp2", "ten", "temp2")
-    I.I(ADD, "BTT0", "br12", 0),                            I.JPO("state4", False, "br11")
-    I.I(ADD, "B_IO", "one", 0)                              # State 7 folded
-    I.NOP(),                                                I.JMP("state0",        "br12")
-
-
-    I.I(ADD, "BTT0", "br13", 0),                            I.N("state2")
-    I.I(ADD, "temp", 0, "array_top_pointer")
-    I.I(ADD, "BTT0", "br14", 0),                            I.JNE("init",   False, "br13")
-    I.I(ADD, "temp2", "zero_char_neg", "temp")
-    I.I(ADD, "BTT0", "br15", 0),                            I.JNE("state7", False, "br14")
-    I.I(SUB, "temp2", "ten", "temp2")
-    I.I(ADD, "BTT0", "br16", 0),                            I.JPO("state3", False, "br15")
-    I.I(ADD, "B_IO", "one", 0)                              # State 7 folded
-    I.NOP(),                                                I.JMP("state0",        "br16")
-
-
-    I.I(ADD, "BTT0", "br17", 0),                            I.N("state3")
-    I.I(ADD, "temp", 0, "array_top_pointer")
-    I.I(ADD, "BTT0", "br18", 0),                            I.JNE("init",   False, "br17")
-    I.I(XOR, "temp2", "space", "temp")
-    I.I(ADD, "BTT0", "br19", 0),                            I.JZE("state6", False, "br18")
-    I.I(ADD, "temp2", "zero_char_neg", "temp")
-    I.I(ADD, "BTT0", "br20", 0),                            I.JNE("state7", False, "br19")
-    I.I(SUB, "temp2", "ten", "temp2")
-    I.I(ADD, "BTT0", "br21", 0),                            I.JPO("state3", False, "br20")
-    I.I(ADD, "B_IO", "one", 0)                              # State 7 folded
-    I.NOP(),                                                I.JMP("state0",        "br21")
-
-
-    I.I(ADD, "BTT0", "br22", 0),                            I.N("state4")
-    I.I(ADD, "temp", 0, "array_top_pointer")
-    I.I(ADD, "BTT0", "br23", 0),                            I.JNE("init",   False, "br22")
-    I.I(XOR, "temp2", "dot", "temp")
-    I.I(ADD, "BTT0", "br24", 0),                            I.JZE("state5", False, "br23")
-    I.I(ADD, "temp2", "zero_char_neg", "temp")
-    I.I(ADD, "BTT0", "br25", 0),                            I.JNE("state7", False, "br24")
-    I.I(SUB, "temp2", "ten", "temp2")
-    I.I(ADD, "BTT0", "br26", 0),                            I.JPO("state4", False, "br25")
-    I.I(ADD, "B_IO", "one", 0)                              # State 7 folded
-    I.NOP(),                                                I.JMP("state0",        "br26")
-
-
-    I.I(ADD, "BTT0", "br27", 0),                            I.N("state5")
-    I.I(ADD, "temp", 0, "array_top_pointer")
-    I.I(ADD, "BTT0", "br28", 0),                            I.JNE("init",   False, "br27")
-    I.I(XOR, "temp2", "space", "temp")
-    I.I(ADD, "BTT0", "br29", 0),                            I.JZE("state6", False,  "br28")
-    I.I(ADD, "temp2", "zero_char_neg", "temp")
-    I.I(ADD, "BTT0", "br30", 0),                            I.JNE("state7", False, "br29")
-    I.I(SUB, "temp2", "ten", "temp2")
-    I.I(ADD, "BTT0", "br31", 0),                            I.JPO("state3", False, "br30")
-    I.I(ADD, "B_IO", "one", 0)                              # State 7 folded
-    I.NOP(),                                                I.JMP("state0",        "br31")
-
-    # branch in BTT
-    I.I(ADD, "A_IO", "one", 0),                             I.JMP("state0",        "br32"), I.N("state6")
-
-    # branch in BTT
-    I.I(ADD, "B_IO", "one", 0),                             I.JMP("state0",        "br33"), I.N("state7")
+#    # First few branches in state0
+#    I.I(ADD, "BTT0",      0, 0) # Used throughout at temp storage
+#    I.I(ADD, "BTT1", "br33", 0) # Saves a cycle in state7!!!
+#    I.I(ADD, "BTT2", "br32", 0) # Needed to save a cycle to keep equivalency
+#    I.I(ADD, "BTT3", "br00", 0) # Saves a cycle each time we restart scanning
+#
+#    # Instruction to set indirect access
+#    base_addr = mem_map["BPO"]["Origin"] 
+#    I.I(ADD, base_addr,   0, "array_top_pointer_init"),     I.N("init")
+#    I.NOP()
+#
+#    # Stored in BTT
+#    #I.I(ADD, "BTT0", "br00", 0),                            I.N("state0")
+#    I.I(ADD, "temp", 0, "array_top_pointer"),               I.N("state0")
+#    I.I(ADD, "BTT0", "br01", 0),                            I.JNE("init",   False, "br00")
+#    I.I(XOR, "temp2", "space", "temp")
+#    I.I(ADD, "BTT0", "br02", 0),                            I.JZE("state0", False, "br01")
+#    I.I(XOR, "temp2", "plus", "temp")
+#    I.I(ADD, "BTT0", "br03", 0),                            I.JZE("state1", False, "br02")
+#    I.I(XOR, "temp2", "minus", "temp")
+#    I.I(ADD, "BTT0", "br04", 0),                            I.JZE("state1", False, "br03")
+#    I.I(XOR, "temp2", "dot", "temp")
+#    I.I(ADD, "BTT0", "br05", 0),                            I.JZE("state2", False, "br04")
+#    I.I(ADD, "temp2", "zero_char_neg", "temp")
+#    I.I(ADD, "BTT0", "br06", 0),                            I.JNE("state7", False, "br05")
+#    I.I(SUB, "temp2", "ten", "temp2")
+#    I.I(ADD, "BTT0", "br07", 0),                            I.JPO("state4", False, "br06")
+#    I.I(ADD, "B_IO", "one", 0)                              # State 7 folded
+#    I.NOP(),                                                I.JMP("state0",        "br07")
+#
+#
+#    I.I(ADD, "BTT0", "br08", 0),                            I.N("state1")
+#    I.I(ADD, "temp", 0, "array_top_pointer")
+#    I.I(ADD, "BTT0", "br09", 0),                            I.JNE("init",   False, "br08")
+#    I.I(XOR, "temp2", "dot", "temp")
+#    I.I(ADD, "BTT0", "br10", 0),                            I.JZE("state2", False, "br09")
+#    I.I(ADD, "temp2", "zero_char_neg", "temp")
+#    I.I(ADD, "BTT0", "br11", 0),                            I.JNE("state7", False, "br10")
+#    I.I(SUB, "temp2", "ten", "temp2")
+#    I.I(ADD, "BTT0", "br12", 0),                            I.JPO("state4", False, "br11")
+#    I.I(ADD, "B_IO", "one", 0)                              # State 7 folded
+#    I.NOP(),                                                I.JMP("state0",        "br12")
+#
+#
+#    I.I(ADD, "BTT0", "br13", 0),                            I.N("state2")
+#    I.I(ADD, "temp", 0, "array_top_pointer")
+#    I.I(ADD, "BTT0", "br14", 0),                            I.JNE("init",   False, "br13")
+#    I.I(ADD, "temp2", "zero_char_neg", "temp")
+#    I.I(ADD, "BTT0", "br15", 0),                            I.JNE("state7", False, "br14")
+#    I.I(SUB, "temp2", "ten", "temp2")
+#    I.I(ADD, "BTT0", "br16", 0),                            I.JPO("state3", False, "br15")
+#    I.I(ADD, "B_IO", "one", 0)                              # State 7 folded
+#    I.NOP(),                                                I.JMP("state0",        "br16")
+#
+#
+#    I.I(ADD, "BTT0", "br17", 0),                            I.N("state3")
+#    I.I(ADD, "temp", 0, "array_top_pointer")
+#    I.I(ADD, "BTT0", "br18", 0),                            I.JNE("init",   False, "br17")
+#    I.I(XOR, "temp2", "space", "temp")
+#    I.I(ADD, "BTT0", "br19", 0),                            I.JZE("state6", False, "br18")
+#    I.I(ADD, "temp2", "zero_char_neg", "temp")
+#    I.I(ADD, "BTT0", "br20", 0),                            I.JNE("state7", False, "br19")
+#    I.I(SUB, "temp2", "ten", "temp2")
+#    I.I(ADD, "BTT0", "br21", 0),                            I.JPO("state3", False, "br20")
+#    I.I(ADD, "B_IO", "one", 0)                              # State 7 folded
+#    I.NOP(),                                                I.JMP("state0",        "br21")
+#
+#
+#    I.I(ADD, "BTT0", "br22", 0),                            I.N("state4")
+#    I.I(ADD, "temp", 0, "array_top_pointer")
+#    I.I(ADD, "BTT0", "br23", 0),                            I.JNE("init",   False, "br22")
+#    I.I(XOR, "temp2", "dot", "temp")
+#    I.I(ADD, "BTT0", "br24", 0),                            I.JZE("state5", False, "br23")
+#    I.I(ADD, "temp2", "zero_char_neg", "temp")
+#    I.I(ADD, "BTT0", "br25", 0),                            I.JNE("state7", False, "br24")
+#    I.I(SUB, "temp2", "ten", "temp2")
+#    I.I(ADD, "BTT0", "br26", 0),                            I.JPO("state4", False, "br25")
+#    I.I(ADD, "B_IO", "one", 0)                              # State 7 folded
+#    I.NOP(),                                                I.JMP("state0",        "br26")
+#
+#
+#    I.I(ADD, "BTT0", "br27", 0),                            I.N("state5")
+#    I.I(ADD, "temp", 0, "array_top_pointer")
+#    I.I(ADD, "BTT0", "br28", 0),                            I.JNE("init",   False, "br27")
+#    I.I(XOR, "temp2", "space", "temp")
+#    I.I(ADD, "BTT0", "br29", 0),                            I.JZE("state6", False,  "br28")
+#    I.I(ADD, "temp2", "zero_char_neg", "temp")
+#    I.I(ADD, "BTT0", "br30", 0),                            I.JNE("state7", False, "br29")
+#    I.I(SUB, "temp2", "ten", "temp2")
+#    I.I(ADD, "BTT0", "br31", 0),                            I.JPO("state3", False, "br30")
+#    I.I(ADD, "B_IO", "one", 0)                              # State 7 folded
+#    I.NOP(),                                                I.JMP("state0",        "br31")
+#
+#    # branch in BTT
+#    I.I(ADD, "A_IO", "one", 0),                             I.JMP("state0",        "br32"), I.N("state6")
+#
+#    # branch in BTT
+#    I.I(ADD, "B_IO", "one", 0),                             I.JMP("state0",        "br33"), I.N("state7")
 
 # Experiment (optimized)
 # 33 runs over 103 input symbols, including outer loop guard
@@ -622,7 +626,7 @@ def assemble_I(PC, A, B):
 
 # Speedup over MIPS-equiv: 807 / 753 = 1.07
 
-# PC Tally
+# PC Tally (REVISED)
 #
 #  To generate matching numbered instruction list:
 #  cat floating_point_fsm.py | egrep " I\.[NI]" | nl | gview -
@@ -631,73 +635,70 @@ def assemble_I(PC, A, B):
 # ones returning to "init", the outer loop.
 # Setting up branches, if not combined with a branch, are not useful.
 #
-#     34 5   # N
+#     34 5   # U
 #     34 6   # N
 #    964 7   # U
 #    964 8   # N
 #    931 9   # U
-#    930 10  # U
+#    930 10  # N
 #    863 11  # U
-#    863 12  # U
+#    863 12  # N
 #    730 13  # U
-#    730 14  # U
+#    730 14  # N
 #    398 15  # U
-#    398 16  # U
+#    398 16  # N
 #    265 17  # U
-#    265 18  # U
+#    265 18  # N
 #    265 19  # U
-#    265 20  # U
+#    265 20  # N
 #    465 23  # N
 #    465 24  # U
 #    465 25  # N
 #    465 26  # U
-#    465 27  # U
+#    465 27  # N
 #    266 28  # U
-#    266 29  # U
+#    266 29  # N
 #    266 30  # U
-#    266 31  # U
+#    266 31  # N
 #    332 34  # N
 #    332 35  # U
 #    332 36  # N
 #    332 37  # U
-#    332 38  # U
+#    332 38  # N
 #    332 39  # U
-#    332 40  # U
+#    332 40  # N
 #    597 43  # N
 #    597 44  # U
 #    597 45  # N
 #    597 46  # U
-#    597 47  # U
+#    597 47  # N
 #     33 48  # U
-#     33 49  # U
+#     33 49  # N
 #     33 50  # U
-#     33 51  # U
+#     33 51  # N
 #     33 52  # U
-#     33 53  # U
+#     33 53  # N
 #    531 54  # N
 #    531 55  # U
 #    531 56  # N
 #    531 57  # U
-#    531 58  # U
+#    531 58  # N
 #    531 65  # N
 #    531 66  # U
 #    531 67  # N
 #    531 68  # U
-#    531 69  # U
+#    531 69  # N
 #    265 70  # U
-#    265 71  # U
+#    265 71  # N
 #    265 72  # U
-#    265 73  # U
+#    265 73  # N
 #    830 76  # U
 #
 # (sums done externally: cat foo | sed -E -e's/\s+/ /g' | grep "# U" | cut -d' ' -f 2 | awk '{ sum+=$1} END {print sum}'
-# Useful:     19051
-# Not Useful:  5944
+# Useful:     11685
+# Not Useful: 13310
 # Total:      24995
-# ALU Efficiency:  19051 / 24995 = 0.76219
-
-# Improvement over MIPS-equiv: 0.76219 / 0.74231 = 1.02678x (or +0.01988)
-
+# ALU Efficiency:  11685 / 24995 = 0.46749 (< 50% due to naked BTM reloads at start of states)
 
     I.resolve_forward_jumps()
 

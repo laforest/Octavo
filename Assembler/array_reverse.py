@@ -213,7 +213,7 @@ def assemble_I(PC, A, B):
 # Cycles per reversal: 24705 / 61 = 405
 # Cycles per array element: 405 / 100 = 4.05
 
-# PC Tally
+# PC Tally (OUTDATED, DO NOT USE)
 #      1 1   # setup
 #      1 2   # setup
 #      1 3   # setup
@@ -266,50 +266,436 @@ def assemble_I(PC, A, B):
 # Cycles per array element: 404 / 100 = 4.04
 # vs. best-effort: 404 / 405          = -0.25%
 
-# PC Tally
+# PC Tally (Revised)
 #      1 1   # setup
 #      1 2   # setup
 #      1 3   # setup
 #      1 4   # setup
 #      1 5   # setup
-#     62 6   # N
-#     62 7   # N
-#     62 8   # N
+#     62 6   # N U
+#     62 7   # N U
+#     62 8   # N 
 #   3094 9   # U
-#   3094 10  # U
+#   3094 10  # U 
 #   3094 11  # U
 #   3093 12  # U
-#   3093 13  # N
-#   3093 14  # N
+#   3093 13  # N U
+#   3093 14  # N U
 #   3093 15  # N
 #   3093 16  # N
 #     61 17  # N
 #
-# Useful:         3094 + 3094 + 3094 + 3093                     = 12375
-# Not Useful:     62 + 62 + 62 + 3093 + 3093 + 3093 + 3093 + 61 = 12558
-# Total:                                                          24994
-# ALU Efficiency: 12375 / 24994                                 = 0.49512
-# vs. best-effort:      0.49512 / 0.49386                             = 1.0025 (+0.25%)
+# Useful:         62 + 62 + 3094 + 3094 + 3094 + 3093 + 3093 + 3093 = 18685
+# Not Useful:     62 + 3093 + 3093 + 61                             =  6309
+# Total:                                                              24994
+# ALU Efficiency: 18685 / 24994                                     = 0.74758
 
 
 
-# Optimized
+# Unrolled  MIPS-equivalent (exact) (ALSO optimized, same unrolling, but lower efficiency)
     # Instruction to set indirect access
     base_addr = mem_map["BPO"]["Origin"] 
     I.I(ADD, "array_bottom_pointer_temp", 0, "array_bottom_pointer_init")
+############################################################################################################
     I.I(ADD, base_addr,   0, "array_top_pointer_init"),    I.N("init")
     I.I(ADD, base_addr+1, 0, "array_bottom_pointer_init")
-    # Like all control memory writes: has a RAW latency on 1 thread cycle.
-    #I.NOP()
-    I.I(ADD, "array_count", 0, "array_half_length")
-    I.I(ADD, "temp_top",    0, "array_top_pointer"),        I.N("next")
+############################################################################################################
+    I.I(ADD, "temp_top",    0, "array_top_pointer")
     I.I(ADD, "temp_bottom", 0, "array_bottom_pointer")
     I.I(ADD, "array_bottom_pointer", 0, "temp_top")
     I.I(ADD, "array_top_pointer",    0, "temp_bottom")
     I.I(ADD, "array_bottom_pointer_temp", "array_bottom_pointer_decr", "array_bottom_pointer_temp")
-    I.I(ADD, "array_count", "minus_one", "array_count")
-    I.I(ADD, base_addr+1, 0, "array_bottom_pointer_temp"),                 I.JNZ("next", None, "jmp0")
-    I.I(ADD, "array_bottom_pointer_temp", 0, "array_bottom_pointer_init"), I.JMP("init",       "jmp1")
+    I.I(ADD, base_addr+1, 0, "array_bottom_pointer_temp")
+############################################################################################################
+    I.I(ADD, "temp_top",    0, "array_top_pointer")
+    I.I(ADD, "temp_bottom", 0, "array_bottom_pointer")
+    I.I(ADD, "array_bottom_pointer", 0, "temp_top")
+    I.I(ADD, "array_top_pointer",    0, "temp_bottom")
+    I.I(ADD, "array_bottom_pointer_temp", "array_bottom_pointer_decr", "array_bottom_pointer_temp")
+    I.I(ADD, base_addr+1, 0, "array_bottom_pointer_temp")
+############################################################################################################
+    I.I(ADD, "temp_top",    0, "array_top_pointer")
+    I.I(ADD, "temp_bottom", 0, "array_bottom_pointer")
+    I.I(ADD, "array_bottom_pointer", 0, "temp_top")
+    I.I(ADD, "array_top_pointer",    0, "temp_bottom")
+    I.I(ADD, "array_bottom_pointer_temp", "array_bottom_pointer_decr", "array_bottom_pointer_temp")
+    I.I(ADD, base_addr+1, 0, "array_bottom_pointer_temp")
+############################################################################################################
+    I.I(ADD, "temp_top",    0, "array_top_pointer")
+    I.I(ADD, "temp_bottom", 0, "array_bottom_pointer")
+    I.I(ADD, "array_bottom_pointer", 0, "temp_top")
+    I.I(ADD, "array_top_pointer",    0, "temp_bottom")
+    I.I(ADD, "array_bottom_pointer_temp", "array_bottom_pointer_decr", "array_bottom_pointer_temp")
+    I.I(ADD, base_addr+1, 0, "array_bottom_pointer_temp")
+############################################################################################################
+    I.I(ADD, "temp_top",    0, "array_top_pointer")
+    I.I(ADD, "temp_bottom", 0, "array_bottom_pointer")
+    I.I(ADD, "array_bottom_pointer", 0, "temp_top")
+    I.I(ADD, "array_top_pointer",    0, "temp_bottom")
+    I.I(ADD, "array_bottom_pointer_temp", "array_bottom_pointer_decr", "array_bottom_pointer_temp")
+    I.I(ADD, base_addr+1, 0, "array_bottom_pointer_temp")
+############################################################################################################
+    I.I(ADD, "temp_top",    0, "array_top_pointer")
+    I.I(ADD, "temp_bottom", 0, "array_bottom_pointer")
+    I.I(ADD, "array_bottom_pointer", 0, "temp_top")
+    I.I(ADD, "array_top_pointer",    0, "temp_bottom")
+    I.I(ADD, "array_bottom_pointer_temp", "array_bottom_pointer_decr", "array_bottom_pointer_temp")
+    I.I(ADD, base_addr+1, 0, "array_bottom_pointer_temp")
+############################################################################################################
+    I.I(ADD, "temp_top",    0, "array_top_pointer")
+    I.I(ADD, "temp_bottom", 0, "array_bottom_pointer")
+    I.I(ADD, "array_bottom_pointer", 0, "temp_top")
+    I.I(ADD, "array_top_pointer",    0, "temp_bottom")
+    I.I(ADD, "array_bottom_pointer_temp", "array_bottom_pointer_decr", "array_bottom_pointer_temp")
+    I.I(ADD, base_addr+1, 0, "array_bottom_pointer_temp")
+############################################################################################################
+    I.I(ADD, "temp_top",    0, "array_top_pointer")
+    I.I(ADD, "temp_bottom", 0, "array_bottom_pointer")
+    I.I(ADD, "array_bottom_pointer", 0, "temp_top")
+    I.I(ADD, "array_top_pointer",    0, "temp_bottom")
+    I.I(ADD, "array_bottom_pointer_temp", "array_bottom_pointer_decr", "array_bottom_pointer_temp")
+    I.I(ADD, base_addr+1, 0, "array_bottom_pointer_temp")
+############################################################################################################
+    I.I(ADD, "temp_top",    0, "array_top_pointer")
+    I.I(ADD, "temp_bottom", 0, "array_bottom_pointer")
+    I.I(ADD, "array_bottom_pointer", 0, "temp_top")
+    I.I(ADD, "array_top_pointer",    0, "temp_bottom")
+    I.I(ADD, "array_bottom_pointer_temp", "array_bottom_pointer_decr", "array_bottom_pointer_temp")
+    I.I(ADD, base_addr+1, 0, "array_bottom_pointer_temp")
+############################################################################################################
+    I.I(ADD, "temp_top",    0, "array_top_pointer")
+    I.I(ADD, "temp_bottom", 0, "array_bottom_pointer")
+    I.I(ADD, "array_bottom_pointer", 0, "temp_top")
+    I.I(ADD, "array_top_pointer",    0, "temp_bottom")
+    I.I(ADD, "array_bottom_pointer_temp", "array_bottom_pointer_decr", "array_bottom_pointer_temp")
+    I.I(ADD, base_addr+1, 0, "array_bottom_pointer_temp")
+############################################################################################################
+    I.I(ADD, "temp_top",    0, "array_top_pointer")
+    I.I(ADD, "temp_bottom", 0, "array_bottom_pointer")
+    I.I(ADD, "array_bottom_pointer", 0, "temp_top")
+    I.I(ADD, "array_top_pointer",    0, "temp_bottom")
+    I.I(ADD, "array_bottom_pointer_temp", "array_bottom_pointer_decr", "array_bottom_pointer_temp")
+    I.I(ADD, base_addr+1, 0, "array_bottom_pointer_temp")
+############################################################################################################
+    I.I(ADD, "temp_top",    0, "array_top_pointer")
+    I.I(ADD, "temp_bottom", 0, "array_bottom_pointer")
+    I.I(ADD, "array_bottom_pointer", 0, "temp_top")
+    I.I(ADD, "array_top_pointer",    0, "temp_bottom")
+    I.I(ADD, "array_bottom_pointer_temp", "array_bottom_pointer_decr", "array_bottom_pointer_temp")
+    I.I(ADD, base_addr+1, 0, "array_bottom_pointer_temp")
+############################################################################################################
+    I.I(ADD, "temp_top",    0, "array_top_pointer")
+    I.I(ADD, "temp_bottom", 0, "array_bottom_pointer")
+    I.I(ADD, "array_bottom_pointer", 0, "temp_top")
+    I.I(ADD, "array_top_pointer",    0, "temp_bottom")
+    I.I(ADD, "array_bottom_pointer_temp", "array_bottom_pointer_decr", "array_bottom_pointer_temp")
+    I.I(ADD, base_addr+1, 0, "array_bottom_pointer_temp")
+############################################################################################################
+    I.I(ADD, "temp_top",    0, "array_top_pointer")
+    I.I(ADD, "temp_bottom", 0, "array_bottom_pointer")
+    I.I(ADD, "array_bottom_pointer", 0, "temp_top")
+    I.I(ADD, "array_top_pointer",    0, "temp_bottom")
+    I.I(ADD, "array_bottom_pointer_temp", "array_bottom_pointer_decr", "array_bottom_pointer_temp")
+    I.I(ADD, base_addr+1, 0, "array_bottom_pointer_temp")
+############################################################################################################
+    I.I(ADD, "temp_top",    0, "array_top_pointer")
+    I.I(ADD, "temp_bottom", 0, "array_bottom_pointer")
+    I.I(ADD, "array_bottom_pointer", 0, "temp_top")
+    I.I(ADD, "array_top_pointer",    0, "temp_bottom")
+    I.I(ADD, "array_bottom_pointer_temp", "array_bottom_pointer_decr", "array_bottom_pointer_temp")
+    I.I(ADD, base_addr+1, 0, "array_bottom_pointer_temp")
+############################################################################################################
+    I.I(ADD, "temp_top",    0, "array_top_pointer")
+    I.I(ADD, "temp_bottom", 0, "array_bottom_pointer")
+    I.I(ADD, "array_bottom_pointer", 0, "temp_top")
+    I.I(ADD, "array_top_pointer",    0, "temp_bottom")
+    I.I(ADD, "array_bottom_pointer_temp", "array_bottom_pointer_decr", "array_bottom_pointer_temp")
+    I.I(ADD, base_addr+1, 0, "array_bottom_pointer_temp")
+############################################################################################################
+    I.I(ADD, "temp_top",    0, "array_top_pointer")
+    I.I(ADD, "temp_bottom", 0, "array_bottom_pointer")
+    I.I(ADD, "array_bottom_pointer", 0, "temp_top")
+    I.I(ADD, "array_top_pointer",    0, "temp_bottom")
+    I.I(ADD, "array_bottom_pointer_temp", "array_bottom_pointer_decr", "array_bottom_pointer_temp")
+    I.I(ADD, base_addr+1, 0, "array_bottom_pointer_temp")
+############################################################################################################
+    I.I(ADD, "temp_top",    0, "array_top_pointer")
+    I.I(ADD, "temp_bottom", 0, "array_bottom_pointer")
+    I.I(ADD, "array_bottom_pointer", 0, "temp_top")
+    I.I(ADD, "array_top_pointer",    0, "temp_bottom")
+    I.I(ADD, "array_bottom_pointer_temp", "array_bottom_pointer_decr", "array_bottom_pointer_temp")
+    I.I(ADD, base_addr+1, 0, "array_bottom_pointer_temp")
+############################################################################################################
+    I.I(ADD, "temp_top",    0, "array_top_pointer")
+    I.I(ADD, "temp_bottom", 0, "array_bottom_pointer")
+    I.I(ADD, "array_bottom_pointer", 0, "temp_top")
+    I.I(ADD, "array_top_pointer",    0, "temp_bottom")
+    I.I(ADD, "array_bottom_pointer_temp", "array_bottom_pointer_decr", "array_bottom_pointer_temp")
+    I.I(ADD, base_addr+1, 0, "array_bottom_pointer_temp")
+############################################################################################################
+    I.I(ADD, "temp_top",    0, "array_top_pointer")
+    I.I(ADD, "temp_bottom", 0, "array_bottom_pointer")
+    I.I(ADD, "array_bottom_pointer", 0, "temp_top")
+    I.I(ADD, "array_top_pointer",    0, "temp_bottom")
+    I.I(ADD, "array_bottom_pointer_temp", "array_bottom_pointer_decr", "array_bottom_pointer_temp")
+    I.I(ADD, base_addr+1, 0, "array_bottom_pointer_temp")
+############################################################################################################
+    I.I(ADD, "temp_top",    0, "array_top_pointer")
+    I.I(ADD, "temp_bottom", 0, "array_bottom_pointer")
+    I.I(ADD, "array_bottom_pointer", 0, "temp_top")
+    I.I(ADD, "array_top_pointer",    0, "temp_bottom")
+    I.I(ADD, "array_bottom_pointer_temp", "array_bottom_pointer_decr", "array_bottom_pointer_temp")
+    I.I(ADD, base_addr+1, 0, "array_bottom_pointer_temp")
+############################################################################################################
+    I.I(ADD, "temp_top",    0, "array_top_pointer")
+    I.I(ADD, "temp_bottom", 0, "array_bottom_pointer")
+    I.I(ADD, "array_bottom_pointer", 0, "temp_top")
+    I.I(ADD, "array_top_pointer",    0, "temp_bottom")
+    I.I(ADD, "array_bottom_pointer_temp", "array_bottom_pointer_decr", "array_bottom_pointer_temp")
+    I.I(ADD, base_addr+1, 0, "array_bottom_pointer_temp")
+############################################################################################################
+    I.I(ADD, "temp_top",    0, "array_top_pointer")
+    I.I(ADD, "temp_bottom", 0, "array_bottom_pointer")
+    I.I(ADD, "array_bottom_pointer", 0, "temp_top")
+    I.I(ADD, "array_top_pointer",    0, "temp_bottom")
+    I.I(ADD, "array_bottom_pointer_temp", "array_bottom_pointer_decr", "array_bottom_pointer_temp")
+    I.I(ADD, base_addr+1, 0, "array_bottom_pointer_temp")
+############################################################################################################
+    I.I(ADD, "temp_top",    0, "array_top_pointer")
+    I.I(ADD, "temp_bottom", 0, "array_bottom_pointer")
+    I.I(ADD, "array_bottom_pointer", 0, "temp_top")
+    I.I(ADD, "array_top_pointer",    0, "temp_bottom")
+    I.I(ADD, "array_bottom_pointer_temp", "array_bottom_pointer_decr", "array_bottom_pointer_temp")
+    I.I(ADD, base_addr+1, 0, "array_bottom_pointer_temp")
+############################################################################################################
+    I.I(ADD, "temp_top",    0, "array_top_pointer")
+    I.I(ADD, "temp_bottom", 0, "array_bottom_pointer")
+    I.I(ADD, "array_bottom_pointer", 0, "temp_top")
+    I.I(ADD, "array_top_pointer",    0, "temp_bottom")
+    I.I(ADD, "array_bottom_pointer_temp", "array_bottom_pointer_decr", "array_bottom_pointer_temp")
+    I.I(ADD, base_addr+1, 0, "array_bottom_pointer_temp")
+############################################################################################################
+    I.I(ADD, "temp_top",    0, "array_top_pointer")
+    I.I(ADD, "temp_bottom", 0, "array_bottom_pointer")
+    I.I(ADD, "array_bottom_pointer", 0, "temp_top")
+    I.I(ADD, "array_top_pointer",    0, "temp_bottom")
+    I.I(ADD, "array_bottom_pointer_temp", "array_bottom_pointer_decr", "array_bottom_pointer_temp")
+    I.I(ADD, base_addr+1, 0, "array_bottom_pointer_temp")
+############################################################################################################
+    I.I(ADD, "temp_top",    0, "array_top_pointer")
+    I.I(ADD, "temp_bottom", 0, "array_bottom_pointer")
+    I.I(ADD, "array_bottom_pointer", 0, "temp_top")
+    I.I(ADD, "array_top_pointer",    0, "temp_bottom")
+    I.I(ADD, "array_bottom_pointer_temp", "array_bottom_pointer_decr", "array_bottom_pointer_temp")
+    I.I(ADD, base_addr+1, 0, "array_bottom_pointer_temp")
+############################################################################################################
+    I.I(ADD, "temp_top",    0, "array_top_pointer")
+    I.I(ADD, "temp_bottom", 0, "array_bottom_pointer")
+    I.I(ADD, "array_bottom_pointer", 0, "temp_top")
+    I.I(ADD, "array_top_pointer",    0, "temp_bottom")
+    I.I(ADD, "array_bottom_pointer_temp", "array_bottom_pointer_decr", "array_bottom_pointer_temp")
+    I.I(ADD, base_addr+1, 0, "array_bottom_pointer_temp")
+############################################################################################################
+    I.I(ADD, "temp_top",    0, "array_top_pointer")
+    I.I(ADD, "temp_bottom", 0, "array_bottom_pointer")
+    I.I(ADD, "array_bottom_pointer", 0, "temp_top")
+    I.I(ADD, "array_top_pointer",    0, "temp_bottom")
+    I.I(ADD, "array_bottom_pointer_temp", "array_bottom_pointer_decr", "array_bottom_pointer_temp")
+    I.I(ADD, base_addr+1, 0, "array_bottom_pointer_temp")
+############################################################################################################
+    I.I(ADD, "temp_top",    0, "array_top_pointer")
+    I.I(ADD, "temp_bottom", 0, "array_bottom_pointer")
+    I.I(ADD, "array_bottom_pointer", 0, "temp_top")
+    I.I(ADD, "array_top_pointer",    0, "temp_bottom")
+    I.I(ADD, "array_bottom_pointer_temp", "array_bottom_pointer_decr", "array_bottom_pointer_temp")
+    I.I(ADD, base_addr+1, 0, "array_bottom_pointer_temp")
+############################################################################################################
+    I.I(ADD, "temp_top",    0, "array_top_pointer")
+    I.I(ADD, "temp_bottom", 0, "array_bottom_pointer")
+    I.I(ADD, "array_bottom_pointer", 0, "temp_top")
+    I.I(ADD, "array_top_pointer",    0, "temp_bottom")
+    I.I(ADD, "array_bottom_pointer_temp", "array_bottom_pointer_decr", "array_bottom_pointer_temp")
+    I.I(ADD, base_addr+1, 0, "array_bottom_pointer_temp")
+############################################################################################################
+    I.I(ADD, "temp_top",    0, "array_top_pointer")
+    I.I(ADD, "temp_bottom", 0, "array_bottom_pointer")
+    I.I(ADD, "array_bottom_pointer", 0, "temp_top")
+    I.I(ADD, "array_top_pointer",    0, "temp_bottom")
+    I.I(ADD, "array_bottom_pointer_temp", "array_bottom_pointer_decr", "array_bottom_pointer_temp")
+    I.I(ADD, base_addr+1, 0, "array_bottom_pointer_temp")
+############################################################################################################
+    I.I(ADD, "temp_top",    0, "array_top_pointer")
+    I.I(ADD, "temp_bottom", 0, "array_bottom_pointer")
+    I.I(ADD, "array_bottom_pointer", 0, "temp_top")
+    I.I(ADD, "array_top_pointer",    0, "temp_bottom")
+    I.I(ADD, "array_bottom_pointer_temp", "array_bottom_pointer_decr", "array_bottom_pointer_temp")
+    I.I(ADD, base_addr+1, 0, "array_bottom_pointer_temp")
+############################################################################################################
+    I.I(ADD, "temp_top",    0, "array_top_pointer")
+    I.I(ADD, "temp_bottom", 0, "array_bottom_pointer")
+    I.I(ADD, "array_bottom_pointer", 0, "temp_top")
+    I.I(ADD, "array_top_pointer",    0, "temp_bottom")
+    I.I(ADD, "array_bottom_pointer_temp", "array_bottom_pointer_decr", "array_bottom_pointer_temp")
+    I.I(ADD, base_addr+1, 0, "array_bottom_pointer_temp")
+############################################################################################################
+    I.I(ADD, "temp_top",    0, "array_top_pointer")
+    I.I(ADD, "temp_bottom", 0, "array_bottom_pointer")
+    I.I(ADD, "array_bottom_pointer", 0, "temp_top")
+    I.I(ADD, "array_top_pointer",    0, "temp_bottom")
+    I.I(ADD, "array_bottom_pointer_temp", "array_bottom_pointer_decr", "array_bottom_pointer_temp")
+    I.I(ADD, base_addr+1, 0, "array_bottom_pointer_temp")
+############################################################################################################
+    I.I(ADD, "temp_top",    0, "array_top_pointer")
+    I.I(ADD, "temp_bottom", 0, "array_bottom_pointer")
+    I.I(ADD, "array_bottom_pointer", 0, "temp_top")
+    I.I(ADD, "array_top_pointer",    0, "temp_bottom")
+    I.I(ADD, "array_bottom_pointer_temp", "array_bottom_pointer_decr", "array_bottom_pointer_temp")
+    I.I(ADD, base_addr+1, 0, "array_bottom_pointer_temp")
+############################################################################################################
+    I.I(ADD, "temp_top",    0, "array_top_pointer")
+    I.I(ADD, "temp_bottom", 0, "array_bottom_pointer")
+    I.I(ADD, "array_bottom_pointer", 0, "temp_top")
+    I.I(ADD, "array_top_pointer",    0, "temp_bottom")
+    I.I(ADD, "array_bottom_pointer_temp", "array_bottom_pointer_decr", "array_bottom_pointer_temp")
+    I.I(ADD, base_addr+1, 0, "array_bottom_pointer_temp")
+############################################################################################################
+    I.I(ADD, "temp_top",    0, "array_top_pointer")
+    I.I(ADD, "temp_bottom", 0, "array_bottom_pointer")
+    I.I(ADD, "array_bottom_pointer", 0, "temp_top")
+    I.I(ADD, "array_top_pointer",    0, "temp_bottom")
+    I.I(ADD, "array_bottom_pointer_temp", "array_bottom_pointer_decr", "array_bottom_pointer_temp")
+    I.I(ADD, base_addr+1, 0, "array_bottom_pointer_temp")
+############################################################################################################
+    I.I(ADD, "temp_top",    0, "array_top_pointer")
+    I.I(ADD, "temp_bottom", 0, "array_bottom_pointer")
+    I.I(ADD, "array_bottom_pointer", 0, "temp_top")
+    I.I(ADD, "array_top_pointer",    0, "temp_bottom")
+    I.I(ADD, "array_bottom_pointer_temp", "array_bottom_pointer_decr", "array_bottom_pointer_temp")
+    I.I(ADD, base_addr+1, 0, "array_bottom_pointer_temp")
+############################################################################################################
+    I.I(ADD, "temp_top",    0, "array_top_pointer")
+    I.I(ADD, "temp_bottom", 0, "array_bottom_pointer")
+    I.I(ADD, "array_bottom_pointer", 0, "temp_top")
+    I.I(ADD, "array_top_pointer",    0, "temp_bottom")
+    I.I(ADD, "array_bottom_pointer_temp", "array_bottom_pointer_decr", "array_bottom_pointer_temp")
+    I.I(ADD, base_addr+1, 0, "array_bottom_pointer_temp")
+############################################################################################################
+    I.I(ADD, "temp_top",    0, "array_top_pointer")
+    I.I(ADD, "temp_bottom", 0, "array_bottom_pointer")
+    I.I(ADD, "array_bottom_pointer", 0, "temp_top")
+    I.I(ADD, "array_top_pointer",    0, "temp_bottom")
+    I.I(ADD, "array_bottom_pointer_temp", "array_bottom_pointer_decr", "array_bottom_pointer_temp")
+    I.I(ADD, base_addr+1, 0, "array_bottom_pointer_temp")
+############################################################################################################
+    I.I(ADD, "temp_top",    0, "array_top_pointer")
+    I.I(ADD, "temp_bottom", 0, "array_bottom_pointer")
+    I.I(ADD, "array_bottom_pointer", 0, "temp_top")
+    I.I(ADD, "array_top_pointer",    0, "temp_bottom")
+    I.I(ADD, "array_bottom_pointer_temp", "array_bottom_pointer_decr", "array_bottom_pointer_temp")
+    I.I(ADD, base_addr+1, 0, "array_bottom_pointer_temp")
+############################################################################################################
+    I.I(ADD, "temp_top",    0, "array_top_pointer")
+    I.I(ADD, "temp_bottom", 0, "array_bottom_pointer")
+    I.I(ADD, "array_bottom_pointer", 0, "temp_top")
+    I.I(ADD, "array_top_pointer",    0, "temp_bottom")
+    I.I(ADD, "array_bottom_pointer_temp", "array_bottom_pointer_decr", "array_bottom_pointer_temp")
+    I.I(ADD, base_addr+1, 0, "array_bottom_pointer_temp")
+############################################################################################################
+    I.I(ADD, "temp_top",    0, "array_top_pointer")
+    I.I(ADD, "temp_bottom", 0, "array_bottom_pointer")
+    I.I(ADD, "array_bottom_pointer", 0, "temp_top")
+    I.I(ADD, "array_top_pointer",    0, "temp_bottom")
+    I.I(ADD, "array_bottom_pointer_temp", "array_bottom_pointer_decr", "array_bottom_pointer_temp")
+    I.I(ADD, base_addr+1, 0, "array_bottom_pointer_temp")
+############################################################################################################
+    I.I(ADD, "temp_top",    0, "array_top_pointer")
+    I.I(ADD, "temp_bottom", 0, "array_bottom_pointer")
+    I.I(ADD, "array_bottom_pointer", 0, "temp_top")
+    I.I(ADD, "array_top_pointer",    0, "temp_bottom")
+    I.I(ADD, "array_bottom_pointer_temp", "array_bottom_pointer_decr", "array_bottom_pointer_temp")
+    I.I(ADD, base_addr+1, 0, "array_bottom_pointer_temp")
+############################################################################################################
+    I.I(ADD, "temp_top",    0, "array_top_pointer")
+    I.I(ADD, "temp_bottom", 0, "array_bottom_pointer")
+    I.I(ADD, "array_bottom_pointer", 0, "temp_top")
+    I.I(ADD, "array_top_pointer",    0, "temp_bottom")
+    I.I(ADD, "array_bottom_pointer_temp", "array_bottom_pointer_decr", "array_bottom_pointer_temp")
+    I.I(ADD, base_addr+1, 0, "array_bottom_pointer_temp")
+############################################################################################################
+    I.I(ADD, "temp_top",    0, "array_top_pointer")
+    I.I(ADD, "temp_bottom", 0, "array_bottom_pointer")
+    I.I(ADD, "array_bottom_pointer", 0, "temp_top")
+    I.I(ADD, "array_top_pointer",    0, "temp_bottom")
+    I.I(ADD, "array_bottom_pointer_temp", "array_bottom_pointer_decr", "array_bottom_pointer_temp")
+    I.I(ADD, base_addr+1, 0, "array_bottom_pointer_temp")
+############################################################################################################
+    I.I(ADD, "temp_top",    0, "array_top_pointer")
+    I.I(ADD, "temp_bottom", 0, "array_bottom_pointer")
+    I.I(ADD, "array_bottom_pointer", 0, "temp_top")
+    I.I(ADD, "array_top_pointer",    0, "temp_bottom")
+    I.I(ADD, "array_bottom_pointer_temp", "array_bottom_pointer_decr", "array_bottom_pointer_temp")
+    I.I(ADD, base_addr+1, 0, "array_bottom_pointer_temp")
+############################################################################################################
+    I.I(ADD, "temp_top",    0, "array_top_pointer")
+    I.I(ADD, "temp_bottom", 0, "array_bottom_pointer")
+    I.I(ADD, "array_bottom_pointer", 0, "temp_top")
+    I.I(ADD, "array_top_pointer",    0, "temp_bottom")
+    I.I(ADD, "array_bottom_pointer_temp", "array_bottom_pointer_decr", "array_bottom_pointer_temp")
+    I.I(ADD, base_addr+1, 0, "array_bottom_pointer_temp")
+############################################################################################################
+    I.I(ADD, "temp_top",    0, "array_top_pointer")
+    I.I(ADD, "temp_bottom", 0, "array_bottom_pointer")
+    I.I(ADD, "array_bottom_pointer", 0, "temp_top")
+    I.I(ADD, "array_top_pointer",    0, "temp_bottom")
+    I.I(ADD, "array_bottom_pointer_temp", "array_bottom_pointer_decr", "array_bottom_pointer_temp")
+    I.I(ADD, base_addr+1, 0, "array_bottom_pointer_temp")
+############################################################################################################
+    I.I(ADD, "temp_top",    0, "array_top_pointer")
+    I.I(ADD, "temp_bottom", 0, "array_bottom_pointer")
+    I.I(ADD, "array_bottom_pointer", 0, "temp_top")
+    I.I(ADD, "array_top_pointer",    0, "temp_bottom")
+    I.I(ADD, "array_bottom_pointer_temp", "array_bottom_pointer_decr", "array_bottom_pointer_temp")
+    I.I(ADD, base_addr+1, 0, "array_bottom_pointer_temp")
+############################################################################################################
+    I.I(ADD, "array_bottom_pointer_temp", 0, "array_bottom_pointer_init"), I.JMP("init",       "jmp0")
+
+# Experiment:
+# 80 array reversals, 100 element array, over 200,000 simulation cycles
+# Cycles: 197816 - 56 = 197760
+# Useful cycles: 197760 / 8 = 24720
+# Cycles per reversal: 24720 / 80 = 309
+# Cycles per array element: 309 / 100 = 3.09
+
+# PC Tally
+# All cycles useful, except for first (insignificant error, and not counted)
+# ALU efficiency: 1.00
+
+# As Optimized (same unrolling)
+# All cycles useful, except for first (insignificant error, and not counted)
+# Not useful: 2 cycles per loop (bottom pointer decrement): 2 * 50 = 100 * 80 = 8000
+# Not useful: unfolded JMP at end: 80 cycles
+# Not useful total: 8000 + 80 = 8080
+# Useful cycles: 24720 - 8080 = 16640
+# ALU Efficiency: 16640 / 24720 = 0.67314 (NO, see below, consider all ALU work useful, as we compare to the original case, not the ideal with no pointer math)
+
+
+# Optimized
+#    # Instruction to set indirect access
+#    base_addr = mem_map["BPO"]["Origin"] 
+#    I.I(ADD, "array_bottom_pointer_temp", 0, "array_bottom_pointer_init")
+#    I.I(ADD, base_addr,   0, "array_top_pointer_init"),    I.N("init")
+#    I.I(ADD, base_addr+1, 0, "array_bottom_pointer_init")
+#    # Like all control memory writes: has a RAW latency on 1 thread cycle.
+#    #I.NOP()
+#    I.I(ADD, "array_count", 0, "array_half_length")
+#    I.I(ADD, "temp_top",    0, "array_top_pointer"),        I.N("next")
+#    I.I(ADD, "temp_bottom", 0, "array_bottom_pointer")
+#    I.I(ADD, "array_bottom_pointer", 0, "temp_top")
+#    I.I(ADD, "array_top_pointer",    0, "temp_bottom")
+#    I.I(ADD, "array_bottom_pointer_temp", "array_bottom_pointer_decr", "array_bottom_pointer_temp")
+#    I.I(ADD, "array_count", "minus_one", "array_count")
+#    I.I(ADD, base_addr+1, 0, "array_bottom_pointer_temp"),                 I.JNZ("next", None, "jmp0")
+#    I.I(ADD, "array_bottom_pointer_temp", 0, "array_bottom_pointer_init"), I.JMP("init",       "jmp1")
 
 # Experiment:
 # 70 array reversals, 100 element array, over 200,000 simulation cycles
@@ -325,23 +711,22 @@ def assemble_I(PC, A, B):
 #      1 3   # setup
 #      1 4   # setup
 #      1 5   # setup
-#     71 6   # N
-#     71 7   # N
+#     71 6   # N U
+#     71 7   # N U
 #     71 8   # N
 #   3531 9   # U
 #   3530 10  # U
 #   3530 11  # U
 #   3530 12  # U
-#   3530 13  # N
+#   3530 13  # N U
 #   3530 14  # N
-#   3530 15  # N
-#     70 16  # N
+#   3530 15  # N U
+#     70 16  # N U
 #
-# Useful:         3531 + 3530 + 3530 + 3530              = 14121
-# Not Useful:     71 + 71 + 71 + 3530 + 3530 + 3530 + 70 = 10873
-# Total:                                                   24994
-# ALU Efficiency: 14121 / 24994                          = 0.56498
-# vs. exact:      0.56498 / 0.49512                      = 1.1411 (+14.1%)
+# Useful:         71 + 71 + 3531 + 3530 + 3530 + 3530 + 3530 + 3530 + 70 = 21393
+# Not Useful:     71 + 3530                                              =  3601
+# Total:                                                                   24994
+# ALU Efficiency: 21393 / 24994                                          = 0.85593
 
 
     I.resolve_forward_jumps()
