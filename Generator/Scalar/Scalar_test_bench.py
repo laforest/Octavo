@@ -196,8 +196,8 @@ INSTALL_BASE="${install_base}"
 TOP_LEVEL_MODULE="${CPU_NAME}_test_bench"
 TESTBENCH="./$${TOP_LEVEL_MODULE}.v"
 
-LPM_LIBRARY="${quartus_base_path}/eda/sim_lib/220model.v"
-ALT_LIBRARY="${quartus_base_path}/eda/sim_lib/altera_mf.v"
+LPM_LIBRARY="${quartus_base_path}/linux/quartus/eda/sim_lib/220model.v"
+ALT_LIBRARY="${quartus_base_path}/linux/quartus/eda/sim_lib/altera_mf.v"
 
 OCTAVO="$$INSTALL_BASE/Octavo/Misc/params.v \\
         $$INSTALL_BASE/Octavo/Misc/delay_line.v \\

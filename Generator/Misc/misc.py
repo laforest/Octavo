@@ -12,7 +12,7 @@ import math
 # Use these in the generators
 bench_name          = "test_bench"
 harness_name        = "test_harness"
-quartus_base_path   = "$QUARTUS"
+quartus_base_path   = "$QUARTUS_BASE"
 
 def base_install_path():
     """Returns the base path of the installation. Adjust to match installation."""

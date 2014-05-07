@@ -34,7 +34,6 @@ module DataPath
     parameter       B_IO_WRITE_PORT_BASE_ADDR                       = 0,
     parameter       B_IO_WRITE_PORT_ADDR_WIDTH                      = 0,
 
-    parameter       I_PASSTHRU_PIPELINE_DEPTH                       = 0,
     parameter       TAP_AB_PIPELINE_DEPTH                           = 0,
     parameter       AB_READ_PIPELINE_DEPTH                          = 0,
     parameter       AB_ALU_PIPELINE_DEPTH                           = 0,
@@ -54,7 +53,6 @@ module DataPath
 
     input   wire    [INSTR_WIDTH-1:0]                               I_read_data_in,         // stage 1
     input   wire    [INSTR_WIDTH-1:0]                               I_read_data_translated, // stage 3
-    output  wire    [INSTR_WIDTH-1:0]                               I_read_data_out,
 
     input   wire                                                    A_wren_other,
     input   wire                                                    B_wren_other,
@@ -82,20 +80,6 @@ module DataPath
     output  wire    [(B_WORD_WIDTH * B_IO_WRITE_PORT_COUNT)-1:0]    B_io_out
 
 );
-
-// -----------------------------------------------------------
-
-    delay_line 
-    #(
-        .DEPTH  (I_PASSTHRU_PIPELINE_DEPTH),
-        .WIDTH  (INSTR_WIDTH)
-    ) 
-    I_passthru_pipeline
-    (    
-        .clock  (clock),
-        .in     (I_read_data_in),
-        .out    (I_read_data_out)
-    );
 
 // ----------------------------------------------------------
 

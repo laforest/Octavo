@@ -70,7 +70,6 @@ module Scalar
     parameter   PC_PIPELINE_DEPTH                           = 0,
     parameter   I_TAP_PIPELINE_DEPTH                        = 0,
     parameter   TAP_AB_PIPELINE_DEPTH                       = 0,
-    parameter   I_PASSTHRU_PIPELINE_DEPTH                   = 0,
     parameter   AB_READ_PIPELINE_DEPTH                      = 0,
     parameter   AB_ALU_PIPELINE_DEPTH                       = 0,
 
@@ -248,8 +247,10 @@ module Scalar
     input   wire                                                    ALU_c_in,
     output  wire                                                    ALU_c_out,
 
-    // Instruction sent to SIMD lanes
+    // Instruction and control sent to SIMD lanes, will need extra pipelining
     output  wire    [INSTR_WIDTH-1:0]                               I_read_data,
+    output  reg     [INSTR_WIDTH-1:0]                               I_read_data_translated,
+    output  wire                                                    cancel,
 
     // Group I/O:   *******************Scalar*******************
     input   wire    [(               A_IO_READ_PORT_COUNT)-1:0]     A_io_in_EF,
@@ -273,9 +274,6 @@ module Scalar
     wire    [D_OPERAND_WIDTH-1:0]   ALU_D_mem;
     wire    [ALU_WORD_WIDTH-1:0]    ALU_result_mem;
 
-    wire    [INSTR_WIDTH-1:0]       I_read_data_DataPath;
-
-    wire                            cancel;
     wire                            IO_ready;
 
     ControlPath
@@ -353,7 +351,7 @@ module Scalar
         .ALU_write_data             (ALU_result_mem),
         .IO_ready                   (IO_ready),
 
-        .I_read_data                (I_read_data_DataPath),
+        .I_read_data                (I_read_data),
         .cancel                     (cancel)
     );
 
@@ -374,7 +372,7 @@ module Scalar
     )
     pre_addr_translation
     (
-        .instr              (I_read_data_DataPath),
+        .instr              (I_read_data),
         .op                 (OP_raw),
         .D                  (D_addr_raw),
         .A                  (A_addr_raw),
@@ -547,10 +545,8 @@ module Scalar
 
 // -----------------------------------------------------------
 
-    reg     [INSTR_WIDTH-1:0]   I_read_data_DataPath_translated;
-
     always @(*) begin
-        I_read_data_DataPath_translated <= {OP_cooked, D_addr_cooked, A_addr_cooked, B_addr_cooked};
+        I_read_data_translated <= {OP_cooked, D_addr_cooked, A_addr_cooked, B_addr_cooked};
     end
 
 // -----------------------------------------------------------
@@ -591,7 +587,6 @@ module Scalar
         .B_IO_WRITE_PORT_BASE_ADDR              (B_IO_WRITE_PORT_BASE_ADDR),
         .B_IO_WRITE_PORT_ADDR_WIDTH             (B_IO_WRITE_PORT_ADDR_WIDTH),
 
-        .I_PASSTHRU_PIPELINE_DEPTH              (I_PASSTHRU_PIPELINE_DEPTH),
         .TAP_AB_PIPELINE_DEPTH                  (TAP_AB_PIPELINE_DEPTH),
         .AB_READ_PIPELINE_DEPTH                 (AB_READ_PIPELINE_DEPTH),
         .AB_ALU_PIPELINE_DEPTH                  (AB_ALU_PIPELINE_DEPTH),
@@ -610,9 +605,8 @@ module Scalar
         .clock                          (clock),
         .half_clock                     (half_clock),
 
-        .I_read_data_in                 (I_read_data_DataPath),
-        .I_read_data_translated         (I_read_data_DataPath_translated),
-        .I_read_data_out                (I_read_data),
+        .I_read_data_in                 (I_read_data),
+        .I_read_data_translated         (I_read_data_translated),
 
         .A_wren_other                   (A_wren_other),
         .B_wren_other                   (B_wren_other),

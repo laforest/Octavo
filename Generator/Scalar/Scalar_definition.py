@@ -77,7 +77,6 @@ def definition(all_parameters):
 
     parameter   I_TAP_PIPELINE_DEPTH                        = ${I_TAP_PIPELINE_DEPTH},
     parameter   TAP_AB_PIPELINE_DEPTH                       = ${TAP_AB_PIPELINE_DEPTH},
-    parameter   I_PASSTHRU_PIPELINE_DEPTH                   = ${I_PASSTHRU_PIPELINE_DEPTH},
     parameter   AB_READ_PIPELINE_DEPTH                      = ${AB_READ_PIPELINE_DEPTH},
     parameter   AB_ALU_PIPELINE_DEPTH                       = ${AB_ALU_PIPELINE_DEPTH},
 
@@ -244,6 +243,8 @@ def definition(all_parameters):
     output  wire                                                    ALU_c_out,
 
     output  wire    [INSTR_WIDTH-1:0]                               I_read_data,
+    output  wire    [INSTR_WIDTH-1:0]                               I_read_data_translated,
+    output  wire                                                    cancel,
 
     input   wire    [(               A_IO_READ_PORT_COUNT)-1:0]     A_in_EF,
     output  wire    [(               A_IO_READ_PORT_COUNT)-1:0]     A_rden,
@@ -328,7 +329,6 @@ def definition(all_parameters):
 
         .I_TAP_PIPELINE_DEPTH                       (I_TAP_PIPELINE_DEPTH),
         .TAP_AB_PIPELINE_DEPTH                      (TAP_AB_PIPELINE_DEPTH),
-        .I_PASSTHRU_PIPELINE_DEPTH                  (I_PASSTHRU_PIPELINE_DEPTH),
         .AB_READ_PIPELINE_DEPTH                     (AB_READ_PIPELINE_DEPTH),
         .AB_ALU_PIPELINE_DEPTH                      (AB_ALU_PIPELINE_DEPTH),
 
@@ -480,7 +480,6 @@ def definition(all_parameters):
 
         .FLAGS_WORD_WIDTH                           (FLAGS_WORD_WIDTH),
         .FLAGS_ADDR_WIDTH                           (FLAGS_ADDR_WIDTH)
-
     )
     Scalar
     (
@@ -495,6 +494,8 @@ def definition(all_parameters):
         .ALU_c_out                          (ALU_c_out),
 
         .I_read_data                        (I_read_data),
+        .I_read_data_translated             (I_read_data_translated),
+        .cancel                             (cancel),
 
         .A_io_in_EF                         (A_in_EF),
         .A_io_rden                          (A_rden),

@@ -92,16 +92,16 @@ def test_harness(parameters, default_memory_init = default_memory_init, install_
         .A_DEFAULT_OFFSET_INIT_FILE     (A_DEFAULT_OFFSET_INIT_FILE),
         .B_DEFAULT_OFFSET_INIT_FILE     (B_DEFAULT_OFFSET_INIT_FILE),
         .D_DEFAULT_OFFSET_INIT_FILE     (D_DEFAULT_OFFSET_INIT_FILE),
-        .A_PROGRAMMED_OFFSETS_INIT_FILE     (A_PROGRAMMED_OFFSETS_INIT_FILE),
-        .B_PROGRAMMED_OFFSETS_INIT_FILE     (B_PROGRAMMED_OFFSETS_INIT_FILE),
-        .D_PROGRAMMED_OFFSETS_INIT_FILE     (D_PROGRAMMED_OFFSETS_INIT_FILE),
-        .A_INCREMENTS_INIT_FILE     (A_INCREMENTS_INIT_FILE),
-        .B_INCREMENTS_INIT_FILE     (B_INCREMENTS_INIT_FILE),
-        .D_INCREMENTS_INIT_FILE     (D_INCREMENTS_INIT_FILE),
-        .ORIGIN_INIT_FILE       (ORIGIN_INIT_FILE),
-        .DESTINATION_INIT_FILE  (DESTINATION_INIT_FILE),
-        .CONDITION_INIT_FILE    (CONDITION_INIT_FILE),
-        .PREDICTION_INIT_FILE    (PREDICTION_INIT_FILE),
+        .A_PROGRAMMED_OFFSETS_INIT_FILE (A_PROGRAMMED_OFFSETS_INIT_FILE),
+        .B_PROGRAMMED_OFFSETS_INIT_FILE (B_PROGRAMMED_OFFSETS_INIT_FILE),
+        .D_PROGRAMMED_OFFSETS_INIT_FILE (D_PROGRAMMED_OFFSETS_INIT_FILE),
+        .A_INCREMENTS_INIT_FILE         (A_INCREMENTS_INIT_FILE),
+        .B_INCREMENTS_INIT_FILE         (B_INCREMENTS_INIT_FILE),
+        .D_INCREMENTS_INIT_FILE         (D_INCREMENTS_INIT_FILE),
+        .ORIGIN_INIT_FILE               (ORIGIN_INIT_FILE),
+        .DESTINATION_INIT_FILE          (DESTINATION_INIT_FILE),
+        .CONDITION_INIT_FILE            (CONDITION_INIT_FILE),
+        .PREDICTION_INIT_FILE           (PREDICTION_INIT_FILE),
         .PREDICTION_ENABLE_INIT_FILE    (PREDICTION_ENABLE_INIT_FILE)
     )
     DUT
@@ -115,6 +115,11 @@ def test_harness(parameters, default_memory_init = default_memory_init, install_
         
         .ALU_c_in           (ALU_C_IN_DEFAULT),
         .ALU_c_out          (),
+
+        // Only used for SIMD
+        .I_read_data        (),
+        .I_read_data_translated (),
+        .cancel             (),
 
         .A_in_EF            (dut_A_in_EF),
         .A_rden             (dut_A_rden),

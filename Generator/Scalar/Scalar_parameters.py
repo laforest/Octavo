@@ -18,15 +18,12 @@ def generate_pipeline_depths(parameters = {}):
         "EXTRA_STAGES"            : EXTRA_STAGES,
         ## Optional stage to put before I_mem to try and improve timing under P&R variation
         ## Alter I_TAP and TAP_AB to add up to 8 stages at minimum.
-        ## Set to 0 to keep all stages on IAB path to lower SIMD lane instruction lag
+        ## XXX FIXME Keep at 0, else it introduces TWO zero reads at startup. Need to remove this option.
         "PC_PIPELINE_DEPTH"         : 0 + EXTRA_STAGES,
         ## How many stages between I and instruction tap to DataPath. Min. 1 for good Fmax: gets retimed into I mem BRAM.
         "I_TAP_PIPELINE_DEPTH"      : 1,
         ## How many stages between instruction tap and A/B memories. Should add up to 3 with above, minus any PC_PIPELINE_DEPTH.
         "TAP_AB_PIPELINE_DEPTH"     : 2,
-        ## How many stages between instruction in and out. Used only in datapaths. See SIMD version too. 
-        ## Set to 1 if there are SIMD lanes.
-        "I_PASSTHRU_PIPELINE_DEPTH" : 0,
         ## Takes 2 cycles to read/write the A/B data memories
         "AB_READ_PIPELINE_DEPTH"    : 2,
         ## A/B read (2 cycles) + ALU (4 cycles (nominally)) + A/B write (2 cycles)
