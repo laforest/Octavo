@@ -6,10 +6,11 @@ import sys
 
 from Misc import misc, parameters_misc
 
-bench_dir           = "Hailstone_Stencil_Overhead"
-bench_name          = "hailstone_stencil_overhead"
+bench_dir           = "FIR_Filter"
+bench_name          = "fir_filter"
 default_bench       = bench_dir + "/" + bench_name
-SIMD_default_bench  = bench_dir + "/" + "${SIMD_MEM_INIT_FILE_PREFIX}" + bench_name
+# XXX FIXME bad hack, should use SIMD prefix parameter
+SIMD_default_bench  = bench_dir + "/" + "SIMD_" + bench_name
 install_base        = misc.base_install_path()
 quartus_base_path   = misc.quartus_base_path
 
@@ -88,8 +89,8 @@ def test_bench(parameters, default_bench = default_bench, SIMD_default_bench = S
     output  wire    [(                    SIMD_B_IO_READ_PORT_COUNT  * SIMD_LANE_COUNT)-1:0]    SIMD_B_rden,
     output  reg     [(                    SIMD_B_IO_READ_PORT_COUNT  * SIMD_LANE_COUNT)-1:0]    SIMD_B_in_EF,
     output  wire    [(SIMD_B_WORD_WIDTH * SIMD_B_IO_WRITE_PORT_COUNT * SIMD_LANE_COUNT)-1:0]    SIMD_B_out, 
-    output  wire    [(                    SIMD_B_IO_WRITE_PORT_COUNT * SIMD_LANE_COUNT)-1:0]    SIMD_B_wren    
-    output  reg     [(                    SIMD_B_IO_READ_PORT_COUNT  * SIMD_LANE_COUNT)-1:0]    SIMD_B_out_EF,
+    output  wire    [(                    SIMD_B_IO_WRITE_PORT_COUNT * SIMD_LANE_COUNT)-1:0]    SIMD_B_wren,    
+    output  reg     [(                    SIMD_B_IO_READ_PORT_COUNT  * SIMD_LANE_COUNT)-1:0]    SIMD_B_out_EF
 );
     integer     cycle;
     reg         clock;
@@ -304,9 +305,9 @@ VSIM_ACTIONS="vcd file $$TOP_LEVEL_MODULE.vcd ; vcd add -r /* ; run -all ; quit"
 
 rm $$TOP_LEVEL_MODULE.wlf $$TOP_LEVEL_MODULE.vcd
 vlib $$VLIB 2>&1 > LOG
-vlog -mfcu -incr -lint $$LPM_LIBRARY $$ALT_LIBRARY $$OCTAVO $$TESTBENCH 2>&1 > LOG
-vsim -voptargs="+acc" -c -do "$$VSIM_ACTIONS" $$TOP_LEVEL_MODULE 2>&1 > LOG
-vcd2wlf $$TOP_LEVEL_MODULE.vcd $$TOP_LEVEL_MODULE.wlf 2>&1 > LOG
+vlog -mfcu -incr -lint $$LPM_LIBRARY $$ALT_LIBRARY $$OCTAVO $$TESTBENCH 2>&1 >> LOG
+vsim -voptargs="+acc" -c -do "$$VSIM_ACTIONS" $$TOP_LEVEL_MODULE 2>&1 >> LOG
+vcd2wlf $$TOP_LEVEL_MODULE.vcd $$TOP_LEVEL_MODULE.wlf 2>&1 >> LOG
 rm vsim.wlf
 """)
     parameters["default_bench"]         = default_bench
