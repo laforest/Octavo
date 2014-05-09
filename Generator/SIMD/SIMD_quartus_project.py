@@ -19,13 +19,13 @@ PROJECT_REVISION = "${PROJECT_NAME}"
 def create_SIMD_lane_partition(all_parameters, lane_number, path_color, path_id):
     """Creates one design partition entry for a SIMD Lane."""
     dp_template = string.Template(
-"""# start DESIGN_PARTITION(DataPath:SIMD_Lane_${LANE}_)
+"""# start DESIGN_PARTITION(DataPath:SIMD_Lanes_${LANE}__SIMD_Lane)
 # -------------------------------------------------------
-set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id "DataPath:SIMD_Lane_${LANE}_" 
-set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id "DataPath:SIMD_Lane_${LANE}_" 
-set_global_assignment -name PARTITION_COLOR ${PATH_COLOR} -section_id "DataPath:SIMD_Lane_${LANE}_" 
-set_instance_assignment -name PARTITION_HIERARCHY simdl_${PATH_ID} -to "${CPU_NAME}:DUT|SIMD:SIMD|DataPath:SIMD_Lane[${LANE}]" -section_id "DataPath:SIMD_Lane_${LANE}_"
-# end DESIGN_PARTITION(DataPath:SIMD_Lane_${LANE}_)
+set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id "DataPath:SIMD_Lanes_${LANE}__SIMD_Lane" 
+set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id "DataPath:SIMD_Lanes_${LANE}__SIMD_Lane" 
+set_global_assignment -name PARTITION_COLOR ${PATH_COLOR} -section_id "DataPath:SIMD_Lanes_${LANE}__SIMD_Lane" 
+set_instance_assignment -name PARTITION_HIERARCHY simdl_${PATH_ID} -to "${CPU_NAME}:DUT|SIMD:SIMD|DataPath:SIMD_Lanes[${LANE}].SIMD_Lane" -section_id "DataPath:SIMD_Lanes_${LANE}__SIMD_Lane"
+# end DESIGN_PARTITION(DataPath:SIMD_Lanes_${LANE}__SIMD_Lane)
 # -----------------------------------------------------
 """)
     all_parameters.update({"LANE"       : lane_number,

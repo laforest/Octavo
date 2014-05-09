@@ -620,6 +620,9 @@ module SIMD
 
 // -----------------------------------------------------------
 
+    generate
+    genvar lane;
+    for(lane = 0; lane < SIMD_LANE_COUNT; lane = lane + 1) begin : SIMD_Lanes
     DataPath
     #(
         .ALU_WORD_WIDTH                 (SIMD_ALU_WORD_WIDTH),
@@ -635,7 +638,10 @@ module SIMD
         .A_ADDR_WIDTH                   (SIMD_A_ADDR_WIDTH),
         .A_DEPTH                        (SIMD_A_DEPTH),
         .A_RAMSTYLE                     (SIMD_A_RAMSTYLE),
-        .A_INIT_FILE                    (SIMD_A_INIT_FILE),
+        // XXX FIXME Yes, this is the only way. Add to a byte character.
+        // Using a reg var "is not constant".
+        // And $sformat() isn't even recognized.
+        .A_INIT_FILE                    ({SIMD_A_INIT_FILE,".","1"+lane}),
         .A_IO_READ_PORT_COUNT           (SIMD_A_IO_READ_PORT_COUNT),
         .A_IO_READ_PORT_BASE_ADDR       (SIMD_A_IO_READ_PORT_BASE_ADDR),
         .A_IO_READ_PORT_ADDR_WIDTH      (SIMD_A_IO_READ_PORT_ADDR_WIDTH),
@@ -648,7 +654,7 @@ module SIMD
         .B_ADDR_WIDTH                   (SIMD_B_ADDR_WIDTH),
         .B_DEPTH                        (SIMD_B_DEPTH),
         .B_RAMSTYLE                     (SIMD_B_RAMSTYLE),
-        .B_INIT_FILE                    (SIMD_B_INIT_FILE),
+        .B_INIT_FILE                    ({SIMD_B_INIT_FILE,".","1"+lane}),
         .B_IO_READ_PORT_COUNT           (SIMD_B_IO_READ_PORT_COUNT),
         .B_IO_READ_PORT_BASE_ADDR       (SIMD_B_IO_READ_PORT_BASE_ADDR),
         .B_IO_READ_PORT_ADDR_WIDTH      (SIMD_B_IO_READ_PORT_ADDR_WIDTH),
@@ -669,7 +675,7 @@ module SIMD
         .H_WRITE_ADDR_OFFSET            (H_WRITE_ADDR_OFFSET),
         .H_DEPTH                        (H_DEPTH)
     )
-    SIMD_Lane                           [SIMD_LANE_COUNT-1:0]
+    SIMD_Lane
     (
         .clock                          (clock),
         .half_clock                     (half_clock),
@@ -677,33 +683,35 @@ module SIMD
         .I_read_data_in                 (I_read_data_delayed),
         .I_read_data_translated         (I_read_data_translated_delayed),
 
-        .A_wren_other                   (SIMD_A_wren_other),
-        .B_wren_other                   (SIMD_B_wren_other),
+        .A_wren_other                   (SIMD_A_wren_other [lane +: 1]),
+        .B_wren_other                   (SIMD_B_wren_other [lane +: 1]),
 
-        .ALU_c_in                       (SIMD_ALU_c_in),
+        .ALU_c_in                       (SIMD_ALU_c_in     [lane +: 1]),
         // SIMD Lanes don't feed data to Scalar ControlPath
         .ALU_result_out                 (),
         .ALU_D_out                      (),
-        .ALU_c_out                      (SIMD_ALU_c_out),
+        .ALU_c_out                      (SIMD_ALU_c_out    [lane +: 1]),
 
         .cancel                         (cancel_delayed),
         // SIMD Lanes don't control I/O Predication
         // Might do so one day for scatter/gather and handling divergent program flow
         .IO_ready                       (),
 
-        .A_io_in_EF                     (SIMD_A_io_in_EF),
-        .A_io_rden                      (SIMD_A_io_rden),
-        .A_io_in                        (SIMD_A_io_in),
-        .A_io_out_EF                    (SIMD_A_io_out_EF),
-        .A_io_wren                      (SIMD_A_io_wren),
-        .A_io_out                       (SIMD_A_io_out),
+        .A_io_in_EF                     (SIMD_A_io_in_EF   [(lane * SIMD_A_IO_READ_PORT_COUNT) +: SIMD_A_IO_READ_PORT_COUNT]),
+        .A_io_rden                      (SIMD_A_io_rden    [(lane * SIMD_A_IO_READ_PORT_COUNT) +: SIMD_A_IO_READ_PORT_COUNT]),
+        .A_io_in                        (SIMD_A_io_in      [(lane * SIMD_A_IO_READ_PORT_COUNT * SIMD_A_WORD_WIDTH) +: (SIMD_A_IO_READ_PORT_COUNT * SIMD_A_WORD_WIDTH)]),
+        .A_io_out_EF                    (SIMD_A_io_out_EF  [(lane * SIMD_A_IO_WRITE_PORT_COUNT) +: SIMD_A_IO_WRITE_PORT_COUNT]),
+        .A_io_wren                      (SIMD_A_io_wren    [(lane * SIMD_A_IO_WRITE_PORT_COUNT) +: SIMD_A_IO_WRITE_PORT_COUNT]),
+        .A_io_out                       (SIMD_A_io_out     [(lane * SIMD_A_IO_WRITE_PORT_COUNT * SIMD_A_WORD_WIDTH) +: (SIMD_A_IO_WRITE_PORT_COUNT * SIMD_A_WORD_WIDTH)]),
 
-        .B_io_in_EF                     (SIMD_B_io_in_EF),
-        .B_io_rden                      (SIMD_B_io_rden),
-        .B_io_in                        (SIMD_B_io_in),
-        .B_io_out_EF                    (SIMD_B_io_out_EF),
-        .B_io_wren                      (SIMD_B_io_wren),
-        .B_io_out                       (SIMD_B_io_out)
+        .B_io_in_EF                     (SIMD_B_io_in_EF   [(lane * SIMD_B_IO_READ_PORT_COUNT) +: SIMD_B_IO_READ_PORT_COUNT]),
+        .B_io_rden                      (SIMD_B_io_rden    [(lane * SIMD_B_IO_READ_PORT_COUNT) +: SIMD_B_IO_READ_PORT_COUNT]),
+        .B_io_in                        (SIMD_B_io_in      [(lane * SIMD_B_IO_READ_PORT_COUNT * SIMD_B_WORD_WIDTH) +: (SIMD_B_IO_READ_PORT_COUNT * SIMD_B_WORD_WIDTH)]),
+        .B_io_out_EF                    (SIMD_B_io_out_EF  [(lane * SIMD_B_IO_WRITE_PORT_COUNT) +: SIMD_B_IO_WRITE_PORT_COUNT]),
+        .B_io_wren                      (SIMD_B_io_wren    [(lane * SIMD_B_IO_WRITE_PORT_COUNT) +: SIMD_B_IO_WRITE_PORT_COUNT]),
+        .B_io_out                       (SIMD_B_io_out     [(lane * SIMD_B_IO_WRITE_PORT_COUNT * SIMD_B_WORD_WIDTH) +: (SIMD_B_IO_WRITE_PORT_COUNT * SIMD_B_WORD_WIDTH)])
     );
+    end
+    endgenerate
 endmodule
 
