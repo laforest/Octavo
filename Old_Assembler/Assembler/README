@@ -1,6 +1,0 @@
-These files implement a simple symbolic assembler in Verilog-2001.
-Use these to create Verilog source which when run under Modelsim or somesuch,
-will generate the memory image of the assembly code in a Verilog-readable way.
-
-This is complicated, but less ugly than MIF files...
-
