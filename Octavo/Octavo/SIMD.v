@@ -106,6 +106,7 @@ module SIMD
 
 // -----------------------------------------------------------
 
+    parameter       CONTROL_INPUT_PIPELINE_DEPTH        = 0,
     parameter       PC_PIPELINE_DEPTH                   = 0,
     parameter       I_TAP_PIPELINE_DEPTH                = 0,
     parameter       TAP_AB_PIPELINE_DEPTH               = 0,
@@ -130,6 +131,7 @@ module SIMD
 // -----------------------------------------------------------
 
     parameter       SIMD_LANE_COUNT                     = 0,
+    parameter       SIMD_CONTROL_INPUT_PIPELINE_DEPTH   = 0,
 
 // -----------------------------------------------------------
 
@@ -392,6 +394,7 @@ module SIMD
         .THREAD_COUNT               (THREAD_COUNT),
         .THREAD_ADDR_WIDTH          (THREAD_ADDR_WIDTH),
 
+        .CONTROL_INPUT_PIPELINE_DEPTH (CONTROL_INPUT_PIPELINE_DEPTH),
         .PC_PIPELINE_DEPTH          (PC_PIPELINE_DEPTH),
         .I_TAP_PIPELINE_DEPTH       (I_TAP_PIPELINE_DEPTH),
         .TAP_AB_PIPELINE_DEPTH      (TAP_AB_PIPELINE_DEPTH),
@@ -566,60 +569,6 @@ module SIMD
         .B_io_out                   (B_io_out)
     );
 
-// -----------------------------------------------------------
-
-    localparam SIMD_CONTROL_PIPELINE_DEPTH = 1;
-
-// -----------------------------------------------------------
-
-    wire    [INSTR_WIDTH-1:0]   I_read_data_delayed;
-
-    delay_line 
-    #(
-        .DEPTH  (SIMD_CONTROL_PIPELINE_DEPTH),
-        .WIDTH  (INSTR_WIDTH)
-    ) 
-    I_read_data_pipeline
-    (
-        .clock  (clock),
-        .in     (I_read_data),
-        .out    (I_read_data_delayed)
-    );
-
-// -----------------------------------------------------------
-
-    wire    [INSTR_WIDTH-1:0]   I_read_data_translated_delayed;
-
-    delay_line 
-    #(
-        .DEPTH  (SIMD_CONTROL_PIPELINE_DEPTH),
-        .WIDTH  (INSTR_WIDTH)
-    ) 
-    I_read_data_translated_pipeline
-    (
-        .clock  (clock),
-        .in     (I_read_data_translated),
-        .out    (I_read_data_translated_delayed)
-    );
-
-// -----------------------------------------------------------
-
-    wire                        cancel_delayed;
-
-    delay_line 
-    #(
-        .DEPTH  (SIMD_CONTROL_PIPELINE_DEPTH),
-        .WIDTH  (1)
-    ) 
-    cancel_pipeline
-    (
-        .clock  (clock),
-        .in     (cancel),
-        .out    (cancel_delayed)
-    );
-
-// -----------------------------------------------------------
-
     generate
     genvar lane;
     for(lane = 0; lane < SIMD_LANE_COUNT; lane = lane + 1) begin : SIMD_Lanes
@@ -662,6 +611,7 @@ module SIMD
         .B_IO_WRITE_PORT_BASE_ADDR      (SIMD_B_IO_WRITE_PORT_BASE_ADDR),
         .B_IO_WRITE_PORT_ADDR_WIDTH     (SIMD_B_IO_WRITE_PORT_ADDR_WIDTH),
 
+        .CONTROL_INPUT_PIPELINE_DEPTH   (SIMD_CONTROL_INPUT_PIPELINE_DEPTH),
         .TAP_AB_PIPELINE_DEPTH          (TAP_AB_PIPELINE_DEPTH),
         .AB_READ_PIPELINE_DEPTH         (AB_READ_PIPELINE_DEPTH),
         .AB_ALU_PIPELINE_DEPTH          (AB_ALU_PIPELINE_DEPTH),
@@ -680,8 +630,8 @@ module SIMD
         .clock                          (clock),
         .half_clock                     (half_clock),
 
-        .I_read_data_in                 (I_read_data_delayed),
-        .I_read_data_translated         (I_read_data_translated_delayed),
+        .I_read_data_in                 (I_read_data),
+        .I_read_data_translated         (I_read_data_translated),
 
         .A_wren_other                   (SIMD_A_wren_other [lane +: 1]),
         .B_wren_other                   (SIMD_B_wren_other [lane +: 1]),
@@ -692,7 +642,7 @@ module SIMD
         .ALU_D_out                      (),
         .ALU_c_out                      (SIMD_ALU_c_out    [lane +: 1]),
 
-        .cancel                         (cancel_delayed),
+        .cancel                         (cancel),
         // SIMD Lanes don't control I/O Predication
         // Might do so one day for scatter/gather and handling divergent program flow
         .IO_ready                       (),

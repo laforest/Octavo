@@ -76,6 +76,7 @@ def definition(all_parameters):
 // -----------------------------------------------------------
 
     parameter   I_TAP_PIPELINE_DEPTH                        = ${I_TAP_PIPELINE_DEPTH},
+    parameter   CONTROL_INPUT_PIPELINE_DEPTH                = ${CONTROL_INPUT_PIPELINE_DEPTH},
     parameter   TAP_AB_PIPELINE_DEPTH                       = ${TAP_AB_PIPELINE_DEPTH},
     parameter   AB_READ_PIPELINE_DEPTH                      = ${AB_READ_PIPELINE_DEPTH},
     parameter   AB_ALU_PIPELINE_DEPTH                       = ${AB_ALU_PIPELINE_DEPTH},
@@ -328,6 +329,7 @@ def definition(all_parameters):
 // -----------------------------------------------------------
 
         .I_TAP_PIPELINE_DEPTH                       (I_TAP_PIPELINE_DEPTH),
+        .CONTROL_INPUT_PIPELINE_DEPTH               (CONTROL_INPUT_PIPELINE_DEPTH),
         .TAP_AB_PIPELINE_DEPTH                      (TAP_AB_PIPELINE_DEPTH),
         .AB_READ_PIPELINE_DEPTH                     (AB_READ_PIPELINE_DEPTH),
         .AB_ALU_PIPELINE_DEPTH                      (AB_ALU_PIPELINE_DEPTH),

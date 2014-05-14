@@ -24,6 +24,8 @@ def generate_pipeline_depths(parameters = {}):
         "I_TAP_PIPELINE_DEPTH"      : 1,
         ## How many stages between instruction tap and A/B memories. Should add up to 3 with above, minus any PC_PIPELINE_DEPTH.
         "TAP_AB_PIPELINE_DEPTH"     : 2,
+        ## Delay between ControlPath and DataPath. Not used for Scalar.
+        "CONTROL_INPUT_PIPELINE_DEPTH" : 0,
         ## Takes 2 cycles to read/write the A/B data memories
         "AB_READ_PIPELINE_DEPTH"    : 2,
         ## A/B read (2 cycles) + ALU (4 cycles (nominally)) + A/B write (2 cycles)

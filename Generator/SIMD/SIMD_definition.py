@@ -115,6 +115,7 @@ def definition(all_parameters):
 
     parameter       PC_PIPELINE_DEPTH               = ${PC_PIPELINE_DEPTH},
     parameter       I_TAP_PIPELINE_DEPTH            = ${I_TAP_PIPELINE_DEPTH},
+    parameter       CONTROL_INPUT_PIPELINE_DEPTH    = ${CONTROL_INPUT_PIPELINE_DEPTH},
     parameter       TAP_AB_PIPELINE_DEPTH           = ${TAP_AB_PIPELINE_DEPTH},
     parameter       AB_READ_PIPELINE_DEPTH          = ${AB_READ_PIPELINE_DEPTH},
     parameter       AB_ALU_PIPELINE_DEPTH           = ${AB_ALU_PIPELINE_DEPTH},
@@ -137,6 +138,7 @@ def definition(all_parameters):
 // -----------------------------------------------------------
 
     parameter       SIMD_LANE_COUNT                 = ${SIMD_LANE_COUNT},
+    parameter       SIMD_CONTROL_INPUT_PIPELINE_DEPTH    = ${SIMD_CONTROL_INPUT_PIPELINE_DEPTH},
 
 // -----------------------------------------------------------
 
@@ -449,6 +451,7 @@ def definition(all_parameters):
         .PC_PIPELINE_DEPTH                  (PC_PIPELINE_DEPTH),
         .I_TAP_PIPELINE_DEPTH               (I_TAP_PIPELINE_DEPTH),
         .TAP_AB_PIPELINE_DEPTH              (TAP_AB_PIPELINE_DEPTH),
+        .CONTROL_INPUT_PIPELINE_DEPTH       (CONTROL_INPUT_PIPELINE_DEPTH),
         .AB_READ_PIPELINE_DEPTH             (AB_READ_PIPELINE_DEPTH),
         .AB_ALU_PIPELINE_DEPTH              (AB_ALU_PIPELINE_DEPTH),
 
@@ -470,6 +473,7 @@ def definition(all_parameters):
         // -----------------------------------------------------------
 
         .SIMD_LANE_COUNT                    (SIMD_LANE_COUNT),
+        .SIMD_CONTROL_INPUT_PIPELINE_DEPTH  (SIMD_CONTROL_INPUT_PIPELINE_DEPTH),
 
         // -----------------------------------------------------------
 
