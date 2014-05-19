@@ -4,8 +4,8 @@
 
 module Sliding_Window
 #(
-    parameter   WORD_WIDTH  = 0,
-    parameter   LANES       = 0
+    parameter   WORD_WIDTH  = 36,
+    parameter   LANES       = 8
 )
 (
     input   wire                                clock,
@@ -26,8 +26,8 @@ module Sliding_Window
         end
     end
 
-    always @(posedge clock): begin
-        case ({in_write, out_read}):
+    always @(posedge clock) begin
+        case ({in_write, out_read})
             {`LOW, `LOW}: begin
                 // nothing
             end
@@ -38,6 +38,7 @@ module Sliding_Window
                 for (i = 0; i < LANES-1; i =i + 1) begin
                     write_window[i] <= write_window[i+1];
                 end
+                write_window[LANES-1] <= 0;
 
                 // top --> top
                 read_window[0] <= write_window[0];
@@ -50,7 +51,9 @@ module Sliding_Window
             
             {`HIGH, `LOW}: begin
                 // load
-                write_window <= in;
+                for (i = 0; i < LANES; i =i + 1) begin
+                    write_window[i] <= in[(i * WORD_WIDTH) +: WORD_WIDTH];
+                end
             end
             
             {`HIGH, `HIGH}: begin
@@ -60,7 +63,9 @@ module Sliding_Window
                 // to prevent a gap from the concurrent shift.
 
                 // load
-                write_window <= in;
+                for (i = 0; i < LANES; i =i + 1) begin
+                    write_window[i] <= in[(i * WORD_WIDTH) +: WORD_WIDTH];
+                end
 
                 // top --> top
                 read_window[0] <= write_window[0];
@@ -74,7 +79,9 @@ module Sliding_Window
     end
 
     always @(*) begin
-        out <= read_window;
+        for (i = 0; i < LANES; i =i + 1) begin
+            out[(i * WORD_WIDTH) +: WORD_WIDTH] <= read_window[i];
+        end
     end
 
 endmodule
