@@ -41,7 +41,8 @@ def generate_pipeline_depths(parameters = {}):
 def generate_common_values(parameters = {}):
     common_values = { 
         "FAMILY"          : "Stratix IV",
-        "DEVICE"          : "EP4SE230F29C2",
+        #"DEVICE"          : "EP4SE230F29C2",
+        "DEVICE"          : "EP4SGX230KF40C2", # DE4-230
         "CPU_NAME"        : "SIMD",
         # This normally NEVER changes. If you do change it, update the ALU and decoders to match.
         "OPCODE_WIDTH"    : 4,
@@ -335,7 +336,7 @@ def generate_branching_parameters(common_values, parameters = {}):
         "ORIGIN_RAMSTYLE"               : mem_style,
         "ORIGIN_INIT_FILE"              : mem_init,
 
-        "BRANCH_COUNT"                  : 4,
+        "BRANCH_COUNT"                  : 5, # For Array Increment benchmark
 
         "DESTINATION_WRITE_WORD_OFFSET" : 10,
         "DESTINATION_WRITE_ADDR_OFFSET" : base_addr,
