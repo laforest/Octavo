@@ -2,6 +2,8 @@
 // Buffers SIMD writes into a sliding window for SIMD reads.
 // Enables SIMD FIR calculations and maybe other sliding window algorithms.
 
+// ECL XXX FIXME This code is ugly: separate into two shift register modules.
+
 module Sliding_Window
 #(
     parameter   WORD_WIDTH  = 36,
