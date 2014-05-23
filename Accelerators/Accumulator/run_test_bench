@@ -1,0 +1,32 @@
+#! /bin/bash
+
+INSTALL_BASE="/home/laforest/Octavo/Octavo"
+
+TOP_LEVEL_MODULE="Accumulator_test_bench"
+TESTBENCH="./${TOP_LEVEL_MODULE}.v"
+
+LPM_LIBRARY="$QUARTUS_BASE/linux/quartus/eda/sim_lib/220model.v"
+ALT_LIBRARY="$QUARTUS_BASE/linux/quartus/eda/sim_lib/altera_mf.v"
+
+OCTAVO="$INSTALL_BASE/Octavo/Misc/params.v \
+        $INSTALL_BASE/Octavo/Misc/delay_line.v \
+        $INSTALL_BASE/Octavo/Misc/Instruction_Annuller.v \
+        $INSTALL_BASE/Octavo/DataPath/ALU/AddSub_Ripple_Carry.v \
+        ./Accumulator.v \
+"
+
+VLIB="work"
+
+VSIM_ACTIONS="vcd file $TOP_LEVEL_MODULE.vcd ; vcd add -r /* ; run -all ; quit"
+
+rm $TOP_LEVEL_MODULE.wlf $TOP_LEVEL_MODULE.vcd
+vlib $VLIB 2>&1 > LOG
+vlog -mfcu -incr -lint $LPM_LIBRARY $ALT_LIBRARY $OCTAVO $TESTBENCH 2>&1 >> LOG
+vsim -voptargs="+acc" -c -do "$VSIM_ACTIONS" $TOP_LEVEL_MODULE 2>&1 >> LOG
+vcd2wlf $TOP_LEVEL_MODULE.vcd $TOP_LEVEL_MODULE.wlf 2>&1 >> LOG
+rm vsim.wlf
+
+# Fails cryptically
+#iverilog -o foo $OCTAVO $TESTBENCH 2>&1 >> LOG
+#vvp foo
+
