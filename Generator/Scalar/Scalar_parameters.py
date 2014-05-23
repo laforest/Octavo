@@ -42,7 +42,9 @@ def generate_pipeline_depths(parameters = {}):
 def generate_common_values(parameters = {}):
     common_values = { 
         "FAMILY"          : "Stratix IV",
-        "DEVICE"          : "EP4SE230F29C2",
+        #"DEVICE"          : "EP4SE230F29C2",
+        "DEVICE"          : "EP4SGX230KF40C2", # DE4-230
+
         "CPU_NAME"        : "Scalar",
         # This normally NEVER changes. If you do change it, update the ALU and decoders to match.
         "OPCODE_WIDTH"    : 4,

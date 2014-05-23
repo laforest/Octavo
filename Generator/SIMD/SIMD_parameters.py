@@ -336,7 +336,7 @@ def generate_branching_parameters(common_values, parameters = {}):
         "ORIGIN_RAMSTYLE"               : mem_style,
         "ORIGIN_INIT_FILE"              : mem_init,
 
-        "BRANCH_COUNT"                  : 5, # For Array Increment benchmark
+        "BRANCH_COUNT"                  : 4,
 
         "DESTINATION_WRITE_WORD_OFFSET" : 10,
         "DESTINATION_WRITE_ADDR_OFFSET" : base_addr,
