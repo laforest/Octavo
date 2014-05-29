@@ -28,7 +28,6 @@ def assemble_A():
     A.L(0)
     A.L(1),                 A.N("one")
     A.L(-1),                A.N("minus_one")
-    A.L((-7 & 0x3FF)),      A.N("B_minus_seven")
     # FIR coefficients, 8-tap, moving average filter
     A.L(1),           A.N("coefficient0")
     A.L(1),           A.N("coefficient1")
@@ -50,7 +49,6 @@ def assemble_A():
     A.L(0),                 A.N("br01")
     A.L(0),                 A.N("br02")
     A.L(0),                 A.N("br03")
-    A.L(0),                 A.N("br04")
     return A
 
 def assemble_B():
@@ -101,12 +99,10 @@ def assemble_I(PC, A, B):
 
     # Instructions to fill branch table
     base_addr = mem_map["BO"]["Origin"]
-    depth     = mem_map["BO"]["Depth"]
     I.P("BTT0", None, write_addr = base_addr)
     I.P("BTT1", None, write_addr = base_addr + 1)
     I.P("BTT2", None, write_addr = base_addr + 2)
     I.P("BTT3", None, write_addr = base_addr + 3)
-    I.P("BTT4", None, write_addr = base_addr + 4)
 
 # Optimized, Accumulator only, software sliding window
     # set branch entries
@@ -114,7 +110,6 @@ def assemble_I(PC, A, B):
     I.I(ADD, "BTT1", "br01", 0)
     I.I(ADD, "BTT2", "br02", 0)
     I.I(ADD, "BTT3", "br03", 0)
-    I.I(ADD, "BTT4", "br04", 0)
     # Instruction to set indirect access
     base_addr = mem_map["BPO"]["Origin"] 
     I.I(ADD, base_addr,        0, "pointer_init"),          I.N("init")
@@ -128,8 +123,8 @@ def assemble_I(PC, A, B):
     I.I(MLS, "Acc", "coefficient2", "array_pointers")
     I.I(MLS, "Acc", "coefficient1", "array_pointers")
     I.I(MLS, "Acc", "coefficient0", "array_pointers")
-    I.I(ADD, "pointer_temp", "B_minus_seven", "pointer_temp")
-    I.I(ADD, base_addr,                    0, "pointer_temp")
+    I.I(ADD, "pointer_temp", "one", "pointer_temp")
+    I.I(ADD, base_addr,      0,     "pointer_temp")
     I.I(ADD, "array_cnt", "minus_one", "array_cnt")
     I.I(ADD, "array_pointers", "Acc", 0), I.JZE("init", None, "br00"), I.JNZ("loop", None, "br01")
 
