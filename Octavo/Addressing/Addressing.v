@@ -366,10 +366,8 @@ module Addressing
 
 // -----------------------------------------------------------
 
-    // output default offset, 
-    // unless we access indirect memory, 
-    // else output programmed offset
-    wire    [DEFAULT_OFFSET_WORD_WIDTH-1:0]    selected_offset;
+    // output default offset, unless we access shared hardware, then output 0
+    wire    [DEFAULT_OFFSET_WORD_WIDTH-1:0]    default_offset_final;
 
     Addressed_Mux
     #(
@@ -378,19 +376,21 @@ module Addressing
         .INPUT_COUNT    (2),
         .REGISTERED     (`FALSE)
     )
-    offset_selector
+    default_offset_selector
     (
         .clock          (clock),
-        .addr           (indirect_memory),
-        .data_in        ({programmed_offset, default_offset}),
-        .data_out       (selected_offset)
+        .addr           (shared_hardware_memory),
+        .data_in        ({{DEFAULT_OFFSET_WORD_WIDTH{`LOW}}, default_offset}),
+        .data_out       (default_offset_final)
     );
 
 // -----------------------------------------------------------
 
-    // Shared Hardware (e.g. I/O ports) override any other mapping.
-    // This removes ambiguity (altering a port address mid-I/O pipeline)
-    // and increases flexibility since I/O mappings are separate across Scalar/SIMD lanes
+    // ECL XXX Not that default and programmed should ever differ in width.
+    // If we access indirect memory, then override default offset with programmed offset
+    // This causes odd cases if indirect memory overlaps shared hardware like I/O ports.
+    // Usable, but think twice about it first.
+    // if PO/INC are 0, I/O works as usual, else gets redirected to RAM, incl. other I/O port!)
     wire    [DEFAULT_OFFSET_WORD_WIDTH-1:0]    final_offset;
 
     Addressed_Mux
@@ -400,11 +400,11 @@ module Addressing
         .INPUT_COUNT    (2),
         .REGISTERED     (`TRUE)
     )
-    shared_hardware_selector
+    PO_DO_selector
     (
         .clock          (clock),
-        .addr           (shared_hardware_memory),
-        .data_in        ({{DEFAULT_OFFSET_WORD_WIDTH{`LOW}}, selected_offset}),
+        .addr           (indirect_memory),
+        .data_in        ({programmed_offset, default_offset_final}),
         .data_out       (final_offset)
     );
 
