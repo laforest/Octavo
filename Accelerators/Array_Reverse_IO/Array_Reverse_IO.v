@@ -31,22 +31,28 @@ module Array_Reverse_IO
     output  reg     [(WORD_WIDTH * LANE_COUNT)-1:0]     out
 );
 
-    localparam  QUEUE_DEPTH = THREAD_COUNT * 2;
+    // 8, not 16 stages, since write happen 8 cycles after read.
+    localparam  QUEUE_DEPTH = THREAD_COUNT;
 
     reg     [(WORD_WIDTH * LANE_COUNT)-1:0] queue [QUEUE_DEPTH-1:0];
 
-    integer i, j;
+    integer i, j, k;
 
     always @(posedge clock) begin
         for (i = 0; i < LANE_COUNT; i = i + 1) begin
             queue[0][(i * WORD_WIDTH) +: WORD_WIDTH] <= in[(i * WORD_WIDTH) +: WORD_WIDTH];
         end
-        queue[1] <= queue[0];
+    end
+
+    always @(posedge clock) begin
+        for (k = 0; k < QUEUE_DEPTH-1; k = k + 1) begin
+            queue[k+1] <= queue[k];
+        end
     end
 
     always @(*) begin 
         for (j = LANE_COUNT-1; j >= 0; j = j - 1) begin
-            out[(j * WORD_WIDTH) +: WORD_WIDTH] <= queue[1][(((LANE_COUNT-1) - j) * WORD_WIDTH) +: WORD_WIDTH];
+            out[(j * WORD_WIDTH) +: WORD_WIDTH] <= queue[QUEUE_DEPTH-1][(((LANE_COUNT-1) - j) * WORD_WIDTH) +: WORD_WIDTH];
         end
     end
 
