@@ -133,10 +133,10 @@ def generate_SIMD_common_values(common_values, parameters = {}):
         "SIMD_A_INIT_FILE"                  :   '"' + SIMD_base_parameters["SIMD_MEM_INIT_FILE_PREFIX"] + SIMD_base_parameters["SIMD_MEM_INIT_FILE"] + '"',
         "SIMD_A_IO_READ_PORT_COUNT"         :   SIMD_base_parameters["SIMD_PORTS_COUNT"],
         ## Shift A I/O above B I/O
-        "SIMD_A_IO_READ_PORT_BASE_ADDR"     :  (SIMD_base_parameters["SIMD_PORTS_BASE_ADDR"] - SIMD_base_parameters["SIMD_PORTS_COUNT"]),
+        "SIMD_A_IO_READ_PORT_BASE_ADDR"     :  (SIMD_base_parameters["SIMD_PORTS_BASE_ADDR"]),
         "SIMD_A_IO_READ_PORT_ADDR_WIDTH"    :   SIMD_base_parameters["SIMD_PORTS_ADDR_WIDTH"],
         "SIMD_A_IO_WRITE_PORT_COUNT"        :   SIMD_base_parameters["SIMD_PORTS_COUNT"],
-        "SIMD_A_IO_WRITE_PORT_BASE_ADDR"    :  (SIMD_base_parameters["SIMD_PORTS_BASE_ADDR"] - SIMD_base_parameters["SIMD_PORTS_COUNT"]),
+        "SIMD_A_IO_WRITE_PORT_BASE_ADDR"    :  (SIMD_base_parameters["SIMD_PORTS_BASE_ADDR"] + SIMD_base_parameters["SIMD_A_WRITE_ADDR_OFFSET"]),
         "SIMD_A_IO_WRITE_PORT_ADDR_WIDTH"   :   SIMD_base_parameters["SIMD_PORTS_ADDR_WIDTH"],
 
         "SIMD_B_WORD_WIDTH"                 :   SIMD_base_parameters["SIMD_WORD_WIDTH"],
@@ -148,7 +148,7 @@ def generate_SIMD_common_values(common_values, parameters = {}):
         "SIMD_B_IO_READ_PORT_BASE_ADDR"     :   SIMD_base_parameters["SIMD_PORTS_BASE_ADDR"],
         "SIMD_B_IO_READ_PORT_ADDR_WIDTH"    :   SIMD_base_parameters["SIMD_PORTS_ADDR_WIDTH"],
         "SIMD_B_IO_WRITE_PORT_COUNT"        :   SIMD_base_parameters["SIMD_PORTS_COUNT"],
-        "SIMD_B_IO_WRITE_PORT_BASE_ADDR"    :   SIMD_base_parameters["SIMD_PORTS_BASE_ADDR"],
+        "SIMD_B_IO_WRITE_PORT_BASE_ADDR"    :  (SIMD_base_parameters["SIMD_PORTS_BASE_ADDR"] + SIMD_base_parameters["SIMD_B_WRITE_ADDR_OFFSET"]),
         "SIMD_B_IO_WRITE_PORT_ADDR_WIDTH"   :   SIMD_base_parameters["SIMD_PORTS_ADDR_WIDTH"],
 
         ## Delay between Scalar ControlPath and SIMD DataPaths.
