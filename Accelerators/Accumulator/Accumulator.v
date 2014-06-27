@@ -15,6 +15,57 @@ module Accumulator
 	output  wire    [WORD_WIDTH-1:0]                total
 );
 
+    // ECL XXX Only works for 8 threads!!!
+    localparam PIPELINE_DEPTH = 2;
+
+// -----------------------------------------------------------
+
+    wire     [WORD_WIDTH-1:0]    addend_delayed;
+
+    delay_line 
+    #(
+        .DEPTH  (PIPELINE_DEPTH),
+        .WIDTH  (WORD_WIDTH)
+    ) 
+    addend_pipeline
+    (
+        .clock  (clock),
+        .in     (addend),
+        .out    (addend_delayed)
+    );
+
+// -----------------------------------------------------------
+
+    wire                        read_total_delayed;
+
+    delay_line 
+    #(
+        .DEPTH  (PIPELINE_DEPTH),
+        .WIDTH  (1)
+    ) 
+    read_total_pipeline
+    (
+        .clock  (clock),
+        .in     (read_total),
+        .out    (read_total_delayed)
+    );
+
+// -----------------------------------------------------------
+
+    wire                        write_addend_delayed;
+
+    delay_line 
+    #(
+        .DEPTH  (PIPELINE_DEPTH),
+        .WIDTH  (1)
+    ) 
+    write_addend_pipeline
+    (
+        .clock  (clock),
+        .in     (write_addend),
+        .out    (write_addend_delayed)
+    );
+
 // -----------------------------------------------------------
 
     wire     [WORD_WIDTH-1:0]    masked_addend;
@@ -25,10 +76,27 @@ module Accumulator
     )
     Addend_Mask
     (
-        .instr_in       (addend),
-        .annul          (~write_addend),
+        .instr_in       (addend_delayed),
+        .annul          (~write_addend_delayed),
         .instr_out      (masked_addend)
     );
+
+// -----------------------------------------------------------
+
+    wire     [WORD_WIDTH-1:0]    total_delayed;
+
+    delay_line 
+    #(
+        .DEPTH  (PIPELINE_DEPTH),
+        .WIDTH  (WORD_WIDTH)
+    ) 
+    total_pipeline
+    (
+        .clock  (clock),
+        .in     (total),
+        .out    (total_delayed)
+    );
+
 
 // -----------------------------------------------------------
 
@@ -40,9 +108,41 @@ module Accumulator
     )
     Total_Mask
     (
-        .instr_in       (total),
-        .annul          (read_total),
+        .instr_in       (total_delayed),
+        .annul          (read_total_delayed),
         .instr_out      (masked_total)
+    );
+
+// -----------------------------------------------------------
+
+    wire     [WORD_WIDTH-1:0]    masked_addend_delayed;
+
+    delay_line 
+    #(
+        .DEPTH  (PIPELINE_DEPTH),
+        .WIDTH  (WORD_WIDTH)
+    ) 
+    masked_addend_pipeline
+    (
+        .clock  (clock),
+        .in     (masked_addend),
+        .out    (masked_addend_delayed)
+    );
+
+// -----------------------------------------------------------
+
+    wire     [WORD_WIDTH-1:0]    masked_total_delayed;
+
+    delay_line 
+    #(
+        .DEPTH  (PIPELINE_DEPTH),
+        .WIDTH  (WORD_WIDTH)
+    ) 
+    masked_total_pipeline
+    (
+        .clock  (clock),
+        .in     (masked_total),
+        .out    (masked_total_delayed)
     );
 
 // -----------------------------------------------------------
@@ -58,19 +158,17 @@ module Accumulator
         .clock      (clock),
         .add_sub    (`HIGH),
         .cin        (`LOW),
-        .dataa      (masked_addend),
-        .datab      (masked_total),
+        .dataa      (masked_addend_delayed),
+        .datab      (masked_total_delayed),
         .cout       (),
         .result     (total_raw)
     );
 
 // -----------------------------------------------------------
 
-    localparam ADDSUB_DEPTH = 2;
-
     delay_line 
     #(
-        .DEPTH  (THREAD_COUNT - ADDSUB_DEPTH),
+        .DEPTH  (PIPELINE_DEPTH),
         .WIDTH  (WORD_WIDTH)
     ) 
     thread_pipeline
