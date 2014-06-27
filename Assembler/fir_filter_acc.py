@@ -45,10 +45,10 @@ def assemble_A():
     A.L(0),     A.N("output_array_bottom")
     A.L(-1)     # Guard value for debugging 
     # Placeholders for branch table entries
-    A.L(0),                 A.N("br00")
-    A.L(0),                 A.N("br01")
-    A.L(0),                 A.N("br02")
-    A.L(0),                 A.N("br03")
+    A.L(0),                 A.N("jmp0")
+    A.L(0),                 A.N("jmp1")
+    A.L(0),                 A.N("jmp2")
+    A.L(0),                 A.N("jmp3")
     return A
 
 def assemble_B():
@@ -60,8 +60,8 @@ def assemble_B():
     B.L(0)
     # temporaries
     B.L(0),     B.N("array_cnt")
-    # Input data
-    B.L(100),   B.N("array_len")
+    # Input data (128 units - 8 as trailing halo, since pointer is at tail of sliding window)
+    B.L(120),   B.N("array_len")
     B.L(-2)     # Guard value for debugging
     B.L(0),     B.N("input_array_top") # 100 elements, NOT including final guard (-1)
     for i in range(0,34):
@@ -80,9 +80,11 @@ def assemble_B():
     B.L(4   )
     B.L(2   )
     B.L(1   )
-    for i in range(0,23):
+    for i in range(0,24):
         B.L(0)
-    B.L(0),     B.N("input_array_bottom")
+    # add up to 128 elements, show a slope at end
+    for i in range(0,28):
+        B.L(1)
     B.L(-1)     # Guard value for debugging 
     # Placeholders for programmed offset
     B.L(0),     B.N("pointer_init")
@@ -99,23 +101,30 @@ def assemble_I(PC, A, B):
 
     # Instructions to fill branch table
     base_addr = mem_map["BO"]["Origin"]
-    I.P("BTT0", None, write_addr = base_addr)
-    I.P("BTT1", None, write_addr = base_addr + 1)
-    I.P("BTT2", None, write_addr = base_addr + 2)
-    I.P("BTT3", None, write_addr = base_addr + 3)
+    I.P("BTM0", None, write_addr = base_addr)
+    I.P("BTM1", None, write_addr = base_addr + 1)
+    I.P("BTM2", None, write_addr = base_addr + 2)
+    I.P("BTM3", None, write_addr = base_addr + 3)
+
+    # Instruction to set indirect access
+    base_addr = mem_map["BPO"]["Origin"] 
+    I.P("AOM0", None, write_addr = base_addr)
+    I.P("AOM1", None, write_addr = base_addr + 1)
 
 # Optimized, Accumulator only, software sliding window
     # set branch entries
-    I.I(ADD, "BTT0", "br00", 0)
-    I.I(ADD, "BTT1", "br01", 0)
-    I.I(ADD, "BTT2", "br02", 0)
-    I.I(ADD, "BTT3", "br03", 0)
+    I.I(ADD, "BTM0", "jmp0", 0)
+    I.I(ADD, "BTM1", "jmp1", 0)
+    I.I(ADD, "BTM2", "jmp2", 0)
+    I.I(ADD, "BTM3", "jmp3", 0)
+
     # Instruction to set indirect access
-    base_addr = mem_map["BPO"]["Origin"] 
-    I.I(ADD, base_addr,        0, "pointer_init"),          I.N("init")
-    I.I(ADD, "pointer_temp",   0, "pointer_init")
+    I.I(ADD, "AOM0", 0, "pointer_init"),                I.N("init")
+    I.I(ADD, "pointer_temp", 0, "pointer_init")
     I.I(ADD, "array_cnt", 0, "array_len")
-    I.I(MLS, "Acc", "coefficient7", "array_pointers"),      I.N("loop")
+
+    # Do convolution
+    I.I(MLS, "Acc", "coefficient7", "array_pointers"),  I.N("loop")
     I.I(MLS, "Acc", "coefficient6", "array_pointers")
     I.I(MLS, "Acc", "coefficient5", "array_pointers")
     I.I(MLS, "Acc", "coefficient4", "array_pointers")
@@ -123,10 +132,17 @@ def assemble_I(PC, A, B):
     I.I(MLS, "Acc", "coefficient2", "array_pointers")
     I.I(MLS, "Acc", "coefficient1", "array_pointers")
     I.I(MLS, "Acc", "coefficient0", "array_pointers")
+
+    # Reset pointer, +1 to slide window
     I.I(ADD, "pointer_temp", "one", "pointer_temp")
-    I.I(ADD, base_addr,      0,     "pointer_temp")
+    I.I(ADD, "AOM0", 0, "pointer_temp")
     I.I(ADD, "array_cnt", "minus_one", "array_cnt")
-    I.I(ADD, "array_pointers", "Acc", 0), I.JZE("init", None, "br00"), I.JNZ("loop", None, "br01")
+
+    # Read out Accumulator
+    I.I(ADD, "array_pointers", "Acc", 0),               I.JNZ("loop", None, "jmp0")
+
+    # and we're done
+    I.NOP(), I.N("end"), I.JMP("end", "jmp3")
 
     I.resolve_forward_jumps()
 
