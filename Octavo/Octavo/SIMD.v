@@ -590,7 +590,8 @@ module SIMD
         // XXX FIXME Yes, this is the only way. Add to a byte character.
         // Using a reg var "is not constant".
         // And $sformat() isn't even recognized.
-        .A_INIT_FILE                    ({SIMD_A_INIT_FILE,".","1"+lane}),
+        // .A_INIT_FILE                    ({SIMD_A_INIT_FILE,".","1"+lane}),
+        .A_INIT_FILE                    (SIMD_A_INIT_FILE),
         .A_IO_READ_PORT_COUNT           (SIMD_A_IO_READ_PORT_COUNT),
         .A_IO_READ_PORT_BASE_ADDR       (SIMD_A_IO_READ_PORT_BASE_ADDR),
         .A_IO_READ_PORT_ADDR_WIDTH      (SIMD_A_IO_READ_PORT_ADDR_WIDTH),
@@ -603,7 +604,8 @@ module SIMD
         .B_ADDR_WIDTH                   (SIMD_B_ADDR_WIDTH),
         .B_DEPTH                        (SIMD_B_DEPTH),
         .B_RAMSTYLE                     (SIMD_B_RAMSTYLE),
-        .B_INIT_FILE                    ({SIMD_B_INIT_FILE,".","1"+lane}),
+        // .B_INIT_FILE                    ({SIMD_B_INIT_FILE,".","1"+lane}),
+        .B_INIT_FILE                    (SIMD_B_INIT_FILE),
         .B_IO_READ_PORT_COUNT           (SIMD_B_IO_READ_PORT_COUNT),
         .B_IO_READ_PORT_BASE_ADDR       (SIMD_B_IO_READ_PORT_BASE_ADDR),
         .B_IO_READ_PORT_ADDR_WIDTH      (SIMD_B_IO_READ_PORT_ADDR_WIDTH),
