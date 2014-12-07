@@ -223,12 +223,22 @@ def assemble_I(PC, A, B):
     I.I(ADD, "temp2", "temp2", "one")
     I.I(MHU, "odd_val", "temp2", "right_shift_1")
     I.I(MHU, "even_val", "right_shift_1", "temp")
+
+    # Compute mask from even/odd bit
     I.I(AND, "temp", "one", "temp")
     I.I(ADD, "temp", "minus_one", "temp")
-    I.I(XOR, "temp2", "minus_one", "temp")
-    I.I(AND, "even_val", "even_val", "temp")
-    I.I(AND, "odd_val", "temp2", "odd_val")
-    I.I(OR, "seed_pointer", "even_val", "odd_val"),  I.JMP("hailstone", "jmp2")
+
+    # Compute (A & ~M) + (B & M), where A is odd_val
+    #I.I(XOR, "temp2", "minus_one", "temp")
+    #I.I(AND, "even_val", "even_val", "temp")
+    #I.I(AND, "odd_val", "temp2", "odd_val")
+    #I.I(OR, "seed_pointer", "even_val", "odd_val"),  I.JMP("hailstone", "jmp2")
+
+    # Compute A ^ (M & (A ^ B)), where A is odd_val 
+    # (one cycle shorter since no ~M, thanks to Henry Wong)
+    I.I(XOR, "temp2", "even_val", "odd_val")
+    I.I(AND, "temp2", "temp2", "temp")
+    I.I(XOR, "seed_pointer", "temp2", "odd_val"),  I.JMP("hailstone", "jmp2")
 
     # and we're done
     I.NOP(), I.N("end"), I.JMP("end", "jmp3")
