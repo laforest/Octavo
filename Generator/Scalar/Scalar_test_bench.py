@@ -6,7 +6,7 @@ import sys
 
 from Misc import misc, parameters_misc
 
-default_bench = "Predication/simple_io_test_ab"
+default_bench = "FIR_Filter/fir_filter"
 install_base = misc.base_install_path()
 quartus_base_path = misc.quartus_base_path
 
@@ -25,10 +25,28 @@ def test_bench(parameters, default_bench = default_bench, install_base = install
     parameter       B_IO_READ_PORT_COUNT        = ${B_IO_READ_PORT_COUNT},
     parameter       B_IO_WRITE_PORT_COUNT       = ${B_IO_WRITE_PORT_COUNT},
 
-    parameter       A_INIT_FILE                 = "${assembler_base}/${default_bench}.mem",
-    parameter       B_INIT_FILE                 = "${assembler_base}/${default_bench}.mem",
-    parameter       I_INIT_FILE                 = "${assembler_base}/${default_bench}.mem",
-    parameter       PC_INIT_FILE                = "${assembler_base}/${default_bench}.pc"
+    parameter       A_INIT_FILE                 = "${assembler_base}/${default_bench}.A",
+    parameter       B_INIT_FILE                 = "${assembler_base}/${default_bench}.B",
+    parameter       I_INIT_FILE                 = "${assembler_base}/${default_bench}.I",
+    parameter       PC_INIT_FILE                = "${assembler_base}/${default_bench}.PC",
+
+    parameter       A_DEFAULT_OFFSET_INIT_FILE  = "${assembler_base}/${default_bench}.ADO",
+    parameter       B_DEFAULT_OFFSET_INIT_FILE  = "${assembler_base}/${default_bench}.BDO",
+    parameter       D_DEFAULT_OFFSET_INIT_FILE  = "${assembler_base}/${default_bench}.DDO",
+
+    parameter       A_PROGRAMMED_OFFSETS_INIT_FILE  = "${assembler_base}/${default_bench}.APO",
+    parameter       B_PROGRAMMED_OFFSETS_INIT_FILE  = "${assembler_base}/${default_bench}.BPO",
+    parameter       D_PROGRAMMED_OFFSETS_INIT_FILE  = "${assembler_base}/${default_bench}.DPO",
+
+    parameter       A_INCREMENTS_INIT_FILE  = "${assembler_base}/${default_bench}.AIN",
+    parameter       B_INCREMENTS_INIT_FILE  = "${assembler_base}/${default_bench}.BIN",
+    parameter       D_INCREMENTS_INIT_FILE  = "${assembler_base}/${default_bench}.DIN",
+
+    parameter       ORIGIN_INIT_FILE       = "${assembler_base}/${default_bench}.BO",
+    parameter       DESTINATION_INIT_FILE  = "${assembler_base}/${default_bench}.BD",
+    parameter       CONDITION_INIT_FILE    = "${assembler_base}/${default_bench}.BC",
+    parameter       PREDICTION_INIT_FILE    = "${assembler_base}/${default_bench}.BP",
+    parameter       PREDICTION_ENABLE_INIT_FILE    = "${assembler_base}/${default_bench}.BPE"
 )
 (
     output  wire    [INSTR_WIDTH-1:0]                           I_read_data,
@@ -61,7 +79,7 @@ def test_bench(parameters, default_bench = default_bench, install_base = install
         A_out_EF    = 0;
         B_in_EF     = -1;
         B_out_EF    = 0;
-        `DELAY_CLOCK_CYCLES(2000) $$stop;
+        `DELAY_CLOCK_CYCLES(200000) $$stop;
     end
 
     always begin
@@ -73,49 +91,67 @@ def test_bench(parameters, default_bench = default_bench, install_base = install
     end
 
     always @(posedge clock) begin
-        cycle = cycle + 1;
+        cycle <= cycle + 1;
     end
 
-    always begin
-        // Read Empty, Write Full
-        `DELAY_CLOCK_CYCLES(100)
-        A_in_EF  = 0;
-        A_out_EF = -1;
-        B_in_EF  = 0;
-        B_out_EF = -1;
+//    always begin
+//        // Read Empty, Write Full
+//        `DELAY_CLOCK_CYCLES(100)
+//        A_in_EF  = 0;
+//        A_out_EF = -1;
+//        B_in_EF  = 0;
+//        B_out_EF = -1;
         
-        // Read Full, Write Empty
-        `DELAY_CLOCK_CYCLES(100)
-        A_in_EF  = -1;
-        A_out_EF = 0;
-        B_in_EF  = -1;
-        B_out_EF = 0;
+//        // Read Full, Write Empty
+//        `DELAY_CLOCK_CYCLES(100)
+//        A_in_EF  = -1;
+//        A_out_EF = 0;
+//        B_in_EF  = -1;
+//        B_out_EF = 0;
 
-        // Read Empty, Write Empty
-        `DELAY_CLOCK_CYCLES(100)
-        A_in_EF  = 0;
-        A_out_EF = 0;
-        B_in_EF  = 0;
-        B_out_EF = 0;
+//        // Read Empty, Write Empty
+//        `DELAY_CLOCK_CYCLES(100)
+//        A_in_EF  = 0;
+//        A_out_EF = 0;
+//        B_in_EF  = 0;
+//        B_out_EF = 0;
 
-        // Read Full, Write Full
-        `DELAY_CLOCK_CYCLES(100)
-        A_in_EF  = -1;
-        A_out_EF = -1;
-        B_in_EF  = -1;
-        B_out_EF = -1;
+//        // Read Full, Write Full
+//        `DELAY_CLOCK_CYCLES(100)
+//        A_in_EF  = -1;
+//        A_out_EF = -1;
+//        B_in_EF  = -1;
+//        B_out_EF = -1;
 
-    end
+//    end
 
     localparam WREN_OTHER_DEFAULT = `HIGH;
     localparam ALU_C_IN_DEFAULT   = `LOW;
 
     ${CPU_NAME} 
     #(
-        .A_INIT_FILE        (A_INIT_FILE),
-        .B_INIT_FILE        (B_INIT_FILE),
-        .I_INIT_FILE        (I_INIT_FILE),
-        .PC_INIT_FILE       (PC_INIT_FILE)
+        .A_INIT_FILE                    (A_INIT_FILE),
+        .B_INIT_FILE                    (B_INIT_FILE),
+        .I_INIT_FILE                    (I_INIT_FILE),
+        .PC_INIT_FILE                   (PC_INIT_FILE),
+
+        .A_DEFAULT_OFFSET_INIT_FILE     (A_DEFAULT_OFFSET_INIT_FILE),
+        .B_DEFAULT_OFFSET_INIT_FILE     (B_DEFAULT_OFFSET_INIT_FILE),
+        .D_DEFAULT_OFFSET_INIT_FILE     (D_DEFAULT_OFFSET_INIT_FILE),
+
+        .A_PROGRAMMED_OFFSETS_INIT_FILE     (A_PROGRAMMED_OFFSETS_INIT_FILE),
+        .B_PROGRAMMED_OFFSETS_INIT_FILE     (B_PROGRAMMED_OFFSETS_INIT_FILE),
+        .D_PROGRAMMED_OFFSETS_INIT_FILE     (D_PROGRAMMED_OFFSETS_INIT_FILE),
+
+        .A_INCREMENTS_INIT_FILE     (A_INCREMENTS_INIT_FILE),
+        .B_INCREMENTS_INIT_FILE     (B_INCREMENTS_INIT_FILE),
+        .D_INCREMENTS_INIT_FILE     (D_INCREMENTS_INIT_FILE),
+
+        .ORIGIN_INIT_FILE           (ORIGIN_INIT_FILE),
+        .DESTINATION_INIT_FILE      (DESTINATION_INIT_FILE),
+        .CONDITION_INIT_FILE        (CONDITION_INIT_FILE),
+        .PREDICTION_INIT_FILE        (PREDICTION_INIT_FILE),
+        .PREDICTION_ENABLE_INIT_FILE        (PREDICTION_ENABLE_INIT_FILE)
     )
     DUT 
     (
@@ -160,8 +196,8 @@ INSTALL_BASE="${install_base}"
 TOP_LEVEL_MODULE="${CPU_NAME}_test_bench"
 TESTBENCH="./$${TOP_LEVEL_MODULE}.v"
 
-LPM_LIBRARY="${quartus_base_path}/eda/sim_lib/220model.v"
-ALT_LIBRARY="${quartus_base_path}/eda/sim_lib/altera_mf.v"
+LPM_LIBRARY="${quartus_base_path}/linux/quartus/eda/sim_lib/220model.v"
+ALT_LIBRARY="${quartus_base_path}/linux/quartus/eda/sim_lib/altera_mf.v"
 
 OCTAVO="$$INSTALL_BASE/Octavo/Misc/params.v \\
         $$INSTALL_BASE/Octavo/Misc/delay_line.v \\
@@ -170,6 +206,8 @@ OCTAVO="$$INSTALL_BASE/Octavo/Misc/params.v \\
         $$INSTALL_BASE/Octavo/Misc/Addressed_Mux.v \\
         $$INSTALL_BASE/Octavo/Misc/Translated_Addressed_Mux.v \\
         $$INSTALL_BASE/Octavo/Misc/Instruction_Annuller.v \\
+        $$INSTALL_BASE/Octavo/Misc/Thread_Number.v \\
+        $$INSTALL_BASE/Octavo/Misc/Instr_Decoder.v \\
         $$INSTALL_BASE/Octavo/DataPath/ALU/AddSub_Carry_Select.v \\
         $$INSTALL_BASE/Octavo/DataPath/ALU/AddSub_Ripple_Carry.v \\
         $$INSTALL_BASE/Octavo/DataPath/ALU/Mult.v \\
@@ -177,12 +215,36 @@ OCTAVO="$$INSTALL_BASE/Octavo/Misc/params.v \\
         $$INSTALL_BASE/Octavo/DataPath/ALU/ALU.v \\
         $$INSTALL_BASE/Octavo/DataPath/DataPath.v \\
         $$INSTALL_BASE/Octavo/ControlPath/Controller.v \\
-        $$INSTALL_BASE/Octavo/ControlPath/Instr_Decoder.v \\
-        $$INSTALL_BASE/Octavo/ControlPath/Thread_Number.v \\
         $$INSTALL_BASE/Octavo/ControlPath/ControlPath.v \\
         $$INSTALL_BASE/Octavo/Memory/RAM_SDP.v \\
+        $$INSTALL_BASE/Octavo/Memory/RAM_SDP_no_fw.v \\
         $$INSTALL_BASE/Octavo/Memory/Write_Enable.v \\
         $$INSTALL_BASE/Octavo/Memory/Memory.v \\
+        $$INSTALL_BASE/Octavo/Addressing/Address_Adder.v \\
+        $$INSTALL_BASE/Octavo/Addressing/Addressing_Mapped_AB.v \\
+        $$INSTALL_BASE/Octavo/Addressing/Addressing_Mapped_D.v \\
+        $$INSTALL_BASE/Octavo/Addressing/Addressing_Thread_Number.v \\
+        $$INSTALL_BASE/Octavo/Addressing/Addressing.v \\
+        $$INSTALL_BASE/Octavo/Addressing/Address_Translation.v \\
+        $$INSTALL_BASE/Octavo/Addressing/Default_Offset.v \\
+        $$INSTALL_BASE/Octavo/Addressing/Increment_Adder.v \\
+        $$INSTALL_BASE/Octavo/Addressing/Increments.v \\
+        $$INSTALL_BASE/Octavo/Addressing/Programmed_Offsets.v \\
+        $$INSTALL_BASE/Octavo/Addressing/Write_Priority.v \\
+        $$INSTALL_BASE/Octavo/Addressing/Write_Synchronize.v \\
+        $$INSTALL_BASE/Octavo/Branching/Branch_Check_Mapped.v \\
+        $$INSTALL_BASE/Octavo/Branching/Branch_Check.v \\
+        $$INSTALL_BASE/Octavo/Branching/Branch_Condition.v \\
+        $$INSTALL_BASE/Octavo/Branching/Branch_Destination.v \\
+        $$INSTALL_BASE/Octavo/Branching/Branch_Folding.v \\
+        $$INSTALL_BASE/Octavo/Branching/Branching_Flags.v \\
+        $$INSTALL_BASE/Octavo/Branching/Branching_Thread_Number.v \\
+        $$INSTALL_BASE/Octavo/Branching/Branch_Origin.v \\
+        $$INSTALL_BASE/Octavo/Branching/Branch_Origin_Check.v \\
+        $$INSTALL_BASE/Octavo/Branching/Branch_Cancel.v \\
+        $$INSTALL_BASE/Octavo/Branching/Branch_Prediction.v \\
+        $$INSTALL_BASE/Octavo/Branching/Branch_Prediction_Enable.v \\
+        $$INSTALL_BASE/Octavo/Branching/OR_Reducer.v \\
         $$INSTALL_BASE/Octavo/IO/EmptyFullBit.v \\
         $$INSTALL_BASE/Octavo/IO/IO_Active.v \\
         $$INSTALL_BASE/Octavo/IO/IO_All_Ready.v \\

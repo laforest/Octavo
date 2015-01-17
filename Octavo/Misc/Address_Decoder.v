@@ -3,10 +3,18 @@
 
 // Checks if the input address matches each possible address in range, then
 // outputs the bitwise OR of all these checks.  Some boolean algebra shows that
-// it will always optimize down to a minimal form: any Most-Significant bits
-// which iterate over their entire binary range become boolean "don't care",
-// leaving the Least-Significant bits to do the match. Thus, for power of 2
-// address ranges, we get the minimal NOT-AND-gate decoder.
+// it will always optimize down to a minimal form: any bits which iterate over
+// their entire binary range become boolean "don't care", leaving the other
+// bits to do the match. Thus, for aligned power of 2 address ranges, we get
+// the minimal NOT-AND-gate decoder.
+
+// This approach has one caveat: you have to test, at synthesis time, all 2^N
+// possible addresses, and store the matches into a vector 2^N bits long.  This
+// could take a long time and AFAIK, Verilog implementations have a maximum
+// vector width of a few million, so this decoder will break for addresses more
+// than 20-23 bits wide.
+
+// Call it a synthesizer stress-test. ;)
 
 module Address_Decoder
 #(

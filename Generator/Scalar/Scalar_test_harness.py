@@ -23,10 +23,28 @@ def test_harness(parameters, default_memory_init = default_memory_init, install_
     parameter       B_IO_READ_PORT_COUNT        = ${B_IO_READ_PORT_COUNT},
     parameter       B_IO_WRITE_PORT_COUNT       = ${B_IO_WRITE_PORT_COUNT},
 
-    parameter       A_INIT_FILE                 = "${assembler_base}/${default_memory_init}.mem",
-    parameter       B_INIT_FILE                 = "${assembler_base}/${default_memory_init}.mem",
-    parameter       I_INIT_FILE                 = "${assembler_base}/${default_memory_init}.mem",
-    parameter       PC_INIT_FILE                = "${assembler_base}/${default_memory_init}.pc",
+    parameter       A_INIT_FILE                 = "${assembler_base}/${default_memory_init}.A",
+    parameter       B_INIT_FILE                 = "${assembler_base}/${default_memory_init}.B",
+    parameter       I_INIT_FILE                 = "${assembler_base}/${default_memory_init}.I",
+    parameter       PC_INIT_FILE                = "${assembler_base}/${default_memory_init}.PC",
+
+    parameter       A_DEFAULT_OFFSET_INIT_FILE  = "${assembler_base}/${default_memory_init}.ADO",
+    parameter       B_DEFAULT_OFFSET_INIT_FILE  = "${assembler_base}/${default_memory_init}.BDO",
+    parameter       D_DEFAULT_OFFSET_INIT_FILE  = "${assembler_base}/${default_memory_init}.DDO",
+
+    parameter       A_PROGRAMMED_OFFSETS_INIT_FILE  = "${assembler_base}/${default_memory_init}.APO",
+    parameter       B_PROGRAMMED_OFFSETS_INIT_FILE  = "${assembler_base}/${default_memory_init}.BPO",
+    parameter       D_PROGRAMMED_OFFSETS_INIT_FILE  = "${assembler_base}/${default_memory_init}.DPO",
+
+    parameter       A_INCREMENTS_INIT_FILE  = "${assembler_base}/${default_memory_init}.AIN",
+    parameter       B_INCREMENTS_INIT_FILE  = "${assembler_base}/${default_memory_init}.BIN",
+    parameter       D_INCREMENTS_INIT_FILE  = "${assembler_base}/${default_memory_init}.DIN",
+
+    parameter       ORIGIN_INIT_FILE       = "${assembler_base}/${default_memory_init}.BO",
+    parameter       DESTINATION_INIT_FILE  = "${assembler_base}/${default_memory_init}.BD",
+    parameter       CONDITION_INIT_FILE    = "${assembler_base}/${default_memory_init}.BC",
+    parameter       PREDICTION_INIT_FILE   = "${assembler_base}/${default_memory_init}.BP",
+    parameter       PREDICTION_ENABLE_INIT_FILE   = "${assembler_base}/${default_memory_init}.BPE",
 
     // ****** These are computed for brevity later. Do not redefine at module instantiation. ******
     parameter       A_IO_READ_PORT_WIDTH        = (A_WORD_WIDTH * A_IO_READ_PORT_COUNT),
@@ -67,10 +85,24 @@ def test_harness(parameters, default_memory_init = default_memory_init, install_
 
     ${CPU_NAME}
     #(
-        .A_INIT_FILE        (A_INIT_FILE),
-        .B_INIT_FILE        (B_INIT_FILE),
-        .I_INIT_FILE        (I_INIT_FILE),
-        .PC_INIT_FILE       (PC_INIT_FILE)
+        .A_INIT_FILE                    (A_INIT_FILE),
+        .B_INIT_FILE                    (B_INIT_FILE),
+        .I_INIT_FILE                    (I_INIT_FILE),
+        .PC_INIT_FILE                   (PC_INIT_FILE),
+        .A_DEFAULT_OFFSET_INIT_FILE     (A_DEFAULT_OFFSET_INIT_FILE),
+        .B_DEFAULT_OFFSET_INIT_FILE     (B_DEFAULT_OFFSET_INIT_FILE),
+        .D_DEFAULT_OFFSET_INIT_FILE     (D_DEFAULT_OFFSET_INIT_FILE),
+        .A_PROGRAMMED_OFFSETS_INIT_FILE (A_PROGRAMMED_OFFSETS_INIT_FILE),
+        .B_PROGRAMMED_OFFSETS_INIT_FILE (B_PROGRAMMED_OFFSETS_INIT_FILE),
+        .D_PROGRAMMED_OFFSETS_INIT_FILE (D_PROGRAMMED_OFFSETS_INIT_FILE),
+        .A_INCREMENTS_INIT_FILE         (A_INCREMENTS_INIT_FILE),
+        .B_INCREMENTS_INIT_FILE         (B_INCREMENTS_INIT_FILE),
+        .D_INCREMENTS_INIT_FILE         (D_INCREMENTS_INIT_FILE),
+        .ORIGIN_INIT_FILE               (ORIGIN_INIT_FILE),
+        .DESTINATION_INIT_FILE          (DESTINATION_INIT_FILE),
+        .CONDITION_INIT_FILE            (CONDITION_INIT_FILE),
+        .PREDICTION_INIT_FILE           (PREDICTION_INIT_FILE),
+        .PREDICTION_ENABLE_INIT_FILE    (PREDICTION_ENABLE_INIT_FILE)
     )
     DUT
     (
@@ -83,6 +115,11 @@ def test_harness(parameters, default_memory_init = default_memory_init, install_
         
         .ALU_c_in           (ALU_C_IN_DEFAULT),
         .ALU_c_out          (),
+
+        // Only used for SIMD
+        .I_read_data        (),
+        .I_read_data_translated (),
+        .cancel             (),
 
         .A_in_EF            (dut_A_in_EF),
         .A_rden             (dut_A_rden),

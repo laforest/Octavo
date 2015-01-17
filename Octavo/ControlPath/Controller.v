@@ -1,74 +1,12 @@
 
-module Controller_A_zero 
-#(
-    parameter       A_WORD_WIDTH        = 0
-)
-(
-    input   wire                        clock,
-    input   wire    [A_WORD_WIDTH-1:0]  A,
-    output  reg                         A_zero
-);
-    always @(posedge clock) begin
-        if (A === {A_WORD_WIDTH{`LOW}}) begin
-            A_zero <= `HIGH;
-        end
-        else begin
-            A_zero <= `LOW;
-        end
-    end
+// Holds and provides Program Counter values, including the previous one to
+// re-issue annulled instructions.
 
-    initial begin
-        A_zero = 0;
-    end
-endmodule
+// -----------------------------------------------------------
 
-module Controller_A_positive 
-#(
-    parameter       A_WORD_WIDTH        = 0
-)
-(
-    input   wire                        clock,
-    input   wire    [A_WORD_WIDTH-1:0]  A,
-    output  reg                         A_positive
-);
-    always @(posedge clock) begin
-        if (A[A_WORD_WIDTH-1] === `LOW) begin
-            A_positive <= `HIGH;
-        end
-        else begin
-            A_positive <= `LOW;
-        end
-    end
+// ECL XXX This should be re-written using the RAM_SDP_no_fw module
 
-    initial begin
-        A_positive = 0;
-    end
-endmodule
-
-// ECL This contains the negation of Memory_wren, combine?
-module Controller_jump 
-#(
-    parameter       OPCODE_WIDTH        = 0
-)
-(
-    input   wire                        clock,
-    input   wire    [OPCODE_WIDTH-1:0]  op,
-    input   wire                        A_zero,
-    input   wire                        A_positive,
-    output  reg                         jump
-);
-    always @(posedge clock) begin
-        if (op === `JMP)                            jump <= `HIGH; else
-        if (op === `JZE && A_zero === `HIGH)        jump <= `HIGH; else
-        if (op === `JNZ && A_zero === `LOW)         jump <= `HIGH; else
-        if (op === `JPO && A_positive === `HIGH)    jump <= `HIGH; else
-        if (op === `JNE && A_positive === `LOW)     jump <= `HIGH; else jump <= `LOW;
-    end
-
-    initial begin
-        jump = 0;
-    end
-endmodule
+// ECL XXX Re-implement with RAM_SDP_no_fw instance, tying wren high.
 
 module Controller_threads 
 #(
@@ -103,6 +41,12 @@ module Controller_threads
     end
 endmodule
 
+// -----------------------------------------------------------
+
+// Not optionally registered because we use the final PC in two ways at the
+// end, one of which might not have a pipelined output depending on the
+// Controlle's position in the ControlPath.
+
 module PC_Selector
 #(
     parameter       PC_WIDTH        = 0
@@ -113,7 +57,7 @@ module PC_Selector
     input   wire    [PC_WIDTH-1:0]  current_pc,
     input   wire    [PC_WIDTH-1:0]  previous_pc,
     input   wire    [PC_WIDTH-1:0]  jump_target,
-    output  reg     [PC_WIDTH-1:0]  pc
+    output  reg     [PC_WIDTH-1:0]  PC
 );
     reg     [PC_WIDTH-1:0] normal_pc;
 
@@ -128,18 +72,18 @@ module PC_Selector
 
     always @(*) begin
         if (IO_ready === `HIGH) begin
-            pc <= normal_pc;
+            PC <= normal_pc;
         end
         else begin
-            pc <= previous_pc;
+            PC <= previous_pc;
         end
     end
 endmodule
 
+// -----------------------------------------------------------
+
 module Controller 
 #(
-    parameter       OPCODE_WIDTH        = 0,
-    parameter       A_WORD_WIDTH        = 0,
     parameter       PC_WIDTH            = 0,
     parameter       THREAD_ADDR_WIDTH   = 0,
     parameter       THREAD_COUNT        = 0,
@@ -149,102 +93,73 @@ module Controller
 )
 (
     input   wire                        clock,
-    input   wire    [A_WORD_WIDTH-1:0]  A,
-    input   wire    [OPCODE_WIDTH-1:0]  op,
-    input   wire    [PC_WIDTH-1:0]      D,
+    input   wire    [PC_WIDTH-1:0]      branch_destination,
+    input   wire                        jump,
     input   wire                        IO_ready,
-    output  wire    [PC_WIDTH-1:0]      pc 
+    output  wire    [PC_WIDTH-1:0]      PC 
 );
 
-    wire    [OPCODE_WIDTH-1:0]  op_pipelined;
+    // ECL XXX For simulation, to measure ALU usage
+    always @(posedge clock) begin
+        $display("PC: %d", PC);
+    end
+
+// -----------------------------------------------------------
+
+    wire    IO_ready_synced;
 
     delay_line 
     #(
-        .DEPTH  (1), 
-        .WIDTH  (OPCODE_WIDTH)
-    ) 
-    op_pipeline
-    (
-        .clock  (clock),
-        .in     (op),
-        .out    (op_pipelined)
-    );
- 
-    wire    [PC_WIDTH-1:0]      D_pipelined;
-
-    delay_line 
-    #(
-        .DEPTH  (2), 
-        .WIDTH  (PC_WIDTH)
-    ) 
-    D_pipeline
-    (
-        .clock  (clock),
-        .in     (D),
-        .out    (D_pipelined)
-    );
-
-    wire        IO_ready_pipelined;
-
-    delay_line 
-    #(
-        .DEPTH  (2), 
+        .DEPTH  (2),
         .WIDTH  (1)
     ) 
     IO_ready_pipeline
     (
         .clock  (clock),
         .in     (IO_ready),
-        .out    (IO_ready_pipelined)
+        .out    (IO_ready_synced)
     );
- 
-    wire    A_zero;
 
-    Controller_A_zero 
+// -----------------------------------------------------------
+
+    wire    jump_synced;
+
+    delay_line 
     #(
-        .A_WORD_WIDTH   (A_WORD_WIDTH)
-    )
-    Controller_A_zero 
+        .DEPTH  (2),
+        .WIDTH  (1)
+    ) 
+    jump_pipeline
     (
-        .clock          (clock),
-        .A              (A),
-        .A_zero         (A_zero)
+        .clock  (clock),
+        .in     (jump),
+        .out    (jump_synced)
     );
 
-    wire    A_positive;
+// -----------------------------------------------------------
 
-    Controller_A_positive 
+    wire    [PC_WIDTH-1:0]  branch_destination_synced;
+
+    delay_line 
     #(
-        .A_WORD_WIDTH   (A_WORD_WIDTH)
-    )
-    Controller_A_positive 
+        .DEPTH  (2),
+        .WIDTH  (PC_WIDTH)
+    ) 
+    branch_destination_pipeline
     (
-        .clock          (clock),
-        .A              (A),
-        .A_positive     (A_positive)
+        .clock  (clock),
+        .in     (branch_destination),
+        .out    (branch_destination_synced)
     );
 
-    wire    jump;
-
-    Controller_jump 
-    #(
-        .OPCODE_WIDTH   (OPCODE_WIDTH)
-    )
-    Controller_jump 
-    (
-        .clock          (clock),
-        .op             (op_pipelined),
-        .A_zero         (A_zero),
-        .A_positive     (A_positive),
-        .jump           (jump)
-    );
+// -----------------------------------------------------------
 
     wire    [THREAD_ADDR_WIDTH-1:0] current_thread;
     wire    [THREAD_ADDR_WIDTH-1:0] next_thread;
 
     Thread_Number
     #(
-        .INITIAL_THREAD     (0),
+        .INITIAL_THREAD     (0), // ECL XXX hardcoded...but doesn't matter here, and see below.
         .THREAD_COUNT       (THREAD_COUNT),
         .THREAD_ADDR_WIDTH  (THREAD_ADDR_WIDTH)
     )
@@ -255,17 +170,26 @@ module Controller
         .next_thread        (next_thread)
     );
 
-    wire    [PC_WIDTH-1:0]  previous_pc;
-    wire    [PC_WIDTH-1:0]  current_pc;
-    reg     [PC_WIDTH-1:0]  next_pc;
+// -----------------------------------------------------------
 
     reg     [THREAD_ADDR_WIDTH-1:0] previous_thread;
 
+    // Used to store back next and current PCs, delayed by 1 cycle for adder.
     always @(posedge clock) begin
         previous_thread <= current_thread;
     end
 
-    reg     [PC_WIDTH-1:0] pc_reg;
+    // ECL XXX hardcoded...must be zero to overwrite PC of Thread 0, thus its first NOP runs twice.
+    initial begin
+        previous_thread = 0;
+    end
+
+// -----------------------------------------------------------
+
+    wire    [PC_WIDTH-1:0]  previous_pc;
+    wire    [PC_WIDTH-1:0]  current_pc;
+    reg     [PC_WIDTH-1:0]  next_pc;
+    wire    [PC_WIDTH-1:0]  pc_reg;
 
     Controller_threads 
     #(
@@ -284,23 +208,55 @@ module Controller
         .thread_read_data   ({current_pc, previous_pc})
     );
 
+// -----------------------------------------------------------
+
+    wire    [PC_WIDTH-1:0]  pc_raw;
+
     PC_Selector
     #(
         .PC_WIDTH       (PC_WIDTH)
     )
     PC_Selector
     (
-        .jump           (jump),
-        .IO_ready       (IO_ready_pipelined),
+        .jump           (jump_synced),
+        .IO_ready       (IO_ready_synced),
         .current_pc     (current_pc),
         .previous_pc    (previous_pc),
-        .jump_target    (D_pipelined),
-        .pc             (pc)
+        .jump_target    (branch_destination_synced),
+        .PC             (pc_raw)
     );
 
-    always @(posedge clock) begin
-        pc_reg <= pc;
-    end
+// -----------------------------------------------------------
+
+    delay_line 
+    #(
+        .DEPTH  (0),
+        .WIDTH  (PC_WIDTH)
+    ) 
+    PC_pipeline
+    (
+        .clock  (clock),
+        .in     (pc_raw),
+        .out    (PC)
+    );
+
+// -----------------------------------------------------------
+
+    // prevents JMP->PCM critical path.
+    // Redundant with PC_pipeline, but better to duplicate and let tool deduplicate if needed.
+    delay_line 
+    #(
+        .DEPTH  (1),
+        .WIDTH  (PC_WIDTH)
+    ) 
+    pc_reg_pipeline
+    (
+        .clock  (clock),
+        .in     (pc_raw),
+        .out    (pc_reg)
+    );
+
+// -----------------------------------------------------------
 
     // Workaround to use bit vector selection to eliminate truncation warnings
     integer one = 1;
@@ -308,4 +264,5 @@ module Controller
     always @(*) begin
         next_pc  <= pc_reg + one[PC_WIDTH-1:0];
     end
+
 endmodule

@@ -20,10 +20,12 @@ module IO_Active
     #(
         .ADDR_COUNT             (PORT_COUNT),
         .ADDR_BASE              (PORT_BASE_ADDR),
-        .ADDR_WIDTH             (PORT_ADDR_WIDTH)
+        .ADDR_WIDTH             (PORT_ADDR_WIDTH),
+        .REGISTERED             (`FALSE)
     )
     Address_Translator
     (
+        .clock                  (clock),
         .raw_address            (addr[PORT_ADDR_WIDTH-1:0]),
         .translated_address     (addr_translated)
     );         

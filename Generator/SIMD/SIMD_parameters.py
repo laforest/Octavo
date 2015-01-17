@@ -7,8 +7,7 @@ Many parameters are calculated from others.
 
 import string
 
-from Misc import parameters_misc
-from Misc import misc
+from Misc import misc, parameters_misc
 
 def generate_pipeline_depths(parameters = {}):
     EXTRA_STAGES = parameters.get("EXTRA_STAGES", 0)
@@ -18,15 +17,14 @@ def generate_pipeline_depths(parameters = {}):
         "EXTRA_STAGES"            : EXTRA_STAGES,
         ## Optional stage to put before I_mem to try and improve timing under P&R variation
         ## Alter I_TAP and TAP_AB to add up to 8 stages at minimum.
-        ## Set to 0 to keep all stages on IAB path to lower SIMD lane instruction lag
+        ## XXX FIXME Keep at 0, else it introduces TWO zero reads at startup. Need to remove this option.
         "PC_PIPELINE_DEPTH"         : 0 + EXTRA_STAGES,
         ## How many stages between I and instruction tap to DataPath. Min. 1 for good Fmax: gets retimed into I mem BRAM.
         "I_TAP_PIPELINE_DEPTH"      : 1,
         ## How many stages between instruction tap and A/B memories. Should add up to 3 with above, minus any PC_PIPELINE_DEPTH.
         "TAP_AB_PIPELINE_DEPTH"     : 2,
-        ## How many stages between instruction in and out. Used only in datapaths. See SIMD version too. 
-        ## Set to 1 if there are SIMD lanes.
-        "I_PASSTHRU_PIPELINE_DEPTH" : 0,
+        ## Delay between ControlPath and DataPath. Not used for Scalar, only on SIMD.
+        "CONTROL_INPUT_PIPELINE_DEPTH" : 0,
         ## Takes 2 cycles to read/write the A/B data memories
         "AB_READ_PIPELINE_DEPTH"    : 2,
         ## A/B read (2 cycles) + ALU (4 cycles (nominally)) + A/B write (2 cycles)
@@ -43,7 +41,8 @@ def generate_pipeline_depths(parameters = {}):
 def generate_common_values(parameters = {}):
     common_values = { 
         "FAMILY"          : "Stratix IV",
-        "DEVICE"          : "EP4SE230F29C2",
+        #"DEVICE"          : "EP4SE230F29C2",
+        "DEVICE"          : "EP4SGX230KF40C2", # DE4-230
         "CPU_NAME"        : "SIMD",
         # This normally NEVER changes. If you do change it, update the ALU and decoders to match.
         "OPCODE_WIDTH"    : 4,
@@ -68,19 +67,31 @@ def generate_common_values(parameters = {}):
 
     ## Address space for each of 3 operands after bits for opcode subtracted. Extra 0, 1, or 2 bits left unused.
     addr_width = ((common_values["WORD_WIDTH"] - common_values["OPCODE_WIDTH"]) // 3)
-    max_mem_depth  = 2**addr_width 
+
+    ## Extra 2 bits then used to extend D operand address space.
+    ## Because of this, having 0 or 1 spare bits is an error.
+    spare_addr_bits = common_values["WORD_WIDTH"] - (common_values["OPCODE_WIDTH"] + (addr_width * 3))
+    assert spare_addr_bits == 2, "You need 2 spare addr bits to extend D. You only have %d." % spare_addr_bits
 
     ## By default, include all the memory you can address, unless less specified
+    max_mem_depth  = 2**addr_width 
     if "WORD_WIDTH" in parameters and "MEM_DEPTH" not in parameters:
         common_values.update({"MEM_DEPTH":max_mem_depth})
 
     assert common_values["MEM_DEPTH"] <= max_mem_depth, "WARNING: You asked for a MEM_DEPTH of {0}, but you can only address up to {1}".format(common_values["MEM_DEPTH"], max_mem_depth)
 
+    ## Lay out memories consecutively in D write address space
+    A_offset, B_offset, I_offset, H_offset = (x*max_mem_depth for x in range(2**spare_addr_bits))
+
     common_values.update({
         ## Bitwise logic uses 3 LSB of opcode               
         "LOGIC_OPCODE_WIDTH" : (common_values["OPCODE_WIDTH"] - 1),
-        "ADDR_WIDTH"         : addr_width,
         "MEM_ADDR_WIDTH"     : addr_width,
+        "D_MEM_ADDR_WIDTH"   : addr_width + spare_addr_bits,
+        "A_WRITE_ADDR_OFFSET": A_offset,
+        "B_WRITE_ADDR_OFFSET": B_offset,
+        "I_WRITE_ADDR_OFFSET": I_offset,
+        "H_WRITE_ADDR_OFFSET": H_offset,
         "PORTS_BASE_ADDR"    : (common_values["MEM_DEPTH"] -
                                 common_values["PORTS_COUNT"]),
         ## Artificially limit minimum I/O address widths to 1 bit. The Verilog uses the port count to handle the discrepancy.
@@ -89,16 +100,15 @@ def generate_common_values(parameters = {}):
     return common_values
 
 def generate_SIMD_common_values(common_values, parameters = {}):
-    common_names = ["WORD_WIDTH",    "ADDR_WIDTH",  "MEM_DEPTH",       "MEM_RAMSTYLE", 
+    common_names = ["WORD_WIDTH",    "MEM_ADDR_WIDTH",  "MEM_DEPTH",       "MEM_RAMSTYLE", 
                     "MEM_INIT_FILE", "PORTS_COUNT", "PORTS_BASE_ADDR", "PORTS_ADDR_WIDTH",
-                    "TAP_AB_PIPELINE_DEPTH"]
+                    "TAP_AB_PIPELINE_DEPTH", "A_WRITE_ADDR_OFFSET", "B_WRITE_ADDR_OFFSET",
+                    "I_WRITE_ADDR_OFFSET", "H_WRITE_ADDR_OFFSET", "H_WORD_WIDTH", "H_ADDR_WIDTH",
+                    "H_DEPTH"]
 
     SIMD_base_parameters = {
         ## Won't build with < 1 Lane, use Scalar instance instead.
         "SIMD_LANE_COUNT"               :   1,
-        ## Contrary to main path, default to 0 since it doesn't get optimized away when partitioning.
-        ## and would significantly affect computational density.
-        "SIMD_I_PASSTHRU_PIPELINE_DEPTH" :   0,
         ## Used in cpu_test_harness.py
         "SIMD_MEM_INIT_FILE_PREFIX"      :   "SIMD_",
     }
@@ -110,27 +120,27 @@ def generate_SIMD_common_values(common_values, parameters = {}):
         else:
             SIMD_base_parameters.update({"SIMD_" + name : parameters["SIMD_" + name]})
 
-    SIMD_max_mem_depth  = 2**common_values["ADDR_WIDTH"] 
+    SIMD_max_mem_depth  = 2**common_values["MEM_ADDR_WIDTH"] 
     assert SIMD_base_parameters["SIMD_MEM_DEPTH"] <= SIMD_max_mem_depth, "WARNING: You asked for a SIMD_MEM_DEPTH of {0}, but you can only address up to {1}".format(SIMD_base_parameters["SIMD_MEM_DEPTH"], SIMD_max_mem_depth)
 
     SIMD_parameters = {
         "SIMD_ALU_WORD_WIDTH"               :   SIMD_base_parameters["SIMD_WORD_WIDTH"],
 
         "SIMD_A_WORD_WIDTH"                 :   SIMD_base_parameters["SIMD_WORD_WIDTH"],
-        "SIMD_A_ADDR_WIDTH"                 :   SIMD_base_parameters["SIMD_ADDR_WIDTH"],
+        "SIMD_A_ADDR_WIDTH"                 :   SIMD_base_parameters["SIMD_MEM_ADDR_WIDTH"],
         "SIMD_A_DEPTH"                      :   SIMD_base_parameters["SIMD_MEM_DEPTH"],
         "SIMD_A_RAMSTYLE"                   :   SIMD_base_parameters["SIMD_MEM_RAMSTYLE"],
         "SIMD_A_INIT_FILE"                  :   '"' + SIMD_base_parameters["SIMD_MEM_INIT_FILE_PREFIX"] + SIMD_base_parameters["SIMD_MEM_INIT_FILE"] + '"',
         "SIMD_A_IO_READ_PORT_COUNT"         :   SIMD_base_parameters["SIMD_PORTS_COUNT"],
         ## Shift A I/O above B I/O
-        "SIMD_A_IO_READ_PORT_BASE_ADDR"     :  (SIMD_base_parameters["SIMD_PORTS_BASE_ADDR"] - SIMD_base_parameters["SIMD_PORTS_COUNT"]),
+        "SIMD_A_IO_READ_PORT_BASE_ADDR"     :  (SIMD_base_parameters["SIMD_PORTS_BASE_ADDR"]),
         "SIMD_A_IO_READ_PORT_ADDR_WIDTH"    :   SIMD_base_parameters["SIMD_PORTS_ADDR_WIDTH"],
         "SIMD_A_IO_WRITE_PORT_COUNT"        :   SIMD_base_parameters["SIMD_PORTS_COUNT"],
-        "SIMD_A_IO_WRITE_PORT_BASE_ADDR"    :  (SIMD_base_parameters["SIMD_PORTS_BASE_ADDR"] - SIMD_base_parameters["SIMD_PORTS_COUNT"]),
+        "SIMD_A_IO_WRITE_PORT_BASE_ADDR"    :  (SIMD_base_parameters["SIMD_PORTS_BASE_ADDR"] + SIMD_base_parameters["SIMD_A_WRITE_ADDR_OFFSET"]),
         "SIMD_A_IO_WRITE_PORT_ADDR_WIDTH"   :   SIMD_base_parameters["SIMD_PORTS_ADDR_WIDTH"],
 
         "SIMD_B_WORD_WIDTH"                 :   SIMD_base_parameters["SIMD_WORD_WIDTH"],
-        "SIMD_B_ADDR_WIDTH"                 :   SIMD_base_parameters["SIMD_ADDR_WIDTH"],
+        "SIMD_B_ADDR_WIDTH"                 :   SIMD_base_parameters["SIMD_MEM_ADDR_WIDTH"],
         "SIMD_B_DEPTH"                      :   SIMD_base_parameters["SIMD_MEM_DEPTH"],
         "SIMD_B_RAMSTYLE"                   :   SIMD_base_parameters["SIMD_MEM_RAMSTYLE"],
         "SIMD_B_INIT_FILE"                  :   '"' + SIMD_base_parameters["SIMD_MEM_INIT_FILE_PREFIX"] + SIMD_base_parameters["SIMD_MEM_INIT_FILE"] + '"',
@@ -138,8 +148,13 @@ def generate_SIMD_common_values(common_values, parameters = {}):
         "SIMD_B_IO_READ_PORT_BASE_ADDR"     :   SIMD_base_parameters["SIMD_PORTS_BASE_ADDR"],
         "SIMD_B_IO_READ_PORT_ADDR_WIDTH"    :   SIMD_base_parameters["SIMD_PORTS_ADDR_WIDTH"],
         "SIMD_B_IO_WRITE_PORT_COUNT"        :   SIMD_base_parameters["SIMD_PORTS_COUNT"],
-        "SIMD_B_IO_WRITE_PORT_BASE_ADDR"    :   SIMD_base_parameters["SIMD_PORTS_BASE_ADDR"],
+        "SIMD_B_IO_WRITE_PORT_BASE_ADDR"    :  (SIMD_base_parameters["SIMD_PORTS_BASE_ADDR"] + SIMD_base_parameters["SIMD_B_WRITE_ADDR_OFFSET"]),
         "SIMD_B_IO_WRITE_PORT_ADDR_WIDTH"   :   SIMD_base_parameters["SIMD_PORTS_ADDR_WIDTH"],
+
+        ## Delay between Scalar ControlPath and SIMD DataPaths.
+        ## Replicated inside each partitioned SIMD DataPath (see FPT 2013 paper).
+        ## Depth of 1 suffices. More doesn't really help and complicates programming.
+        "SIMD_CONTROL_INPUT_PIPELINE_DEPTH" : 1,
     }
     SIMD_parameters.update(SIMD_base_parameters)
     parameters_misc.override(SIMD_parameters, parameters)
@@ -149,19 +164,20 @@ def generate_main_parameters(common_values, parameters = {}):
     main_parameters = {
          "ALU_WORD_WIDTH"               :   common_values["WORD_WIDTH"],
 
+         "A_WRITE_ADDR_OFFSET"          :   common_values["A_WRITE_ADDR_OFFSET"],
          "A_WORD_WIDTH"                 :   common_values["WORD_WIDTH"],
          "A_ADDR_WIDTH"                 :   common_values["MEM_ADDR_WIDTH"],
          "A_DEPTH"                      :   common_values["MEM_DEPTH"],
          "A_RAMSTYLE"                   :   common_values["MEM_RAMSTYLE"],
          "A_INIT_FILE"                  :   '"' + common_values["MEM_INIT_FILE"] + '"',
          "A_IO_READ_PORT_COUNT"         :   common_values["PORTS_COUNT"],
-         ## Shift A I/O above B I/O
-         "A_IO_READ_PORT_BASE_ADDR"     :  (common_values["PORTS_BASE_ADDR"] - common_values["PORTS_COUNT"]),
+         "A_IO_READ_PORT_BASE_ADDR"     :  (common_values["PORTS_BASE_ADDR"]),
          "A_IO_READ_PORT_ADDR_WIDTH"    :   common_values["PORTS_ADDR_WIDTH"],
          "A_IO_WRITE_PORT_COUNT"        :   common_values["PORTS_COUNT"],
-         "A_IO_WRITE_PORT_BASE_ADDR"    :  (common_values["PORTS_BASE_ADDR"] - common_values["PORTS_COUNT"]),
+         "A_IO_WRITE_PORT_BASE_ADDR"    :  (common_values["PORTS_BASE_ADDR"] + common_values["A_WRITE_ADDR_OFFSET"]),
          "A_IO_WRITE_PORT_ADDR_WIDTH"   :   common_values["PORTS_ADDR_WIDTH"],
 
+         "B_WRITE_ADDR_OFFSET"          :   common_values["B_WRITE_ADDR_OFFSET"],
          "B_WORD_WIDTH"                 :   common_values["WORD_WIDTH"],
          "B_ADDR_WIDTH"                 :   common_values["MEM_ADDR_WIDTH"],
          "B_DEPTH"                      :   common_values["MEM_DEPTH"],
@@ -171,24 +187,31 @@ def generate_main_parameters(common_values, parameters = {}):
          "B_IO_READ_PORT_BASE_ADDR"     :   common_values["PORTS_BASE_ADDR"],
          "B_IO_READ_PORT_ADDR_WIDTH"    :   common_values["PORTS_ADDR_WIDTH"],
          "B_IO_WRITE_PORT_COUNT"        :   common_values["PORTS_COUNT"],
-         "B_IO_WRITE_PORT_BASE_ADDR"    :   common_values["PORTS_BASE_ADDR"],
+         "B_IO_WRITE_PORT_BASE_ADDR"    :   (common_values["PORTS_BASE_ADDR"] + common_values["B_WRITE_ADDR_OFFSET"]),
          "B_IO_WRITE_PORT_ADDR_WIDTH"   :   common_values["PORTS_ADDR_WIDTH"],
 
+         "I_WRITE_ADDR_OFFSET"          :   common_values["I_WRITE_ADDR_OFFSET"],
          "I_WORD_WIDTH"                 :   common_values["WORD_WIDTH"],
          "I_ADDR_WIDTH"                 :   common_values["MEM_ADDR_WIDTH"],
          "I_DEPTH"                      :   common_values["MEM_DEPTH"],
          "I_RAMSTYLE"                   :   common_values["MEM_RAMSTYLE"],
          "I_INIT_FILE"                  :   '"' + common_values["MEM_INIT_FILE"] + '"',
 
-         "D_OPERAND_WIDTH"              :   common_values["ADDR_WIDTH"],
-         "A_OPERAND_WIDTH"              :   common_values["ADDR_WIDTH"],
-         "B_OPERAND_WIDTH"              :   common_values["ADDR_WIDTH"],
+         "H_WRITE_ADDR_OFFSET"          :   common_values["H_WRITE_ADDR_OFFSET"],
+         "H_WORD_WIDTH"                 :   common_values["WORD_WIDTH"],
+         "H_ADDR_WIDTH"                 :   common_values["MEM_ADDR_WIDTH"],
+         "H_DEPTH"                      :   common_values["MEM_DEPTH"],
+
+         "D_OPERAND_WIDTH"              :   common_values["D_MEM_ADDR_WIDTH"],
+         "A_OPERAND_WIDTH"              :   common_values["MEM_ADDR_WIDTH"],
+         "B_OPERAND_WIDTH"              :   common_values["MEM_ADDR_WIDTH"],
     }
     parameters_misc.override(main_parameters, parameters)
     main_parameters.update({"INSTR_WIDTH" : (common_values["OPCODE_WIDTH"] +
                                              main_parameters["D_OPERAND_WIDTH"] + 
                                              main_parameters["A_OPERAND_WIDTH"] + 
                                              main_parameters["B_OPERAND_WIDTH"])})
+    assert main_parameters["INSTR_WIDTH"] <= common_values["WORD_WIDTH"], "ERROR: instruction width %d larger than word width %d" % (main_parameters["INSTR_WIDTH"], main_parameters["WORD_WIDTH"])
     return main_parameters
 
 def generate_thread_parameters(pipeline_depths, parameters = {}):
@@ -198,6 +221,160 @@ def generate_thread_parameters(pipeline_depths, parameters = {}):
         "THREAD_ADDR_WIDTH" :   misc.log2(thread_count)}
     parameters_misc.override(thread_parameters, parameters)
     return thread_parameters
+
+# ECL XXX We're going to need some centralized memory map base address
+# generation to keep it all straight
+
+def generate_addressing_parameters(common_values, parameters = {}):
+
+    base_addr = common_values["H_WRITE_ADDR_OFFSET"]
+    mem_init  = '"' + common_values["MEM_INIT_FILE"] + '"'
+    mem_style = '"MLAB,no_rw_check"'
+
+    def generate_actual_parameters(prefix, parameters):
+        new_parameters = {}
+        for key,value in parameters.items():
+            new_parameters[prefix+key] = value
+        return new_parameters
+
+    def generate_all_actual_parameters(parameters):
+        memories = ["D", "A", "B"]
+        new_parameters = []
+        for memory in memories:
+            new_parameters.append(generate_actual_parameters(memory, parameters))
+        return new_parameters
+
+    default_DO_parameters = {
+        "_DEFAULT_OFFSET_WRITE_WORD_OFFSET" : None,
+        "_DEFAULT_OFFSET_WRITE_ADDR_OFFSET" : base_addr + 1, # ECL not a round number to test address translation
+        "_DEFAULT_OFFSET_WORD_WIDTH"        : 10,
+        "_DEFAULT_OFFSET_ADDR_WIDTH"        : 3,
+        "_DEFAULT_OFFSET_DEPTH"             : 8, # ECL XXX hardcoded...one per thread
+        "_DEFAULT_OFFSET_RAMSTYLE"          : mem_style,
+        "_DEFAULT_OFFSET_INIT_FILE"         : mem_init
+    }
+
+    D_DO_parameters, A_DO_parameters, B_DO_parameters = generate_all_actual_parameters(default_DO_parameters)
+    D_DO_parameters["D_DEFAULT_OFFSET_WORD_WIDTH"] = 12
+    # Lay them in the same memory word, just as the instruction operand they modify
+    D_DO_parameters["D_DEFAULT_OFFSET_WRITE_WORD_OFFSET"] = 20
+    A_DO_parameters["A_DEFAULT_OFFSET_WRITE_WORD_OFFSET"] = 10
+    B_DO_parameters["B_DEFAULT_OFFSET_WRITE_WORD_OFFSET"] = 0
+
+    default_PO_INC_parameters = {
+        "_PO_INC_READ_BASE_ADDR"   : None,
+        "_PO_INC_COUNT"            : 2,
+        "_PO_INC_COUNT_ADDR_WIDTH" : 1
+    }
+
+    D_PO_INC_parameters, A_PO_INC_parameters, B_PO_INC_parameters = generate_all_actual_parameters(default_PO_INC_parameters)
+    # Place the write offsets just before the end of High Memory
+    D_PO_INC_parameters["D_PO_INC_READ_BASE_ADDR"] = common_values["H_WRITE_ADDR_OFFSET"] + common_values["H_DEPTH"] - D_PO_INC_parameters["D_PO_INC_COUNT"] - 1
+    # Place the read offsets just before the I/O read ports.
+    A_PO_INC_parameters["A_PO_INC_READ_BASE_ADDR"] = common_values["A_IO_READ_PORT_BASE_ADDR"] - A_PO_INC_parameters["A_PO_INC_COUNT"]
+    B_PO_INC_parameters["B_PO_INC_READ_BASE_ADDR"] = common_values["B_IO_READ_PORT_BASE_ADDR"] - B_PO_INC_parameters["B_PO_INC_COUNT"]
+
+    default_PO_parameters = {
+        "_PROGRAMMED_OFFSETS_WRITE_WORD_OFFSET" : None,
+        "_PROGRAMMED_OFFSETS_WRITE_ADDR_OFFSET" : base_addr + 3, # ECL test of address transl.
+        "_PROGRAMMED_OFFSETS_WORD_WIDTH"        : 10,
+        "_PROGRAMMED_OFFSETS_ADDR_WIDTH"        : 3,
+        "_PROGRAMMED_OFFSETS_DEPTH"             : 8,
+        "_PROGRAMMED_OFFSETS_RAMSTYLE"          : mem_style,
+        "_PROGRAMMED_OFFSETS_INIT_FILE"         : mem_init
+    }
+
+    D_PO_parameters, A_PO_parameters, B_PO_parameters = generate_all_actual_parameters(default_PO_parameters)
+    D_PO_parameters["D_PROGRAMMED_OFFSETS_WORD_WIDTH"] = 12
+    # Lay them in the same memory word, just as the instruction operand they modify
+    D_PO_parameters["D_PROGRAMMED_OFFSETS_WRITE_WORD_OFFSET"] = 20
+    A_PO_parameters["A_PROGRAMMED_OFFSETS_WRITE_WORD_OFFSET"] = 10
+    B_PO_parameters["B_PROGRAMMED_OFFSETS_WRITE_WORD_OFFSET"] = 0
+
+    default_INC_parameters = {
+        "_INCREMENTS_WRITE_WORD_OFFSET" : None,
+        "_INCREMENTS_WRITE_ADDR_OFFSET" : base_addr + 3, # ECL test of address transl.
+        "_INCREMENTS_WORD_WIDTH"        : 1,
+        "_INCREMENTS_ADDR_WIDTH"        : 3,
+        "_INCREMENTS_DEPTH"             : 8,
+        "_INCREMENTS_RAMSTYLE"          : mem_style,
+        "_INCREMENTS_INIT_FILE"         : mem_init
+    }
+
+    D_INC_parameters, A_INC_parameters, B_INC_parameters = generate_all_actual_parameters(default_INC_parameters)
+    # Lay them in the same memory word, just past the offsets, in the same order
+    D_INC_parameters["D_INCREMENTS_WRITE_WORD_OFFSET"] = 34
+    A_INC_parameters["A_INCREMENTS_WRITE_WORD_OFFSET"] = 33
+    B_INC_parameters["B_INCREMENTS_WRITE_WORD_OFFSET"] = 32
+
+    addressing_parameters = {
+        # So write thread is 4, and read thread is 0, see Addressing_Thread_Number.v
+        "ADDRESS_TRANSLATION_INITIAL_THREAD" : 3
+    }
+
+    for entry in [D_DO_parameters,      A_DO_parameters,      B_DO_parameters, 
+                  D_PO_INC_parameters,  A_PO_INC_parameters,  B_PO_INC_parameters, 
+                  D_PO_parameters,      A_PO_parameters,      B_PO_parameters, 
+                  D_INC_parameters,     A_INC_parameters,     B_INC_parameters]:
+        addressing_parameters.update(entry)
+
+    parameters_misc.override(addressing_parameters, parameters)
+    return addressing_parameters
+
+def generate_branching_parameters(common_values, parameters = {}):
+
+    base_addr = common_values["H_WRITE_ADDR_OFFSET"] + 10 # ECL XXX Hardcoded
+    mem_init  = '"' + common_values["MEM_INIT_FILE"] + '"'
+    mem_style = '"MLAB,no_rw_check"'
+
+    branching_parameters = {
+        "ORIGIN_WRITE_WORD_OFFSET"      : 0,
+        "ORIGIN_WRITE_ADDR_OFFSET"      : base_addr,
+        "ORIGIN_WORD_WIDTH"             : 10,
+        "ORIGIN_ADDR_WIDTH"             : 3,
+        "ORIGIN_DEPTH"                  : 8,
+        "ORIGIN_RAMSTYLE"               : mem_style,
+        "ORIGIN_INIT_FILE"              : mem_init,
+
+        "BRANCH_COUNT"                  : 4,
+
+        "DESTINATION_WRITE_WORD_OFFSET" : 10,
+        "DESTINATION_WRITE_ADDR_OFFSET" : base_addr,
+        "DESTINATION_WORD_WIDTH"        : 10,
+        "DESTINATION_ADDR_WIDTH"        : 3,
+        "DESTINATION_DEPTH"             : 8,
+        "DESTINATION_RAMSTYLE"          : mem_style,
+        "DESTINATION_INIT_FILE"         : mem_init,
+
+        "CONDITION_WRITE_WORD_OFFSET"   : 20,
+        "CONDITION_WRITE_ADDR_OFFSET"   : base_addr,
+        "CONDITION_WORD_WIDTH"          : 3,
+        "CONDITION_ADDR_WIDTH"          : 3,
+        "CONDITION_DEPTH"               : 8,
+        "CONDITION_RAMSTYLE"            : mem_style,
+        "CONDITION_INIT_FILE"           : mem_init,
+
+        "PREDICTION_WRITE_WORD_OFFSET"        : 23,
+        "PREDICTION_WRITE_ADDR_OFFSET"        : base_addr,
+        "PREDICTION_WORD_WIDTH"               : 1,
+        "PREDICTION_ADDR_WIDTH"               : 3,
+        "PREDICTION_DEPTH"                    : 8,
+        "PREDICTION_RAMSTYLE"                 : mem_style,
+        "PREDICTION_INIT_FILE"                : mem_init,
+
+        "PREDICTION_ENABLE_WRITE_WORD_OFFSET" : 24,
+        "PREDICTION_ENABLE_WRITE_ADDR_OFFSET" : base_addr,
+        "PREDICTION_ENABLE_WORD_WIDTH"        : 1,
+        "PREDICTION_ENABLE_ADDR_WIDTH"        : 3,
+        "PREDICTION_ENABLE_DEPTH"             : 8,
+        "PREDICTION_ENABLE_RAMSTYLE"          : mem_style,
+        "PREDICTION_ENABLE_INIT_FILE"         : mem_init,
+
+        "FLAGS_WORD_WIDTH"              : 8,
+        "FLAGS_ADDR_WIDTH"              : 3,
+    }
+    parameters_misc.override(branching_parameters, parameters)
+    return branching_parameters
 
 def generate_resource_diversity_options(parameters = {}):
     resource_diversity_options = { 
@@ -235,11 +412,6 @@ def generate_cpu_name(all_parameters):
     name = name_template.substitute(all_parameters)
     return {"CPU_NAME":name}
 
-def adjust_I_pipelines(all_parameters):
-    if (all_parameters["SIMD_LANE_COUNT"] > 0):
-        all_parameters["I_PASSTHRU_PIPELINE_DEPTH"] = 1
-    return all_parameters
-
 def generate_logiclock_parameters(parameters = {}):
     logiclock_options = {
         "LL_ENABLED"   : "OFF",
@@ -253,23 +425,19 @@ def generate_logiclock_parameters(parameters = {}):
     return logiclock_options
 
 def all_parameters(parameters = {}):
-    pipeline_depths = generate_pipeline_depths(parameters)
-    common_values   = generate_common_values(parameters)
-    common_values.update(pipeline_depths)
-    SIMD_common_values   = generate_SIMD_common_values(common_values, parameters)
-    all_parameters  = {}
-    all_parameters.update(pipeline_depths)
-    all_parameters.update(common_values)
-    all_parameters.update(SIMD_common_values)
-    all_parameters.update(adjust_I_pipelines(all_parameters))
-    all_parameters.update(generate_main_parameters(common_values, parameters))
-    all_parameters.update(generate_thread_parameters(pipeline_depths, parameters)),
-    all_parameters.update(generate_resource_diversity_options(parameters))
-    all_parameters.update(generate_partition_options(parameters))
-    all_parameters.update(generate_quartus_options(parameters))
-    all_parameters.update(generate_logiclock_parameters(parameters))
-    all_parameters.update(generate_cpu_name(all_parameters))
-    return all_parameters
+    common_values = generate_common_values(parameters)
+    common_values.update(generate_pipeline_depths(parameters))
+    common_values.update(generate_main_parameters(common_values, parameters))
+    common_values.update(generate_SIMD_common_values(common_values, parameters))
+    common_values.update(generate_resource_diversity_options(parameters))
+    common_values.update(generate_partition_options(parameters))
+    common_values.update(generate_quartus_options(parameters))
+    common_values.update(generate_logiclock_parameters(parameters))
+    common_values.update(generate_thread_parameters(common_values, parameters))
+    common_values.update(generate_addressing_parameters(common_values, parameters))
+    common_values.update(generate_branching_parameters(common_values, parameters))
+    common_values.update(generate_cpu_name(common_values))
+    return common_values
 
 if __name__ == "__main__":
     import pprint

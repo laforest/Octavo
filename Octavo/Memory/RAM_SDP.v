@@ -1,4 +1,11 @@
 
+// Preferably for M9K and similar: NEW data
+// read-during-write behaviour grants highest BRAM
+// operating speed and provides write forwarding
+
+// Also, we don't want a synchronous clear on the
+// output: any register driving it cannot be retimed.
+
 module RAM_SDP 
 #(
     parameter       WORD_WIDTH          = 0,
@@ -15,6 +22,7 @@ module RAM_SDP
     input  wire     [ADDR_WIDTH-1:0]    read_addr, 
     output reg      [WORD_WIDTH-1:0]    read_data
 );
+    // Exmaple: "M9K"
     (* ramstyle = RAMSTYLE *) 
     reg [WORD_WIDTH-1:0] ram [DEPTH-1:0];
 
@@ -23,9 +31,6 @@ module RAM_SDP
     end
 
     always @(posedge clock) begin
-        // NEW data read-during-write behaviour
-        // Grants highest BRAM operating speed
-        // Also provides write forwarding
         if(wren == `HIGH) begin
             ram[write_addr] = write_data;
         end

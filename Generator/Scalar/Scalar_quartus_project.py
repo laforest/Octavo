@@ -47,7 +47,7 @@ def create_settings_file(all_parameters, path, install_base = install_base):
 """
 # Project-Wide Assignments
 # ========================
-set_global_assignment -name LAST_QUARTUS_VERSION 12.1
+set_global_assignment -name LAST_QUARTUS_VERSION 13.1
 set_global_assignment -name FLOW_DISABLE_ASSEMBLER ON
 set_global_assignment -name SMART_RECOMPILE ON
 set_global_assignment -name NUM_PARALLEL_PROCESSORS ${QUARTUS_NUM_PARALLEL_PROCESSORS}
@@ -59,6 +59,8 @@ set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Misc/Address_Tra
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Misc/Addressed_Mux.v
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Misc/Translated_Addressed_Mux.v
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Misc/Instruction_Annuller.v
+set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Misc/Instr_Decoder.v
+set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Misc/Thread_Number.v
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/DataPath/ALU/AddSub_Carry_Select.v
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/DataPath/ALU/AddSub_Ripple_Carry.v
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/DataPath/ALU/Mult.v
@@ -66,8 +68,6 @@ set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/DataPath/ALU/Bit
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/DataPath/ALU/ALU.v
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/DataPath/DataPath.v
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/ControlPath/Controller.v
-set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/ControlPath/Instr_Decoder.v
-set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/ControlPath/Thread_Number.v
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/ControlPath/ControlPath.v
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/IO/Port_Active.v
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/IO/IO_Active.v
@@ -75,7 +75,33 @@ set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/IO/IO_All_Ready.
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/IO/IO_Check.v
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/IO/IO_Read.v
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/IO/IO_Write.v
+set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Branching/Branch_Check_Mapped.v
+set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Branching/Branch_Check.v
+set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Branching/Branch_Condition.v
+set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Branching/Branch_Destination.v
+set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Branching/Branch_Folding.v
+set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Branching/Branching_Flags.v
+set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Branching/Branching_Thread_Number.v
+set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Branching/Branch_Origin.v
+set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Branching/Branch_Origin_Check.v
+set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Branching/Branch_Cancel.v
+set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Branching/Branch_Prediction.v
+set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Branching/Branch_Prediction_Enable.v
+set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Branching/OR_Reducer.v
+set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Addressing/Address_Adder.v
+set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Addressing/Addressing_Mapped_AB.v
+set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Addressing/Addressing_Mapped_D.v
+set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Addressing/Addressing_Thread_Number.v
+set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Addressing/Addressing.v
+set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Addressing/Address_Translation.v
+set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Addressing/Default_Offset.v
+set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Addressing/Increment_Adder.v
+set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Addressing/Increments.v
+set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Addressing/Programmed_Offsets.v
+set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Addressing/Write_Priority.v
+set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Addressing/Write_Synchronize.v
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Memory/RAM_SDP.v
+set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Memory/RAM_SDP_no_fw.v
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Memory/Write_Enable.v
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Memory/Memory.v
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Octavo/Scalar.v
