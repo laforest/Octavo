@@ -275,8 +275,6 @@ module Scalar
     wire    [D_OPERAND_WIDTH-1:0]   ALU_D_mem;
     wire    [ALU_WORD_WIDTH-1:0]    ALU_result_mem;
 
-    wire                            IO_ready;
-
     // Use this signal to annull the instruction and anything that would cause side-effects.
     wire                            IO_ready;
 
