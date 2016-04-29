@@ -502,5 +502,33 @@
     "created_at": "2015-01-24T05:44:18Z",
     "updated_at": "2015-01-24T05:44:18Z",
     "body": "The addition of the AOM/BTM has functionally already done this, but it's not explicit in the code.\r\nHaving an explicit spine pipeline, as shown in fig. 6.4, pg 113 in the thesis, would make it clearer in the code from/to which pipeline stages information moves."
+  },
+  {
+    "url": "https://api.github.com/repos/laforest/Octavo/issues/comments/215705389",
+    "html_url": "https://github.com/laforest/Octavo/issues/6#issuecomment-215705389",
+    "issue_url": "https://api.github.com/repos/laforest/Octavo/issues/6",
+    "id": 215705389,
+    "user": {
+      "login": "laforest",
+      "id": 3973179,
+      "avatar_url": "https://avatars.githubusercontent.com/u/3973179?v=3",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/laforest",
+      "html_url": "https://github.com/laforest",
+      "followers_url": "https://api.github.com/users/laforest/followers",
+      "following_url": "https://api.github.com/users/laforest/following{/other_user}",
+      "gists_url": "https://api.github.com/users/laforest/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/laforest/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/laforest/subscriptions",
+      "organizations_url": "https://api.github.com/users/laforest/orgs",
+      "repos_url": "https://api.github.com/users/laforest/repos",
+      "events_url": "https://api.github.com/users/laforest/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/laforest/received_events",
+      "type": "User",
+      "site_admin": false
+    },
+    "created_at": "2016-04-29T13:03:17Z",
+    "updated_at": "2016-04-29T13:03:17Z",
+    "body": "Added to Pay Off Technical Debt milestone as future development will happen for Cyclone V primarily."
   }
 ]

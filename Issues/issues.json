@@ -1,6 +1,7 @@
 [
   {
     "url": "https://api.github.com/repos/laforest/Octavo/issues/61",
+    "repository_url": "https://api.github.com/repos/laforest/Octavo",
     "labels_url": "https://api.github.com/repos/laforest/Octavo/issues/61/labels{/name}",
     "comments_url": "https://api.github.com/repos/laforest/Octavo/issues/61/comments",
     "events_url": "https://api.github.com/repos/laforest/Octavo/issues/61/events",
@@ -35,6 +36,7 @@
     "assignee": null,
     "milestone": {
       "url": "https://api.github.com/repos/laforest/Octavo/milestones/2",
+      "html_url": "https://github.com/laforest/Octavo/milestones/Pay%20Off%20Technical%20Debt",
       "labels_url": "https://api.github.com/repos/laforest/Octavo/milestones/2/labels",
       "id": 949451,
       "number": 2,
@@ -59,11 +61,11 @@
         "type": "User",
         "site_admin": false
       },
-      "open_issues": 9,
+      "open_issues": 10,
       "closed_issues": 0,
       "state": "open",
       "created_at": "2015-01-24T05:39:13Z",
-      "updated_at": "2015-01-24T06:09:15Z",
+      "updated_at": "2016-04-29T13:02:35Z",
       "due_on": null,
       "closed_at": null
     },
@@ -75,6 +77,7 @@
   },
   {
     "url": "https://api.github.com/repos/laforest/Octavo/issues/60",
+    "repository_url": "https://api.github.com/repos/laforest/Octavo",
     "labels_url": "https://api.github.com/repos/laforest/Octavo/issues/60/labels{/name}",
     "comments_url": "https://api.github.com/repos/laforest/Octavo/issues/60/comments",
     "events_url": "https://api.github.com/repos/laforest/Octavo/issues/60/events",
@@ -109,6 +112,7 @@
     "assignee": null,
     "milestone": {
       "url": "https://api.github.com/repos/laforest/Octavo/milestones/2",
+      "html_url": "https://github.com/laforest/Octavo/milestones/Pay%20Off%20Technical%20Debt",
       "labels_url": "https://api.github.com/repos/laforest/Octavo/milestones/2/labels",
       "id": 949451,
       "number": 2,
@@ -133,11 +137,11 @@
         "type": "User",
         "site_admin": false
       },
-      "open_issues": 9,
+      "open_issues": 10,
       "closed_issues": 0,
       "state": "open",
       "created_at": "2015-01-24T05:39:13Z",
-      "updated_at": "2015-01-24T06:09:15Z",
+      "updated_at": "2016-04-29T13:02:35Z",
       "due_on": null,
       "closed_at": null
     },
@@ -149,6 +153,7 @@
   },
   {
     "url": "https://api.github.com/repos/laforest/Octavo/issues/59",
+    "repository_url": "https://api.github.com/repos/laforest/Octavo",
     "labels_url": "https://api.github.com/repos/laforest/Octavo/issues/59/labels{/name}",
     "comments_url": "https://api.github.com/repos/laforest/Octavo/issues/59/comments",
     "events_url": "https://api.github.com/repos/laforest/Octavo/issues/59/events",
@@ -183,6 +188,7 @@
     "assignee": null,
     "milestone": {
       "url": "https://api.github.com/repos/laforest/Octavo/milestones/2",
+      "html_url": "https://github.com/laforest/Octavo/milestones/Pay%20Off%20Technical%20Debt",
       "labels_url": "https://api.github.com/repos/laforest/Octavo/milestones/2/labels",
       "id": 949451,
       "number": 2,
@@ -207,11 +213,11 @@
         "type": "User",
         "site_admin": false
       },
-      "open_issues": 9,
+      "open_issues": 10,
       "closed_issues": 0,
       "state": "open",
       "created_at": "2015-01-24T05:39:13Z",
-      "updated_at": "2015-01-24T06:09:15Z",
+      "updated_at": "2016-04-29T13:02:35Z",
       "due_on": null,
       "closed_at": null
     },
@@ -223,6 +229,7 @@
   },
   {
     "url": "https://api.github.com/repos/laforest/Octavo/issues/58",
+    "repository_url": "https://api.github.com/repos/laforest/Octavo",
     "labels_url": "https://api.github.com/repos/laforest/Octavo/issues/58/labels{/name}",
     "comments_url": "https://api.github.com/repos/laforest/Octavo/issues/58/comments",
     "events_url": "https://api.github.com/repos/laforest/Octavo/issues/58/events",
@@ -257,6 +264,7 @@
     "assignee": null,
     "milestone": {
       "url": "https://api.github.com/repos/laforest/Octavo/milestones/2",
+      "html_url": "https://github.com/laforest/Octavo/milestones/Pay%20Off%20Technical%20Debt",
       "labels_url": "https://api.github.com/repos/laforest/Octavo/milestones/2/labels",
       "id": 949451,
       "number": 2,
@@ -281,11 +289,11 @@
         "type": "User",
         "site_admin": false
       },
-      "open_issues": 9,
+      "open_issues": 10,
       "closed_issues": 0,
       "state": "open",
       "created_at": "2015-01-24T05:39:13Z",
-      "updated_at": "2015-01-24T06:09:15Z",
+      "updated_at": "2016-04-29T13:02:35Z",
       "due_on": null,
       "closed_at": null
     },
@@ -297,6 +305,7 @@
   },
   {
     "url": "https://api.github.com/repos/laforest/Octavo/issues/57",
+    "repository_url": "https://api.github.com/repos/laforest/Octavo",
     "labels_url": "https://api.github.com/repos/laforest/Octavo/issues/57/labels{/name}",
     "comments_url": "https://api.github.com/repos/laforest/Octavo/issues/57/comments",
     "events_url": "https://api.github.com/repos/laforest/Octavo/issues/57/events",
@@ -338,6 +347,7 @@
   },
   {
     "url": "https://api.github.com/repos/laforest/Octavo/issues/56",
+    "repository_url": "https://api.github.com/repos/laforest/Octavo",
     "labels_url": "https://api.github.com/repos/laforest/Octavo/issues/56/labels{/name}",
     "comments_url": "https://api.github.com/repos/laforest/Octavo/issues/56/comments",
     "events_url": "https://api.github.com/repos/laforest/Octavo/issues/56/events",
@@ -379,6 +389,7 @@
   },
   {
     "url": "https://api.github.com/repos/laforest/Octavo/issues/55",
+    "repository_url": "https://api.github.com/repos/laforest/Octavo",
     "labels_url": "https://api.github.com/repos/laforest/Octavo/issues/55/labels{/name}",
     "comments_url": "https://api.github.com/repos/laforest/Octavo/issues/55/comments",
     "events_url": "https://api.github.com/repos/laforest/Octavo/issues/55/events",
@@ -420,6 +431,7 @@
   },
   {
     "url": "https://api.github.com/repos/laforest/Octavo/issues/54",
+    "repository_url": "https://api.github.com/repos/laforest/Octavo",
     "labels_url": "https://api.github.com/repos/laforest/Octavo/issues/54/labels{/name}",
     "comments_url": "https://api.github.com/repos/laforest/Octavo/issues/54/comments",
     "events_url": "https://api.github.com/repos/laforest/Octavo/issues/54/events",
@@ -465,6 +477,7 @@
   },
   {
     "url": "https://api.github.com/repos/laforest/Octavo/issues/53",
+    "repository_url": "https://api.github.com/repos/laforest/Octavo",
     "labels_url": "https://api.github.com/repos/laforest/Octavo/issues/53/labels{/name}",
     "comments_url": "https://api.github.com/repos/laforest/Octavo/issues/53/comments",
     "events_url": "https://api.github.com/repos/laforest/Octavo/issues/53/events",
@@ -510,6 +523,7 @@
   },
   {
     "url": "https://api.github.com/repos/laforest/Octavo/issues/52",
+    "repository_url": "https://api.github.com/repos/laforest/Octavo",
     "labels_url": "https://api.github.com/repos/laforest/Octavo/issues/52/labels{/name}",
     "comments_url": "https://api.github.com/repos/laforest/Octavo/issues/52/comments",
     "events_url": "https://api.github.com/repos/laforest/Octavo/issues/52/events",
@@ -560,6 +574,7 @@
   },
   {
     "url": "https://api.github.com/repos/laforest/Octavo/issues/51",
+    "repository_url": "https://api.github.com/repos/laforest/Octavo",
     "labels_url": "https://api.github.com/repos/laforest/Octavo/issues/51/labels{/name}",
     "comments_url": "https://api.github.com/repos/laforest/Octavo/issues/51/comments",
     "events_url": "https://api.github.com/repos/laforest/Octavo/issues/51/events",
@@ -594,6 +609,7 @@
     "assignee": null,
     "milestone": {
       "url": "https://api.github.com/repos/laforest/Octavo/milestones/2",
+      "html_url": "https://github.com/laforest/Octavo/milestones/Pay%20Off%20Technical%20Debt",
       "labels_url": "https://api.github.com/repos/laforest/Octavo/milestones/2/labels",
       "id": 949451,
       "number": 2,
@@ -618,11 +634,11 @@
         "type": "User",
         "site_admin": false
       },
-      "open_issues": 9,
+      "open_issues": 10,
       "closed_issues": 0,
       "state": "open",
       "created_at": "2015-01-24T05:39:13Z",
-      "updated_at": "2015-01-24T06:09:15Z",
+      "updated_at": "2016-04-29T13:02:35Z",
       "due_on": null,
       "closed_at": null
     },
@@ -634,6 +650,7 @@
   },
   {
     "url": "https://api.github.com/repos/laforest/Octavo/issues/50",
+    "repository_url": "https://api.github.com/repos/laforest/Octavo",
     "labels_url": "https://api.github.com/repos/laforest/Octavo/issues/50/labels{/name}",
     "comments_url": "https://api.github.com/repos/laforest/Octavo/issues/50/comments",
     "events_url": "https://api.github.com/repos/laforest/Octavo/issues/50/events",
@@ -684,6 +701,7 @@
   },
   {
     "url": "https://api.github.com/repos/laforest/Octavo/issues/49",
+    "repository_url": "https://api.github.com/repos/laforest/Octavo",
     "labels_url": "https://api.github.com/repos/laforest/Octavo/issues/49/labels{/name}",
     "comments_url": "https://api.github.com/repos/laforest/Octavo/issues/49/comments",
     "events_url": "https://api.github.com/repos/laforest/Octavo/issues/49/events",
@@ -729,6 +747,7 @@
   },
   {
     "url": "https://api.github.com/repos/laforest/Octavo/issues/48",
+    "repository_url": "https://api.github.com/repos/laforest/Octavo",
     "labels_url": "https://api.github.com/repos/laforest/Octavo/issues/48/labels{/name}",
     "comments_url": "https://api.github.com/repos/laforest/Octavo/issues/48/comments",
     "events_url": "https://api.github.com/repos/laforest/Octavo/issues/48/events",
@@ -774,6 +793,7 @@
   },
   {
     "url": "https://api.github.com/repos/laforest/Octavo/issues/47",
+    "repository_url": "https://api.github.com/repos/laforest/Octavo",
     "labels_url": "https://api.github.com/repos/laforest/Octavo/issues/47/labels{/name}",
     "comments_url": "https://api.github.com/repos/laforest/Octavo/issues/47/comments",
     "events_url": "https://api.github.com/repos/laforest/Octavo/issues/47/events",
@@ -819,6 +839,7 @@
   },
   {
     "url": "https://api.github.com/repos/laforest/Octavo/issues/46",
+    "repository_url": "https://api.github.com/repos/laforest/Octavo",
     "labels_url": "https://api.github.com/repos/laforest/Octavo/issues/46/labels{/name}",
     "comments_url": "https://api.github.com/repos/laforest/Octavo/issues/46/comments",
     "events_url": "https://api.github.com/repos/laforest/Octavo/issues/46/events",
@@ -864,6 +885,7 @@
   },
   {
     "url": "https://api.github.com/repos/laforest/Octavo/issues/45",
+    "repository_url": "https://api.github.com/repos/laforest/Octavo",
     "labels_url": "https://api.github.com/repos/laforest/Octavo/issues/45/labels{/name}",
     "comments_url": "https://api.github.com/repos/laforest/Octavo/issues/45/comments",
     "events_url": "https://api.github.com/repos/laforest/Octavo/issues/45/events",
@@ -905,6 +927,7 @@
   },
   {
     "url": "https://api.github.com/repos/laforest/Octavo/issues/44",
+    "repository_url": "https://api.github.com/repos/laforest/Octavo",
     "labels_url": "https://api.github.com/repos/laforest/Octavo/issues/44/labels{/name}",
     "comments_url": "https://api.github.com/repos/laforest/Octavo/issues/44/comments",
     "events_url": "https://api.github.com/repos/laforest/Octavo/issues/44/events",
@@ -955,6 +978,7 @@
   },
   {
     "url": "https://api.github.com/repos/laforest/Octavo/issues/43",
+    "repository_url": "https://api.github.com/repos/laforest/Octavo",
     "labels_url": "https://api.github.com/repos/laforest/Octavo/issues/43/labels{/name}",
     "comments_url": "https://api.github.com/repos/laforest/Octavo/issues/43/comments",
     "events_url": "https://api.github.com/repos/laforest/Octavo/issues/43/events",
@@ -1005,6 +1029,7 @@
   },
   {
     "url": "https://api.github.com/repos/laforest/Octavo/issues/42",
+    "repository_url": "https://api.github.com/repos/laforest/Octavo",
     "labels_url": "https://api.github.com/repos/laforest/Octavo/issues/42/labels{/name}",
     "comments_url": "https://api.github.com/repos/laforest/Octavo/issues/42/comments",
     "events_url": "https://api.github.com/repos/laforest/Octavo/issues/42/events",
@@ -1050,6 +1075,7 @@
   },
   {
     "url": "https://api.github.com/repos/laforest/Octavo/issues/41",
+    "repository_url": "https://api.github.com/repos/laforest/Octavo",
     "labels_url": "https://api.github.com/repos/laforest/Octavo/issues/41/labels{/name}",
     "comments_url": "https://api.github.com/repos/laforest/Octavo/issues/41/comments",
     "events_url": "https://api.github.com/repos/laforest/Octavo/issues/41/events",
@@ -1095,6 +1121,7 @@
   },
   {
     "url": "https://api.github.com/repos/laforest/Octavo/issues/40",
+    "repository_url": "https://api.github.com/repos/laforest/Octavo",
     "labels_url": "https://api.github.com/repos/laforest/Octavo/issues/40/labels{/name}",
     "comments_url": "https://api.github.com/repos/laforest/Octavo/issues/40/comments",
     "events_url": "https://api.github.com/repos/laforest/Octavo/issues/40/events",
@@ -1140,6 +1167,7 @@
   },
   {
     "url": "https://api.github.com/repos/laforest/Octavo/issues/39",
+    "repository_url": "https://api.github.com/repos/laforest/Octavo",
     "labels_url": "https://api.github.com/repos/laforest/Octavo/issues/39/labels{/name}",
     "comments_url": "https://api.github.com/repos/laforest/Octavo/issues/39/comments",
     "events_url": "https://api.github.com/repos/laforest/Octavo/issues/39/events",
@@ -1185,6 +1213,7 @@
   },
   {
     "url": "https://api.github.com/repos/laforest/Octavo/issues/38",
+    "repository_url": "https://api.github.com/repos/laforest/Octavo",
     "labels_url": "https://api.github.com/repos/laforest/Octavo/issues/38/labels{/name}",
     "comments_url": "https://api.github.com/repos/laforest/Octavo/issues/38/comments",
     "events_url": "https://api.github.com/repos/laforest/Octavo/issues/38/events",
@@ -1248,6 +1277,7 @@
   },
   {
     "url": "https://api.github.com/repos/laforest/Octavo/issues/37",
+    "repository_url": "https://api.github.com/repos/laforest/Octavo",
     "labels_url": "https://api.github.com/repos/laforest/Octavo/issues/37/labels{/name}",
     "comments_url": "https://api.github.com/repos/laforest/Octavo/issues/37/comments",
     "events_url": "https://api.github.com/repos/laforest/Octavo/issues/37/events",
@@ -1298,6 +1328,7 @@
   },
   {
     "url": "https://api.github.com/repos/laforest/Octavo/issues/36",
+    "repository_url": "https://api.github.com/repos/laforest/Octavo",
     "labels_url": "https://api.github.com/repos/laforest/Octavo/issues/36/labels{/name}",
     "comments_url": "https://api.github.com/repos/laforest/Octavo/issues/36/comments",
     "events_url": "https://api.github.com/repos/laforest/Octavo/issues/36/events",
@@ -1332,6 +1363,7 @@
     "assignee": null,
     "milestone": {
       "url": "https://api.github.com/repos/laforest/Octavo/milestones/2",
+      "html_url": "https://github.com/laforest/Octavo/milestones/Pay%20Off%20Technical%20Debt",
       "labels_url": "https://api.github.com/repos/laforest/Octavo/milestones/2/labels",
       "id": 949451,
       "number": 2,
@@ -1356,11 +1388,11 @@
         "type": "User",
         "site_admin": false
       },
-      "open_issues": 9,
+      "open_issues": 10,
       "closed_issues": 0,
       "state": "open",
       "created_at": "2015-01-24T05:39:13Z",
-      "updated_at": "2015-01-24T06:09:15Z",
+      "updated_at": "2016-04-29T13:02:35Z",
       "due_on": null,
       "closed_at": null
     },
@@ -1372,6 +1404,7 @@
   },
   {
     "url": "https://api.github.com/repos/laforest/Octavo/issues/35",
+    "repository_url": "https://api.github.com/repos/laforest/Octavo",
     "labels_url": "https://api.github.com/repos/laforest/Octavo/issues/35/labels{/name}",
     "comments_url": "https://api.github.com/repos/laforest/Octavo/issues/35/comments",
     "events_url": "https://api.github.com/repos/laforest/Octavo/issues/35/events",
@@ -1440,6 +1473,7 @@
   },
   {
     "url": "https://api.github.com/repos/laforest/Octavo/issues/34",
+    "repository_url": "https://api.github.com/repos/laforest/Octavo",
     "labels_url": "https://api.github.com/repos/laforest/Octavo/issues/34/labels{/name}",
     "comments_url": "https://api.github.com/repos/laforest/Octavo/issues/34/comments",
     "events_url": "https://api.github.com/repos/laforest/Octavo/issues/34/events",
@@ -1508,6 +1542,7 @@
   },
   {
     "url": "https://api.github.com/repos/laforest/Octavo/issues/33",
+    "repository_url": "https://api.github.com/repos/laforest/Octavo",
     "labels_url": "https://api.github.com/repos/laforest/Octavo/issues/33/labels{/name}",
     "comments_url": "https://api.github.com/repos/laforest/Octavo/issues/33/comments",
     "events_url": "https://api.github.com/repos/laforest/Octavo/issues/33/events",
@@ -1549,6 +1584,7 @@
   },
   {
     "url": "https://api.github.com/repos/laforest/Octavo/issues/32",
+    "repository_url": "https://api.github.com/repos/laforest/Octavo",
     "labels_url": "https://api.github.com/repos/laforest/Octavo/issues/32/labels{/name}",
     "comments_url": "https://api.github.com/repos/laforest/Octavo/issues/32/comments",
     "events_url": "https://api.github.com/repos/laforest/Octavo/issues/32/events",
@@ -1605,6 +1641,7 @@
     },
     "milestone": {
       "url": "https://api.github.com/repos/laforest/Octavo/milestones/2",
+      "html_url": "https://github.com/laforest/Octavo/milestones/Pay%20Off%20Technical%20Debt",
       "labels_url": "https://api.github.com/repos/laforest/Octavo/milestones/2/labels",
       "id": 949451,
       "number": 2,
@@ -1629,11 +1666,11 @@
         "type": "User",
         "site_admin": false
       },
-      "open_issues": 9,
+      "open_issues": 10,
       "closed_issues": 0,
       "state": "open",
       "created_at": "2015-01-24T05:39:13Z",
-      "updated_at": "2015-01-24T06:09:15Z",
+      "updated_at": "2016-04-29T13:02:35Z",
       "due_on": null,
       "closed_at": null
     },
