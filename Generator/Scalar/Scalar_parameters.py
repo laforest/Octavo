@@ -41,9 +41,11 @@ def generate_pipeline_depths(parameters = {}):
 
 def generate_common_values(parameters = {}):
     common_values = { 
-        "FAMILY"          : "Stratix IV",
-        #"DEVICE"          : "EP4SE230F29C2",
-        "DEVICE"          : "EP4SGX230KF40C2", # DE4-230
+        #"FAMILY"          : "Stratix IV",
+        #"DEVICE"          : "EP4SGX230KF40C2", # DE4-230
+
+        "FAMILY"          : "Cyclone V",
+        "DEVICE"          : "5CGXFC5C6F27C7", # Terasic Cyclone V Starter Kit 
 
         "CPU_NAME"        : "Scalar",
         # This normally NEVER changes. If you do change it, update the ALU and decoders to match.
@@ -337,8 +339,10 @@ def generate_partition_options(parameters = {}):
 
 def generate_quartus_options(parameters = {}):
     quartus_options = {
-        # There is a bug which causes memory to not be released
+        # There used to be (still is?) a bug which causes memory to not be released
         # during quartus_map if only one core (thread) used.
+        # This flag is also ignored in the free Quartus version,
+        # and uses all physical cores anyway.
         "QUARTUS_NUM_PARALLEL_PROCESSORS" : 2
     }
     parameters_misc.override(quartus_options, parameters)
