@@ -332,7 +332,7 @@ else
     JOBS=$$1
 fi
 
-parallel -j $${JOBS} <<TODO
+parallel --no-notice -j $${JOBS} <<TODO
 ./seed_run 0
 ./seed_run 1
 ./seed_run 2
