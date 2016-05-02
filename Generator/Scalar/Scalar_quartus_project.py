@@ -47,7 +47,7 @@ def create_settings_file(all_parameters, path, install_base = install_base):
 """
 # Project-Wide Assignments
 # ========================
-set_global_assignment -name LAST_QUARTUS_VERSION 13.1
+set_global_assignment -name LAST_QUARTUS_VERSION 15.1.0
 set_global_assignment -name FLOW_DISABLE_ASSEMBLER ON
 set_global_assignment -name SMART_RECOMPILE ON
 set_global_assignment -name NUM_PARALLEL_PROCESSORS ${QUARTUS_NUM_PARALLEL_PROCESSORS}
@@ -119,6 +119,10 @@ set_global_assignment -name MAX_CORE_JUNCTION_TEMP 85
 set_global_assignment -name TIMEQUEST_MULTICORNER_ANALYSIS OFF
 set_global_assignment -name TIMEQUEST_DO_REPORT_TIMING ON
 
+# Compiler Assignments
+# ====================
+set_global_assignment -name OPTIMIZATION_MODE "AGGRESSIVE PERFORMANCE"
+
 # Analysis & Synthesis Assignments
 # ================================
 set_global_assignment -name FAMILY "${FAMILY}"
@@ -128,7 +132,7 @@ set_global_assignment -name OPTIMIZATION_TECHNIQUE SPEED
 set_global_assignment -name ADV_NETLIST_OPT_SYNTH_WYSIWYG_REMAP ON
 set_global_assignment -name AUTO_SHIFT_REGISTER_RECOGNITION OFF
 set_global_assignment -name REMOVE_REDUNDANT_LOGIC_CELLS ON
-set_global_assignment -name MUX_RESTRUCTURE ON
+set_global_assignment -name MUX_RESTRUCTURE OFF
 set_global_assignment -name ALLOW_ANY_ROM_SIZE_FOR_RECOGNITION ON
 set_global_assignment -name ALLOW_ANY_RAM_SIZE_FOR_RECOGNITION ON
 set_global_assignment -name ALLOW_ANY_SHIFT_REGISTER_SIZE_FOR_RECOGNITION OFF
@@ -138,6 +142,12 @@ set_global_assignment -name SYNTH_TIMING_DRIVEN_SYNTHESIS ON
 set_global_assignment -name USE_LOGICLOCK_CONSTRAINTS_IN_BALANCING ON
 set_global_assignment -name SAVE_DISK_SPACE OFF
 set_global_assignment -name REMOVE_DUPLICATE_REGISTERS ON
+set_global_assignment -name AUTO_RESOURCE_SHARING OFF
+set_global_assignment -name SYNCHRONIZATION_REGISTER_CHAIN_LENGTH 3
+set_global_assignment -name SYNTH_PROTECT_SDC_CONSTRAINT OFF
+set_global_assignment -name SYNTHESIS_EFFORT AUTO
+set_global_assignment -name PRE_MAPPING_RESYNTHESIS ON
+set_global_assignment -name AUTO_PARALLEL_SYNTHESIS ON
 
 # Fitter Assignments
 # ==================
@@ -151,15 +161,28 @@ set_global_assignment -name PHYSICAL_SYNTHESIS_EFFORT EXTRA
 set_global_assignment -name ROUTER_LCELL_INSERTION_AND_LOGIC_DUPLICATION ON
 set_global_assignment -name ROUTER_TIMING_OPTIMIZATION_LEVEL MAXIMUM
 set_global_assignment -name PHYSICAL_SYNTHESIS_COMBO_LOGIC_FOR_AREA OFF
-set_global_assignment -name AUTO_PACKED_REGISTERS_STRATIXII AUTO
+set_global_assignment -name QII_AUTO_PACKED_REGISTERS NORMAL
 set_global_assignment -name ROUTER_CLOCKING_TOPOLOGY_ANALYSIS ON
 set_global_assignment -name PHYSICAL_SYNTHESIS_MAP_LOGIC_TO_MEMORY_FOR_AREA OFF
 set_global_assignment -name BLOCK_RAM_TO_MLAB_CELL_CONVERSION OFF
-set_global_assignment -name SEED 1
+set_global_assignment -name SEED 145014776
 set_global_assignment -name PLACEMENT_EFFORT_MULTIPLIER 4
 set_global_assignment -name ROUTER_EFFORT_MULTIPLIER 4
 set_global_assignment -name AUTO_DELAY_CHAINS OFF
 set_global_assignment -name OPTIMIZE_HOLD_TIMING "ALL PATHS"
+set_global_assignment -name OPTIMIZE_MULTI_CORNER_TIMING ON
+set_global_assignment -name BLOCK_RAM_AND_MLAB_EQUIVALENT_POWER_UP_CONDITIONS AUTO
+set_global_assignment -name BLOCK_RAM_AND_MLAB_EQUIVALENT_PAUSED_READ_CAPABILITIES CARE
+set_global_assignment -name OPTIMIZE_TIMING "NORMAL COMPILATION"
+set_global_assignment -name FINAL_PLACEMENT_OPTIMIZATION ALWAYS
+set_global_assignment -name FITTER_AGGRESSIVE_ROUTABILITY_OPTIMIZATION ALWAYS
+set_global_assignment -name PERIPHERY_TO_CORE_PLACEMENT_AND_ROUTING_OPTIMIZATION OFF
+set_global_assignment -name IO_PLACEMENT_OPTIMIZATION ON
+set_global_assignment -name ROUTER_REGISTER_DUPLICATION AUTO
+set_global_assignment -name OPTIMIZE_FOR_METASTABILITY ON
+set_global_assignment -name FORCE_FITTER_TO_AVOID_PERIPHERY_PLACEMENT_WARNINGS OFF
+set_global_assignment -name CLAMPING_DIODE OFF
+set_global_assignment -name ADVANCED_PHYSICAL_OPTIMIZATION ON
 
 # Design Assistant Assignments
 # ============================
@@ -168,8 +191,9 @@ set_global_assignment -name ENABLE_DRC_SETTINGS ON
 
 # Power Estimation Assignments
 # ============================
-set_global_assignment -name POWER_PRESET_COOLING_SOLUTION "23 MM HEAT SINK WITH 200 LFPM AIRFLOW"
+set_global_assignment -name POWER_PRESET_COOLING_SOLUTION "NO HEAT SINK WITH STILL AIR"
 set_global_assignment -name POWER_BOARD_THERMAL_MODEL "NONE (CONSERVATIVE)"
+set_global_assignment -name POWER_USE_DEVICE_CHARACTERISTICS MAXIMUM
 
 # Incremental Compilation Assignments
 # ===================================
