@@ -51,7 +51,8 @@ def assemble_B():
     B.P("INDIRECT_SEED", mem_map["B"]["PO_INC_base"], write_addr = mem_map["H"]["PO_INC_base"])
     B.A(0)
     B.L(0)
-    B.L(27),     B.N("seed")
+    # Longest hailstone sequence (350 steps) for seed < 100,000
+    B.L(77031),     B.N("seed")
     # Placeholders for programmed offset
     B.L(0),      B.N("seed_PO")
     return B

@@ -6,7 +6,7 @@ import sys
 
 from Misc import misc, parameters_misc
 
-default_bench = "FIR_Filter/fir_filter"
+default_bench = "Hailstone/hailstone"
 install_base = misc.base_install_path()
 quartus_base_path = misc.quartus_base_path
 
@@ -92,6 +92,16 @@ def test_bench(parameters, default_bench = default_bench, install_base = install
 
     always @(posedge clock) begin
         cycle <= cycle + 1;
+    end
+
+    // End Hailstone at end of sequence.
+    always @(posedge clock) begin
+        if (A_wren == 1'b1) begin
+            $$display(A_out);
+        end
+        if (A_out == 'd1) begin
+            $$stop;
+        end
     end
 
 //    always begin
@@ -196,8 +206,8 @@ INSTALL_BASE="${install_base}"
 TOP_LEVEL_MODULE="${CPU_NAME}_test_bench"
 TESTBENCH="./$${TOP_LEVEL_MODULE}.v"
 
-LPM_LIBRARY="${quartus_base_path}/linux/quartus/eda/sim_lib/220model.v"
-ALT_LIBRARY="${quartus_base_path}/linux/quartus/eda/sim_lib/altera_mf.v"
+LPM_LIBRARY="${quartus_base_path}/quartus/eda/sim_lib/220model.v"
+ALT_LIBRARY="${quartus_base_path}/quartus/eda/sim_lib/altera_mf.v"
 
 OCTAVO="$$INSTALL_BASE/Octavo/Misc/params.v \\
         $$INSTALL_BASE/Octavo/Misc/delay_line.v \\
@@ -266,6 +276,7 @@ vlog -mfcu -incr -lint $$LPM_LIBRARY $$ALT_LIBRARY $$OCTAVO $$TESTBENCH 2>&1 >> 
 vsim -voptargs="+acc" -c -do "$$VSIM_ACTIONS" $$TOP_LEVEL_MODULE 2>&1 >> LOG
 vcd2wlf $$TOP_LEVEL_MODULE.vcd $$TOP_LEVEL_MODULE.wlf 2>&1 >> LOG
 rm vsim.wlf
+grep AOUT LOG | sed -e's/# AOUT:\s*//' > output
 """)
     parameters["default_bench"]     = default_bench
     parameters["install_base"]      = install_base
