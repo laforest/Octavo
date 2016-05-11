@@ -24,6 +24,29 @@ create_clock -name {clock} -period 3.636 -waveform { 0.000 1.818 } [get_ports {c
 create_generated_clock -divide_by 2 -source [get_ports clock] -name half_clock [get_ports half_clock]
 
 #**************************************************************
+# Set Maximum Delay
+#**************************************************************
+
+# Set max delay for data transfers between clock domains.
+# This allows TimeQuest to properly analyse them, since half_clock latches on both edges.
+# See clock definitions above for delay value to use
+
+# 550 MHz main clock
+#set_max_delay -rise_from [get_clocks clock] -to [get_clocks half_clock] 1.818
+#set_max_delay -from [get_clocks half_clock] -rise_to [get_clocks clock] 1.818 
+
+# 275 MHz main clock
+set_max_delay -rise_from [get_clocks clock] -to [get_clocks half_clock] 3.636
+set_max_delay -from [get_clocks half_clock] -rise_to [get_clocks clock] 3.636 
+
+#**************************************************************
+# Set Clock Uncertainty
+#**************************************************************
+
+# This seems to work better than what TimeQuest generates.
+derive_clock_uncertainty
+
+#**************************************************************
 # Create Generated Clock
 #**************************************************************
 
@@ -34,13 +57,6 @@ create_generated_clock -divide_by 2 -source [get_ports clock] -name half_clock [
 #**************************************************************
 
 
-
-#**************************************************************
-# Set Clock Uncertainty
-#**************************************************************
-
-# This seems to work better than what TimeQuest generates.
-derive_clock_uncertainty
 
 #**************************************************************
 # Set Input Delay
@@ -71,16 +87,6 @@ derive_clock_uncertainty
 #**************************************************************
 
 
-
-#**************************************************************
-# Set Maximum Delay
-#**************************************************************
-
-# Set max delay for data transfers between clock domains.
-# This allows TimeQuest to properly analyse them, since half_clock latches on both edges.
-# See clock definitions above for delay value to use
-set_max_delay -rise_from [get_clocks clock] -to [get_clocks half_clock] 1.818
-set_max_delay -from [get_clocks half_clock] -rise_to [get_clocks clock] 1.818 
 
 #**************************************************************
 # Set Minimum Delay
