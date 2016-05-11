@@ -349,7 +349,7 @@ module Branch_Check
 
     Branch_Cancel
     // No parameters
-    Cancel
+    Cancel_instruction
     (
         .clock                      (clock),
         .branch_prediction          (branch_prediction),
