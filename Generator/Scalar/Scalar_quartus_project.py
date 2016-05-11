@@ -289,8 +289,83 @@ ${SCALAR_PARTITION}
 #    misc.write_file(path, all_parameters["I_INIT_FILE"].strip('"'),  "")
 #    misc.write_file(path, all_parameters["PC_INIT_FILE"].strip('"'), "")
 
+def create_warning_suppress_file(all_parameters, path):
+    """Create a .srf file which suppresses the common useless warnings and infos."""
+    project_name = all_parameters["PROJECT_NAME"]
+    srf_file_contents = """
+{ "" "" "" "*" {  } {  } 0 10230 "" 0 0 "Design Software" 0 -1 0 ""}
+{ "" "" "" "*" {  } {  } 0 276020 "" 0 0 "Design Software" 0 -1 0 ""}
+{ "" "" "" "*" {  } {  } 0 20028 "" 0 0 "Design Software" 0 -1 0 ""}
+{ "" "" "" "*" {  } {  } 0 170136 "" 0 0 "Design Software" 0 -1 0 ""}
+{ "" "" "" "*" {  } {  } 0 292013 "" 0 0 "Design Software" 0 -1 0 ""}
+{ "" "" "" "*" {  } {  } 0 16303 "" 0 0 "Design Software" 0 -1 0 ""}
+{ "" "" "" "*" {  } {  } 0 12021 "" 0 0 "Design Software" 0 -1 0 ""}
+{ "" "" "" "*" {  } {  } 0 12127 "" 0 0 "Design Software" 0 -1 0 ""}
+{ "" "" "" "*" {  } {  } 0 12128 "" 0 0 "Design Software" 0 -1 0 ""}
+{ "" "" "" "*" {  } {  } 0 12130 "" 0 0 "Design Software" 0 -1 0 ""}
+{ "" "" "" "*" {  } {  } 0 12133 "" 0 0 "Design Software" 0 -1 0 ""}
+{ "" "" "" "*" {  } {  } 0 12131 "" 0 0 "Design Software" 0 -1 0 ""}
+{ "" "" "" "*" {  } {  } 0 276014 "" 0 0 "Design Software" 0 -1 0 ""}
+{ "" "" "" "*" {  } {  } 0 19000 "" 0 0 "Design Software" 0 -1 0 ""}
+{ "" "" "" "*" {  } {  } 0 17026 "" 0 0 "Design Software" 0 -1 0 ""}
+{ "" "" "" "*" {  } {  } 0 332115 "" 0 0 "Design Software" 0 -1 0 ""}
+{ "" "" "" "*" {  } {  } 0 332114 "" 0 0 "Design Software" 0 -1 0 ""}
+{ "" "" "" "*" {  } {  } 0 332140 "" 0 0 "Design Software" 0 -1 0 ""}
+{ "" "" "" "*" {  } {  } 0 332146 "" 0 0 "Design Software" 0 -1 0 ""}
+{ "" "" "" "*" {  } {  } 0 332102 "" 0 0 "Design Software" 0 -1 0 ""}
+{ "" "" "" "*" {  } {  } 0 332097 "" 0 0 "Design Software" 0 -1 0 ""}
+{ "" "" "" "*" {  } {  } 0 332123 "" 0 0 "Design Software" 0 -1 0 ""}
+{ "" "" "" "*" {  } {  } 0 332151 "" 0 0 "Design Software" 0 -1 0 ""}
+{ "" "" "" "*" {  } {  } 0 334003 "" 0 0 "Design Software" 0 -1 0 ""}
+{ "" "" "" "*" {  } {  } 0 334004 "" 0 0 "Design Software" 0 -1 0 ""}
+{ "" "" "" "*" {  } {  } 0 332104 "" 0 0 "Design Software" 0 -1 0 ""}
+{ "" "" "" "*" {  } {  } 0 21077 "" 0 0 "Design Software" 0 -1 0 ""}
+{ "" "" "" "*" {  } {  } 0 293026 "" 0 0 "Design Software" 0 -1 0 ""}
+{ "" "" "" "*" {  } {  } 0 286030 "" 0 0 "Design Software" 0 -1 0 ""}
+{ "" "" "" "*" {  } {  } 0 17049 "" 0 0 "Design Software" 0 -1 0 ""}
+{ "" "" "" "*" {  } {  } 0 16010 "" 0 0 "Design Software" 0 -1 0 ""}
+{ "" "" "" "*" {  } {  } 0 21057 "" 0 0 "Design Software" 0 -1 0 ""}
+{ "" "" "" "*" {  } {  } 0 119006 "" 0 0 "Design Software" 0 -1 0 ""}
+{ "" "" "" "*" {  } {  } 0 171004 "" 0 0 "Design Software" 0 -1 0 ""}
+{ "" "" "" "*" {  } {  } 0 176045 "" 0 0 "Design Software" 0 -1 0 ""}
+{ "" "" "" "*" {  } {  } 0 184020 "" 0 0 "Design Software" 0 -1 0 ""}
+{ "" "" "" "*" {  } {  } 0 11191 "" 0 0 "Design Software" 0 -1 0 ""}
+{ "" "" "" "*" {  } {  } 0 184021 "" 0 0 "Design Software" 0 -1 0 ""}
+{ "" "" "" "*" {  } {  } 0 176233 "" 0 0 "Design Software" 0 -1 0 ""}
+{ "" "" "" "*" {  } {  } 0 176222 "" 0 0 "Design Software" 0 -1 0 ""}
+{ "" "" "" "*" {  } {  } 0 332129 "" 0 0 "Design Software" 0 -1 0 ""}
+{ "" "" "" "*" {  } {  } 0 332111 "" 0 0 "Design Software" 0 -1 0 ""}
+{ "" "" "" "*" {  } {  } 0 176235 "" 0 0 "Design Software" 0 -1 0 ""}
+{ "" "" "" "*" {  } {  } 0 128000 "" 0 0 "Design Software" 0 -1 0 ""}
+{ "" "" "" "*" {  } {  } 0 128002 "" 0 0 "Design Software" 0 -1 0 ""}
+{ "" "" "" "*" {  } {  } 0 128003 "" 0 0 "Design Software" 0 -1 0 ""}
+{ "" "" "" "*" {  } {  } 0 128001 "" 0 0 "Design Software" 0 -1 0 ""}
+{ "" "" "" "*" {  } {  } 0 11798 "" 0 0 "Design Software" 0 -1 0 ""}
+{ "" "" "" "*" {  } {  } 0 170189 "" 0 0 "Design Software" 0 -1 0 ""}
+{ "" "" "" "*" {  } {  } 0 14951 "" 0 0 "Design Software" 0 -1 0 ""}
+{ "" "" "" "*" {  } {  } 0 170190 "" 0 0 "Design Software" 0 -1 0 ""}
+{ "" "" "" "*" {  } {  } 0 170191 "" 0 0 "Design Software" 0 -1 0 ""}
+{ "" "" "" "*" {  } {  } 0 170137 "" 0 0 "Design Software" 0 -1 0 ""}
+{ "" "" "" "*" {  } {  } 0 170192 "" 0 0 "Design Software" 0 -1 0 ""}
+{ "" "" "" "*" {  } {  } 0 170193 "" 0 0 "Design Software" 0 -1 0 ""}
+{ "" "" "" "*" {  } {  } 0 170195 "" 0 0 "Design Software" 0 -1 0 ""}
+{ "" "" "" "*" {  } {  } 0 170194 "" 0 0 "Design Software" 0 -1 0 ""}
+{ "" "" "" "*" {  } {  } 0 11888 "" 0 0 "Design Software" 0 -1 0 ""}
+{ "" "" "" "*" {  } {  } 0 11801 "" 0 0 "Design Software" 0 -1 0 ""}
+{ "" "" "" "*" {  } {  } 0 308046 "" 0 0 "Design Software" 0 -1 0 ""}
+{ "" "" "" "*" {  } {  } 0 308044 "" 0 0 "Design Software" 0 -1 0 ""}
+{ "" "" "" "*" {  } {  } 0 308012 "" 0 0 "Design Software" 0 -1 0 ""}
+{ "" "" "" "*" {  } {  } 0 23030 "" 0 0 "Design Software" 0 -1 0 ""}
+{ "" "" "" "*" {  } {  } 0 308007 "" 0 0 "Design Software" 0 -1 0 ""}
+{ "" "" "" "*" {  } {  } 0 308002 "" 0 0 "Design Software" 0 -1 0 ""}
+{ "" "" "" "*" {  } {  } 0 11105 "" 0 0 "Design Software" 0 -1 0 ""}
+{ "" "" "" "*translation_table*" {  } {  } 0 9999 "" 0 0 "Design Software" 0 -1 0 ""}
+"""
+    misc.write_file(path, project_name + ".srf", srf_file_contents)
+
 def project(all_parameters, path):
     create_project_file(all_parameters, path)
     create_settings_file(all_parameters, path)
+    create_warning_suppress_file(all_parameters, path)
 #    create_stub_mem_init_files(all_parameters, path)
 
