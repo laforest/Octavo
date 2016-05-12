@@ -97,10 +97,10 @@ def test_bench(parameters, default_bench = default_bench, install_base = install
     // End Hailstone at end of sequence.
     always @(posedge clock) begin
         if (A_wren == 1'b1) begin
-            $$display(A_out);
-        end
-        if (A_out == 'd1) begin
-            $$stop;
+            $$display("AOUT: %d", A_out);
+            if (A_out == 'd1) begin
+                $$stop;
+            end
         end
     end
 
