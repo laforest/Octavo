@@ -19,12 +19,7 @@ module Branch_Origin_Check
 
     // ECL XXX Technically an XNOR, but let's leave it to the synthesis tool...
     always @(*) begin
-        if (PC === branch_origin) begin
-            hit_raw <= `HIGH;
-        end
-        else begin
-            hit_raw <= `LOW;
-        end
+        hit_raw <= (PC == branch_origin);
     end
 
 // -----------------------------------------------------------

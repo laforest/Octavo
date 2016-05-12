@@ -17,20 +17,19 @@ module Thread_Number
     // Workaround to allow bit vector selection to eliminate truncation warnings
     // Cause: can't put a parameter in the bitwidth part of a literal.
     // e.g.: THREAD_ADDR_WIDTH'd1 is not allowed. :P
-    integer one = 1;
+    integer zero = 0;
+    integer one  = 1;
 
     initial begin
         current_thread = INITIAL_THREAD[THREAD_ADDR_WIDTH-1:0];
     end
 
+    reg last_thread;
+
     always @(*) begin
         // Doing it this way to avoid an adder/subtracter comparator.
-        if(current_thread !== THREAD_COUNT-1) begin
-            next_thread <= current_thread + one[THREAD_ADDR_WIDTH-1:0];
-        end
-        else begin
-            next_thread <= 0;
-        end
+        last_thread <= (current_thread == (THREAD_COUNT-1));
+        next_thread <= !last_thread ? current_thread + one[THREAD_ADDR_WIDTH-1:0] : zero[THREAD_ADDR_WIDTH-1:0];
     end
 
     always @(posedge clock) begin

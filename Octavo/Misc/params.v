@@ -12,23 +12,23 @@
 `define OPCODE_WIDTH    4
 
 // Opcodes
-// Logic (first 3 bits, MSB === 0) This affects Bitwise code in the ALU.
+// Logic (first 3 bits, MSB == 0) This affects Bitwise code in the ALU.
 `define XOR     `OPCODE_WIDTH'h0
 `define AND     `OPCODE_WIDTH'h1
 `define OR      `OPCODE_WIDTH'h2
-`define SUB     `OPCODE_WIDTH'h3 // opcode[2] === 0 Use bit as addsub select
-`define ADD     `OPCODE_WIDTH'h4 // opcode[2] === 1
+`define SUB     `OPCODE_WIDTH'h3 // opcode[2] == 0 Use bit as addsub select
+`define ADD     `OPCODE_WIDTH'h4 // opcode[2] == 1
 `define UND1    `OPCODE_WIDTH'h5 
 `define UND2    `OPCODE_WIDTH'h6
 `define UND3    `OPCODE_WIDTH'h7 
 
-// Multiplication (MSB === 1, LO/HI selected by opcode[0] inverse, signed/unsigned selected by opcode[1] inverse) 
-`define MHS     `OPCODE_WIDTH'h8 // opcode[1:0] === {0,0} signed, high
-`define MLS     `OPCODE_WIDTH'h9 // opcode[1:0] === {0,1} signed, low
-`define MHU     `OPCODE_WIDTH'hA // opcode[1:0] === {1,0} unsigned, high
+// Multiplication (MSB == 1, LO/HI selected by opcode[0] inverse, signed/unsigned selected by opcode[1] inverse) 
+`define MHS     `OPCODE_WIDTH'h8 // opcode[1:0] == {0,0} signed, high
+`define MLS     `OPCODE_WIDTH'h9 // opcode[1:0] == {0,1} signed, low
+`define MHU     `OPCODE_WIDTH'hA // opcode[1:0] == {1,0} unsigned, high
 
 // ECL XXX These will go away once Branch Folding works.
-// Flow Control (MSB === 1, remaining 5 opcodes, wren to mem === 0)
+// Flow Control (MSB == 1, remaining 5 opcodes, wren to mem == 0)
 `define JMP     `OPCODE_WIDTH'hB
 `define JZE     `OPCODE_WIDTH'hC
 `define JNZ     `OPCODE_WIDTH'hD

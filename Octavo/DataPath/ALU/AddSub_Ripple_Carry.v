@@ -13,12 +13,7 @@ module AddSub_element_plain
     output  reg     signed  [WORD_WIDTH-1:0]    result
 );
     always @(*) begin
-        if(add_sub === `HIGH) begin
-            {cout, result} <= dataa + datab + cin;
-        end
-        else begin
-            {cout, result} <= dataa - datab - cin;
-        end
+            {cout, result} <= (add_sub == `HIGH) ? dataa + datab + cin : dataa - datab - cin;
     end
 endmodule
 

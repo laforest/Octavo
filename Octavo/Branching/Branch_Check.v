@@ -302,7 +302,7 @@ module Branch_Check
     // depend on I/O.
 
     // always @(*) begin
-    //     if (IO_ready_previous === `HIGH) begin
+    //     if (IO_ready_previous == `HIGH) begin
     //         flag <= flag_raw;
     //     end
     //     else begin

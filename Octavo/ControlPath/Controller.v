@@ -62,21 +62,11 @@ module PC_Selector
     reg     [PC_WIDTH-1:0] normal_pc;
 
     always @(*) begin
-        if (jump === `HIGH) begin
-            normal_pc <= jump_target;
-        end
-        else begin
-            normal_pc <= current_pc;
-        end
+        normal_pc <= (jump == `HIGH) ? jump_target : current_pc;
     end
 
     always @(*) begin
-        if (IO_ready === `HIGH) begin
-            PC <= normal_pc;
-        end
-        else begin
-            PC <= previous_pc;
-        end
+        PC <= (IO_ready == `HIGH) ? normal_pc : previous_pc;
     end
 endmodule
 

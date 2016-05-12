@@ -31,6 +31,8 @@ module RAM_SDP
     end
 
     always @(posedge clock) begin
+        // Not in ?: form since this is for RAM inference
+        // There is nothing to do if wren is X/Z
         if(wren == `HIGH) begin
             ram[write_addr] = write_data;
         end

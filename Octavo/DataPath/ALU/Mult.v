@@ -164,14 +164,8 @@ module Mult_Double_Pipe
     );
 
     always @(*) begin
-        if(state === `HIGH) begin
-            R_lo <= low_even;
-            R_hi <= high_even;
-        end
-        else begin
-            R_lo <= low_odd;
-            R_hi <= high_odd;
-        end
+        R_lo <= (state == `HIGH) ? low_even  : low_odd;
+        R_hi <= (state == `HIGH) ? high_even : high_odd;
     end
 endmodule
 

@@ -19,14 +19,7 @@ module Port_Active
 
     always @(*) begin
         for(port = 0; port < PORT_COUNT; port = port + 1) begin
-            if(enable       === `HIGH && 
-               port_addr    === port) 
-            begin
-                active_internal[port +: 1] <= `HIGH;
-            end
-            else begin
-                active_internal[port +: 1] <= `LOW;
-            end
+            active_internal[port +: 1] <= enable && (port_addr == port);
         end 
     end
 

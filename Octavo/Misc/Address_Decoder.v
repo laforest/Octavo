@@ -35,12 +35,7 @@ module Address_Decoder
     // Check each address in range for match
     always @(*) begin
         for(i = 0; i < ADDR_COUNT; i = i + 1) begin : addr_decode
-            if( addr === (ADDR_BASE + i) ) begin
-                per_addr_match[i] <= `HIGH;
-            end
-            else begin
-                per_addr_match[i] <= `LOW;
-            end
+            per_addr_match[i] <= (addr == (ADDR_BASE + i));
         end
     end
 

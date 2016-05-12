@@ -149,14 +149,8 @@ module AddSub_Carry_Select
 // *************************************
 
     always @(posedge clock) begin
-        if(cout_lower_reg == `HIGH) begin
-            cout   <= cout_upper_1_reg;
-            result <= {result_upper_1_reg, result_lower_reg};
-        end
-        else begin
-            cout   <= cout_upper_0_reg;
-            result <= {result_upper_0_reg, result_lower_reg};
-        end
+        cout   <= (cout_lower_reg == `HIGH) ? cout_upper_1_reg                       : cout_upper_0_reg;
+        result <= (cout_lower_reg == `HIGH) ? {result_upper_1_reg, result_lower_reg} : {result_upper_0_reg, result_lower_reg};
     end
 endmodule
 

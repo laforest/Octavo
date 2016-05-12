@@ -17,12 +17,7 @@ module R_zero
     output  reg                         R_zero
 );
     always @(posedge clock) begin
-        if (R === {WORD_WIDTH{`LOW}}) begin
-            R_zero <= `HIGH;
-        end
-        else begin
-            R_zero <= `LOW;
-        end
+        R_zero <= (R == {WORD_WIDTH{`LOW}});
     end
 
     initial begin
@@ -42,12 +37,7 @@ module R_positive
     output  reg                         R_positive
 );
     always @(posedge clock) begin
-        if (R[WORD_WIDTH-1] === `LOW) begin
-            R_positive <= `HIGH;
-        end
-        else begin
-            R_positive <= `LOW;
-        end
+        R_positive <= (R[WORD_WIDTH-1] == `LOW);
     end
 
     initial begin
@@ -70,12 +60,7 @@ module R_even
     output  reg                         R_even
 );
     always @(posedge clock) begin
-        if (R[0] === `LOW) begin
-            R_even <= `HIGH;
-        end
-        else begin
-            R_even <= `LOW;
-        end
+        R_even <= (R[0] == `LOW);
     end
 
     initial begin
