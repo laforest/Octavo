@@ -5,11 +5,11 @@
 mem_map = {
     # Data memory 
     "A":    {"Origin":0, "Depth":1024, 
-             "PO_INC_base":1021, "PO_INC_count":2, 
-             "IO_base":1023, "IO_count":1},
+             "PO_INC_base":1018, "PO_INC_count":2, 
+             "IO_base":1020, "IO_count":4},
     "B":    {"Origin":1024, "Depth":1024, 
-             "PO_INC_base":1021, "PO_INC_count":2, 
-             "IO_base":1023, "IO_count":1},
+             "PO_INC_base":1018, "PO_INC_count":2, 
+             "IO_base":1020, "IO_count":4},
     # Instruction memory
     "I":    {"Origin":2048, "Depth":1024},
 

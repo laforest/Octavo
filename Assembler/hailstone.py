@@ -30,7 +30,10 @@ def assemble_PC():
 def assemble_A():
     A = empty["A"]
     A.file_name = bench_name
-    A.P("A_IO", mem_map["A"]["IO_base"])
+    A.P("A_IO_0", mem_map["A"]["IO_base"])
+    A.P("A_IO_1", mem_map["A"]["IO_base"]+1)
+    A.P("A_IO_2", mem_map["A"]["IO_base"]+2)
+    A.P("A_IO_3", mem_map["A"]["IO_base"]+3)
     A.A(0)
     A.L(0)
     A.L(1),                 A.N("one")
@@ -47,12 +50,16 @@ def assemble_A():
 def assemble_B():
     B = empty["B"]
     B.file_name = bench_name
-    B.P("B_IO", mem_map["B"]["IO_base"])
+    B.P("B_IO_0", mem_map["B"]["IO_base"])
+    B.P("B_IO_1", mem_map["B"]["IO_base"]+1)
+    B.P("B_IO_2", mem_map["B"]["IO_base"]+2)
+    B.P("B_IO_3", mem_map["B"]["IO_base"]+3)
     B.P("INDIRECT_SEED", mem_map["B"]["PO_INC_base"], write_addr = mem_map["H"]["PO_INC_base"])
     B.A(0)
     B.L(0)
     # Longest hailstone sequence (350 steps) for seed < 100,000
-    B.L(77031),     B.N("seed")
+    #B.L(77031),     B.N("seed")
+    B.L(12),        B.N("seed")
     # Placeholders for programmed offset
     B.L(0),      B.N("seed_PO")
     return B
@@ -104,8 +111,14 @@ def assemble_I(PC, A, B):
     # Odd: seed = (3 * seed) + 1
     I.I(ADD, "INDIRECT_SEED", "one", "INDIRECT_SEED"),              I.N("odd")
     # Output
-    I.I(ADD, "A_IO", 0, "INDIRECT_SEED"),                           I.N("output")
-    I.I(ADD, "B_IO", 0, "INDIRECT_SEED"),                           I.JMP("hailstone", "jmp2")
+    I.I(ADD, "A_IO_0", 0, "INDIRECT_SEED"),                           I.N("output")
+    I.I(ADD, "A_IO_1", 0, "INDIRECT_SEED")
+    I.I(ADD, "A_IO_2", 0, "INDIRECT_SEED")
+    I.I(ADD, "A_IO_3", 0, "INDIRECT_SEED")
+    I.I(ADD, "B_IO_0", 0, "INDIRECT_SEED")
+    I.I(ADD, "B_IO_1", 0, "INDIRECT_SEED")
+    I.I(ADD, "B_IO_2", 0, "INDIRECT_SEED")
+    I.I(ADD, "B_IO_3", 0, "INDIRECT_SEED"),                           I.JMP("hailstone", "jmp2")
 
     I.resolve_forward_jumps()
 

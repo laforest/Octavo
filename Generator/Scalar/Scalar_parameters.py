@@ -53,7 +53,7 @@ def generate_common_values(parameters = {}):
 
         "WORD_WIDTH"      : 36,
         "MEM_DEPTH"       : 1024, 
-        "PORTS_COUNT"     : 1,
+        "PORTS_COUNT"     : 4,
         ## Note that the final Verilog output must include double quotes
         "MEM_INIT_FILE"   : "no_init_file.mem",        
 
@@ -61,7 +61,7 @@ def generate_common_values(parameters = {}):
         "PC_INIT_FILE"    : '"no_init_file.pc"',
 
         ## M144Ks are not suitable, and going away in Stratix V.
-        "MEM_RAMSTYLE"    : '"M9K"',
+        "MEM_RAMSTYLE"    : '"M10K"',
         ## Thread PC read and write addresses never collide
         "PC_RAMSTYLE"     : '"MLAB,no_rw_check"'
     }
