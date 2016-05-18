@@ -79,7 +79,7 @@ def test_bench(parameters, default_bench = default_bench, install_base = install
         A_out_EF    = 0;
         B_in_EF     = -1;
         B_out_EF    = 0;
-        `DELAY_CLOCK_CYCLES(200000) $$stop;
+        `DELAY_CLOCK_CYCLES(20000) $$stop;
     end
 
     always begin
@@ -94,13 +94,30 @@ def test_bench(parameters, default_bench = default_bench, install_base = install
         cycle <= cycle + 1;
     end
 
+    reg                     A_valid;
+    reg [A_WORD_WIDTH-1:0]  A_data;
+
     // End Hailstone at end of sequence.
     always @(posedge clock) begin
-        if (A_wren == 1'b1) begin
-            $$display("AOUT: %d", A_out);
-            if (A_out == 'd1) begin
-                $$stop;
-            end
+
+        A_valid <= A_wren[0] == 1'b1;
+        A_data  <= A_out[0 +: A_WORD_WIDTH];
+
+        if (A_valid) begin
+            $$display("AOUT: %d", A_data);
+        end
+
+        if (A_valid && A_data == 'd1) begin
+            $$stop;
+        end
+    end
+
+    // Periodically stall write ports
+    // to test I/O predication on Hailstone
+    always @(posedge clock) begin
+        if (cycle % 100 == 0) begin
+            A_out_EF <= ~A_out_EF;
+            B_out_EF <= ~B_out_EF;
         end
     end
 
@@ -217,6 +234,7 @@ OCTAVO="$$INSTALL_BASE/Octavo/Misc/params.v \\
         $$INSTALL_BASE/Octavo/Misc/Translated_Addressed_Mux.v \\
         $$INSTALL_BASE/Octavo/Misc/Instruction_Annuller.v \\
         $$INSTALL_BASE/Octavo/Misc/Thread_Number.v \\
+        $$INSTALL_BASE/Octavo/Misc/Enabled_Registers.v \\
         $$INSTALL_BASE/Octavo/Misc/Instr_Decoder.v \\
         $$INSTALL_BASE/Octavo/DataPath/ALU/AddSub_Carry_Select.v \\
         $$INSTALL_BASE/Octavo/DataPath/ALU/AddSub_Ripple_Carry.v \\
