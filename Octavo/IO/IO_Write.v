@@ -113,25 +113,23 @@ module IO_Write
 
 // -----------------------------------------------------------
 
-    // ECL Done this way to explicitly replicate registers, rather than just
-    // fanout a single register. Quartus does not reliably replicate as-needed,
-    // but it will de-duplicate heartily.
+    wire    [WORD_WIDTH-1:0]    data_IO_internal;
 
     delay_line 
     #(
-        .DEPTH  (2),
-        .WIDTH  (IO_WRITE_PORT_COUNT * WORD_WIDTH)
+        .DEPTH  (1),
+        .WIDTH  (WORD_WIDTH)
     ) 
     data_IO_pipeline
     (
         .clock  (clock),
-        .in     ({IO_WRITE_PORT_COUNT{ALU_result}}),
-        .out    (data_IO)
+        .in     (ALU_result),
+        .out    (data_IO_internal)
     );
 
 // -----------------------------------------------------------
 
-    wire    active_IO_internal;
+    wire    [IO_WRITE_PORT_COUNT-1:0]   active_IO_internal;
 
     IO_Active
     #(
@@ -147,6 +145,24 @@ module IO_Write
         .addr               (ALU_addr),
         .active             (active_IO_internal)
     );
+
+// -----------------------------------------------------------
+
+    // Update only enabled (adress-decoded) register
+
+    Enabled_Registers 
+    #(
+        .COUNT  (IO_WRITE_PORT_COUNT), 
+        .WIDTH  (WORD_WIDTH)
+    ) 
+    IO_write_port
+    (
+        .clock  (clock),
+        .enable (active_IO_internal),
+        .in     ({IO_WRITE_PORT_COUNT{data_IO_internal}}),
+        .out    (data_IO)
+    );
+
 // -----------------------------------------------------------
 
     // Only 1 stage to match 2 stages of data_IO_pipeline
@@ -156,7 +172,7 @@ module IO_Write
     delay_line 
     #(
         .DEPTH  (1),
-        .WIDTH  (1)
+        .WIDTH  (IO_WRITE_PORT_COUNT)
     ) 
     active_IO_pipeline
     (

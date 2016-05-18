@@ -61,6 +61,7 @@ set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Misc/Translated_
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Misc/Instruction_Annuller.v
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Misc/Instr_Decoder.v
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Misc/Thread_Number.v
+set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/Misc/Enabled_Registers.v
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/DataPath/ALU/AddSub_Carry_Select.v
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/DataPath/ALU/AddSub_Ripple_Carry.v
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/DataPath/ALU/Mult.v

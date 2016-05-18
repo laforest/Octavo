@@ -50,7 +50,7 @@ module IO_Read
         addr_raw_reg <= addr_raw;
     end
 
-    wire active_IO_internal;
+    wire    [IO_READ_PORT_COUNT-1:0]    active_IO_internal;
 
     IO_Active
     #(
