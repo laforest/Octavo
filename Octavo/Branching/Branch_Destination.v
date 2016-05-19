@@ -34,6 +34,7 @@ module Branch_Destination
         .wren               (wren),
         .write_addr         (write_addr),
         .write_data         (write_data),
+        .rden               (`HIGH),
         .read_addr          (read_addr),
         .read_data          (branch_destination_raw)
     );

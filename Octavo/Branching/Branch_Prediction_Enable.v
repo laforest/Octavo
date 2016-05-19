@@ -36,6 +36,7 @@ module Branch_Prediction_Enable
         .wren               (wren),
         .write_addr         (write_addr),
         .write_data         (write_data),
+        .rden               (`HIGH),
         .read_addr          (read_addr),
         .read_data          (branch_prediction_enable_raw)
     );

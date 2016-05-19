@@ -17,6 +17,7 @@ module RAM_SDP_no_fw
     input  wire                         wren,
     input  wire     [ADDR_WIDTH-1:0]    write_addr,
     input  wire     [WORD_WIDTH-1:0]    write_data,
+    input  wire                         rden,
     input  wire     [ADDR_WIDTH-1:0]    read_addr, 
     output reg      [WORD_WIDTH-1:0]    read_data
 );
@@ -34,7 +35,9 @@ module RAM_SDP_no_fw
         if(wren == `HIGH) begin
             ram[write_addr] <= write_data;
         end
-        read_data <= ram[read_addr];
+        if(rden == `HIGH) begin
+            read_data <= ram[read_addr];
+        end
     end
 
     initial begin

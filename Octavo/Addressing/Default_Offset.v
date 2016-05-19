@@ -34,6 +34,7 @@ module Default_Offset
         .wren               (wren),
         .write_addr         (write_addr),
         .write_data         (write_data),
+        .rden               (`HIGH),
         .read_addr          (read_addr),
         .read_data          (offset_raw)
     );

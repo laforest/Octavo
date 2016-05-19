@@ -141,6 +141,7 @@ module ControlPath
         .wren           (I_wren),
         .write_addr     (ALU_write_addr_translated[I_ADDR_WIDTH-1:0]),
         .write_data     (ALU_write_data[I_WORD_WIDTH-1:0]),
+        .rden           (`HIGH),
         .read_addr      (PC),
         .read_data      (I_read_data_bram)
     );

@@ -331,6 +331,7 @@ module DataPath
         .wren           (A_wren_RAM),
         .write_addr     (A_write_addr_translated),
         .write_data     (A_write_data),
+        .rden           (`HIGH),
         .read_addr      (A_read_addr_AB),
         .read_data      (A_read_data_RAM)
     );
@@ -480,6 +481,7 @@ module DataPath
         .wren           (B_wren_RAM),
         .write_addr     (B_write_addr_translated),
         .write_data     (B_write_data),
+        .rden           (`HIGH),
         .read_addr      (B_read_addr_AB),
         .read_data      (B_read_data_RAM)
     );

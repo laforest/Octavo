@@ -107,6 +107,7 @@ module Memory
         .wren               (wren_ram),
         .write_addr         (write_addr_ram),
         .write_data         (write_data_ram),
+        .rden               (`HIGH),
         .read_addr          (read_addr_translated),
         .read_data          (read_data_ram)
     );
