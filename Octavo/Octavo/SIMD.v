@@ -106,7 +106,6 @@ module SIMD
 
 // -----------------------------------------------------------
 
-    parameter       CONTROL_INPUT_PIPELINE_DEPTH        = 0,
     parameter       PC_PIPELINE_DEPTH                   = 0,
     parameter       I_TAP_PIPELINE_DEPTH                = 0,
     parameter       TAP_AB_PIPELINE_DEPTH               = 0,
@@ -131,7 +130,6 @@ module SIMD
 // -----------------------------------------------------------
 
     parameter       SIMD_LANE_COUNT                     = 0,
-    parameter       SIMD_CONTROL_INPUT_PIPELINE_DEPTH   = 0,
 
 // -----------------------------------------------------------
 
@@ -394,7 +392,6 @@ module SIMD
         .THREAD_COUNT               (THREAD_COUNT),
         .THREAD_ADDR_WIDTH          (THREAD_ADDR_WIDTH),
 
-        .CONTROL_INPUT_PIPELINE_DEPTH (CONTROL_INPUT_PIPELINE_DEPTH),
         .PC_PIPELINE_DEPTH          (PC_PIPELINE_DEPTH),
         .I_TAP_PIPELINE_DEPTH       (I_TAP_PIPELINE_DEPTH),
         .TAP_AB_PIPELINE_DEPTH      (TAP_AB_PIPELINE_DEPTH),
@@ -613,7 +610,6 @@ module SIMD
         .B_IO_WRITE_PORT_BASE_ADDR      (SIMD_B_IO_WRITE_PORT_BASE_ADDR),
         .B_IO_WRITE_PORT_ADDR_WIDTH     (SIMD_B_IO_WRITE_PORT_ADDR_WIDTH),
 
-        .CONTROL_INPUT_PIPELINE_DEPTH   (SIMD_CONTROL_INPUT_PIPELINE_DEPTH),
         .TAP_AB_PIPELINE_DEPTH          (TAP_AB_PIPELINE_DEPTH),
         .AB_READ_PIPELINE_DEPTH         (AB_READ_PIPELINE_DEPTH),
         .AB_ALU_PIPELINE_DEPTH          (AB_ALU_PIPELINE_DEPTH),

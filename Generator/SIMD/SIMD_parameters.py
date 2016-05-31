@@ -23,8 +23,6 @@ def generate_pipeline_depths(parameters = {}):
         "I_TAP_PIPELINE_DEPTH"      : 1,
         ## How many stages between instruction tap and A/B memories. Should add up to 3 with above, minus any PC_PIPELINE_DEPTH.
         "TAP_AB_PIPELINE_DEPTH"     : 2,
-        ## Delay between ControlPath and DataPath. Not used for Scalar, only on SIMD.
-        "CONTROL_INPUT_PIPELINE_DEPTH" : 0,
         ## Takes 2 cycles to read/write the A/B data memories
         "AB_READ_PIPELINE_DEPTH"    : 2,
         ## A/B read (2 cycles) + ALU (4 cycles (nominally)) + A/B write (2 cycles)
@@ -150,11 +148,6 @@ def generate_SIMD_common_values(common_values, parameters = {}):
         "SIMD_B_IO_WRITE_PORT_COUNT"        :   SIMD_base_parameters["SIMD_PORTS_COUNT"],
         "SIMD_B_IO_WRITE_PORT_BASE_ADDR"    :  (SIMD_base_parameters["SIMD_PORTS_BASE_ADDR"] + SIMD_base_parameters["SIMD_B_WRITE_ADDR_OFFSET"]),
         "SIMD_B_IO_WRITE_PORT_ADDR_WIDTH"   :   SIMD_base_parameters["SIMD_PORTS_ADDR_WIDTH"],
-
-        ## Delay between Scalar ControlPath and SIMD DataPaths.
-        ## Replicated inside each partitioned SIMD DataPath (see FPT 2013 paper).
-        ## Depth of 1 suffices. More doesn't really help and complicates programming.
-        "SIMD_CONTROL_INPUT_PIPELINE_DEPTH" : 1,
     }
     SIMD_parameters.update(SIMD_base_parameters)
     parameters_misc.override(SIMD_parameters, parameters)

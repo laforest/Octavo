@@ -67,7 +67,6 @@ module Scalar
 
 // -----------------------------------------------------------
 
-    parameter   CONTROL_INPUT_PIPELINE_DEPTH                = 0,
     parameter   PC_PIPELINE_DEPTH                           = 0,
     parameter   I_TAP_PIPELINE_DEPTH                        = 0,
     parameter   TAP_AB_PIPELINE_DEPTH                       = 0,
@@ -589,7 +588,6 @@ module Scalar
         .B_IO_WRITE_PORT_BASE_ADDR              (B_IO_WRITE_PORT_BASE_ADDR),
         .B_IO_WRITE_PORT_ADDR_WIDTH             (B_IO_WRITE_PORT_ADDR_WIDTH),
 
-        .CONTROL_INPUT_PIPELINE_DEPTH           (CONTROL_INPUT_PIPELINE_DEPTH),
         .TAP_AB_PIPELINE_DEPTH                  (TAP_AB_PIPELINE_DEPTH),
         .AB_READ_PIPELINE_DEPTH                 (AB_READ_PIPELINE_DEPTH),
         .AB_ALU_PIPELINE_DEPTH                  (AB_ALU_PIPELINE_DEPTH),

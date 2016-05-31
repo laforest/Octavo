@@ -34,7 +34,6 @@ module DataPath
     parameter       B_IO_WRITE_PORT_BASE_ADDR                       = 0,
     parameter       B_IO_WRITE_PORT_ADDR_WIDTH                      = 0,
 
-    parameter       CONTROL_INPUT_PIPELINE_DEPTH                    = 0,
     parameter       TAP_AB_PIPELINE_DEPTH                           = 0,
     parameter       AB_READ_PIPELINE_DEPTH                          = 0,
     parameter       AB_ALU_PIPELINE_DEPTH                           = 0,
@@ -81,54 +80,6 @@ module DataPath
 
 // -----------------------------------------------------------
 
-    wire    [INSTR_WIDTH-1:0]   I_read_data_in_delayed;
-
-    delay_line 
-    #(
-        .DEPTH  (CONTROL_INPUT_PIPELINE_DEPTH), // XXX COME BACK AND REMOVE THIS
-        .WIDTH  (INSTR_WIDTH)
-    ) 
-    I_read_data_pipeline
-    (
-        .clock  (clock),
-        .in     (I_read_data_in),
-        .out    (I_read_data_in_delayed)
-    );
-
-// -----------------------------------------------------------
-
-    wire    [INSTR_WIDTH-1:0]   I_read_data_translated_delayed;
-
-    delay_line 
-    #(
-        .DEPTH  (CONTROL_INPUT_PIPELINE_DEPTH), // XXX COME BACK AND REMOVE THIS
-        .WIDTH  (INSTR_WIDTH)
-    ) 
-    I_read_data_translated_pipeline
-    (
-        .clock  (clock),
-        .in     (I_read_data_translated),
-        .out    (I_read_data_translated_delayed)
-    );
-
-// -----------------------------------------------------------
-
-    wire                        cancel_delayed;
-
-    delay_line 
-    #(
-        .DEPTH  (CONTROL_INPUT_PIPELINE_DEPTH), // XXX COME BACK AND REMOVE THIS
-        .WIDTH  (1)
-    ) 
-    cancel_pipeline
-    (
-        .clock  (clock),
-        .in     (cancel),
-        .out    (cancel_delayed)
-    );
-
-// ----------------------------------------------------------
-
     wire    [OPCODE_WIDTH-1:0]     OP_in;
     wire    [A_OPERAND_WIDTH-1:0]  A_read_addr_in;
     wire    [B_OPERAND_WIDTH-1:0]  B_read_addr_in;
@@ -144,7 +95,7 @@ module DataPath
     )
     I_in
     (
-        .instr              (I_read_data_in_delayed),
+        .instr              (I_read_data_in),
         .op                 (OP_in),
         .D                  (D_write_addr_in),
         .A                  (A_read_addr_in),
@@ -168,7 +119,7 @@ module DataPath
     )
     I_translated
     (
-        .instr              (I_read_data_translated_delayed),
+        .instr              (I_read_data_translated),
         .op                 (OP_AB),
         .D                  (D_write_addr_AB),
         .A                  (A_read_addr_AB),
@@ -394,7 +345,7 @@ module DataPath
     // The ControlPath will force IO_ready high internally to prevent re-issue.
 
     always @(*) begin
-        IO_ready <= IO_ready_raw & ~cancel_delayed;
+        IO_ready <= IO_ready_raw & ~cancel;
     end
 
 // -----------------------------------------------------------
