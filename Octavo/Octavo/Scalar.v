@@ -598,10 +598,7 @@ module Scalar
         .ADDSUB_CARRY_SELECT                    (ADDSUB_CARRY_SELECT),
         .MULT_DOUBLE_PIPE                       (MULT_DOUBLE_PIPE),
         .MULT_HETEROGENEOUS                     (MULT_HETEROGENEOUS),    
-        .MULT_USE_DSP                           (MULT_USE_DSP),
-
-        .H_WRITE_ADDR_OFFSET                    (H_WRITE_ADDR_OFFSET),
-        .H_DEPTH                                (H_DEPTH)
+        .MULT_USE_DSP                           (MULT_USE_DSP)
     )
     DataPath
     (

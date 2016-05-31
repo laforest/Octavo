@@ -43,10 +43,7 @@ module DataPath
     parameter       ADDSUB_CARRY_SELECT                             = 0,
     parameter       MULT_DOUBLE_PIPE                                = 0,
     parameter       MULT_HETEROGENEOUS                              = 0,
-    parameter       MULT_USE_DSP                                    = 0,
-
-    parameter       H_WRITE_ADDR_OFFSET                             = 0,
-    parameter       H_DEPTH                                         = 0
+    parameter       MULT_USE_DSP                                    = 0
 )
 (
     input   wire                                                    clock,
@@ -88,7 +85,7 @@ module DataPath
 
     delay_line 
     #(
-        .DEPTH  (CONTROL_INPUT_PIPELINE_DEPTH),
+        .DEPTH  (CONTROL_INPUT_PIPELINE_DEPTH), // XXX COME BACK AND REMOVE THIS
         .WIDTH  (INSTR_WIDTH)
     ) 
     I_read_data_pipeline
@@ -104,7 +101,7 @@ module DataPath
 
     delay_line 
     #(
-        .DEPTH  (CONTROL_INPUT_PIPELINE_DEPTH),
+        .DEPTH  (CONTROL_INPUT_PIPELINE_DEPTH), // XXX COME BACK AND REMOVE THIS
         .WIDTH  (INSTR_WIDTH)
     ) 
     I_read_data_translated_pipeline
@@ -120,7 +117,7 @@ module DataPath
 
     delay_line 
     #(
-        .DEPTH  (CONTROL_INPUT_PIPELINE_DEPTH),
+        .DEPTH  (CONTROL_INPUT_PIPELINE_DEPTH), // XXX COME BACK AND REMOVE THIS
         .WIDTH  (1)
     ) 
     cancel_pipeline
@@ -188,34 +185,6 @@ module DataPath
 
 // ----------------------------------------------------------
 
-    wire    [A_WORD_WIDTH-1:0]      A_read_data_RAM;
-    wire    [A_WORD_WIDTH-1:0]      A_read_data;
-    wire                            A_io_in_EF_masked;
-
-    IO_Read
-    #(
-        .WORD_WIDTH                 (A_WORD_WIDTH),
-        .ADDR_WIDTH                 (A_ADDR_WIDTH),
-        .IO_READ_PORT_COUNT         (A_IO_READ_PORT_COUNT),
-        .IO_READ_PORT_BASE_ADDR     (A_IO_READ_PORT_BASE_ADDR),
-        .IO_READ_PORT_ADDR_WIDTH    (A_IO_READ_PORT_ADDR_WIDTH)
-    )
-    A_IO_Read
-    (
-        .clock                      (clock),
-        .addr_raw                   (A_read_addr_in),
-        .addr_translated            (A_read_addr_AB),
-        .EmptyFull                  (A_io_in_EF),
-        .data_IO                    (A_io_in),
-        .data_RAM                   (A_read_data_RAM),
-        .IO_ready                   (IO_ready),
-        .EmptyFull_masked           (A_io_in_EF_masked),
-        .active_IO                  (A_io_rden),
-        .data_out                   (A_read_data)
-    );
-
-// -----------------------------------------------------------
-
     wire                A_wren_ALU_raw;
 
     Address_Decoder 
@@ -243,62 +212,6 @@ module DataPath
 
 // -----------------------------------------------------------
 
-    wire        A_write_is_IO;
-    wire        A_write_is_IO_ALU;
-
-    // ECL FIXME This points to a magic number in the parameters. 
-    // The base and total depth of the ALU should be a parameter, 
-    // not calculated.
-
-    delay_line 
-    #(
-        .DEPTH  (4),
-        .WIDTH  (1)
-    ) 
-    A_write_is_io_pipeline
-    (
-        .clock  (clock),
-        .in     (A_write_is_IO),
-        .out    (A_write_is_IO_ALU)
-    );
-
-// -----------------------------------------------------------
-
-    wire                            A_wren_RAM;
-    wire    [A_WORD_WIDTH-1:0]      A_write_data;
-    wire    [A_ADDR_WIDTH-1:0]      A_write_addr;
-    wire                            A_io_out_EF_masked;
-
-    IO_Write
-    #(
-        .WORD_WIDTH                 (A_WORD_WIDTH),
-        .ADDR_WIDTH                 (D_OPERAND_WIDTH),
-        .RAM_ADDR_WIDTH             (A_ADDR_WIDTH),
-        .IO_WRITE_PORT_COUNT        (A_IO_WRITE_PORT_COUNT),
-        .IO_WRITE_PORT_BASE_ADDR    (A_IO_WRITE_PORT_BASE_ADDR),
-        .IO_WRITE_PORT_ADDR_WIDTH   (A_IO_WRITE_PORT_ADDR_WIDTH)
-    )
-    A_IO_Write
-    (
-        .clock                      (clock),
-        .addr_raw                   (D_write_addr_in),
-        .EmptyFull                  (A_io_out_EF),
-        .IO_ready                   (IO_ready),
-        .ALU_result                 (ALU_result_out),
-        .ALU_addr                   (ALU_D_out),
-        .ALU_write_is_IO            (A_write_is_IO_ALU),
-        .ALU_wren                   (A_wren_ALU),
-        .write_is_IO                (A_write_is_IO),
-        .EmptyFull_masked           (A_io_out_EF_masked),
-        .active_IO                  (A_io_wren),
-        .data_IO                    (A_io_out),
-        .data_RAM                   (A_write_data),
-        .addr_RAM                   (A_write_addr),
-        .wren_RAM                   (A_wren_RAM)
-    );
-
-// -----------------------------------------------------------
-
     wire    [A_ADDR_WIDTH-1:0]     A_write_addr_translated;
 
     Address_Translator
@@ -311,58 +224,57 @@ module DataPath
     A_write_addr_translator
     (
         .clock              (clock),
-        .raw_address        (A_write_addr),
+        .raw_address        (ALU_D_out),
         .translated_address (A_write_addr_translated)
     );
 
 // -----------------------------------------------------------
 
-    RAM_SDP
+    wire    [A_WORD_WIDTH-1:0]      A_read_data;
+    wire                            A_io_in_EF_masked;
+    wire                            A_io_out_EF_masked;
+
+    Memory 
     #(
-        .WORD_WIDTH     (A_WORD_WIDTH),
-        .ADDR_WIDTH     (A_ADDR_WIDTH),
-        .DEPTH          (A_DEPTH),
-        .RAMSTYLE       (A_RAMSTYLE),
-        .INIT_FILE      (A_INIT_FILE)
+        .ALU_PIPELINE_DEPTH         (4),             // XXX PARAMETERIZE!!!
+        .WORD_WIDTH                 (A_WORD_WIDTH),
+        .ADDR_WIDTH                 (D_OPERAND_WIDTH),
+        .RAM_ADDR_WIDTH             (A_ADDR_WIDTH),
+        .DEPTH                      (A_DEPTH),
+        .RAMSTYLE                   (A_RAMSTYLE),
+        .INIT_FILE                  (A_INIT_FILE),
+        .IO_READ_PORT_COUNT         (A_IO_READ_PORT_COUNT),
+        .IO_READ_PORT_BASE_ADDR     (A_IO_READ_PORT_BASE_ADDR),
+        .IO_READ_PORT_ADDR_WIDTH    (A_IO_READ_PORT_ADDR_WIDTH),
+        .IO_WRITE_PORT_COUNT        (A_IO_WRITE_PORT_COUNT),
+        .IO_WRITE_PORT_BASE_ADDR    (A_IO_WRITE_PORT_BASE_ADDR),
+        .IO_WRITE_PORT_ADDR_WIDTH   (A_IO_WRITE_PORT_ADDR_WIDTH)
     )
-    A_RAM
-    (
-        .clock          (clock),
-        .wren           (A_wren_RAM),
-        .write_addr     (A_write_addr_translated),
-        .write_data     (A_write_data),
-        .rden           (`HIGH),
-        .read_addr      (A_read_addr_AB),
-        .read_data      (A_read_data_RAM)
-    );
-
-// -----------------------------------------------------------
-
-
-    wire    [B_WORD_WIDTH-1:0]      B_read_data_RAM;
-    wire    [B_WORD_WIDTH-1:0]      B_read_data;
-    wire                            B_io_in_EF_masked;
-
-    IO_Read
-    #(
-        .WORD_WIDTH                 (B_WORD_WIDTH),
-        .ADDR_WIDTH                 (B_ADDR_WIDTH),
-        .IO_READ_PORT_COUNT         (B_IO_READ_PORT_COUNT),
-        .IO_READ_PORT_BASE_ADDR     (B_IO_READ_PORT_BASE_ADDR),
-        .IO_READ_PORT_ADDR_WIDTH    (B_IO_READ_PORT_ADDR_WIDTH)
-    )
-    B_IO_Read
+    A_Memory
     (
         .clock                      (clock),
-        .addr_raw                   (B_read_addr_in),
-        .addr_translated            (B_read_addr_AB),
-        .EmptyFull                  (B_io_in_EF),
-        .data_IO                    (B_io_in),
-        .data_RAM                   (B_read_data_RAM),
+
+        .wren                       (A_wren_ALU),
+        .write_addr_raw             (D_write_addr_in),
+        .write_addr_translated      (A_write_addr_translated),
+        .write_data                 (ALU_result_out),
+
+        .rden                       (`HIGH),
+        .read_addr_raw              (A_read_addr_in),
+        .read_addr_translated       (A_read_addr_AB),
+        .read_data                  (A_read_data),
+
         .IO_ready                   (IO_ready),
-        .EmptyFull_masked           (B_io_in_EF_masked),
-        .active_IO                  (B_io_rden),
-        .data_out                   (B_read_data)
+
+        .read_EF_in                 (A_io_in_EF),
+        .read_EF_out                (A_io_in_EF_masked),
+        .io_rden                    (A_io_rden),
+        .io_in                      (A_io_in),
+
+        .write_EF_in                (A_io_out_EF),
+        .write_EF_out               (A_io_out_EF_masked),
+        .io_wren                    (A_io_wren),
+        .io_out                     (A_io_out)
     );
 
 // -----------------------------------------------------------
@@ -393,63 +305,7 @@ module DataPath
 
 // -----------------------------------------------------------
 
-    wire        B_write_is_IO;
-    wire        B_write_is_IO_ALU;
-
-    // ECL XXX FIXME This points to a magic number in the parameters. 
-    // The base and total depth of the ALU should be a parameter, 
-    // not calculated.
-
-    delay_line 
-    #(
-        .DEPTH  (4),
-        .WIDTH  (1)
-    ) 
-    B_write_is_io_pipeline
-    (
-        .clock  (clock),
-        .in     (B_write_is_IO),
-        .out    (B_write_is_IO_ALU)
-    );
-
-// -----------------------------------------------------------
-
-    wire                            B_wren_RAM;
-    wire    [B_WORD_WIDTH-1:0]      B_write_data;
-    wire    [B_ADDR_WIDTH-1:0]      B_write_addr;
-    wire                            B_io_out_EF_masked;
-
-    IO_Write
-    #(
-        .WORD_WIDTH                 (B_WORD_WIDTH),
-        .ADDR_WIDTH                 (D_OPERAND_WIDTH),
-        .RAM_ADDR_WIDTH             (B_ADDR_WIDTH),
-        .IO_WRITE_PORT_COUNT        (B_IO_WRITE_PORT_COUNT),
-        .IO_WRITE_PORT_BASE_ADDR    (B_IO_WRITE_PORT_BASE_ADDR),
-        .IO_WRITE_PORT_ADDR_WIDTH   (B_IO_WRITE_PORT_ADDR_WIDTH)
-    )
-    B_IO_Write
-    (
-        .clock                      (clock),
-        .addr_raw                   (D_write_addr_in),
-        .EmptyFull                  (B_io_out_EF),
-        .IO_ready                   (IO_ready),
-        .ALU_result                 (ALU_result_out),
-        .ALU_addr                   (ALU_D_out),
-        .ALU_write_is_IO            (B_write_is_IO_ALU),
-        .ALU_wren                   (B_wren_ALU),
-        .write_is_IO                (B_write_is_IO),
-        .EmptyFull_masked           (B_io_out_EF_masked),
-        .active_IO                  (B_io_wren),
-        .data_IO                    (B_io_out),
-        .data_RAM                   (B_write_data),
-        .addr_RAM                   (B_write_addr),
-        .wren_RAM                   (B_wren_RAM)
-    );
-
-// -----------------------------------------------------------
-
-    wire    [A_ADDR_WIDTH-1:0]     B_write_addr_translated;
+    wire    [B_ADDR_WIDTH-1:0]     B_write_addr_translated;
 
     Address_Translator
     #(
@@ -461,29 +317,57 @@ module DataPath
     B_write_addr_translator
     (
         .clock              (clock),
-        .raw_address        (B_write_addr),
+        .raw_address        (ALU_D_out),
         .translated_address (B_write_addr_translated)
     );
 
 // -----------------------------------------------------------
 
-    RAM_SDP
+    wire    [B_WORD_WIDTH-1:0]      B_read_data;
+    wire                            B_io_in_EF_masked;
+    wire                            B_io_out_EF_masked;
+
+    Memory 
     #(
-        .WORD_WIDTH     (B_WORD_WIDTH),
-        .ADDR_WIDTH     (B_ADDR_WIDTH),
-        .DEPTH          (B_DEPTH),
-        .RAMSTYLE       (B_RAMSTYLE),
-        .INIT_FILE      (B_INIT_FILE)
+        .ALU_PIPELINE_DEPTH         (4),             // XXX PARAMETERIZE!!!
+        .WORD_WIDTH                 (B_WORD_WIDTH),
+        .ADDR_WIDTH                 (D_OPERAND_WIDTH),
+        .RAM_ADDR_WIDTH             (B_ADDR_WIDTH),
+        .DEPTH                      (B_DEPTH),
+        .RAMSTYLE                   (B_RAMSTYLE),
+        .INIT_FILE                  (B_INIT_FILE),
+        .IO_READ_PORT_COUNT         (B_IO_READ_PORT_COUNT),
+        .IO_READ_PORT_BASE_ADDR     (B_IO_READ_PORT_BASE_ADDR),
+        .IO_READ_PORT_ADDR_WIDTH    (B_IO_READ_PORT_ADDR_WIDTH),
+        .IO_WRITE_PORT_COUNT        (B_IO_WRITE_PORT_COUNT),
+        .IO_WRITE_PORT_BASE_ADDR    (B_IO_WRITE_PORT_BASE_ADDR),
+        .IO_WRITE_PORT_ADDR_WIDTH   (B_IO_WRITE_PORT_ADDR_WIDTH)
     )
-    B_RAM
+    B_Memory
     (
-        .clock          (clock),
-        .wren           (B_wren_RAM),
-        .write_addr     (B_write_addr_translated),
-        .write_data     (B_write_data),
-        .rden           (`HIGH),
-        .read_addr      (B_read_addr_AB),
-        .read_data      (B_read_data_RAM)
+        .clock                      (clock),
+
+        .wren                       (B_wren_ALU),
+        .write_addr_raw             (D_write_addr_in),
+        .write_addr_translated      (B_write_addr_translated),
+        .write_data                 (ALU_result_out),
+
+        .rden                       (`HIGH),
+        .read_addr_raw              (B_read_addr_in),
+        .read_addr_translated       (B_read_addr_AB),
+        .read_data                  (B_read_data),
+
+        .IO_ready                   (IO_ready),
+
+        .read_EF_in                 (B_io_in_EF),
+        .read_EF_out                (B_io_in_EF_masked),
+        .io_rden                    (B_io_rden),
+        .io_in                      (B_io_in),
+
+        .write_EF_in                (B_io_out_EF),
+        .write_EF_out               (B_io_out_EF_masked),
+        .io_wren                    (B_io_wren),
+        .io_out                     (B_io_out)
     );
 
 // -----------------------------------------------------------
