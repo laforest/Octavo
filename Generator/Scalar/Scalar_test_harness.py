@@ -59,12 +59,12 @@ def test_harness(parameters, default_memory_init = default_memory_init, install_
     input   wire    [A_IO_READ_PORT_COUNT-1:0]      A_in,
     input   wire    [A_IO_READ_PORT_COUNT-1:0]      A_in_EF,
     output  wire    [A_IO_WRITE_PORT_COUNT-1:0]     A_out,
-    input   wire    [A_IO_READ_PORT_COUNT-1:0]      A_out_EF,
+    input   wire    [A_IO_WRITE_PORT_COUNT-1:0]     A_out_EF,
     
     input   wire    [B_IO_READ_PORT_COUNT-1:0]      B_in,
     input   wire    [B_IO_READ_PORT_COUNT-1:0]      B_in_EF,
     output  wire    [B_IO_WRITE_PORT_COUNT-1:0]     B_out,
-    input   wire    [B_IO_READ_PORT_COUNT-1:0]      B_out_EF
+    input   wire    [B_IO_WRITE_PORT_COUNT-1:0]     B_out_EF
 );
     wire    [A_IO_READ_PORT_WIDTH-1:0]      dut_A_in;
     wire    [A_IO_READ_PORT_COUNT-1:0]      dut_A_in_EF;
