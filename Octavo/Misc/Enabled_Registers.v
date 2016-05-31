@@ -23,7 +23,7 @@ module Enabled_Registers
         always @(posedge clock) begin
             for(i = 0; i < COUNT; i = i + 1) begin
                 j = i * WIDTH;
-                out[j +: WIDTH] <= (enable[i] == `HIGH) ? in[j +: WIDTH] : out[j +: WIDTH];
+                out[j +: WIDTH] = (enable[i] == `HIGH) ? in[j +: WIDTH] : out[j +: WIDTH];
             end
         end
     endgenerate
