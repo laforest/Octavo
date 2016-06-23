@@ -8,6 +8,7 @@ module Scalar
 
     parameter   INSTR_WIDTH                                 = 0,
     parameter   OPCODE_WIDTH                                = 0,
+    parameter   CONTROL_WIDTH                               = 0,
     parameter   D_OPERAND_WIDTH                             = 0,
     parameter   A_OPERAND_WIDTH                             = 0,
     parameter   B_OPERAND_WIDTH                             = 0,
@@ -67,7 +68,6 @@ module Scalar
 
 // -----------------------------------------------------------
 
-    parameter   PC_PIPELINE_DEPTH                           = 0,
     parameter   I_TAP_PIPELINE_DEPTH                        = 0,
     parameter   TAP_AB_PIPELINE_DEPTH                       = 0,
     parameter   AB_READ_PIPELINE_DEPTH                      = 0,
@@ -76,10 +76,7 @@ module Scalar
 // -----------------------------------------------------------
 
     parameter   LOGIC_OPCODE_WIDTH                          = 0,
-    parameter   ADDSUB_CARRY_SELECT                         = 0,
-    parameter   MULT_DOUBLE_PIPE                            = 0,
-    parameter   MULT_HETEROGENEOUS                          = 0,    
-    parameter   MULT_USE_DSP                                = 0,
+    parameter   INSTR_DECODER_INIT_FILE                     = "",
 
 // -----------------------------------------------------------
 
@@ -236,17 +233,10 @@ module Scalar
 )
 (
     input   wire                                                    clock,
-    input   wire                                                    half_clock,
 
     // Memory write enables for external control by accelerators    
     input   wire                                                    I_wren_other,
-    input   wire                                                    A_wren_other,
-    input   wire                                                    B_wren_other,
     
-    // ALU AddSub carry-in/out for external control by accelerators
-    input   wire                                                    ALU_c_in,
-    output  wire                                                    ALU_c_out,
-
     // Instruction and control sent to SIMD lanes, will need extra pipelining
     output  wire    [INSTR_WIDTH-1:0]                               I_read_data,
     output  reg     [INSTR_WIDTH-1:0]                               I_read_data_translated,
@@ -558,6 +548,7 @@ module Scalar
 
         .INSTR_WIDTH                            (INSTR_WIDTH),
         .OPCODE_WIDTH                           (OPCODE_WIDTH),
+        .CONTROL_WIDTH                          (CONTROL_WIDTH),
         .D_OPERAND_WIDTH                        (D_OPERAND_WIDTH),
         .A_OPERAND_WIDTH                        (A_OPERAND_WIDTH),
         .B_OPERAND_WIDTH                        (B_OPERAND_WIDTH),
@@ -593,26 +584,17 @@ module Scalar
         .AB_ALU_PIPELINE_DEPTH                  (AB_ALU_PIPELINE_DEPTH),
 
         .LOGIC_OPCODE_WIDTH                     (LOGIC_OPCODE_WIDTH),
-        .ADDSUB_CARRY_SELECT                    (ADDSUB_CARRY_SELECT),
-        .MULT_DOUBLE_PIPE                       (MULT_DOUBLE_PIPE),
-        .MULT_HETEROGENEOUS                     (MULT_HETEROGENEOUS),    
-        .MULT_USE_DSP                           (MULT_USE_DSP)
+        .INSTR_DECODER_INIT_FILE                (INSTR_DECODER_INIT_FILE)
     )
     DataPath
     (
         .clock                          (clock),
-        .half_clock                     (half_clock),
 
         .I_read_data_in                 (I_read_data),
         .I_read_data_translated         (I_read_data_translated),
 
-        .A_wren_other                   (A_wren_other),
-        .B_wren_other                   (B_wren_other),
-
-        .ALU_c_in                       (ALU_c_in),
         .ALU_result_out                 (ALU_result_mem),
         .ALU_D_out                      (ALU_D_mem),
-        .ALU_c_out                      (ALU_c_out),
 
         .cancel                         (cancel),
         .IO_ready                       (IO_ready),

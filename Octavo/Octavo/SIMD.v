@@ -106,7 +106,6 @@ module SIMD
 
 // -----------------------------------------------------------
 
-    parameter       PC_PIPELINE_DEPTH                   = 0,
     parameter       I_TAP_PIPELINE_DEPTH                = 0,
     parameter       TAP_AB_PIPELINE_DEPTH               = 0,
     parameter       AB_READ_PIPELINE_DEPTH              = 0,
@@ -392,7 +391,6 @@ module SIMD
         .THREAD_COUNT               (THREAD_COUNT),
         .THREAD_ADDR_WIDTH          (THREAD_ADDR_WIDTH),
 
-        .PC_PIPELINE_DEPTH          (PC_PIPELINE_DEPTH),
         .I_TAP_PIPELINE_DEPTH       (I_TAP_PIPELINE_DEPTH),
         .TAP_AB_PIPELINE_DEPTH      (TAP_AB_PIPELINE_DEPTH),
         .AB_READ_PIPELINE_DEPTH     (AB_READ_PIPELINE_DEPTH),

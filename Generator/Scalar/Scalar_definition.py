@@ -16,6 +16,7 @@ def definition(all_parameters):
 
     parameter   INSTR_WIDTH                                 = ${INSTR_WIDTH},
     parameter   OPCODE_WIDTH                                = ${OPCODE_WIDTH},
+    parameter   CONTROL_WIDTH                               = ${CONTROL_WIDTH},
     parameter   D_OPERAND_WIDTH                             = ${D_OPERAND_WIDTH},
     parameter   A_OPERAND_WIDTH                             = ${A_OPERAND_WIDTH},
     parameter   B_OPERAND_WIDTH                             = ${B_OPERAND_WIDTH},
@@ -83,10 +84,7 @@ def definition(all_parameters):
 // -----------------------------------------------------------
 
     parameter   LOGIC_OPCODE_WIDTH                          = ${LOGIC_OPCODE_WIDTH},
-    parameter   ADDSUB_CARRY_SELECT                         = ${ADDSUB_CARRY_SELECT},
-    parameter   MULT_DOUBLE_PIPE                            = ${MULT_DOUBLE_PIPE},
-    parameter   MULT_HETEROGENEOUS                          = ${MULT_HETEROGENEOUS},    
-    parameter   MULT_USE_DSP                                = ${MULT_USE_DSP},
+    parameter   INSTR_DECODER_INIT_FILE                     = ${INSTR_DECODER_INIT_FILE},
 
 // -----------------------------------------------------------
 
@@ -231,16 +229,9 @@ def definition(all_parameters):
 )
 (
     input   wire                                                    clock,
-    input   wire                                                    half_clock,
 
     // Memory write enables for external control by accelerators
     input   wire                                                    I_wren_other,
-    input   wire                                                    A_wren_other,
-    input   wire                                                    B_wren_other,
-
-    // ALU AddSub carry-in/out for external control by accelerators
-    input   wire                                                    ALU_c_in,
-    output  wire                                                    ALU_c_out,
 
     output  wire    [INSTR_WIDTH-1:0]                               I_read_data,
     output  wire    [INSTR_WIDTH-1:0]                               I_read_data_translated,
@@ -268,6 +259,7 @@ def definition(all_parameters):
 
         .INSTR_WIDTH                                (INSTR_WIDTH),                       
         .OPCODE_WIDTH                               (OPCODE_WIDTH),                     
+        .CONTROL_WIDTH                              (CONTROL_WIDTH),
         .D_OPERAND_WIDTH                            (D_OPERAND_WIDTH),
         .A_OPERAND_WIDTH                            (A_OPERAND_WIDTH),
         .B_OPERAND_WIDTH                            (B_OPERAND_WIDTH),
@@ -335,10 +327,7 @@ def definition(all_parameters):
 // -----------------------------------------------------------
 
         .LOGIC_OPCODE_WIDTH                         (LOGIC_OPCODE_WIDTH),
-        .ADDSUB_CARRY_SELECT                        (ADDSUB_CARRY_SELECT),
-        .MULT_DOUBLE_PIPE                           (MULT_DOUBLE_PIPE),
-        .MULT_HETEROGENEOUS                         (MULT_HETEROGENEOUS),
-        .MULT_USE_DSP                               (MULT_USE_DSP),
+        .INSTR_DECODER_INIT_FILE                    (INSTR_DECODER_INIT_FILE),
 
 // -----------------------------------------------------------
 
@@ -484,14 +473,8 @@ def definition(all_parameters):
     Scalar
     (
         .clock                              (clock),
-        .half_clock                         (half_clock),
 
         .I_wren_other                       (I_wren_other),        
-        .A_wren_other                       (A_wren_other),        
-        .B_wren_other                       (B_wren_other),        
-
-        .ALU_c_in                           (ALU_c_in),
-        .ALU_c_out                          (ALU_c_out),
 
         .I_read_data                        (I_read_data),
         .I_read_data_translated             (I_read_data_translated),

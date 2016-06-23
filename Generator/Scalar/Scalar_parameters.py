@@ -11,26 +11,19 @@ import math
 from Misc import misc, parameters_misc
 
 def generate_pipeline_depths(parameters = {}):
-    EXTRA_STAGES = parameters.get("EXTRA_STAGES", 0)
-    assert EXTRA_STAGES % 2 == 0, "Asked for {d} EXTRA_STAGES. Must be a multiple of 2.".format(EXTRA_STAGES)
     pipeline_depths = {
-        ## How many extra stages to add for > 8 (ALWAYS A MULTIPLE OF 2!)
-        "EXTRA_STAGES"            : EXTRA_STAGES,
         ## Optional stage to put before I_mem to try and improve timing under P&R variation
         ## Alter I_TAP and TAP_AB to add up to 8 stages at minimum.
-        ## XXX FIXME Keep at 0, else it introduces TWO zero reads at startup. Need to remove this option.
-        "PC_PIPELINE_DEPTH"         : 0 + EXTRA_STAGES,
         ## How many stages between I and instruction tap to DataPath. Min. 1 for good Fmax: gets retimed into I mem BRAM.
         "I_TAP_PIPELINE_DEPTH"      : 1,
-        ## How many stages between instruction tap and A/B memories. Should add up to 3 with above, minus any PC_PIPELINE_DEPTH.
+        ## How many stages between instruction tap and A/B memories. Should add up to 3 with above.
         "TAP_AB_PIPELINE_DEPTH"     : 2,
         ## Takes 2 cycles to read/write the A/B data memories
         "AB_READ_PIPELINE_DEPTH"    : 2,
-        ## A/B read (2 cycles) + ALU (4 cycles (nominally)) + A/B write (2 cycles)
-        "AB_ALU_PIPELINE_DEPTH"   : (2 + (4 + EXTRA_STAGES) + 2) }
+        ## A/B read (2 cycles) + ALU (4 cycles) + A/B write (2 cycles)
+        "AB_ALU_PIPELINE_DEPTH"   : (2 + 4 + 2) }
     parameters_misc.override(pipeline_depths, parameters)
-    control_pipeline_depth = sum([pipeline_depths["PC_PIPELINE_DEPTH"], 
-                                  pipeline_depths["I_TAP_PIPELINE_DEPTH"], 
+    control_pipeline_depth = sum([pipeline_depths["I_TAP_PIPELINE_DEPTH"], 
                                   pipeline_depths["TAP_AB_PIPELINE_DEPTH"], 
                                   pipeline_depths["AB_READ_PIPELINE_DEPTH"], 
                                   1, 2]) ## I_mem and Controller stages
@@ -48,6 +41,7 @@ def generate_common_values(parameters = {}):
         "CPU_NAME"        : "Scalar",
         # This normally NEVER changes. If you do change it, update the ALU and decoders to match.
         "OPCODE_WIDTH"    : 4,
+        "CONTROL_WIDTH"   : 4,
 
         "WORD_WIDTH"      : 36,
         "MEM_DEPTH"       : 1024, 
@@ -318,16 +312,6 @@ def generate_branching_parameters(common_values, parameters = {}):
     parameters_misc.override(branching_parameters, parameters)
     return branching_parameters
 
-def generate_resource_diversity_options(parameters = {}):
-    resource_diversity_options = { 
-        "ADDSUB_CARRY_SELECT" : "`FALSE",
-        "MULT_DOUBLE_PIPE"    : "`TRUE",
-        "MULT_HETEROGENEOUS"  : "`FALSE",
-        "MULT_USE_DSP"        : "`TRUE"
-    }
-    parameters_misc.override(resource_diversity_options, parameters)
-    return resource_diversity_options
-
 def generate_partition_options(parameters = {}):
     # Partition datapaths by default: always better performance, no CAD time increase.
     partition_options = {
@@ -364,12 +348,19 @@ def generate_logiclock_parameters(parameters = {}):
     parameters_misc.override(logiclock_options, parameters)
     return logiclock_options
 
+def generate_decoder_parameters(common_values, parameters = {}):
+    mem_init  = '"' + common_values["MEM_INIT_FILE"] + '"'
+    decoder_parameters = {
+        "INSTR_DECODER_INIT_FILE"           : mem_init,
+    }
+    parameters_misc.override(decoder_parameters, parameters)
+    return decoder_parameters
+
 # ECL XXX Ugh, hacky....
 
 def all_parameters(parameters = {}):
     common_values = generate_common_values(parameters)
     common_values.update(generate_pipeline_depths(parameters))
-    common_values.update(generate_resource_diversity_options(parameters))
     common_values.update(generate_partition_options(parameters))
     common_values.update(generate_quartus_options(parameters))
     common_values.update(generate_logiclock_parameters(parameters))
@@ -377,6 +368,7 @@ def all_parameters(parameters = {}):
     common_values.update(generate_thread_parameters(common_values, parameters))
     common_values.update(generate_addressing_parameters(common_values, parameters))
     common_values.update(generate_branching_parameters(common_values, parameters))
+    common_values.update(generate_decoder_parameters(common_values, parameters))
     common_values.update(generate_cpu_name(common_values))
     return common_values
 

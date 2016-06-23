@@ -4,6 +4,7 @@ module DataPath
 
     parameter       INSTR_WIDTH                                     = 0,
     parameter       OPCODE_WIDTH                                    = 0,
+    parameter       CONTROL_WIDTH                                   = 0,
     parameter       D_OPERAND_WIDTH                                 = 0,
     parameter       A_OPERAND_WIDTH                                 = 0,
     parameter       B_OPERAND_WIDTH                                 = 0,
@@ -39,25 +40,16 @@ module DataPath
     parameter       AB_ALU_PIPELINE_DEPTH                           = 0,
 
     parameter       LOGIC_OPCODE_WIDTH                              = 0,
-    parameter       ADDSUB_CARRY_SELECT                             = 0,
-    parameter       MULT_DOUBLE_PIPE                                = 0,
-    parameter       MULT_HETEROGENEOUS                              = 0,
-    parameter       MULT_USE_DSP                                    = 0
+    parameter       INSTR_DECODER_INIT_FILE                         = ""
 )
 (
     input   wire                                                    clock,
-    input   wire                                                    half_clock,
 
     input   wire    [INSTR_WIDTH-1:0]                               I_read_data_in,         // stage 1
     input   wire    [INSTR_WIDTH-1:0]                               I_read_data_translated, // stage 3
 
-    input   wire                                                    A_wren_other,
-    input   wire                                                    B_wren_other,
-
-    input   wire                                                    ALU_c_in,
     output  wire    [ALU_WORD_WIDTH-1:0]                            ALU_result_out,
     output  wire    [D_OPERAND_WIDTH-1:0]                           ALU_D_out,
-    output  wire                                                    ALU_c_out,
 
     input   wire                                                    cancel,
     output  reg                                                     IO_ready,
@@ -75,7 +67,6 @@ module DataPath
     input   wire    [B_IO_WRITE_PORT_COUNT-1:0]                     B_io_out_EF,
     output  wire    [B_IO_WRITE_PORT_COUNT-1:0]                     B_io_wren,
     output  wire    [(B_WORD_WIDTH * B_IO_WRITE_PORT_COUNT)-1:0]    B_io_out
-
 );
 
 // -----------------------------------------------------------
@@ -128,15 +119,52 @@ module DataPath
 
 // ----------------------------------------------------------
 
-    reg     [INSTR_WIDTH-1:0]   I_read_data_AB;
+    wire    control_wren;
+    
+    Address_Decoder 
+    #(
+        .ADDR_COUNT     (16 * 8),                   // XXX ECL HARDCODED
+        .ADDR_BASE      (3100),                     // XXX ECL HARDCODED (and random)
+        .ADDR_WIDTH     (D_OPERAND_WIDTH),
+        .REGISTERED     (`FALSE)
 
-    always @(*) begin
-        I_read_data_AB <= {OP_AB, D_write_addr_AB, A_read_addr_AB, B_read_addr_AB};
-    end
+    )
+    Control_Write
+    (
+        .clock          (clock),
+        .addr           (ALU_D_out),
+        .hit            (control_wren)
+    );
 
 // ----------------------------------------------------------
 
-    wire                A_wren_ALU_raw;
+    wire    [CONTROL_WIDTH-1:0]     control;
+
+    InstructionDecoder
+    #(
+        .OPCODE_COUNT       (16),                   // XXX ECL HARDCODED
+        .OPCODE_WIDTH       (OPCODE_WIDTH),
+        .CONTROL_WIDTH      (CONTROL_WIDTH),
+        .THREAD_COUNT       (8),                    // XXX ECL HARDCODED
+        .THREAD_ADDR_WIDTH  (3),
+        .INITIAL_THREAD     (4),                    // XXX ECL HARDCODED
+        .RAMSTYLE           ("MLAB,no_rw_check"),   // XXX ECL HARDCODED 
+        .INIT_FILE          (INSTR_DECODER_INIT_FILE)    // XXX ECL HARDCODED
+    )
+    Control_Generator
+    (
+        .clock              (clock),
+        .wren               (control_wren),
+        .write_addr         (ALU_D_out),
+        .write_data         (ALU_result_out),
+        .rden               (`HIGH),
+        .opcode             (OP_AB),
+        .control            (control)
+    );
+
+// ----------------------------------------------------------
+
+    wire                A_wren_ALU;
 
     Address_Decoder 
     #(
@@ -150,16 +178,8 @@ module DataPath
     (
         .clock          (clock),
         .addr           (ALU_D_out),
-        .hit            (A_wren_ALU_raw)
+        .hit            (A_wren_ALU)
     );
-
-// -----------------------------------------------------------
-
-    reg     A_wren_ALU;
-
-    always @(*) begin
-        A_wren_ALU <= A_wren_ALU_raw & A_wren_other;
-    end
 
 // -----------------------------------------------------------
 
@@ -230,7 +250,7 @@ module DataPath
 
 // -----------------------------------------------------------
 
-    wire                B_wren_ALU_raw;
+    wire                B_wren_ALU;
 
     Address_Decoder 
     #(
@@ -243,16 +263,8 @@ module DataPath
     (
         .clock          (clock),
         .addr           (ALU_D_out),
-        .hit            (B_wren_ALU_raw)
+        .hit            (B_wren_ALU)
     );
-
-// -----------------------------------------------------------
-
-    reg     B_wren_ALU;
-
-    always @(*) begin
-        B_wren_ALU <= B_wren_ALU_raw & B_wren_other;
-    end
 
 // -----------------------------------------------------------
 
@@ -350,83 +362,52 @@ module DataPath
 
 // -----------------------------------------------------------
 
-    wire    [INSTR_WIDTH-1:0]   I_read_data_AB_masked;
+    wire    [D_OPERAND_WIDTH-1:0]   D_write_addr_AB_masked;
 
     Instruction_Annuller
     #(
-        .INSTR_WIDTH    (INSTR_WIDTH)
+        .INSTR_WIDTH    (D_OPERAND_WIDTH)
     )
     DataPath_Annuller
     (
-        .instr_in       (I_read_data_AB),
+        .instr_in       (D_write_addr_AB),
         .annul          (~IO_ready),
-        .instr_out      (I_read_data_AB_masked)
+        .instr_out      (D_write_addr_AB_masked)
     ); 
 
 // -----------------------------------------------------------
 
-    wire    [INSTR_WIDTH-1:0]   AB_instr;
+    wire    [D_OPERAND_WIDTH-1:0]   ALU_D_in;
 
     delay_line 
     #(
         .DEPTH  (AB_READ_PIPELINE_DEPTH),
-        .WIDTH  (INSTR_WIDTH)
+        .WIDTH  (D_OPERAND_WIDTH)
     ) 
     AB_read_pipeline
     (
         .clock  (clock),
-        .in     (I_read_data_AB_masked),
-        .out    (AB_instr)
-    );
-
-// -----------------------------------------------------------
-
-    wire    [OPCODE_WIDTH-1:0]      ALU_op_in;
-    wire    [D_OPERAND_WIDTH-1:0]   ALU_D_in;
-
-    Instr_Decoder
-    #(
-        .OPCODE_WIDTH       (OPCODE_WIDTH),
-        .INSTR_WIDTH        (INSTR_WIDTH),
-        .D_OPERAND_WIDTH    (D_OPERAND_WIDTH),
-        .A_OPERAND_WIDTH    (A_OPERAND_WIDTH), 
-        .B_OPERAND_WIDTH    (B_OPERAND_WIDTH)
-    )
-    AB_read_decoder
-    (
-        .instr              (AB_instr),
-        .op                 (ALU_op_in),
-        .D                  (ALU_D_in),
-        .A                  (),
-        .B                  ()
+        .in     (D_write_addr_AB_masked),
+        .out    (ALU_D_in)
     );
 
 // -----------------------------------------------------------
 
     ALU 
     #(
-        .OPCODE_WIDTH           (OPCODE_WIDTH),
-        .D_OPERAND_WIDTH        (D_OPERAND_WIDTH),
+        .CONTROL_WIDTH          (CONTROL_WIDTH),
         .WORD_WIDTH             (ALU_WORD_WIDTH),
-        .AB_ALU_PIPELINE_DEPTH  (AB_ALU_PIPELINE_DEPTH),
-        .ADDSUB_CARRY_SELECT    (ADDSUB_CARRY_SELECT),
-        .LOGIC_OPCODE_WIDTH     (LOGIC_OPCODE_WIDTH),
-        .MULT_DOUBLE_PIPE       (MULT_DOUBLE_PIPE),
-        .MULT_HETEROGENEOUS     (MULT_HETEROGENEOUS),
-        .MULT_USE_DSP           (MULT_USE_DSP)
+        .D_OPERAND_WIDTH        (D_OPERAND_WIDTH),
+        .LOGIC_OPCODE_WIDTH     (LOGIC_OPCODE_WIDTH)
     )
     ALU 
     (
         .clock                  (clock),
-        .half_clock             (half_clock),
-        .c_in                   (ALU_c_in),
-        .op_in                  (ALU_op_in),
+        .control                (control),
         .D_in                   (ALU_D_in),
         .A                      (A_read_data),
         .B                      (B_read_data),
         .R                      (ALU_result_out),
-        .op_out                 (), // ECL XXX Unused for now
-        .c_out                  (ALU_c_out),
         .D_out                  (ALU_D_out)
     );
 endmodule
