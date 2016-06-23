@@ -28,12 +28,12 @@ module Thread_Number
 
     always @(*) begin
         // Doing it this way to avoid an adder/subtracter comparator.
-        last_thread <= (current_thread == (THREAD_COUNT-1));
-        next_thread <= !last_thread ? current_thread + one[THREAD_ADDR_WIDTH-1:0] : zero[THREAD_ADDR_WIDTH-1:0];
+        last_thread = (current_thread == (THREAD_COUNT-1));
+        next_thread = !last_thread ? current_thread + one[THREAD_ADDR_WIDTH-1:0] : zero[THREAD_ADDR_WIDTH-1:0];
     end
 
     always @(posedge clock) begin
-        current_thread  <= next_thread;
+        current_thread <= next_thread;
     end
 endmodule
 
