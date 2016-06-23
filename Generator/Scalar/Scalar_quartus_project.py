@@ -68,6 +68,7 @@ set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/DataPath/ALU/Mul
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/DataPath/ALU/Bitwise.v
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/DataPath/ALU/ALU.v
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/DataPath/DataPath.v
+set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/DataPath/InstructionDecoder.v
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/ControlPath/Controller.v
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/ControlPath/ControlPath.v
 set_global_assignment -name VERILOG_FILE ${install_base}/Octavo/IO/Port_Active.v
@@ -133,7 +134,7 @@ set_global_assignment -name OPTIMIZATION_TECHNIQUE SPEED
 set_global_assignment -name ADV_NETLIST_OPT_SYNTH_WYSIWYG_REMAP ON
 set_global_assignment -name AUTO_SHIFT_REGISTER_RECOGNITION OFF
 set_global_assignment -name REMOVE_REDUNDANT_LOGIC_CELLS ON
-set_global_assignment -name MUX_RESTRUCTURE OFF
+set_global_assignment -name MUX_RESTRUCTURE ON
 set_global_assignment -name ALLOW_ANY_ROM_SIZE_FOR_RECOGNITION ON
 set_global_assignment -name ALLOW_ANY_RAM_SIZE_FOR_RECOGNITION ON
 set_global_assignment -name ALLOW_ANY_SHIFT_REGISTER_SIZE_FOR_RECOGNITION OFF
@@ -176,7 +177,7 @@ set_global_assignment -name BLOCK_RAM_AND_MLAB_EQUIVALENT_POWER_UP_CONDITIONS AU
 set_global_assignment -name BLOCK_RAM_AND_MLAB_EQUIVALENT_PAUSED_READ_CAPABILITIES CARE
 set_global_assignment -name OPTIMIZE_TIMING "NORMAL COMPILATION"
 set_global_assignment -name FINAL_PLACEMENT_OPTIMIZATION ALWAYS
-set_global_assignment -name FITTER_AGGRESSIVE_ROUTABILITY_OPTIMIZATION ALWAYS
+set_global_assignment -name FITTER_AGGRESSIVE_ROUTABILITY_OPTIMIZATION AUTOMATICALLY
 set_global_assignment -name PERIPHERY_TO_CORE_PLACEMENT_AND_ROUTING_OPTIMIZATION OFF
 set_global_assignment -name IO_PLACEMENT_OPTIMIZATION ON
 set_global_assignment -name ROUTER_REGISTER_DUPLICATION AUTO
