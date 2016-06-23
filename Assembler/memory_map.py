@@ -40,6 +40,9 @@ mem_map = {
     # Branch Prediction Enables
     "BPE":  {"Origin":3082, "Depth":1, "bit_offset":24},
 
+    # Instruction Decode Memory
+    "IDM":  {"Origin":3100, "Depth":(8*16)},
+
     # Memory ends at 4095
 }
 

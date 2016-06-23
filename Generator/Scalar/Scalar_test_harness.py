@@ -46,6 +46,8 @@ def test_harness(parameters, default_memory_init = default_memory_init, install_
     parameter       PREDICTION_INIT_FILE   = "${assembler_base}/${default_memory_init}.BP",
     parameter       PREDICTION_ENABLE_INIT_FILE   = "${assembler_base}/${default_memory_init}.BPE",
 
+    parameter       INSTR_DECODER_INIT_FILE = "${assembler_base}/${default_memory_init}.IDM",
+
     // ****** These are computed for brevity later. Do not redefine at module instantiation. ******
     parameter       A_IO_READ_PORT_WIDTH        = (A_WORD_WIDTH * A_IO_READ_PORT_COUNT),
     parameter       A_IO_WRITE_PORT_WIDTH       = (A_WORD_WIDTH * A_IO_WRITE_PORT_COUNT),
@@ -54,7 +56,6 @@ def test_harness(parameters, default_memory_init = default_memory_init, install_
 )
 (
     input   wire                                    clock,
-    input   wire                                    half_clock,
     
     input   wire    [A_IO_READ_PORT_COUNT-1:0]      A_in,
     input   wire    [A_IO_READ_PORT_COUNT-1:0]      A_in_EF,
@@ -80,9 +81,6 @@ def test_harness(parameters, default_memory_init = default_memory_init, install_
     wire    [B_IO_WRITE_PORT_COUNT-1:0]     dut_B_out_EF;
     wire    [B_IO_WRITE_PORT_COUNT-1:0]     dut_B_wren;
 
-    localparam WREN_OTHER_DEFAULT = `HIGH;
-    localparam ALU_C_IN_DEFAULT   = `LOW;
-
     ${CPU_NAME}
     #(
         .A_INIT_FILE                    (A_INIT_FILE),
@@ -102,20 +100,15 @@ def test_harness(parameters, default_memory_init = default_memory_init, install_
         .DESTINATION_INIT_FILE          (DESTINATION_INIT_FILE),
         .CONDITION_INIT_FILE            (CONDITION_INIT_FILE),
         .PREDICTION_INIT_FILE           (PREDICTION_INIT_FILE),
-        .PREDICTION_ENABLE_INIT_FILE    (PREDICTION_ENABLE_INIT_FILE)
+        .PREDICTION_ENABLE_INIT_FILE    (PREDICTION_ENABLE_INIT_FILE),
+        .INSTR_DECODER_INIT_FILE        (INSTR_DECODER_INIT_FILE)
     )
     DUT
     (
         .clock              (clock),
-        .half_clock         (half_clock),
 
         .I_wren_other       (`HIGH),
-        .A_wren_other       (WREN_OTHER_DEFAULT),
-        .B_wren_other       (WREN_OTHER_DEFAULT),
         
-        .ALU_c_in           (ALU_C_IN_DEFAULT),
-        .ALU_c_out          (),
-
         // Only used for SIMD
         .I_read_data        (),
         .I_read_data_translated (),

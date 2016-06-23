@@ -163,6 +163,11 @@ def assemble_branches():
     BPE.file_name = bench_name    
     return BO, BD, BC, BP, BPE
 
+def assemble_IDM():
+    IDM = empty["IDM"]
+    IDM.file_name = bench_name
+    return IDM
+
 def assemble_all():
     PC = assemble_PC()
     A  = assemble_A()
@@ -172,11 +177,13 @@ def assemble_all():
     APO, BPO, DPO = assemble_XPO()
     AIN, BIN, DIN = assemble_XIN()
     BO, BD, BC, BP, BPE = assemble_branches()
+    IDM = assemble_IDM()
     hailstone = {"PC":PC, "A":A, "B":B, "I":I, 
                  "ADO":ADO, "BDO":BDO, "DDO":DDO,
                  "APO":APO, "BPO":BPO, "DPO":DPO,
                  "AIN":AIN, "BIN":BIN, "DIN":DIN,
-                 "BO":BO, "BD":BD, "BC":BC, "BP":BP, "BPE":BPE}
+                 "BO":BO, "BD":BD, "BC":BC, "BP":BP, "BPE":BPE,
+                 "IDM":IDM}
     return hailstone
 
 def dump_all(hailstone):

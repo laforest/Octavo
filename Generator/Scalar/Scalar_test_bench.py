@@ -46,7 +46,9 @@ def test_bench(parameters, default_bench = default_bench, install_base = install
     parameter       DESTINATION_INIT_FILE  = "${assembler_base}/${default_bench}.BD",
     parameter       CONDITION_INIT_FILE    = "${assembler_base}/${default_bench}.BC",
     parameter       PREDICTION_INIT_FILE    = "${assembler_base}/${default_bench}.BP",
-    parameter       PREDICTION_ENABLE_INIT_FILE    = "${assembler_base}/${default_bench}.BPE"
+    parameter       PREDICTION_ENABLE_INIT_FILE    = "${assembler_base}/${default_bench}.BPE",
+
+    parameter       INSTR_DECODER_INIT_FILE = "${assembler_base}/${default_bench}.IDM"
 )
 (
     output  wire    [INSTR_WIDTH-1:0]                           I_read_data,
@@ -152,9 +154,6 @@ def test_bench(parameters, default_bench = default_bench, install_base = install
 
 //    end
 
-    localparam WREN_OTHER_DEFAULT = `HIGH;
-    localparam ALU_C_IN_DEFAULT   = `LOW;
-
     ${CPU_NAME} 
     #(
         .A_INIT_FILE                    (A_INIT_FILE),
@@ -178,19 +177,14 @@ def test_bench(parameters, default_bench = default_bench, install_base = install
         .DESTINATION_INIT_FILE      (DESTINATION_INIT_FILE),
         .CONDITION_INIT_FILE        (CONDITION_INIT_FILE),
         .PREDICTION_INIT_FILE        (PREDICTION_INIT_FILE),
-        .PREDICTION_ENABLE_INIT_FILE        (PREDICTION_ENABLE_INIT_FILE)
+        .PREDICTION_ENABLE_INIT_FILE        (PREDICTION_ENABLE_INIT_FILE),
+        .INSTR_DECODER_INIT_FILE        (INSTR_DECODER_INIT_FILE)
     )
     DUT 
     (
         .clock              (clock),
-        .half_clock         (half_clock),
 
         .I_wren_other       (`HIGH),
-        .A_wren_other       (WREN_OTHER_DEFAULT),
-        .B_wren_other       (WREN_OTHER_DEFAULT),
-
-        .ALU_c_in           (ALU_C_IN_DEFAULT),
-        .ALU_c_out          (),
 
         .I_read_data        (I_read_data),
 
@@ -242,6 +236,7 @@ OCTAVO="$$INSTALL_BASE/Octavo/Misc/params.v \\
         $$INSTALL_BASE/Octavo/DataPath/ALU/Bitwise.v \\
         $$INSTALL_BASE/Octavo/DataPath/ALU/ALU.v \\
         $$INSTALL_BASE/Octavo/DataPath/DataPath.v \\
+        $$INSTALL_BASE/Octavo/DataPath/InstructionDecoder.v \\
         $$INSTALL_BASE/Octavo/ControlPath/Controller.v \\
         $$INSTALL_BASE/Octavo/ControlPath/ControlPath.v \\
         $$INSTALL_BASE/Octavo/Memory/RAM_SDP.v \\
