@@ -1,27 +1,28 @@
 
-module Accumulator_test_bench
+module Dyadic_Boolean_Operator_test_bench
 #(
-    parameter       WORD_WIDTH          = 36,
-    parameter       THREAD_COUNT        = 8
+    parameter       WORD_WIDTH          = 36
 )
 (
-    output  wire    [WORD_WIDTH-1:0]    total
 );
+    localparam OP_WIDTH = 4;
+
     integer                     cycle;
     reg                         clock;
-    reg     [WORD_WIDTH-1:0]    addend;
-    reg                         read_total;
-    reg                         write_addend;
+    reg     [OP_WIDTH-1:0]      op;
+    reg     [WORD_WIDTH-1:0]    a;
+    reg     [WORD_WIDTH-1:0]    b;
+    wire    [WORD_WIDTH-1:0]    o;
 
     initial begin
-        $dumpfile("Accumulator_test_bench.vcd");
-        $dumpvars(0);
-        cycle           = 0;
-        clock           = 0;
-        addend          = 0;
-        read_total      = 0;
-        write_addend    = 0;
-        `DELAY_CLOCK_CYCLES(200) $finish;
+        $dumpfile("Dyadic_Boolean_Operator_test_bench.vcd");
+        //$dumpvars(0);
+        cycle   = 0;
+        clock   = 0;
+        op      = 0;
+        a       = 36'h100F0500A;
+        b       = 36'h100F050A0;
+        `DELAY_CLOCK_CYCLES(32) $finish;
     end
 
     always @(*) begin
@@ -33,57 +34,21 @@ module Accumulator_test_bench
     end
 
     always @(posedge clock) begin
-
-        // 0 + 1 = 1, read out
-        read_total      = `HIGH;
-        write_addend    = `HIGH;
-        addend          = 1; 
-        `DELAY_CLOCK_CYCLES(1)
-        read_total      = `LOW;
-        write_addend    = `LOW;
-        `DELAY_CLOCK_CYCLES((THREAD_COUNT-1))
-
-        // 0 + 1 + 2 = 3
-        read_total      = `LOW;
-        write_addend    = `HIGH;
-        addend          = 2; 
-        `DELAY_CLOCK_CYCLES(1)
-        write_addend    <= `LOW;
-        `DELAY_CLOCK_CYCLES((THREAD_COUNT-1))
-
-        // 0 + 1 + 2 + 3 = 6
-        read_total      = `LOW;
-        write_addend    = `HIGH;
-        addend          = 3; 
-        `DELAY_CLOCK_CYCLES(1)
-        write_addend    <= `LOW;
-        `DELAY_CLOCK_CYCLES((THREAD_COUNT-1))
-
-        // 0 + 1 + 2 + 3 + 4 = 10
-        read_total      = `LOW;
-        write_addend    = `HIGH;
-        addend          = 4; 
-        `DELAY_CLOCK_CYCLES(1)
-        write_addend    = `LOW;
-        `DELAY_CLOCK_CYCLES((THREAD_COUNT-1))
-
-        // avoids syntax error
-        read_total      = `HIGH;
-
+        // Test all 16 ops. Refer to Dyadic_Boolean_Operations.vh for meaning.
+        op = op + 4'd1;
+        `DELAY_CLOCK_CYCLES(1);
     end
 
-    Accumulator
+    Dyadic_Boolean_Operator
     #(
-        .WORD_WIDTH     (WORD_WIDTH),
-        .THREAD_COUNT   (THREAD_COUNT)
+        .WORD_WIDTH     (WORD_WIDTH)
     )
     DUT
     (
-        .clock          (clock),
-        .write_addend   (write_addend),
-        .addend         (addend),
-        .read_total     (read_total),
-        .total          (total)
+        .op             (op),
+        .a              (a),
+        .b              (b),
+        .o              (o)
     );
 
 endmodule
