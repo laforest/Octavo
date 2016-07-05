@@ -17,18 +17,23 @@ module Dyadic_Boolean_Operator
 
     // One mux per bit, where the inputs select the op bits.
 
-    Addressed_Mux
-    #(
-        .WORD_WIDTH     (1),
-        .ADDR_WIDTH     (2),
-        .INPUT_COUNT    (4)
-    )
-    Operator            [WORD_WIDTH-1:0]
-    (
-        .addr           ({a,b}),    
-        .in             (op),
-        .out            (o)
-    );
+    generate
+        genvar i;
+        for(i = 0; i < WORD_WIDTH; i = i+1) begin: per_bit
+            Addressed_Mux
+            #(
+                .WORD_WIDTH     (1),
+                .ADDR_WIDTH     (2),
+                .INPUT_COUNT    (4)
+            )
+            Operator
+            (
+                .addr           ({a[i],b[i]}),    
+                .in             (op),
+                .out            (o[i])
+            );
+        end
+    endgenerate
 
 endmodule
 
