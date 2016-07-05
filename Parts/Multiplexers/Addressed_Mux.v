@@ -6,7 +6,7 @@ module Addressed_Mux
 #(
     parameter       WORD_WIDTH                          = 0,
     parameter       ADDR_WIDTH                          = 0,
-    parameter       INPUT_COUNT                         = 0,
+    parameter       INPUT_COUNT                         = 0
 )
 (
     input   wire    [ADDR_WIDTH-1:0]                    addr,    
