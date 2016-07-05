@@ -15,5 +15,5 @@
 `define DELAY_CLOCK_HALF_PERIOD     #`NS_TO_PS(`CLOCK_HALF_PERIOD_NS)
 `define DELAY_CLOCK_PERIOD          #`NS_TO_PS(`CLOCK_PERIOD_NS)
 
-`define DELAY_CLOCK_CYCLES(count)   #(count * `NS2_TO_PS(`CLOCK_PERIOD_NS))
+`define DELAY_CLOCK_CYCLES(count)   #(count * `NS_TO_PS(`CLOCK_PERIOD_NS))
 
