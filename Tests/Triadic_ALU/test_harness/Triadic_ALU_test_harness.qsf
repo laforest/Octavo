@@ -42,7 +42,6 @@
 # ========================
 set_global_assignment -name LAST_QUARTUS_VERSION 15.1.0
 set_global_assignment -name FLOW_DISABLE_ASSEMBLER ON
-set_global_assignment -name NUM_PARALLEL_PROCESSORS ALL
 set_global_assignment -name SDC_FILE /home/laforest/Octavo/Octavo/Parts/SimSynth/timing_constraints_Altera.sdc
 set_global_assignment -name VERILOG_FILE harness_input_register.v
 set_global_assignment -name VERILOG_FILE harness_output_register.v
@@ -52,6 +51,7 @@ set_global_assignment -name VERILOG_FILE Inverter.v
 set_global_assignment -name VERILOG_FILE Bitwise_2to1_Mux.v
 set_global_assignment -name VERILOG_FILE Dyadic_Boolean_Operator.v
 set_global_assignment -name VERILOG_FILE AddSub_Ripple_Carry_NoCarry.v
+set_global_assignment -name VERILOG_FILE R_Flags.v
 set_global_assignment -name VERILOG_FILE Triadic_ALU.v
 set_global_assignment -name VERILOG_FILE Triadic_ALU_test_harness.v
 set_global_assignment -name FLOW_ENABLE_RTL_VIEWER ON
@@ -118,7 +118,7 @@ set_global_assignment -name SEED 1
 set_global_assignment -name PLACEMENT_EFFORT_MULTIPLIER 4
 set_global_assignment -name ROUTER_EFFORT_MULTIPLIER 4
 set_global_assignment -name AUTO_DELAY_CHAINS OFF
-set_global_assignment -name OPTIMIZE_HOLD_TIMING "ALL PATHS"
+set_global_assignment -name OPTIMIZE_HOLD_TIMING OFF
 set_global_assignment -name OPTIMIZE_MULTI_CORNER_TIMING ON
 set_global_assignment -name BLOCK_RAM_AND_MLAB_EQUIVALENT_POWER_UP_CONDITIONS AUTO
 set_global_assignment -name BLOCK_RAM_AND_MLAB_EQUIVALENT_PAUSED_READ_CAPABILITIES CARE
@@ -166,4 +166,8 @@ set_global_assignment -name RTLV_GROUP_COMB_LOGIC_IN_CLOUD_TMV OFF
 # end ENTITY(Triadic_ALU_test_harness)
 # ------------------------------------
 
+
+set_global_assignment -name OPTIMIZE_POWER_DURING_FITTING "NORMAL COMPILATION"
+set_global_assignment -name ECO_OPTIMIZE_TIMING OFF
+set_global_assignment -name ALM_REGISTER_PACKING_EFFORT MEDIUM
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top

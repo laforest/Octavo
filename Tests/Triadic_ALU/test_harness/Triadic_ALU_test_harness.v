@@ -24,6 +24,8 @@ module Triadic_ALU_test_harness
     wire [WORD_WIDTH-1:0] A_dut;
     wire [WORD_WIDTH-1:0] B_dut;
     wire [WORD_WIDTH-1:0] R_dut;
+    wire                  R_zero_dut;
+    wire                  R_negative_dut;
     wire [WORD_WIDTH-1:0] S_dut;
     wire [WORD_WIDTH-1:0] Ra_dut;
     wire [WORD_WIDTH-1:0] Rb_dut;
@@ -40,12 +42,16 @@ module Triadic_ALU_test_harness
         .A          (A_dut),      
         .B          (B_dut),      
         .R          (R_dut),      
+        .R_zero     (R_zero_dut),
+        .R_negative (R_negative_dut),
         .S          (S_dut),      
         .Ra         (Ra_dut),     
         .Rb         (Rb_dut)     
     );
 
 // --------------------------------------------------------------------
+
+    // Tie-off and register inputs and outputs to get a valid timing analysis.
 
     harness_input_register
     #(
@@ -59,22 +65,6 @@ module Triadic_ALU_test_harness
         .out    ({control_dut,A_dut,B_dut,S_dut})
     );
 
-    // Loop Ra back to R, after 4 cycles.
-    // So every 8th instruction can see it's previous result
-    // Should also allow to retime zero/negative flag calculations
-
-    Delay_Line 
-    #(
-        .DEPTH  (4), 
-        .WIDTH  (WORD_WIDTH)
-    ) 
-    R_pipeline
-    (
-        .clock  (clock),
-        .in     (Ra_dut),
-        .out    (R_dut)
-    );
- 
 
     harness_output_register 
     #(
@@ -86,6 +76,81 @@ module Triadic_ALU_test_harness
         .in     ({Ra_dut,Rb_dut}),
         .wren   (1'b1),
         .out    (out)
+    );
+
+// --------------------------------------------------------------------
+
+    // Loop Ra back to R, after 4 cycles.
+    // So every 8th instruction can see it's previous result
+    // Split to allow putting logic in the middle.
+
+    wire [WORD_WIDTH-1:0] R_pipe_1;
+
+    Delay_Line 
+    #(
+        .DEPTH  (2), 
+        .WIDTH  (WORD_WIDTH)
+    ) 
+    R_pipeline_1
+    (
+        .clock  (clock),
+        .in     (Ra_dut),
+        .out    (R_pipe_1)
+    );
+ 
+    Delay_Line 
+    #(
+        .DEPTH  (2), 
+        .WIDTH  (WORD_WIDTH)
+    ) 
+    R_pipeline_2
+    (
+        .clock  (clock),
+        .in     (R_pipe_1),
+        .out    (R_dut)
+    );
+ 
+
+// --------------------------------------------------------------------
+
+    // Place in R pipeline middle to retime zero/negative flag calculations
+
+    wire R_zero_raw;
+    wire R_negative_raw;
+
+    R_Flags
+    #(
+        .WORD_WIDTH (WORD_WIDTH)
+    )
+    R_Flags
+    (
+        .R          (R_pipe_1),
+        .R_zero     (R_zero_raw),
+        .R_negative (R_negative_raw)
+    );
+
+    Delay_Line 
+    #(
+        .DEPTH  (2), 
+        .WIDTH  (1)
+    ) 
+    R_zero_pipeline
+    (
+        .clock  (clock),
+        .in     (R_zero_raw),
+        .out    (R_zero_dut)
+    );
+ 
+    Delay_Line 
+    #(
+        .DEPTH  (2), 
+        .WIDTH  (1)
+    ) 
+    R_negative_pipeline
+    (
+        .clock  (clock),
+        .in     (R_negative_raw),
+        .out    (R_negative_dut)
     );
 
 endmodule
