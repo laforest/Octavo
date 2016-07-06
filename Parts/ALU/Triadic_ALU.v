@@ -21,17 +21,19 @@
 module Triadic_ALU
 #(
     parameter   WORD_WIDTH              = 0,
-    parameter   CTRL_WIDTH              = 20     // Static. Don't set this at instantiation.
+    parameter   CTRL_WIDTH              = 20        // Static. Don't set this at instantiation.
 )
 (
     input   wire                        clock,
-    input   wire    [CTRL_WIDTH-1:0]    control, // Bits defining various sub-operations
-    input   wire    [WORD_WIDTH-1:0]    A,       // First source argument
-    input   wire    [WORD_WIDTH-1:0]    B,       // Second source argument
-    input   wire    [WORD_WIDTH-1:0]    R,       // Third source argument  (previous result)
-    input   wire    [WORD_WIDTH-1:0]    S,       // Fourth source argument (persistent value)
-    output  reg     [WORD_WIDTH-1:0]    Ra,      // First result
-    output  reg     [WORD_WIDTH-1:0]    Rb       // Second result
+    input   wire    [CTRL_WIDTH-1:0]    control,    // Bits defining various sub-operations
+    input   wire    [WORD_WIDTH-1:0]    A,          // First source argument
+    input   wire    [WORD_WIDTH-1:0]    B,          // Second source argument
+    input   wire    [WORD_WIDTH-1:0]    R,          // Third source argument  (previous result)
+    input   wire                        R_zero,     // Computed flag in feedback pipeline (Ra->R)
+    input   wire                        R_negative, // Computed flag in feedback pipeline (Ra->R)
+    input   wire    [WORD_WIDTH-1:0]    S,          // Fourth source argument (persistent value)
+    output  reg     [WORD_WIDTH-1:0]    Ra,         // First result
+    output  reg     [WORD_WIDTH-1:0]    Rb          // Second result
 );
 
 // --------------------------------------------------------------------
@@ -112,14 +114,14 @@ module Triadic_ALU
 
 // --------------------------------------------------------------------
 
-    // Generate R masks
+    // Expand R flags into masks
 
     reg [WORD_WIDTH-1:0] R_zero_mask;
     reg [WORD_WIDTH-1:0] R_negative_mask;
 
     always @(*) begin
-        R_zero_mask     <= {WORD_WIDTH{~|R}};
-        R_negative_mask <= {WORD_WIDTH{R[WORD_WIDTH-1]}};
+        R_zero_mask     <= {WORD_WIDTH{R_zero}};
+        R_negative_mask <= {WORD_WIDTH{R_negative}};
     end
 
     wire [WORD_WIDTH-1:0] selected_R_raw;
