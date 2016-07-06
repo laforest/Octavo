@@ -49,15 +49,32 @@ module Triadic_ALU_test_harness
 
     harness_input_register
     #(
-        .WIDTH  (CTRL_WIDTH + (WORD_WIDTH * 4))
+        .WIDTH  (CTRL_WIDTH + (WORD_WIDTH * 3))
     )
     i
     (
         .clock  (clock),    
         .in     (in),
         .rden   (1'b1),
-        .out    ({control_dut,A_dut,B_dut,R_dut,S_dut})
+        .out    ({control_dut,A_dut,B_dut,S_dut})
     );
+
+    // Loop Ra back to R, after 4 cycles.
+    // So every 8th instruction can see it's previous result
+    // Should also allow to retime zero/negative flag calculations
+
+    Delay_Line 
+    #(
+        .DEPTH  (4), 
+        .WIDTH  (WORD_WIDTH)
+    ) 
+    R_pipeline
+    (
+        .clock  (clock),
+        .in     (Ra_dut),
+        .out    (R_dut)
+    );
+ 
 
     harness_output_register 
     #(

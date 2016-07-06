@@ -48,6 +48,7 @@ set_global_assignment -name VERILOG_FILE harness_input_register.v
 set_global_assignment -name VERILOG_FILE harness_output_register.v
 set_global_assignment -name VERILOG_FILE Addressed_Mux.v
 set_global_assignment -name VERILOG_FILE Delay_Line.v
+set_global_assignment -name VERILOG_FILE Inverter.v
 set_global_assignment -name VERILOG_FILE Bitwise_2to1_Mux.v
 set_global_assignment -name VERILOG_FILE Dyadic_Boolean_Operator.v
 set_global_assignment -name VERILOG_FILE AddSub_Ripple_Carry_NoCarry.v
@@ -94,6 +95,7 @@ set_global_assignment -name AUTO_PARALLEL_SYNTHESIS ON
 set_global_assignment -name SEARCH_PATH /home/laforest/Octavo/Octavo/Parts/Multithreading
 set_global_assignment -name SEARCH_PATH /home/laforest/Octavo/Octavo/Parts/TestHarness/
 set_global_assignment -name SEARCH_PATH /home/laforest/Octavo/Octavo/Parts/ALU/
+set_global_assignment -name SEARCH_PATH /home/laforest/Octavo/Octavo/Parts/Misc/
 set_global_assignment -name SEARCH_PATH /home/laforest/Octavo/Octavo/Parts/Multiplexers/
 
 # Fitter Assignments
@@ -163,4 +165,5 @@ set_global_assignment -name RTLV_GROUP_COMB_LOGIC_IN_CLOUD_TMV OFF
 
 # end ENTITY(Triadic_ALU_test_harness)
 # ------------------------------------
+
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
