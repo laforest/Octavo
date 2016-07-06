@@ -17,6 +17,7 @@ SOURCES="$INSTALL_BASE/Parts/Multiplexers/Addressed_Mux.v \
          $INSTALL_BASE/Parts/ALU/Dyadic_Boolean_Operator.v \
          $INSTALL_BASE/Parts/ALU/AddSub_Ripple_Carry_NoCarry.v \
          $INSTALL_BASE/Parts/Misc/Inverter.v \
+         $INSTALL_BASE/Parts/ALU/R_Flags.v \
          $INSTALL_BASE/Parts/ALU/Triadic_ALU_Operations.vh \
          $INSTALL_BASE/Parts/ALU/Triadic_ALU.v 
 "

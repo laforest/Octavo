@@ -15,7 +15,9 @@ module Triadic_ALU_test_bench
     reg     [CTRL_WIDTH-1:0]    control;
     reg     [WORD_WIDTH-1:0]    A;
     reg     [WORD_WIDTH-1:0]    B;
-    reg     [WORD_WIDTH-1:0]    R;
+    wire    [WORD_WIDTH-1:0]    R;
+    wire                        R_zero;
+    wire                        R_negative;
     reg     [WORD_WIDTH-1:0]    S;
     wire    [WORD_WIDTH-1:0]    Ra;
     wire    [WORD_WIDTH-1:0]    Rb;
@@ -29,7 +31,6 @@ module Triadic_ALU_test_bench
         control = `ALU_NOP;
         A       = 36'h42;
         B       = 36'h24;
-        R       = 36'h1;
         S       = 36'hFFFFFFFFF;
         `DELAY_CLOCK_CYCLES(32) $finish;
     end
@@ -53,6 +54,80 @@ module Triadic_ALU_test_bench
 
 // --------------------------------------------------------------------
 
+    // Loop Ra back to R, after 4 cycles.
+    // So every 8th instruction can see it's previous result
+    // Split to allow putting logic in the middle.
+
+    wire [WORD_WIDTH-1:0] R_pipe_1;
+
+    Delay_Line 
+    #(
+        .DEPTH  (2), 
+        .WIDTH  (WORD_WIDTH)
+    ) 
+    R_pipeline_1
+    (
+        .clock  (clock),
+        .in     (Ra),
+        .out    (R_pipe_1)
+    );
+ 
+    Delay_Line 
+    #(
+        .DEPTH  (2), 
+        .WIDTH  (WORD_WIDTH)
+    ) 
+    R_pipeline_2
+    (
+        .clock  (clock),
+        .in     (R_pipe_1),
+        .out    (R)
+    );
+ 
+// --------------------------------------------------------------------
+
+    // Place in R pipeline middle to retime zero/negative flag calculations
+
+    wire R_zero_raw;
+    wire R_negative_raw;
+
+    R_Flags
+    #(
+        .WORD_WIDTH (WORD_WIDTH)
+    )
+    R_Flags
+    (
+        .R          (R_pipe_1),
+        .R_zero     (R_zero_raw),
+        .R_negative (R_negative_raw)
+    );
+
+    Delay_Line 
+    #(
+        .DEPTH  (2), 
+        .WIDTH  (1)
+    ) 
+    R_zero_pipeline
+    (
+        .clock  (clock),
+        .in     (R_zero_raw),
+        .out    (R_zero)
+    );
+ 
+    Delay_Line 
+    #(
+        .DEPTH  (2), 
+        .WIDTH  (1)
+    ) 
+    R_negative_pipeline
+    (
+        .clock  (clock),
+        .in     (R_negative_raw),
+        .out    (R_negative)
+    );
+ 
+// --------------------------------------------------------------------
+
     Triadic_ALU
     #(
         .WORD_WIDTH (WORD_WIDTH)
@@ -64,6 +139,8 @@ module Triadic_ALU_test_bench
         .A          (A),       // First source argument
         .B          (B),       // Second source argument
         .R          (R),       // Third source argument  (previous result)
+        .R_zero     (R_zero),
+        .R_negative (R_negative),
         .S          (S),       // Fourth source argument (persistent value)
         .Ra         (Ra),      // First result
         .Rb         (Rb)       // Second result
