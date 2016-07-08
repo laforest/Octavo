@@ -52,6 +52,8 @@ set_global_assignment -name VERILOG_FILE Bitwise_2to1_Mux.v
 set_global_assignment -name VERILOG_FILE Dyadic_Boolean_Operator.v
 set_global_assignment -name VERILOG_FILE AddSub_Ripple_Carry_NoCarry.v
 set_global_assignment -name VERILOG_FILE R_Flags.v
+set_global_assignment -name VERILOG_FILE Carryin_Calculator.v
+set_global_assignment -name VERILOG_FILE Triadic_ALU_Operations.vh
 set_global_assignment -name VERILOG_FILE Triadic_ALU.v
 set_global_assignment -name VERILOG_FILE Triadic_ALU_test_harness.v
 set_global_assignment -name FLOW_ENABLE_RTL_VIEWER ON
@@ -156,9 +158,9 @@ set_global_assignment -name RTLV_GROUP_COMB_LOGIC_IN_CLOUD_TMV OFF
 
 		# Incremental Compilation Assignments
 		# ===================================
-		set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
-		set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
-		set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
+set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
+set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
+set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
 
 	# end DESIGN_PARTITION(Top)
 	# -------------------------
@@ -170,4 +172,6 @@ set_global_assignment -name RTLV_GROUP_COMB_LOGIC_IN_CLOUD_TMV OFF
 set_global_assignment -name OPTIMIZE_POWER_DURING_FITTING "NORMAL COMPILATION"
 set_global_assignment -name ECO_OPTIMIZE_TIMING OFF
 set_global_assignment -name ALM_REGISTER_PACKING_EFFORT MEDIUM
+
+
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top

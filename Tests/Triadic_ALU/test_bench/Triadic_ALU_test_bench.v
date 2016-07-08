@@ -6,21 +6,21 @@ module Triadic_ALU_test_bench
 (
 );
 
-    localparam CTRL_WIDTH = 20; // Static!
-
 // --------------------------------------------------------------------
 
-    integer                     cycle;
-    reg                         clock;
-    reg     [CTRL_WIDTH-1:0]    control;
-    reg     [WORD_WIDTH-1:0]    A;
-    reg     [WORD_WIDTH-1:0]    B;
-    wire    [WORD_WIDTH-1:0]    R;
-    wire                        R_zero;
-    wire                        R_negative;
-    reg     [WORD_WIDTH-1:0]    S;
-    wire    [WORD_WIDTH-1:0]    Ra;
-    wire    [WORD_WIDTH-1:0]    Rb;
+    integer                             cycle;
+    reg                                 clock;
+    reg     [`TRIADIC_CTRL_WIDTH-1:0]   control;
+    reg     [WORD_WIDTH-1:0]            A;
+    reg     [WORD_WIDTH-1:0]            B;
+    wire    [WORD_WIDTH-1:0]            R;
+    wire                                R_zero;
+    wire                                R_negative;
+    reg     [WORD_WIDTH-1:0]            S;
+    wire    [WORD_WIDTH-1:0]            Ra;
+    wire    [WORD_WIDTH-1:0]            Rb;
+    wire                                carry_out;
+    wire                                overflow;
     
 
     initial begin
@@ -29,8 +29,8 @@ module Triadic_ALU_test_bench
         cycle   = 0;
         clock   = 0;
         control = `ALU_NOP;
-        A       = 36'h42;
-        B       = 36'h24;
+        A       = 36'h8FFFFFFFF;
+        B       = 36'hF00000000;
         S       = 36'hFFFFFFFFF;
         `DELAY_CLOCK_CYCLES(32) $finish;
     end
@@ -143,7 +143,9 @@ module Triadic_ALU_test_bench
         .R_negative (R_negative),
         .S          (S),       // Fourth source argument (persistent value)
         .Ra         (Ra),      // First result
-        .Rb         (Rb)       // Second result
+        .Rb         (Rb),      // Second result
+        .carry_out  (carry_out),
+        .overflow   (overflow)
     );
 
 endmodule

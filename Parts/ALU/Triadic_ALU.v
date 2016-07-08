@@ -20,20 +20,21 @@
 
 module Triadic_ALU
 #(
-    parameter   WORD_WIDTH              = 0,
-    parameter   CTRL_WIDTH              = 20        // Static. Don't set this at instantiation.
+    parameter   WORD_WIDTH                      = 0
 )
 (
-    input   wire                        clock,
-    input   wire    [CTRL_WIDTH-1:0]    control,    // Bits defining various sub-operations
-    input   wire    [WORD_WIDTH-1:0]    A,          // First source argument
-    input   wire    [WORD_WIDTH-1:0]    B,          // Second source argument
-    input   wire    [WORD_WIDTH-1:0]    R,          // Third source argument  (previous result)
-    input   wire                        R_zero,     // Computed flag in feedback pipeline (Ra->R)
-    input   wire                        R_negative, // Computed flag in feedback pipeline (Ra->R)
-    input   wire    [WORD_WIDTH-1:0]    S,          // Fourth source argument (persistent value)
-    output  reg     [WORD_WIDTH-1:0]    Ra,         // First result
-    output  reg     [WORD_WIDTH-1:0]    Rb          // Second result
+    input   wire                                clock,
+    input   wire    [`TRIADIC_CTRL_WIDTH-1:0]   control,    // Bits defining various sub-operations
+    input   wire    [WORD_WIDTH-1:0]            A,          // First source argument
+    input   wire    [WORD_WIDTH-1:0]            B,          // Second source argument
+    input   wire    [WORD_WIDTH-1:0]            R,          // Third source argument  (previous result)
+    input   wire                                R_zero,     // Computed flag in feedback pipeline (Ra->R)
+    input   wire                                R_negative, // Computed flag in feedback pipeline (Ra->R)
+    input   wire    [WORD_WIDTH-1:0]            S,          // Fourth source argument (persistent value)
+    output  reg     [WORD_WIDTH-1:0]            Ra,         // First result
+    output  reg     [WORD_WIDTH-1:0]            Rb,         // Second result
+    output  wire                                carry_out,  // predicate from +/-A+/-B
+    output  wire                                overflow    // predicate from +/-A+/-B
 );
 
 // --------------------------------------------------------------------
@@ -64,7 +65,7 @@ module Triadic_ALU
 
     // First, lets create the control pipeline
 
-    reg [CTRL_WIDTH-1:0] control_pipeline [PIPELINE_STAGES-1:0];
+    reg [`TRIADIC_CTRL_WIDTH-1:0] control_pipeline [PIPELINE_STAGES-1:0];
 
     initial begin
         for(i = 0; i < PIPELINE_STAGES; i = i+1) begin
@@ -191,7 +192,9 @@ module Triadic_ALU
     
 // --------------------------------------------------------------------
 
-    wire [WORD_WIDTH-1:0] sum_raw;
+    wire [WORD_WIDTH-1:0]   sum_raw;
+    wire                    carry_out_raw;
+    wire                    overflow_raw;
 
     AddSub_Ripple_Carry_NoCarry
     #(
@@ -203,7 +206,9 @@ module Triadic_ALU
         .A_negative     (add_sub[0][0]),
         .B              (B),
         .B_negative     (add_sub[0][1]),
-        .sum            (sum_raw)
+        .sum            (sum_raw),
+        .carry_out      (carry_out_raw),
+        .overflow       (overflow_raw)
     );
 
     // I don't know how to design the above adder as two pipeline stages, so
@@ -222,6 +227,20 @@ module Triadic_ALU
         .clock  (clock),
         .in     (sum_raw),
         .out    (sum)
+    );
+
+    // Carry-along the predicates to the ALU output.
+
+    Delay_Line 
+    #(
+        .DEPTH  (PIPELINE_STAGES), 
+        .WIDTH  (2)
+    ) 
+    Predicates_pipeline
+    (
+        .clock  (clock),
+        .in     ({carry_out_raw,overflow_raw}),
+        .out    ({carry_out,overflow})
     );
     
 // --------------------------------------------------------------------

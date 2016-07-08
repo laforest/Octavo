@@ -4,6 +4,9 @@
 `ifndef TRIADIC_ALU_OPERATIONS
 `define TRIADIC_ALU_OPERATIONS
 
+    // Number of bits in ALU control word, never changes.
+    `define TRIADIC_CTRL_WIDTH      20
+
     // First, some primitives
 
     `include "Dyadic_Boolean_Operations.vh"

@@ -16,24 +16,23 @@ module Triadic_ALU_test_harness
 //    output  reg      Rb       // Second result
 );
 
-    localparam CTRL_WIDTH = 20; // Static. Don't change.
-
 // --------------------------------------------------------------------
 
-    wire [CTRL_WIDTH-1:0] control_dut;
-    wire [WORD_WIDTH-1:0] A_dut;
-    wire [WORD_WIDTH-1:0] B_dut;
-    wire [WORD_WIDTH-1:0] R_dut;
-    wire                  R_zero_dut;
-    wire                  R_negative_dut;
-    wire [WORD_WIDTH-1:0] S_dut;
-    wire [WORD_WIDTH-1:0] Ra_dut;
-    wire [WORD_WIDTH-1:0] Rb_dut;
+    wire [`TRIADIC_CTRL_WIDTH-1:0]  control_dut;
+    wire [WORD_WIDTH-1:0]           A_dut;
+    wire [WORD_WIDTH-1:0]           B_dut;
+    wire [WORD_WIDTH-1:0]           R_dut;
+    wire                            R_zero_dut;
+    wire                            R_negative_dut;
+    wire [WORD_WIDTH-1:0]           S_dut;
+    wire [WORD_WIDTH-1:0]           Ra_dut;
+    wire [WORD_WIDTH-1:0]           Rb_dut;
+    wire                            carry_out_dut;
+    wire                            overflow_dut;
 
     Triadic_ALU
     #(
-        .WORD_WIDTH (WORD_WIDTH),
-        .CTRL_WIDTH (CTRL_WIDTH)
+        .WORD_WIDTH (WORD_WIDTH)
     )
     DUT
     (
@@ -46,7 +45,9 @@ module Triadic_ALU_test_harness
         .R_negative (R_negative_dut),
         .S          (S_dut),      
         .Ra         (Ra_dut),     
-        .Rb         (Rb_dut)     
+        .Rb         (Rb_dut),
+        .carry_out  (carry_out_dut),
+        .overflow   (overflow_dut)     
     );
 
 // --------------------------------------------------------------------
@@ -55,25 +56,25 @@ module Triadic_ALU_test_harness
 
     harness_input_register
     #(
-        .WIDTH  (CTRL_WIDTH + (WORD_WIDTH * 3))
+        .WIDTH  (`TRIADIC_CTRL_WIDTH + (WORD_WIDTH * 3))
     )
     i
     (
         .clock  (clock),    
         .in     (in),
         .rden   (1'b1),
-        .out    ({control_dut,A_dut,B_dut,S_dut})
+        .out    ({control_dut, A_dut, B_dut, S_dut})
     );
 
 
     harness_output_register 
     #(
-        .WIDTH  (WORD_WIDTH * 2)
+        .WIDTH  ((WORD_WIDTH * 2) + 2)
     )
     o
     (
         .clock  (clock),
-        .in     ({Ra_dut,Rb_dut}),
+        .in     ({Ra_dut, Rb_dut, carry_out_dut, overflow_dut}),
         .wren   (1'b1),
         .out    (out)
     );
