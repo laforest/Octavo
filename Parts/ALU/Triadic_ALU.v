@@ -8,6 +8,13 @@
 // include a Double Move, optionally permuting A and B, and the basis for
 // load/store with displacement addressing, producing both R and +/-A+/-B.
 
+// V is not valid after combined Boolean+Arithmetic operations.
+// Test any inequalities with negative and zero (generated externally from R)
+
+// Can we process the carry-in, carry-out, and overflow flags through some
+// Boolean function to generate valid versions when combining
+// Boolean+Arithmetic.
+
 // When split, Ra = g(A,B,R) and Rb = f((+/-A+/-B), g(A,B,R))
 // Rb can also be optionally shifted left or right by 1, signed and unsigned.
 
