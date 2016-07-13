@@ -1,17 +1,19 @@
 
 // Computes a true/false value based on a Boolean combination of selected
 // input conditional predicates, each selected from one of two groups.  (See
-// Hacker's Delight, 2-12)
+// Hacker's Delight, 2-12) These groups form a bi-partite, fully connected
+// graph
 
 // This module can compute all signed/unsigned comparison predicates, as well
 // as Boolean combinations with other inputs: sentinel values and timers
 // (provided externally). The external input is for future expansion.
+// (e.g.: chaining predicate calculations)
 
 // The ALU provides the carryout and lessthan predicates.  Another module can
 // calculate zero/negative, both usually from the previous instruction result.
 // Use a sentinel value as a zero-predicate.
 
-// Total non-redundant predicates: 202 out of 256
+// Total non-redundant predicates: 202 out of 256 (2 bits + 2 bits + 4 bits)
 // (16 cases are always 0 or 1, keep 2 for use)
 // (32 cases are always A or B, keep 8 for use, one per input)
 
