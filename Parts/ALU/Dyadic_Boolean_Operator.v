@@ -6,14 +6,16 @@
 
 module Dyadic_Boolean_Operator
 #(
-    parameter WORD_WIDTH = 0
+    parameter WORD_WIDTH                        = 0
 )
 (
-    input   wire    [3:0]               op,
-    input   wire    [WORD_WIDTH-1:0]    a,
-    input   wire    [WORD_WIDTH-1:0]    b,
-    output  wire    [WORD_WIDTH-1:0]    o
+    input   wire    [`DYADIC_CTRL_WIDTH-1:0]    op,
+    input   wire    [WORD_WIDTH-1:0]            a,
+    input   wire    [WORD_WIDTH-1:0]            b,
+    output  wire    [WORD_WIDTH-1:0]            o
 );
+
+    `include "clog2_function.vh"
 
     // One mux per bit, where the inputs select the op bits.
 
@@ -23,8 +25,8 @@ module Dyadic_Boolean_Operator
             Addressed_Mux
             #(
                 .WORD_WIDTH     (1),
-                .ADDR_WIDTH     (2),
-                .INPUT_COUNT    (4)
+                .ADDR_WIDTH     (clog2(`DYADIC_CTRL_WIDTH)),
+                .INPUT_COUNT    (`DYADIC_CTRL_WIDTH)
             )
             Operator
             (

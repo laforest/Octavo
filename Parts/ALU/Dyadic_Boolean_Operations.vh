@@ -1,9 +1,13 @@
 
+// See Dyadic_Boolean_Operator.v
+
 `ifndef DYADIC_OPERATIONS
 `define DYADIC_OPERATIONS
 
+    // Number of bits to define dyadic operations, never changes.
+    `define DYADIC_CTRL_WIDTH  4
+
     // These assume A op B, where A is the MSB into the dyadic operator.
-    // See Dyadic_Boolean_Operator.v
 
     `define DYADIC_ALWAYS_ZERO 4'b0000
     `define DYADIC_A_AND_B     4'b1000
