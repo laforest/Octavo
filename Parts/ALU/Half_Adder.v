@@ -11,7 +11,7 @@ module Half_Adder
     input   wire    [WORD_WIDTH-1:0]    A,
     input   wire    [WORD_WIDTH-1:0]    B,
     output  reg     [WORD_WIDTH-1:0]    sum,
-    output  reg                         carry_out
+    output  reg     [WORD_WIDTH-1:0]    carry_out
 );
 
     always @(*) begin
