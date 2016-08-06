@@ -1,0 +1,4 @@
+#! /bin/bash
+
+quartus_sh --flow compile AddSub_Structural_test_harness 2>&1 | tee LOG_QUARTUS
+
