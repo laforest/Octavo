@@ -8,15 +8,15 @@ module AddSub_Ripple_Carry
     parameter               WORD_WIDTH          = 0
 )
 (
-    input   wire                                add_sub,
-    input   wire                                cin,
-    input   wire    signed  [WORD_WIDTH-1:0]    dataa,
-    input   wire    signed  [WORD_WIDTH-1:0]    datab,
-    output  reg                                 cout,
-    output  reg     signed  [WORD_WIDTH-1:0]    result
+    input   wire                                sub_add,    // 1/0 A-B/A+B
+    input   wire                                carry_in,
+    input   wire    signed  [WORD_WIDTH-1:0]    A,
+    input   wire    signed  [WORD_WIDTH-1:0]    B,
+    output  reg     signed  [WORD_WIDTH-1:0]    sum,
+    output  reg                                 carry_out
 );
     always @(*) begin
-        {cout, result} <= (add_sub == 1'b1) ? dataa + datab + cin : dataa - datab - cin;
+        {carry_out, sum} <= (sub_add == 1'b1) ? A - B - carry_in : A + B + carry_in;
     end
 endmodule
 
