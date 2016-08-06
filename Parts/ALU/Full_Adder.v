@@ -11,7 +11,7 @@ module Full_Adder
     input   wire                        carry_in,
     input   wire    [WORD_WIDTH-1:0]    A,
     input   wire    [WORD_WIDTH-1:0]    B,
-    output  reg     [WORD_WIDTH-1:0]    sum,
+    output  wire    [WORD_WIDTH-1:0]    sum,
     output  reg                         carry_out
 );
 
@@ -24,6 +24,7 @@ module Full_Adder
     #(
         .WORD_WIDTH (WORD_WIDTH)
     )
+    Add_Numbers
     (
         .A          (A),
         .B          (B),
@@ -37,10 +38,11 @@ module Full_Adder
     // adding the carries from one digit to the next to create a positional
     // numbering system.
 
+    reg [WORD_WIDTH-1:0] all_carries;
     reg [WORD_WIDTH-1:0] shifted_carries;
 
     always @(*) begin
-        shifted_carries <= {base_carries[WORD_WIDTH-2:0],carry_in};
+        shifted_carries <= {all_carries[WORD_WIDTH-2:0],carry_in};
     end
 
 // --------------------------------------------------------------------
@@ -51,6 +53,7 @@ module Full_Adder
     #(
         .WORD_WIDTH (WORD_WIDTH)
     )
+    Add_Carries
     (
         .A          (base_sum),
         .B          (shifted_carries),
@@ -61,7 +64,8 @@ module Full_Adder
 // --------------------------------------------------------------------
 
     always @(*) begin
-        carry_out   <= sum_carries[WORD_WIDTH-1];
+        all_carries = base_carries | sum_carries;
+        carry_out   = all_carries[WORD_WIDTH-1];
     end
 
 endmodule
