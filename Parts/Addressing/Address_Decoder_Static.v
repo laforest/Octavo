@@ -1,6 +1,8 @@
 
 // A *universal* address decoder. Works for any address range at any starting point.
 
+// Checks if the address lies between the base and (higher, inclusive) bound of a range.
+
 // Checks if the input address matches each possible address in the range,
 // then outputs the bitwise OR of all these checks.  Some boolean algebra
 // shows that it will always optimize down to a minimal form: any bits which
@@ -24,20 +26,20 @@ module Address_Decoder
 #(
     parameter       ADDR_WIDTH          = 0,
     parameter       ADDR_BASE           = 0,
-    parameter       ADDR_COUNT          = 0
+    parameter       ADDR_BOUND          = 0
 )
 (
     input   wire    [ADDR_WIDTH-1:0]    addr,
     output  reg                         hit 
 );
-    localparam ADDR_BOUND = ADDR_BASE + ADDR_COUNT;
+    localparam ADDR_COUNT = ADDR_BOUND - ADDR_BASE + 1;
 
     integer                     i;
     reg     [ADDR_COUNT-1:0]    per_addr_match = 0;
 
     // Check each address in range for match
     always @(*) begin
-        for(i = ADDR_BASE; i < ADDR_BOUND; i = i + 1) begin : addr_decode
+        for(i = ADDR_BASE; i <= ADDR_BOUND; i = i + 1) begin : addr_decode
             per_addr_match[i] <= (addr == i);
         end
     end
