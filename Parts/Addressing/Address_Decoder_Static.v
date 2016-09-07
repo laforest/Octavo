@@ -22,7 +22,9 @@
 // counter, this decoder cannot be guaranteed to work for address ranges
 // exceeding 32 bits.
 
-module Address_Decoder
+// However, this implementation yields the smallest, fastest logic.
+
+module Address_Decoder_Static
 #(
     parameter       ADDR_WIDTH          = 0,
     parameter       ADDR_BASE           = 0,
@@ -34,13 +36,13 @@ module Address_Decoder
 );
     localparam ADDR_COUNT = ADDR_BOUND - ADDR_BASE + 1;
 
-    integer                     i;
+    reg     [ADDR_WIDTH-1:0]    i;
     reg     [ADDR_COUNT-1:0]    per_addr_match = 0;
 
     // Check each address in range for match
     always @(*) begin
         for(i = ADDR_BASE; i <= ADDR_BOUND; i = i + 1) begin : addr_decode
-            per_addr_match[i] <= (addr == i);
+            per_addr_match[i-ADDR_BASE] <= (addr == i);
         end
     end
 
