@@ -6,11 +6,11 @@
 // This version uses arithmetic checks and thus should scale to wide addresses
 // without reaching limits in the CAD tool.
 
-// However, this version uses structural adders and so does not use
-// carry-chain logic. This means a slower decoder for wide addresses, but when
-// the base and bound are constant, the decode should optimize down to
-// a minimal AND-OR-NOT implementation, without having to test each of the 2^N
-// cases.
+// However, the Quartus CAD tool, at least, mangles the two structural AddSubs
+// into a chain of logic that is much larger and slower than the obvious
+// straight Verilog implementation.
+
+// It's kept here in case it works better on other platforms.
 
 module Address_Decoder_Arithmetic_Structural
 #(
@@ -28,8 +28,8 @@ module Address_Decoder_Arithmetic_Structural
     // base_or_higher = (addr >= base_addr);
     // addr - base_addr, expecting zero or positive    
 
-    reg [ADDR_WIDTH-1:0] base_or_higher_check;
-    reg                  base_or_higher;
+    wire [ADDR_WIDTH-1:0] base_or_higher_check;
+    reg                   base_or_higher;
 
     AddSub_Structural
     #(
@@ -54,8 +54,8 @@ module Address_Decoder_Arithmetic_Structural
     // bound_or_lower = (addr <= bound_addr);
     // bound_addr - addr, expecting zero or positive    
 
-    reg [ADDR_WIDTH-1:0] bound_or_lower_check;
-    reg                  bound_or_lower;
+    wire [ADDR_WIDTH-1:0] bound_or_lower_check;
+    reg                   bound_or_lower;
 
     AddSub_Structural
     #(

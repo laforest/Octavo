@@ -3,11 +3,11 @@
 
 // Checks if the address lies between the base and (higher, inclusive) bound of a range.
 
-// This version uses arithmetic checks which will synthesize as conventional
-// carry-chain logic, thus should scale to wide addresses without reaching
-// limits in the CAD tool.
+// This version uses arithmetic checks and thus should scale to wide addresses
+// without reaching limits in the CAD tool.
 
-// Making the base and bound constant will optimize the hardware some.
+// Making the base and bound constant will optimize the hardware down to plain
+// logic. It's not as optimal as the Static version, but OK.
 
 module Address_Decoder_Arithmetic
 #(
