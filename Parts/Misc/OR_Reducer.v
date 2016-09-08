@@ -10,7 +10,6 @@ module Word_OR_Reducer
     parameter       WORD_COUNT                      = 0
 )
 (
-    input   wire                                    clock,
     input   wire    [(WORD_WIDTH * WORD_COUNT)-1:0] in,
     output  reg     [ WORD_WIDTH-1:0]               out
 );
