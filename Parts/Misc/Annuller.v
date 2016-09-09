@@ -35,8 +35,14 @@ module Annuller
     input   wire    [WORD_WIDTH-1:0]   in,
     output  reg     [WORD_WIDTH-1:0]   out
 );
+
+    initial begin
+        out = 0;
+    end
+
     always @(*) begin
         out <= (annul == 1'b1) ? {WORD_WIDTH{1'b0}} : in;
     end
+
 endmodule
 
