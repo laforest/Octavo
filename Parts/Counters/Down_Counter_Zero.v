@@ -39,7 +39,7 @@ module Down_Counter_Zero
     reg [WORD_WIDTH-1:0] load_value_counter;
 
     initial begin
-        reload_value = INITIAL_COUNT;
+        reload_value = INITIAL_COUNT [WORD_WIDTH-1:0];
     end
 
     always @(*) begin
