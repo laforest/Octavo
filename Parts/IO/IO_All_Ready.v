@@ -1,7 +1,9 @@
 
-// Simply ANDs and registers all the masked Empty/Full bits, producing the
-// global signal that all addressed I/O ports are ready.  EF bits from write
-// ports must be inverted first, since `EMPTY is their ready state.
+// Simply ANDs all the masked Empty/Full bits, producing the global signal
+// that all I/O ports addressed by an instruction are ready.
+
+// EF bits from write ports must be inverted first, since EMPTY (0) is their
+// ready state.
 
 module IO_All_Ready
 #(
@@ -9,25 +11,23 @@ module IO_All_Ready
     parameter   WRITE_PORT_COUNT            = 0
 )
 (
-    input   wire                            clock,
     input   wire    [READ_PORT_COUNT-1:0]   read_EF,
     input   wire    [WRITE_PORT_COUNT-1:0]  write_EF,
-    output  reg                             ready
+    output  reg                             IO_ready
 );
-    reg read_ready;
-    reg write_ready;
-
-    always @(*) begin
-        read_ready  <= &read_EF;
-        write_ready <= &(~write_EF);
-    end
-
-    always @(posedge clock) begin
-        ready <= read_ready & write_ready;
-    end
 
     initial begin
-        ready = 0;
+        IO_ready = 0;
     end
+
+    reg read_ready  = 0;
+    reg write_ready = 0;
+
+    always @(*) begin
+        read_ready  = &read_EF;
+        write_ready = &(~write_EF);
+        IO_ready    = read_ready & write_ready;
+    end
+
 endmodule
 

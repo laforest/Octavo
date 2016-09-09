@@ -1,11 +1,13 @@
 
-// Common module to IO_Read and Io_Write
-// Detects when an address refers to an I/O port and
-// outputs its Empty/Full bit, masked if not an I/O port.
+// Common module to IO_Read and IO_Write
+// (IO_Active sits in a different place for each)
+
+// Detects if an address refers to an I/O port and outputs its Empty/Full bit,
+// masked if not an I/O port.
 
 module IO_Check
 #(
-    parameter   READY_STATE             = `FULL,
+    parameter   READY_STATE             = 0,
     parameter   ADDR_WIDTH              = 0,
     parameter   PORT_COUNT              = 0,
     parameter   PORT_BASE_ADDR          = 0,
@@ -16,10 +18,19 @@ module IO_Check
     input   wire    [ADDR_WIDTH-1:0]    addr,
     input   wire    [PORT_COUNT-1:0]    port_EF,
     output  wire                        port_EF_masked,
-    output  wire                        addr_is_IO,
-    output  reg                         addr_is_IO_reg
+    output  reg                         addr_is_IO
 );
-    wire    port_EF_selected;
+// --------------------------------------------------------------------
+
+    initial begin
+        addr_is_IO = 0;
+    end
+
+// --------------------------------------------------------------------
+// --------------------------------------------------------------------
+// Stage 1
+
+    wire    port_EF_selected_raw;
     
     Translated_Addressed_Mux
     #(
@@ -28,55 +39,62 @@ module IO_Check
         .INPUT_COUNT        (PORT_COUNT),
         .INPUT_BASE_ADDR    (PORT_BASE_ADDR),
         .INPUT_ADDR_WIDTH   (PORT_ADDR_WIDTH),
-        .REGISTERED         (`TRUE)
     )
-    EmptyFull
+    EF_Select
     (
-        .clock              (clock),
         .addr               (addr),
-        .data_in            (port_EF), 
-        .data_out           (port_EF_selected)
+        .in                 (port_EF), 
+        .out                (port_EF_selected)
     );
 
-    Address_Decoder
+    reg     port_EF_selected = 0;
+
+    always @(posedge clock) begin
+        port_EF_selected <= port_EF_selected_raw;
+    end
+
+// --------------------------------------------------------------------
+
+    localparam PORT_BOUND_ADDR = PORT_BASE_ADDR + PORT_COUNT - 1;
+
+    wire addr_is_IO_raw;
+    
+    Address_Range_Decoder_Static
     #(
-        .ADDR_COUNT     (PORT_COUNT), 
-        .ADDR_BASE      (PORT_BASE_ADDR),
         .ADDR_WIDTH     (ADDR_WIDTH),
-        .REGISTERED     (`TRUE)
+        .ADDR_BASE      (PORT_BASE_ADDR),
+        .ADDR_BOUND     (PORT_BOUND_ADDR), 
     )
-    is_IO
+    IO_Detect
     (
-        .clock          (clock),
         .addr           (addr),
-        .hit            (addr_is_IO)   
+        .hit            (addr_is_IO_raw)   
     );
 
     always @(posedge clock) begin
-        addr_is_IO_reg <= addr_is_IO;
+        addr_is_IO <= addr_is_IO_raw;
     end
 
+// --------------------------------------------------------------------
+// --------------------------------------------------------------------
+// Stage 2
+
     // Masks the Empty/Full bit with the appropriate READY_STATE if not an I/O
-    // address (`EMPTY for writes, `FULL for reads), since memory is always
-    // "ready".
+    // address (EMPTY (0) for writes, FULL (1) for reads), since memory is
+    // always "ready".
 
     Addressed_Mux
     #(
-        .WORD_WIDTH         (1),
-        .ADDR_WIDTH         (1),
-        .INPUT_COUNT        (2),
-        .REGISTERED         (`FALSE)
+        .WORD_WIDTH     (1),
+        .ADDR_WIDTH     (1),
+        .INPUT_COUNT    (2),
     )
     IO_EF_Mask
     (
-        .clock              (clock),
-        .addr               (addr_is_IO),
-        .data_in            ({port_EF_selected, READY_STATE}), 
-        .data_out           (port_EF_masked)
+        .addr           (addr_is_IO),
+        .in             ({port_EF_selected, READY_STATE}), 
+        .out            (port_EF_masked)
     );
 
-    initial begin
-        addr_is_IO_reg = 0;
-    end
 endmodule
 
