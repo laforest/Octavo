@@ -24,7 +24,7 @@
 
 // However, this implementation yields the smallest, fastest logic.
 
-module Address_Decoder_Static
+module Address_Range_Decoder_Static
 #(
     parameter       ADDR_WIDTH          = 0,
     parameter       ADDR_BASE           = 0,

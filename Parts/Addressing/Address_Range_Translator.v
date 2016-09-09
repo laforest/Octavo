@@ -10,9 +10,9 @@
 // construct a translation table that should hopefully optimize down to mere
 // rewiring of inputs or internal logic.
 
-// Typically, you'll need this alongside an Address_Decoder module.
+// Typically, you'll need this alongside an Address_Range_Decoder module.
 
-module Address_Translator
+module Address_Range_Translator
 #(
     parameter       ADDR_COUNT          = 0,
     parameter       ADDR_BASE           = 0,

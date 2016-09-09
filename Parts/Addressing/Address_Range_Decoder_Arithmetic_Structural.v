@@ -12,7 +12,7 @@
 
 // It's kept here in case it works better on other platforms.
 
-module Address_Decoder_Arithmetic_Structural
+module Address_Range_Decoder_Arithmetic_Structural
 #(
     parameter       ADDR_WIDTH          = 0
 )
