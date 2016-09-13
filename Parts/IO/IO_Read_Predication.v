@@ -16,12 +16,19 @@ module IO_Read_Predication
     input   wire    [ADDR_WIDTH-1:0]                        addr,
     input   wire    [IO_READ_PORT_COUNT-1:0]                EmptyFull,
     output  wire                                            EmptyFull_masked,
-    output  wire    [IO_READ_PORT_COUNT-1:0]                rden,
+    output  wire    [IO_READ_PORT_COUNT-1:0]                io_rden,
+    output  reg                                             addr_is_IO
 );
 
 // --------------------------------------------------------------------
 
-    wire addr_is_IO;
+    initial begin
+        addr_is_IO = 0;
+    end
+
+// --------------------------------------------------------------------
+
+    wire addr_is_IO_raw;
 
     IO_Check
     #(
@@ -37,7 +44,7 @@ module IO_Read_Predication
         .addr               (addr),
         .port_EF            (EmptyFull),
         .port_EF_masked     (EmptyFull_masked),
-        .addr_is_IO         (addr_is_IO),
+        .addr_is_IO         (addr_is_IO_raw),
     );
 
     reg [ADDR_WIDTH-1:0] addr_stage_2 = 0;
@@ -49,7 +56,7 @@ module IO_Read_Predication
 // --------------------------------------------------------------------
 // This is aligned to Stage 2 of the IO_Check
 
-    wire    [IO_READ_PORT_COUNT-1:0]    rden_raw;
+    wire    [IO_READ_PORT_COUNT-1:0]    io_rden_raw;
 
     IO_Active
     #(
@@ -60,18 +67,28 @@ module IO_Read_Predication
     )
     Read_IO_Active
     (
-        .clock              (clock),
-        .enable             (addr_is_IO),
+        .enable             (addr_is_IO_raw),
         .addr               (addr_stage_2),
-        .active             (rden_raw)
+        .active             (io_rden_raw)
     );
 
-    reg [IO_READ_PORT_COUNT-1:0] rden_raw_reg = 0;
+    reg [IO_READ_PORT_COUNT-1:0] io_rden_raw_reg = 0;
 
     always @(posedge clock) begin
-        rden_raw_reg <= rden_raw;
+        io_rden_raw_reg <= io_rden_raw;
     end
 
+// --------------------------------------------------------------------
+// This is aligned to Stage 2 of the IO_Check
+
+    // We re-use this bit later, instead of re-calculating if an address
+    // refers to an I/O port.
+
+    always @(posedge clock) begin
+        addr_is_IO <= addr_is_IO_raw;
+    end
+
+// --------------------------------------------------------------------
 // --------------------------------------------------------------------
 
 // Only output read enable if all accessed ports are ready.
@@ -86,8 +103,8 @@ module IO_Read_Predication
     rden_enable
     (
         .annul      (~IO_ready),
-        .in         (rden_raw_reg),
-        .out        (rden)
+        .in         (io_rden_raw_reg),
+        .out        (io_rden)
     );
 
 endmodule
