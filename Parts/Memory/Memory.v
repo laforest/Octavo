@@ -2,6 +2,8 @@
 // On-Chip Memory/Register File. Provides read and write I/O ports.
 // Only the addressed write I/O port changes values on write.
 
+// I/O port addresses are relative to local memory location zero.
+
 // Special behaviour on address zero: returns zero on reads, read and write
 // enables are disabled to save power and enforce behaviour.
 
@@ -12,6 +14,10 @@
 // of indeterminate behaviour on overlapping read/writes, use "no_rw_check" as
 // part of the RAMSTYLE (e.g.: "M10K, no_rw_check").
 
+// The "missing" io_rden (read enable) signal shoudl be generated externally,
+// in the stage before the Memory, so the io_rden signal can be provided at
+// the same time as the read_addr. 
+// The same applies to the read_addr_is_IO signal.
 
 module Memory
 #(
@@ -31,12 +37,13 @@ module Memory
     input   wire                                            clock,
     input   wire                                            IO_ready,
 
+    input   wire                                            read_enable,
     input   wire    [ADDR_WIDTH-1:0]                        read_addr,
     input   wire                                            read_addr_is_IO,
     output  wire    [WORD_WIDTH-1:0]                        read_data,
-    // IO_Read_Predication module generates io_rden output
-    input   wire    [(WORD_WIDTH*IO_READ_PORT_COUNT)-1:0]   io_read_data,
+    input   wire    [(WORD_WIDTH*IO_READ_PORT_COUNT)-1:0]   io_read_data,   // io_rden generated externally, see notes above
 
+    input   wire                                            write_enable,
     input   wire    [ADDR_WIDTH-1:0]                        write_addr,
     input   wire                                            write_addr_is_IO,
     input   wire    [WORD_WIDTH-1:0]                        write_data,
@@ -46,12 +53,14 @@ module Memory
 
 // -----------------------------------------------------------
 
+    // When we need a zero of definite width.
+
     localparam ZERO = {WORD_WIDTH{1'b0}};
 
 // -----------------------------------------------------------
 
     initial begin
-        io_wren     = 0;
+        io_wren = 0;
     end
 
 // -----------------------------------------------------------
@@ -114,10 +123,11 @@ module Memory
 // -----------------------------------------------------------
 
     // Disable RAM read enable if reading from IO port or from address zero
+    // or if reads are not enabled in general.
     // See later for logic to clear read data to zero.
 
     always @(*) begin
-        mem_rden <= (~read_addr_is_IO) & (read_addr != 0);
+        mem_rden <= (read_addr_is_IO == 0) & (read_addr != 0) & (read_enable == 1);
     end
 
 // -----------------------------------------------------------
@@ -186,6 +196,14 @@ module Memory
 // -----------------------------------------------------------
 // Write Stage 1
 
+    reg     write_enable_io = 0;
+
+    always @(*) begin
+        write_enable_io = (write_addr_is_IO == 1) & (write_enable == 1);
+    end
+
+// -----------------------------------------------------------
+
     wire    [IO_WRITE_PORT_COUNT-1:0]    io_wren_raw;
 
     IO_Active
@@ -197,13 +215,14 @@ module Memory
     )
     Write_IO_Active
     (
-        .enable             (write_addr_is_IO),
+        .enable             (write_enable_io),
         .addr               (write_addr),
         .active             (io_wren_raw)
     );
 
     reg     [IO_WRITE_PORT_COUNT-1:0]   io_wren_stage2          = 0;
     reg                                 write_addr_is_IO_stage2 = 0;
+    reg                                 write_enable_stage2     = 0;
 
 // -----------------------------------------------------------
 
@@ -212,6 +231,7 @@ module Memory
         write_addr_is_IO_stage2 <= write_addr_is_IO;
         write_addr_stage2       <= write_addr;
         write_data_stage2       <= write_data;
+        write_enable_stage2     <= write_enable;
     end
 
 // -----------------------------------------------------------
@@ -219,10 +239,11 @@ module Memory
 // Write Stage 2
 
     // Disable RAM write enable if writing to IO port or to address zero
+    // or if writes are not enabled in general.
     // Note that no IO port is to be mapped at address 0.
 
     always @(*) begin
-        mem_wren_stage2 <= (~write_addr_is_IO_stage2) & (write_addr_stage2 != 1'b0);
+        mem_wren_stage2 <= (write_addr_is_IO_stage2 == 0) & (write_addr_stage2 != 0) & (write_enable_stage2 == 1);
     end
 
 // -----------------------------------------------------------
