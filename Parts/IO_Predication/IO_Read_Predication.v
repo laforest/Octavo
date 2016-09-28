@@ -4,20 +4,19 @@
 
 module IO_Read_Predication
 #(
-    parameter   WORD_WIDTH                                  = 0,
-    parameter   ADDR_WIDTH                                  = 0,
-    parameter   IO_READ_PORT_COUNT                          = 0,
-    parameter   IO_READ_PORT_BASE_ADDR                      = 0,
-    parameter   IO_READ_PORT_ADDR_WIDTH                     = 0
+    parameter   ADDR_WIDTH              = 0,
+    parameter   PORT_COUNT              = 0,
+    parameter   PORT_BASE_ADDR          = 0,
+    parameter   PORT_ADDR_WIDTH         = 0
 )
 (
-    input   wire                                            clock,
-    input   wire                                            IO_ready,
-    input   wire    [ADDR_WIDTH-1:0]                        addr,
-    input   wire    [IO_READ_PORT_COUNT-1:0]                EmptyFull,
-    output  wire                                            EmptyFull_masked,
-    output  wire    [IO_READ_PORT_COUNT-1:0]                io_rden,
-    output  reg                                             addr_is_IO
+    input   wire                        clock,
+    input   wire                        IO_ready,
+    input   wire    [ADDR_WIDTH-1:0]    addr,
+    input   wire    [PORT_COUNT-1:0]    EmptyFull,
+    output  wire                        EmptyFull_masked,
+    output  wire    [PORT_COUNT-1:0]    io_rden,
+    output  reg                         addr_is_IO
 );
 
 // --------------------------------------------------------------------
@@ -34,9 +33,9 @@ module IO_Read_Predication
     #(
         .READY_STATE        (1'b1), // FULL
         .ADDR_WIDTH         (ADDR_WIDTH),
-        .PORT_COUNT         (IO_READ_PORT_COUNT),
-        .PORT_BASE_ADDR     (IO_READ_PORT_BASE_ADDR),
-        .PORT_ADDR_WIDTH    (IO_READ_PORT_ADDR_WIDTH)
+        .PORT_COUNT         (PORT_COUNT),
+        .PORT_BASE_ADDR     (PORT_BASE_ADDR),
+        .PORT_ADDR_WIDTH    (PORT_ADDR_WIDTH)
     )
     Read_IO_Check
     (
@@ -56,14 +55,14 @@ module IO_Read_Predication
 // --------------------------------------------------------------------
 // This is aligned to Stage 2 of the IO_Check
 
-    wire    [IO_READ_PORT_COUNT-1:0]    io_rden_raw;
+    wire    [PORT_COUNT-1:0]    io_rden_raw;
 
     IO_Active
     #(
         .ADDR_WIDTH         (ADDR_WIDTH),
-        .PORT_COUNT         (IO_READ_PORT_COUNT),
-        .PORT_BASE_ADDR     (IO_READ_PORT_BASE_ADDR),
-        .PORT_ADDR_WIDTH    (IO_READ_PORT_ADDR_WIDTH)
+        .PORT_COUNT         (PORT_COUNT),
+        .PORT_BASE_ADDR     (PORT_BASE_ADDR),
+        .PORT_ADDR_WIDTH    (PORT_ADDR_WIDTH)
     )
     Read_IO_Active
     (
@@ -72,7 +71,7 @@ module IO_Read_Predication
         .active             (io_rden_raw)
     );
 
-    reg [IO_READ_PORT_COUNT-1:0] io_rden_raw_reg = 0;
+    reg [PORT_COUNT-1:0] io_rden_raw_reg = 0;
 
     always @(posedge clock) begin
         io_rden_raw_reg <= io_rden_raw;
@@ -98,7 +97,7 @@ module IO_Read_Predication
 
     Annuller
     #(
-        .WORD_WIDTH (IO_READ_PORT_COUNT)
+        .WORD_WIDTH (PORT_COUNT)
     )
     rden_enable
     (

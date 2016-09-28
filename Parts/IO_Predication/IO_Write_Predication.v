@@ -7,19 +7,18 @@
 
 module IO_Write_Predication
 #(
-    parameter   WORD_WIDTH                      = 0,
-    parameter   ADDR_WIDTH                      = 0,
-    parameter   IO_WRITE_PORT_COUNT             = 0,
-    parameter   IO_WRITE_PORT_BASE_ADDR         = 0,
-    parameter   IO_WRITE_PORT_ADDR_WIDTH        = 0
+    parameter   ADDR_WIDTH              = 0,
+    parameter   PORT_COUNT              = 0,
+    parameter   PORT_BASE_ADDR          = 0,
+    parameter   PORT_ADDR_WIDTH         = 0
 )
 (
-    input   wire                                clock,
-    input   wire                                IO_ready,
-    input   wire    [ADDR_WIDTH-1:0]            addr,
-    input   wire    [IO_WRITE_PORT_COUNT-1:0]   EmptyFull,
-    output  wire                                EmptyFull_masked,
-    output  wire                                addr_is_IO
+    input   wire                        clock,
+    input   wire                        IO_ready,
+    input   wire    [ADDR_WIDTH-1:0]    addr,
+    input   wire    [PORT_COUNT-1:0]    EmptyFull,
+    output  wire                        EmptyFull_masked,
+    output  wire                        addr_is_IO
 );
 
 // -----------------------------------------------------------
@@ -31,9 +30,9 @@ module IO_Write_Predication
     #(
         .READY_STATE        (1'b0),  // EMPTY
         .ADDR_WIDTH         (ADDR_WIDTH),
-        .PORT_COUNT         (IO_WRITE_PORT_COUNT),
-        .PORT_BASE_ADDR     (IO_WRITE_PORT_BASE_ADDR),
-        .PORT_ADDR_WIDTH    (IO_WRITE_PORT_ADDR_WIDTH)
+        .PORT_COUNT         (PORT_COUNT),
+        .PORT_BASE_ADDR     (PORT_BASE_ADDR),
+        .PORT_ADDR_WIDTH    (PORT_ADDR_WIDTH)
     )
     Write_IO_Check
     (
