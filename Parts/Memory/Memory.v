@@ -14,41 +14,38 @@
 // of indeterminate behaviour on overlapping read/writes, use "no_rw_check" as
 // part of the RAMSTYLE (e.g.: "M10K, no_rw_check").
 
-// The "missing" io_rden (read enable) signal shoudl be generated externally,
+// The "missing" io_rden (read enable) signal should be generated externally,
 // in the stage before the Memory, so the io_rden signal can be provided at
 // the same time as the read_addr. 
 // The same applies to the read_addr_is_IO signal.
 
 module Memory
 #(
-    parameter   WORD_WIDTH                                  = 0,
-    parameter   ADDR_WIDTH                                  = 0,
-    parameter   MEM_DEPTH                                   = 0,
-    parameter   MEM_RAMSTYLE                                = "",
-    parameter   MEM_INIT_FILE                               = "",
-    parameter   IO_READ_PORT_COUNT                          = 0,
-    parameter   IO_READ_PORT_BASE_ADDR                      = 0,
-    parameter   IO_READ_PORT_ADDR_WIDTH                     = 0,
-    parameter   IO_WRITE_PORT_COUNT                         = 0,
-    parameter   IO_WRITE_PORT_BASE_ADDR                     = 0,
-    parameter   IO_WRITE_PORT_ADDR_WIDTH                    = 0
+    parameter   WORD_WIDTH                              = 0,
+    parameter   ADDR_WIDTH                              = 0,
+    parameter   MEM_DEPTH                               = 0,
+    parameter   MEM_RAMSTYLE                            = "",
+    parameter   MEM_INIT_FILE                           = "",
+    parameter   IO_PORT_COUNT                           = 0,
+    parameter   IO_PORT_BASE_ADDR                       = 0,
+    parameter   IO_PORT_ADDR_WIDTH                      = 0
 )
 (
-    input   wire                                            clock,
-    input   wire                                            IO_ready,
+    input   wire                                        clock,
+    input   wire                                        IO_ready,
 
-    input   wire                                            read_enable,
-    input   wire    [ADDR_WIDTH-1:0]                        read_addr,
-    input   wire                                            read_addr_is_IO,
-    output  wire    [WORD_WIDTH-1:0]                        read_data,
-    input   wire    [(WORD_WIDTH*IO_READ_PORT_COUNT)-1:0]   io_read_data,   // io_rden generated externally, see notes above
+    input   wire                                        read_enable,
+    input   wire    [ADDR_WIDTH-1:0]                    read_addr,
+    input   wire                                        read_addr_is_IO,
+    output  wire    [WORD_WIDTH-1:0]                    read_data,
+    input   wire    [(WORD_WIDTH*IO_PORT_COUNT)-1:0]    io_read_data,   // io_rden generated externally, see notes above
 
-    input   wire                                            write_enable,
-    input   wire    [ADDR_WIDTH-1:0]                        write_addr,
-    input   wire                                            write_addr_is_IO,
-    input   wire    [WORD_WIDTH-1:0]                        write_data,
-    output  reg                                             io_wren,
-    output  wire    [(WORD_WIDTH*IO_WRITE_PORT_COUNT)-1:0]  io_write_data
+    input   wire                                        write_enable,
+    input   wire    [ADDR_WIDTH-1:0]                    write_addr,
+    input   wire                                        write_addr_is_IO,
+    input   wire    [WORD_WIDTH-1:0]                    write_data,
+    output  reg                                         io_wren,
+    output  wire    [(WORD_WIDTH*IO_PORT_COUNT)-1:0]    io_write_data
 );
 
 // -----------------------------------------------------------
@@ -103,9 +100,9 @@ module Memory
     #(
         .WORD_WIDTH         (WORD_WIDTH),
         .ADDR_WIDTH         (ADDR_WIDTH),
-        .INPUT_COUNT        (IO_READ_PORT_COUNT),
-        .INPUT_BASE_ADDR    (IO_READ_PORT_BASE_ADDR),
-        .INPUT_ADDR_WIDTH   (IO_READ_PORT_ADDR_WIDTH),
+        .INPUT_COUNT        (IO_PORT_COUNT),
+        .INPUT_BASE_ADDR    (IO_PORT_BASE_ADDR),
+        .INPUT_ADDR_WIDTH   (IO_PORT_ADDR_WIDTH),
     )
     IO_Read_Select
     (
@@ -204,14 +201,14 @@ module Memory
 
 // -----------------------------------------------------------
 
-    wire    [IO_WRITE_PORT_COUNT-1:0]    io_wren_raw;
+    wire    [IO_PORT_COUNT-1:0]    io_wren_raw;
 
     IO_Active
     #(
         .ADDR_WIDTH         (ADDR_WIDTH),
-        .PORT_COUNT         (IO_WRITE_PORT_COUNT),
-        .PORT_BASE_ADDR     (IO_WRITE_PORT_BASE_ADDR),
-        .PORT_ADDR_WIDTH    (IO_WRITE_PORT_ADDR_WIDTH)
+        .PORT_COUNT         (IO_PORT_COUNT),
+        .PORT_BASE_ADDR     (IO_PORT_BASE_ADDR),
+        .PORT_ADDR_WIDTH    (IO_PORT_ADDR_WIDTH)
     )
     Write_IO_Active
     (
@@ -220,9 +217,9 @@ module Memory
         .active             (io_wren_raw)
     );
 
-    reg     [IO_WRITE_PORT_COUNT-1:0]   io_wren_stage2          = 0;
-    reg                                 write_addr_is_IO_stage2 = 0;
-    reg                                 write_enable_stage2     = 0;
+    reg     [IO_PORT_COUNT-1:0]     io_wren_stage2          = 0;
+    reg                             write_addr_is_IO_stage2 = 0;
+    reg                             write_enable_stage2     = 0;
 
 // -----------------------------------------------------------
 
@@ -260,7 +257,7 @@ module Memory
 
     Register_Array 
     #(
-        .COUNT      (IO_WRITE_PORT_COUNT), 
+        .COUNT      (IO_PORT_COUNT), 
         .WIDTH      (WORD_WIDTH)
     ) 
     Write_IO
