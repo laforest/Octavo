@@ -15,6 +15,7 @@ module IO_Check
 )
 (
     input   wire                        clock,
+    input   wire                        enable,
     input   wire    [ADDR_WIDTH-1:0]    addr,
     input   wire    [PORT_COUNT-1:0]    port_EF,
     output  wire                        port_EF_masked,
@@ -44,7 +45,7 @@ module IO_Check
     (
         .addr               (addr),
         .in                 (port_EF), 
-        .out                (port_EF_selected)
+        .out                (port_EF_selected_raw)
     );
 
     reg     port_EF_selected = 0;
@@ -67,12 +68,21 @@ module IO_Check
     )
     IO_Detect
     (
+        .enable         (enable),
         .addr           (addr),
         .hit            (addr_is_IO_raw)   
     );
 
     always @(posedge clock) begin
         addr_is_IO <= addr_is_IO_raw;
+    end
+
+// --------------------------------------------------------------------
+
+    reg enable_stage2 = 0;
+
+    always @(posedge clock) begin
+        enable_stage2 <= enable;
     end
 
 // --------------------------------------------------------------------
@@ -83,16 +93,20 @@ module IO_Check
     // address (EMPTY (0) for writes, FULL (1) for reads), since memory is
     // always "ready".
 
+    // If we are not enabled, always return NOT_READY.
+
+    localparam NOT_READY = ~READY_STATE;
+
     Addressed_Mux
     #(
         .WORD_WIDTH     (1),
-        .ADDR_WIDTH     (1),
-        .INPUT_COUNT    (2),
+        .ADDR_WIDTH     (2),
+        .INPUT_COUNT    (4),
     )
     IO_EF_Mask
     (
-        .addr           (addr_is_IO),
-        .in             ({port_EF_selected, READY_STATE}), 
+        .addr           ({enable_stage2,addr_is_IO}),
+        .in             ({port_EF_selected, READY_STATE, NOT_READY, NOT_READY}), 
         .out            (port_EF_masked)
     );
 

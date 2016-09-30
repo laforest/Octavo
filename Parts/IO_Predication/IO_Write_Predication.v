@@ -15,6 +15,7 @@ module IO_Write_Predication
 (
     input   wire                        clock,
     input   wire                        IO_ready,
+    input   wire                        enable,
     input   wire    [ADDR_WIDTH-1:0]    addr,
     input   wire    [PORT_COUNT-1:0]    EmptyFull,
     output  wire                        EmptyFull_masked,
@@ -37,6 +38,7 @@ module IO_Write_Predication
     Write_IO_Check
     (
         .clock              (clock),
+        .enable             (enable),
         .addr               (addr),
         .port_EF            (EmptyFull),
         .port_EF_masked     (EmptyFull_masked),

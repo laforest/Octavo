@@ -31,24 +31,34 @@ module Address_Range_Decoder_Static
     parameter       ADDR_BOUND          = 0
 )
 (
+    input   wire                        enable,
     input   wire    [ADDR_WIDTH-1:0]    addr,
     output  reg                         hit 
 );
+
     localparam ADDR_COUNT = ADDR_BOUND - ADDR_BASE + 1;
+
+// --------------------------------------------------------------------
 
     reg     [ADDR_WIDTH-1:0]    i;
     reg     [ADDR_COUNT-1:0]    per_addr_match = 0;
 
-    // Check each address in range for match
+    // Check each address in base/bound range for match
     always @(*) begin
         for(i = ADDR_BASE; i <= ADDR_BOUND; i = i + 1) begin : addr_decode
             per_addr_match[i-ADDR_BASE] <= (addr == i);
         end
     end
 
-    // Do any of them match?
+// --------------------------------------------------------------------
+
+    reg hit_raw = 0;
+
+    // Do any of them match, and are we enabled?
     always @(*) begin : is_hit
-        hit <= | per_addr_match;
+        hit_raw = | per_addr_match;
+        hit     = hit_raw & enable;
     end 
+
 endmodule
 
