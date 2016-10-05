@@ -11,7 +11,8 @@ module Datapath
     parameter   MEM_RAMSTYLE                            = "",
     parameter   MEM_INIT_FILE_A                         = "",
     parameter   MEM_INIT_FILE_B                         = "",
-    parameter   MEM_BASE_ADDR_B                         = 0,
+    // Memory A Write Base Address is always zero
+    parameter   MEM_WRITE_BASE_ADDR_B                   = 0,
     parameter   IO_PORT_COUNT                           = 0,
     parameter   IO_PORT_BASE_ADDR                       = 0,
     parameter   IO_PORT_ADDR_WIDTH                      = 0
@@ -60,6 +61,11 @@ module Datapath
 
 // --------------------------------------------------------------------
 
+// TODO: extract split from control in some clean way. 
+// May need extractor module.
+
+// --------------------------------------------------------------------
+
     wire read_addr_is_IO_A;
     wire read_addr_is_IO_B;
     wire write_addr_is_IO_A;
@@ -67,13 +73,16 @@ module Datapath
 
     Datapath_IO_Predication
     #(
-
-        .READ_ADDR_WIDTH        (READ_ADDR_WIDTH),
-        .WRITE_ADDR_WIDTH       (WRITE_ADDR_WIDTH),
-        .MEM_BASE_ADDR_B        (MEM_BASE_ADDR_B),
+        .READ_ADDR_WIDTH        (READ_ADDR_WIDTH),    
+        .WRITE_ADDR_WIDTH       (WRITE_ADDR_WIDTH),    
+         // Memory A Write Base Address is always zero
+        .MEM_WRITE_BASE_ADDR_A  (0),
+        .MEM_DEPTH_A            (MEM_DEPTH), 
+        .MEM_WRITE_BASE_ADDR_B  (MEM_WRITE_BASE_ADDR_B),
+        .MEM_DEPTH_B            (MEM_DEPTH),
         .PORT_COUNT             (IO_PORT_COUNT),
-        .PORT_BASE_ADDR         (),
-        .PORT_ADDR_WIDTH        () 
+        .PORT_BASE_ADDR         (IO_PORT_BASE_ADDR),
+        .PORT_ADDR_WIDTH        (IO_PORT_ADDR_WIDTH)
     )
     DIOP
     (
@@ -98,6 +107,7 @@ module Datapath
         .IO_ready               (IO_ready)
     );
 
+// --------------------------------------------------------------------
 
 endmodule
 
