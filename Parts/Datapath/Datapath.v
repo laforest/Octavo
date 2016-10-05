@@ -20,7 +20,11 @@ module Datapath
 (
     input   wire                                        clock,
     input   wire    [`TRIADIC_CTRL_WIDTH-1:0]           control,
-    output  wire                                        IO_ready,
+
+    // Contained in control, but extracted separately as it's used elsewhere.
+    input   wire                                        split,
+
+    // From Branch Trigger Module. Signals a cancelled instruction.
     input   wire                                        branch_cancel,
 
     // These are raw from the instruction, and drive I/O Predication
@@ -56,13 +60,11 @@ module Datapath
     output  wire    [WORD_WIDTH-1:0]                    Ra,
     output  wire    [WORD_WIDTH-1:0]                    Rb,
     output  wire                                        Rcarry_out,
-    output  wire                                        Roverflow
+    output  wire                                        Roverflow,
+
+    // Main I/O Predication output. Signals an annulled instruction.
+    output  wire                                        IO_ready
 );
-
-// --------------------------------------------------------------------
-
-// TODO: extract split from control in some clean way. 
-// May need extractor module.
 
 // --------------------------------------------------------------------
 
@@ -87,7 +89,7 @@ module Datapath
     DIOP
     (
         .clock                  (clock),
-        .split                  (),
+        .split                  (split),
 
         .read_addr_A            (read_addr_A),
         .read_addr_B            (read_addr_B),
