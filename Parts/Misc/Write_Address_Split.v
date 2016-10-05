@@ -1,11 +1,11 @@
 
 // Write address translator
 
-// Also truncates from the wider write address space to the local write
-// address space of each memory.
-
 // Translates write addresses when in split mode
 // Lower/upper half of D address selected by parameter
+
+// Also truncates from the wider write address space to the local write
+// address space of each memory.
 
 module Write_Address_Split
 #(
