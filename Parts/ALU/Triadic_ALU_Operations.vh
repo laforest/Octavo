@@ -24,8 +24,8 @@
     `define SHIFT_LEFT_SIGNED       2'd2
     `define SHIFT_RIGHT             2'd3
 
-    `define SPLIT_YES               1'd0
-    `define SPLIT_NO                1'd1
+    `define SPLIT_YES               1'd1
+    `define SPLIT_NO                1'd0
 
     `define ADDSUB_A_PLUS_B         2'b00
     `define ADDSUB_MINUS_A_PLUS_B   2'b01

@@ -13,7 +13,7 @@
 
 // Can we process the carry-in, carry-out, and overflow flags through some
 // Boolean function to generate valid versions when combining
-// Boolean+Arithmetic.
+// Boolean+Arithmetic?
 
 // When split, Ra = g(A,B,R) and Rb = f((+/-A+/-B), g(A,B,R))
 // Rb can also be optionally shifted left or right by 1, signed and unsigned.
@@ -66,7 +66,6 @@ module Triadic_ALU
     localparam TRIADIC_DUAL_WIDTH           = 1;
 
     integer i;
-    genvar  j;
 
 // --------------------------------------------------------------------
 
@@ -390,7 +389,7 @@ module Triadic_ALU
     Split
     (
         .addr           (split_selector[3]),    
-        .in             ({D3_shifted, selected_dyadic_1_2}),
+        .in             ({selected_dyadic_1_2,D3_shifted}),
         .out            (selected_dyadic_1_3)
     );
 
