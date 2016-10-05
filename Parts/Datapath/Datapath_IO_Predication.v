@@ -46,28 +46,39 @@ module Datapath_IO_Predication
     localparam MEM_ADDR_WIDTH = READ_ADDR_WIDTH;
 
 // --------------------------------------------------------------------
+// --------------------------------------------------------------------
 
     wire                        read_enable_A;
     wire                        write_enable_A;
     wire [MEM_ADDR_WIDTH-1:0]   write_addr_A;
 
-    Datapath_IO_Predication_Addressing
+    Write_Address_Split
+    #(
+        .WRITE_ADDR_WIDTH       (WRITE_ADDR_WIDTH), 
+        .WRITE_ADDR_WIDTH_LOCAL (MEM_ADDR_WIDTH),
+        .LOWER_UPPER_SPLIT      (1) // Memory A gets upper half of split D
+    )
+    WAS_A
+    (
+        .split                  (split),
+        .write_addr             (write_addr_D),
+        .write_addr_translated  (write_addr_A)
+    );
+
+    Memory_Addressing
     #(
         .READ_ADDR_WIDTH        (READ_ADDR_WIDTH),
         .WRITE_ADDR_WIDTH       (WRITE_ADDR_WIDTH),
-        .MEM_ADDR_WIDTH         (MEM_ADDR_WIDTH),
+        .MEM_READ_BASE_ADDR     (0),
         .MEM_WRITE_BASE_ADDR    (MEM_WRITE_BASE_ADDR_A),
-        .MEM_DEPTH              (MEM_DEPTH_A),
-        .LOWER_UPPER_SPLIT      (1) // Memory A gets upper split write address
+        .MEM_DEPTH              (MEM_DEPTH_A)
     )
-    DIOPA_A
+    MA_A
     (
-        .split                  (split),
         .read_addr              (read_addr_A),
-        .write_addr             (write_addr_D),
+        .write_addr             (write_addr_A),
         .read_enable            (read_enable_A),
-        .write_enable           (write_enable_A),
-        .write_addr_translated  (write_addr_A)
+        .write_enable           (write_enable_A)
     );
 
 // --------------------------------------------------------------------
@@ -76,25 +87,36 @@ module Datapath_IO_Predication
     wire                        write_enable_B;
     wire [MEM_ADDR_WIDTH-1:0]   write_addr_B;
 
-    Datapath_IO_Predication_Addressing
+    Write_Address_Split
     #(
-        .READ_ADDR_WIDTH        (READ_ADDR_WIDTH),
-        .WRITE_ADDR_WIDTH       (WRITE_ADDR_WIDTH),
-        .MEM_ADDR_WIDTH         (MEM_ADDR_WIDTH),
-        .MEM_WRITE_BASE_ADDR    (MEM_WRITE_BASE_ADDR_B),
-        .MEM_DEPTH              (MEM_DEPTH_B),
-        .LOWER_UPPER_SPLIT      (0) // Memory B gets lower split write address
+        .WRITE_ADDR_WIDTH       (WRITE_ADDR_WIDTH), 
+        .WRITE_ADDR_WIDTH_LOCAL (MEM_ADDR_WIDTH),
+        .LOWER_UPPER_SPLIT      (0) // Memory B gets lower half of split D
     )
-    DIOPA_B
+    WAS_B
     (
         .split                  (split),
-        .read_addr              (read_addr_B),
         .write_addr             (write_addr_D),
-        .read_enable            (read_enable_B),
-        .write_enable           (write_enable_B),
         .write_addr_translated  (write_addr_B)
     );
 
+    Memory_Addressing
+    #(
+        .READ_ADDR_WIDTH        (READ_ADDR_WIDTH),
+        .WRITE_ADDR_WIDTH       (WRITE_ADDR_WIDTH),
+        .MEM_READ_BASE_ADDR     (0),
+        .MEM_WRITE_BASE_ADDR    (MEM_WRITE_BASE_ADDR_B),
+        .MEM_DEPTH              (MEM_DEPTH_B)
+    )
+    MA_B
+    (
+        .read_addr              (read_addr_B),
+        .write_addr             (write_addr_B),
+        .read_enable            (read_enable_B),
+        .write_enable           (write_enable_B)
+    );
+
+// --------------------------------------------------------------------
 // --------------------------------------------------------------------
 
     wire read_EF_masked_A;
@@ -107,7 +129,7 @@ module Datapath_IO_Predication
         .PORT_BASE_ADDR     (PORT_BASE_ADDR),
         .PORT_ADDR_WIDTH    (PORT_ADDR_WIDTH) 
     )
-    A
+    MIOP_A
     (
         .clock              (clock),
         .IO_ready           (IO_ready),
@@ -139,7 +161,7 @@ module Datapath_IO_Predication
         .PORT_BASE_ADDR     (PORT_BASE_ADDR),
         .PORT_ADDR_WIDTH    (PORT_ADDR_WIDTH) 
     )
-    B
+    MIOP_B
     (
         .clock              (clock),
         .IO_ready           (IO_ready),
@@ -159,6 +181,7 @@ module Datapath_IO_Predication
         .write_addr_is_IO   (write_addr_is_IO_B)
     );
 
+// --------------------------------------------------------------------
 // --------------------------------------------------------------------
 
     // PORT_COUNT here refers to the number of simultaneously active I/O ports
