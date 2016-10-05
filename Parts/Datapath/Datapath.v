@@ -24,7 +24,7 @@ module Datapath
     // Contained in control, but extracted separately as it's used elsewhere.
     input   wire                                        split,
 
-    // From Branch Trigger Module. Signals a cancelled instruction.
+    // From Branch Trigger Module (BTM). Signals a cancelled instruction.
     input   wire                                        branch_cancel,
 
     // These are raw from the instruction, and drive I/O Predication
@@ -110,6 +110,8 @@ module Datapath
     );
 
 // --------------------------------------------------------------------
+
+
 
 endmodule
 
