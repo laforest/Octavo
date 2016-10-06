@@ -68,6 +68,15 @@ module Datapath
 
 // --------------------------------------------------------------------
 
+    // For clarity, as the read and write addresses have the same width at the
+    // level of individual memories, and the D instruction operand write
+    // address is always wider since it addresses all memory ranges
+    // (A, B, I, and H)
+
+    localparam MEM_ADDR_WIDTH = READ_ADDR_WIDTH;
+
+// --------------------------------------------------------------------
+
     wire read_addr_is_IO_A;
     wire read_addr_is_IO_B;
     wire write_addr_is_IO_A;
@@ -77,6 +86,7 @@ module Datapath
     #(
         .READ_ADDR_WIDTH        (READ_ADDR_WIDTH),    
         .WRITE_ADDR_WIDTH       (WRITE_ADDR_WIDTH),    
+        .MEM_ADDR_WIDTH         (MEM_ADDR_WIDTH),
          // Memory A Write Base Address is always zero
         .MEM_WRITE_BASE_ADDR_A  (0),
         .MEM_DEPTH_A            (MEM_DEPTH), 

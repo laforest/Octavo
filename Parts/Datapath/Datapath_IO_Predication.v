@@ -6,6 +6,7 @@ module Datapath_IO_Predication
 
     parameter   READ_ADDR_WIDTH             = 0,
     parameter   WRITE_ADDR_WIDTH            = 0,
+    parameter   MEM_ADDR_WIDTH              = 0,
     parameter   MEM_WRITE_BASE_ADDR_A       = 0,
     parameter   MEM_DEPTH_A                 = 0,
     parameter   MEM_WRITE_BASE_ADDR_B       = 0,
@@ -36,16 +37,6 @@ module Datapath_IO_Predication
     output  wire                            IO_ready
 );
 
-// --------------------------------------------------------------------
-
-    // For clarity, as the read and write addresses have the same width at the
-    // level of individual memories, and the D instruction operand write
-    // address is always wider, since it addresses all memory ranges
-    // (A, B, I, and H)
-
-    localparam MEM_ADDR_WIDTH = READ_ADDR_WIDTH;
-
-// --------------------------------------------------------------------
 // --------------------------------------------------------------------
 
     wire                        read_enable_A;
