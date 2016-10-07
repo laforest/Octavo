@@ -39,12 +39,11 @@ module Datapath_IO_Predication
 
     wire                        read_enable_A;
     wire                        write_enable_A;
-    wire [MEM_ADDR_WIDTH-1:0]   write_addr_A;
+    wire [WRITE_ADDR_WIDTH-1:0] write_addr_A;
 
     Write_Address_Split
     #(
         .WRITE_ADDR_WIDTH       (WRITE_ADDR_WIDTH), 
-        .WRITE_ADDR_WIDTH_LOCAL (MEM_ADDR_WIDTH),
         .LOWER_UPPER_SPLIT      (1) // Memory A gets upper half of split D
     )
     WAS_A
@@ -75,12 +74,11 @@ module Datapath_IO_Predication
 
     wire                        read_enable_B;
     wire                        write_enable_B;
-    wire [MEM_ADDR_WIDTH-1:0]   write_addr_B;
+    wire [WRITE_ADDR_WIDTH-1:0] write_addr_B;
 
     Write_Address_Split
     #(
         .WRITE_ADDR_WIDTH       (WRITE_ADDR_WIDTH), 
-        .WRITE_ADDR_WIDTH_LOCAL (MEM_ADDR_WIDTH),
         .LOWER_UPPER_SPLIT      (0) // Memory B gets lower half of split D
     )
     WAS_B
@@ -112,6 +110,12 @@ module Datapath_IO_Predication
     wire read_EF_masked_A;
     wire write_EF_masked_A;
 
+    reg [MEM_ADDR_WIDTH-1:0] write_addr_A_local = 0;
+
+    always @(*) begin
+        write_addr_A_local <= write_addr_A[MEM_ADDR_WIDTH-1:0];
+    end
+
     Memory_IO_Predication
     #(
         .ADDR_WIDTH         (MEM_ADDR_WIDTH),
@@ -127,7 +131,7 @@ module Datapath_IO_Predication
         .read_enable        (read_enable_A),
         .read_addr          (read_addr_A),
         .write_enable       (write_enable_A),
-        .write_addr         (write_addr_A),
+        .write_addr         (write_addr_A_local),
 
         .read_EF            (read_EF_A),
         .write_EF           (write_EF_A),
@@ -144,6 +148,12 @@ module Datapath_IO_Predication
     wire read_EF_masked_B;
     wire write_EF_masked_B;
 
+    reg [MEM_ADDR_WIDTH-1:0] write_addr_B_local = 0;
+
+    always @(*) begin
+        write_addr_B_local <= write_addr_B[MEM_ADDR_WIDTH-1:0];
+    end
+
     Memory_IO_Predication
     #(
         .ADDR_WIDTH         (MEM_ADDR_WIDTH),
@@ -159,7 +169,7 @@ module Datapath_IO_Predication
         .read_enable        (read_enable_B),
         .read_addr          (read_addr_B),
         .write_enable       (write_enable_B),
-        .write_addr         (write_addr_B),
+        .write_addr         (write_addr_B_local),
 
         .read_EF            (read_EF_B),
         .write_EF           (write_EF_B),
