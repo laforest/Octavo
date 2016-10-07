@@ -1,7 +1,6 @@
 
 // Octavo Datapath: I/O predication, Memory, I/O, and ALU
 
-
 module Datapath
 #(
     parameter   WORD_WIDTH                              = 0,
@@ -13,6 +12,7 @@ module Datapath
     parameter   MEM_INIT_FILE_B                         = "",
     // Memory A Write Base Address is always zero
     parameter   MEM_WRITE_BASE_ADDR_B                   = 0,
+    parameter   ALU_REGISTER_S_ADDR                     = 0,
     parameter   IO_PORT_COUNT                           = 0,
     parameter   IO_PORT_BASE_ADDR                       = 0,
     parameter   IO_PORT_ADDR_WIDTH                      = 0
@@ -32,15 +32,12 @@ module Datapath
     input   wire    [READ_ADDR_WIDTH-1:0]               read_addr_B,
     input   wire    [WRITE_ADDR_WIDTH-1:0]              write_addr_D,
 
-    // These have been translated, and drive the Memory
+    // From the Address Offset Module (AOM), and drive the Memory
     input   wire    [READ_ADDR_WIDTH-1:0]               read_addr_A_offset,
     input   wire    [READ_ADDR_WIDTH-1:0]               read_addr_B_offset,
     input   wire    [WRITE_ADDR_WIDTH-1:0]              write_addr_A_offset,
     input   wire    [WRITE_ADDR_WIDTH-1:0]              write_addr_B_offset,
     
-    input   wire    [WORD_WIDTH-1:0]                    write_data_A,
-    input   wire    [WORD_WIDTH-1:0]                    write_data_B,
-
     input   wire    [PORT_COUNT-1:0]                    io_read_EF_A,
     input   wire    [PORT_COUNT-1:0]                    io_read_EF_B,
     input   wire    [PORT_COUNT-1:0]                    io_write_EF_A,
@@ -62,6 +59,10 @@ module Datapath
     output  wire                                        Rcarry_out,
     output  wire                                        Roverflow,
 
+    // Write addresses for things not in Datapath (I and H Memories)
+    output  wire    [WRITE_ADDR_WIDTH-1:0]              write_addr_Ra,
+    output  wire    [WRITE_ADDR_WIDTH-1:0]              write_addr_Rb,
+
     // Main I/O Predication output. Signals an annulled instruction.
     output  wire                                        IO_ready
 );
@@ -77,6 +78,8 @@ module Datapath
 
 // --------------------------------------------------------------------
 
+    localparam PIPE_DEPTH_PREDICATION = 2;
+
     wire read_addr_is_IO_A;
     wire read_addr_is_IO_B;
     wire write_addr_is_IO_A;
@@ -87,11 +90,8 @@ module Datapath
         .READ_ADDR_WIDTH        (READ_ADDR_WIDTH),    
         .WRITE_ADDR_WIDTH       (WRITE_ADDR_WIDTH),    
         .MEM_ADDR_WIDTH         (MEM_ADDR_WIDTH),
-         // Memory A Write Base Address is always zero
-        .MEM_WRITE_BASE_ADDR_A  (0),
-        .MEM_DEPTH_A            (MEM_DEPTH), 
+        .MEM_DEPTH              (MEM_DEPTH), 
         .MEM_WRITE_BASE_ADDR_B  (MEM_WRITE_BASE_ADDR_B),
-        .MEM_DEPTH_B            (MEM_DEPTH),
         .PORT_COUNT             (IO_PORT_COUNT),
         .PORT_BASE_ADDR         (IO_PORT_BASE_ADDR),
         .PORT_ADDR_WIDTH        (IO_PORT_ADDR_WIDTH)
@@ -121,6 +121,180 @@ module Datapath
 
 // --------------------------------------------------------------------
 
+    localparam PIPE_DEPTH_MEMORY_READ  = 2;
+    localparam PIPE_DEPTH_MEMORY_WRITE = 2;
+
+    wire [WORD_WIDTH-1:0] read_data_A;
+    wire [WORD_WIDTH-1:0] read_data_B;
+
+    Datapath_Memory
+    #(
+        .WORD_WIDTH             (WORD_WIDTH),
+        .READ_ADDR_WIDTH        (READ_ADDR_WIDTH),
+        .WRITE_ADDR_WIDTH       (WRITE_ADDR_WIDTH),
+        .MEM_ADDR_WIDTH         (MEM_ADDR_WIDTH),
+        .MEM_DEPTH              (MEM_DEPTH),
+        .MEM_RAMSTYLE           (MEM_RAMSTYLE),
+        .MEM_INIT_FILE_A        (MEM_INIT_FILE_A),
+        .MEM_INIT_FILE_B        (MEM_INIT_FILE_B),
+        .MEM_WRITE_BASE_ADDR_B  (MEM_WRITE_BASE_ADDR_B),
+        .IO_PORT_COUNT          (IO_PORT_COUNT),
+        .IO_PORT_BASE_ADDR      (IO_PORT_BASE_ADDR),
+        .IO_PORT_ADDR_WIDTH     (IO_PORT_ADDR_WIDTH) 
+    )
+    DM
+    (
+        .clock                  (clock),
+
+        .read_addr_A            (read_addr_A_offset),
+        .read_addr_B            (read_addr_B_offset),
+        .write_addr_A           (write_addr_Ra),
+        .write_addr_B           (write_addr_Rb),
+        
+        .write_data_A           (Ra),
+        .write_data_B           (Rb),
+
+        .io_read_data_A         (io_read_data_A),
+        .io_read_data_B         (io_read_data_B),
+        .io_write_data_A        (io_write_data_A),
+        .io_write_data_B        (io_write_data_B),
+
+        .read_addr_is_IO_A      (read_addr_is_IO_A),
+        .read_addr_is_IO_B      (read_addr_is_IO_B),
+        .write_addr_is_IO_A     (write_addr_is_IO_A),
+        .write_addr_is_IO_B     (write_addr_is_IO_B),
+
+        .io_wren_A              (io_wren_A),
+        .io_wren_B              (io_wren_B),
+
+        .read_data_A            (read_data_A),
+        .read_data_B            (read_data_B)
+    );
+
+// --------------------------------------------------------------------
+
+    // This is the delay between the start of the Datapath to the ALU
+    localparam PIPE_DEPTH_TO_ALU = PIPE_DEPTH_PREDICATION + PIPE_DEPTH_MEMORY_READ;
+
+    wire [`TRIADIC_CTRL_WIDTH-1:0] control_ALU;
+
+    Delay_Line 
+    #(
+        .DEPTH  (PIPE_DEPTH_TO_ALU), 
+        .WIDTH  (`TRIADIC_CTRL_WIDTH)
+    ) 
+    DL_ALU_control
+    (
+        .clock  (clock),
+        .in     (control),
+        .out    (control_ALU)
+    );
+
+// --------------------------------------------------------------------
+
+    localparam PIPE_DEPTH_ALU = 4;
+
+    reg     [WORD_WIDTH-1:0]    R           = 0;
+    reg                         R_zero      = 0;
+    reg                         R_negative  = 0;
+    reg     [WORD_WIDTH-1:0]    S           = 0;
+
+    Triadic_ALU
+    #(
+        .WORD_WIDTH     (WORD_WIDTH) 
+    )
+    ALU
+    (
+        .clock          (clock),
+        .control        (control_ALU),
+        .A              (read_data_A),
+        .B              (read_data_B),
+        .R              (R),
+        .R_zero         (R_zero),
+        .R_negative     (R_negative),
+        .S              (S),
+        .Ra             (Ra),
+        .Rb             (Rb),
+        .carry_out      (Rcarry_out),
+        .overflow       (Roverflow)
+    );
+
+// --------------------------------------------------------------------
+// Carry the write addresses around to the Memory write ports
+// Synchronizes them with the ALU outputs
+
+    localparam PIPE_DEPTH_WRITE_ADDR = PIPE_DEPTH_MEMORY_READ + PIPE_DEPTH_ALU;
+
+    Delay_Line 
+    #(
+        .DEPTH  (PIPE_DEPTH_WRITE_ADDR), 
+        .WIDTH  (WRITE_ADDR_WIDTH + WRITE_ADDR_WIDTH)
+    ) 
+    DL_write_addr
+    (
+        .clock  (clock),
+        .in     ({write_addr_B_offset, write_addr_A_offset}),
+        .out    ({write_addr_Rb,       write_addr_Ra})
+    );
+
+// --------------------------------------------------------------------
+// Ra data feedback: feed result to next instruction from same thread
+// Make it one shorter than needed, to feed both R and S separate registers.
+
+    localparam PIPE_DEPTH_RA_TO_RS = `OCTAVO_THREAD_COUNT - PIPE_DEPTH_ALU - 1;
+
+    wire [WORD_WIDTH-1:0] RS;
+
+    Delay_Line 
+    #(
+        .DEPTH  (PIPE_DEPTH_RA_TO_RS), 
+        .WIDTH  (WORD_WIDTH)
+    ) 
+    DL_Ra_to_RS
+    (
+        .clock  (clock),
+        .in     (Ra),
+        .out    (RS)
+    );
+
+// --------------------------------------------------------------------
+// Ra address feedback: feed address to next instruction from same thread
+// Make it one shorter than needed, so the address is synched with RS
+
+    wire [WRITE_ADDR_WIDTH-1:0] write_addr_RS;
+
+    Delay_Line 
+    #(
+        .DEPTH  (PIPE_DEPTH_RA_TO_RS), 
+        .WIDTH  (WORD_WIDTH)
+    ) 
+    DL_write_addr_RS
+    (
+        .clock  (clock),
+        .in     (write_addr_Ra),
+        .out    (write_addr_RS)
+    );
+
+// --------------------------------------------------------------------
+// R and S registers. S is memory-addressed and persistent.
+
+    always @(posedge clock) begin
+        R <= RS;
+        S <= (write_addr_RS == ALU_REGISTER_S_ADDR) ? RS : S;
+    end
+
+// --------------------------------------------------------------------
+// Generate R word-masks fed back to ALU
+
+    reg R_is_zero = 0;
+    reg R_is_neg  = 0;
+
+    always @(*) begin
+        R_is_zero   = (R == 0);
+        R_zero      = {WORD_WIDTH{R_is_zero}};
+        R_is_neg    = (R[WORD_WIDTH-1] == 1); // MSB is sign bit
+        R_negative  = {WORD_WIDTH{R_is_neg}};
+    end
 
 
 endmodule
