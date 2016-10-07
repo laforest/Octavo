@@ -43,7 +43,7 @@ module Memory
     input   wire    [ADDR_WIDTH-1:0]                    write_addr,
     input   wire                                        write_addr_is_IO,
     input   wire    [WORD_WIDTH-1:0]                    write_data,
-    output  reg                                         io_wren,
+    output  reg     [IO_PORT_COUNT-1:0]                 io_wren,
     output  wire    [(WORD_WIDTH*IO_PORT_COUNT)-1:0]    io_write_data
 );
 
@@ -94,7 +94,7 @@ module Memory
 // -----------------------------------------------------------
 // Read Stage 1
 
-    wire io_read_data_selected_raw;
+    wire [WORD_WIDTH-1:0] io_read_data_selected_raw;
     
     Translated_Addressed_Mux
     #(
@@ -102,7 +102,7 @@ module Memory
         .ADDR_WIDTH         (ADDR_WIDTH),
         .INPUT_COUNT        (IO_PORT_COUNT),
         .INPUT_BASE_ADDR    (IO_PORT_BASE_ADDR),
-        .INPUT_ADDR_WIDTH   (IO_PORT_ADDR_WIDTH),
+        .INPUT_ADDR_WIDTH   (IO_PORT_ADDR_WIDTH)
     )
     IO_Read_Select
     (
@@ -240,6 +240,8 @@ module Memory
 // -----------------------------------------------------------
 
     // Only the word with the corresponding io_wren set changes.
+    // We only have one wren set at a time, so we replicate the new data word
+    // to fit the input.
 
     Register_Array 
     #(
@@ -248,9 +250,9 @@ module Memory
     ) 
     Write_IO
     (
-        .clocki     (clock),
+        .clock     (clock),
         .wren       (io_wren_stage2),
-        .in         (write_data_stage2),
+        .in         ({IO_PORT_COUNT{write_data_stage2}}),
         .out        (io_write_data)
     );
 

@@ -42,7 +42,7 @@ module IO_Write_Predication
         .addr               (addr),
         .port_EF            (EmptyFull),
         .port_EF_masked     (EmptyFull_masked),
-        .addr_is_IO         (addr_is_IO_raw),
+        .addr_is_IO         (addr_is_IO_raw)
     );
 
 // --------------------------------------------------------------------

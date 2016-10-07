@@ -10,8 +10,8 @@
 
 module Binary_to_N_Decoder
 #(
-    parameter       BINARY_WIDTH        = 0
-    parameter       OUTPUT_WIDTH        = 0, 
+    parameter       BINARY_WIDTH        = 0,
+    parameter       OUTPUT_WIDTH        = 0 
 )
 (
     input   wire    [BINARY_WIDTH-1:0]  in,

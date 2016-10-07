@@ -56,6 +56,9 @@ module Datapath_Memory
 // --------------------------------------------------------------------
 // --------------------------------------------------------------------
 
+    wire read_enable_A;
+    wire write_enable_A;
+
     Memory_Addressing
     #(
         .READ_ADDR_WIDTH        (READ_ADDR_WIDTH),
@@ -74,6 +77,9 @@ module Datapath_Memory
     );
 
 // --------------------------------------------------------------------
+
+    wire read_enable_B;
+    wire write_enable_B;
 
     Memory_Addressing
     #(

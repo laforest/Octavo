@@ -45,7 +45,7 @@ module IO_Read_Predication
         .addr               (addr),
         .port_EF            (EmptyFull),
         .port_EF_masked     (EmptyFull_masked),
-        .addr_is_IO         (addr_is_IO_raw),
+        .addr_is_IO         (addr_is_IO_raw)
     );
 
     reg [ADDR_WIDTH-1:0] addr_stage_2 = 0;

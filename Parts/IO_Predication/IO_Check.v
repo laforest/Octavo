@@ -39,7 +39,7 @@ module IO_Check
         .ADDR_WIDTH         (ADDR_WIDTH),
         .INPUT_COUNT        (PORT_COUNT),
         .INPUT_BASE_ADDR    (PORT_BASE_ADDR),
-        .INPUT_ADDR_WIDTH   (PORT_ADDR_WIDTH),
+        .INPUT_ADDR_WIDTH   (PORT_ADDR_WIDTH)
     )
     EF_Select
     (
@@ -64,7 +64,7 @@ module IO_Check
     #(
         .ADDR_WIDTH     (ADDR_WIDTH),
         .ADDR_BASE      (PORT_BASE_ADDR),
-        .ADDR_BOUND     (PORT_BOUND_ADDR), 
+        .ADDR_BOUND     (PORT_BOUND_ADDR) 
     )
     IO_Detect
     (
@@ -101,7 +101,7 @@ module IO_Check
     #(
         .WORD_WIDTH     (1),
         .ADDR_WIDTH     (2),
-        .INPUT_COUNT    (4),
+        .INPUT_COUNT    (4)
     )
     IO_EF_Mask
     (

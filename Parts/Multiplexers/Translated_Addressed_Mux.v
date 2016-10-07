@@ -18,14 +18,14 @@ module Translated_Addressed_Mux
 );
     wire [INPUT_ADDR_WIDTH-1:0]  addr_translated;
 
-    Address_Translator 
+    Address_Range_Translator 
     #(
         .ADDR_COUNT             (INPUT_COUNT),
         .ADDR_BASE              (INPUT_BASE_ADDR),
         .ADDR_WIDTH             (INPUT_ADDR_WIDTH),
         .REGISTERED             (`FALSE)
     )
-    Address_Translator
+    ART
     (
         .clock                  (1'b0),
         .raw_address            (addr[INPUT_ADDR_WIDTH-1:0]),
@@ -38,7 +38,7 @@ module Translated_Addressed_Mux
         .ADDR_WIDTH     (INPUT_ADDR_WIDTH),
         .INPUT_COUNT    (INPUT_COUNT)
     )
-    Addressed_Mux
+    AM
     (
         .addr           (addr_translated),
         .in             (in),

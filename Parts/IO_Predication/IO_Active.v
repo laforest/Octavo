@@ -21,7 +21,7 @@ module IO_Active
 
     wire [PORT_ADDR_WIDTH-1:0] addr_translated;
 
-    Address_Translator 
+    Address_Range_Translator 
     #(
         .ADDR_COUNT             (PORT_COUNT),
         .ADDR_BASE              (PORT_BASE_ADDR),
@@ -42,7 +42,7 @@ module IO_Active
     Binary_to_N_Decoder
     #(
         .BINARY_WIDTH   (PORT_ADDR_WIDTH),
-        .OUTPUT_WIDTH   (PORT_COUNT),
+        .OUTPUT_WIDTH   (PORT_COUNT)
     )
     Port_Active
     (

@@ -1,5 +1,6 @@
 
 // An array of registers, 
+// each with a new data input,
 // each with an enable bit to update its output, 
 // else they stay constant.
 

@@ -39,20 +39,20 @@ module Datapath
     input   wire    [WRITE_ADDR_WIDTH-1:0]              write_addr_A_offset,
     input   wire    [WRITE_ADDR_WIDTH-1:0]              write_addr_B_offset,
     
-    input   wire    [PORT_COUNT-1:0]                    io_read_EF_A,
-    input   wire    [PORT_COUNT-1:0]                    io_read_EF_B,
-    input   wire    [PORT_COUNT-1:0]                    io_write_EF_A,
-    input   wire    [PORT_COUNT-1:0]                    io_write_EF_B,
+    input   wire    [IO_PORT_COUNT-1:0]                 io_read_EF_A,
+    input   wire    [IO_PORT_COUNT-1:0]                 io_read_EF_B,
+    input   wire    [IO_PORT_COUNT-1:0]                 io_write_EF_A,
+    input   wire    [IO_PORT_COUNT-1:0]                 io_write_EF_B,
 
-    input   wire    [(PORT_COUNT*WORD_WIDTH)-1:0]       io_read_data_A,
-    input   wire    [(PORT_COUNT*WORD_WIDTH)-1:0]       io_read_data_B,
-    output  wire    [(PORT_COUNT*WORD_WIDTH)-1:0]       io_write_data_A,
-    output  wire    [(PORT_COUNT*WORD_WIDTH)-1:0]       io_write_data_B,
+    input   wire    [(IO_PORT_COUNT*WORD_WIDTH)-1:0]    io_read_data_A,
+    input   wire    [(IO_PORT_COUNT*WORD_WIDTH)-1:0]    io_read_data_B,
+    output  wire    [(IO_PORT_COUNT*WORD_WIDTH)-1:0]    io_write_data_A,
+    output  wire    [(IO_PORT_COUNT*WORD_WIDTH)-1:0]    io_write_data_B,
 
-    output  wire    [PORT_COUNT-1:0]                    io_rden_A,
-    output  wire    [PORT_COUNT-1:0]                    io_rden_B,
-    output  wire    [PORT_COUNT-1:0]                    io_wren_A,
-    output  wire    [PORT_COUNT-1:0]                    io_wren_B,
+    output  wire    [IO_PORT_COUNT-1:0]                 io_rden_A,
+    output  wire    [IO_PORT_COUNT-1:0]                 io_rden_B,
+    output  wire    [IO_PORT_COUNT-1:0]                 io_wren_A,
+    output  wire    [IO_PORT_COUNT-1:0]                 io_wren_B,
 
     // ALU outputs
     output  wire    [WORD_WIDTH-1:0]                    Ra,
@@ -295,7 +295,7 @@ module Datapath
     Delay_Line 
     #(
         .DEPTH  (PIPE_DEPTH_RA_TO_RS), 
-        .WIDTH  (WORD_WIDTH)
+        .WIDTH  (WRITE_ADDR_WIDTH)
     ) 
     DL_write_addr_RS
     (
@@ -315,16 +315,24 @@ module Datapath
 // --------------------------------------------------------------------
 // Generate R word-masks fed back to ALU
 
-    reg R_is_zero = 0;
-    reg R_is_neg  = 0;
+    wire R_is_zero;
+    wire R_is_neg;
+
+    R_Flags
+    #(
+        .WORD_WIDTH     (WORD_WIDTH)
+    )
+    RF
+    (
+        .R              (R),
+        .R_zero         (R_is_zero),
+        .R_negative     (R_is_neg)
+    );
 
     always @(*) begin
-        R_is_zero   = (R == 0);
-        R_zero      = {WORD_WIDTH{R_is_zero}};
-        R_is_neg    = (R[WORD_WIDTH-1] == 1); // MSB is sign bit
-        R_negative  = {WORD_WIDTH{R_is_neg}};
+        R_zero      <= {WORD_WIDTH{R_is_zero}};
+        R_negative  <= {WORD_WIDTH{R_is_neg}};
     end
-
 
 endmodule
 

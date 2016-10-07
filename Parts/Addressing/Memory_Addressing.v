@@ -33,7 +33,7 @@ module Memory_Addressing
     )
     Read
     (
-        .enable     (1),
+        .enable     (1'b1),
         .addr       (read_addr),
         .hit        (read_enable)
     );
@@ -48,7 +48,7 @@ module Memory_Addressing
     )
     Write
     (
-        .enable     (1),
+        .enable     (1'b1),
         .addr       (write_addr),
         .hit        (write_enable)
     );
