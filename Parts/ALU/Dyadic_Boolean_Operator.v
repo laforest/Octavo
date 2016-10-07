@@ -15,8 +15,6 @@ module Dyadic_Boolean_Operator
     output  wire    [WORD_WIDTH-1:0]            o
 );
 
-    `include "clog2_function.vh"
-
     // One mux per bit, where the inputs select the op bits.
 
     generate
@@ -25,7 +23,7 @@ module Dyadic_Boolean_Operator
             Addressed_Mux
             #(
                 .WORD_WIDTH     (1),
-                .ADDR_WIDTH     (clog2(`DYADIC_CTRL_WIDTH)),
+                .ADDR_WIDTH     (`DYADIC_CTRL_ADDR_WIDTH),
                 .INPUT_COUNT    (`DYADIC_CTRL_WIDTH)
             )
             Operator
