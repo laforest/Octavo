@@ -33,6 +33,7 @@ module Datapath
     input   wire    [WRITE_ADDR_WIDTH-1:0]              write_addr_D,
 
     // From the Address Offset Module (AOM), and drive the Memory
+    // May be annulled by I/O Predication
     input   wire    [READ_ADDR_WIDTH-1:0]               read_addr_A_offset,
     input   wire    [READ_ADDR_WIDTH-1:0]               read_addr_B_offset,
     input   wire    [WRITE_ADDR_WIDTH-1:0]              write_addr_A_offset,
@@ -120,6 +121,34 @@ module Datapath
     );
 
 // --------------------------------------------------------------------
+// If IO_ready not set        (instruction was annulled), 
+// or if branch_cancel is set (instruction was cancelled)
+// force all Memory addresses to zero, which will disable their reads/writes
+// and make the current instruction, regardless of operation, into a no-op.
+
+    wire    [READ_ADDR_WIDTH-1:0]   read_addr_A_annulled;
+    wire    [READ_ADDR_WIDTH-1:0]   read_addr_B_annulled;
+    wire    [WRITE_ADDR_WIDTH-1:0]  write_addr_A_annulled;
+    wire    [WRITE_ADDR_WIDTH-1:0]  write_addr_B_annulled;
+
+    reg                             make_noop = 0;
+
+    always @(*) begin
+        make_noop <= (IO_ready == 0) | (branch_cancel == 1);
+    end
+
+    Annuller
+    #(
+        .WORD_WIDTH (((WRITE_ADDR_WIDTH*2) + (READ_ADDR_WIDTH*2)))
+    )
+    Memory_addresses
+    (
+        .annul      ((make_noop == 1)),
+        .in         ({write_addr_B_offset,   write_addr_A_offset,   read_addr_B_offset,   read_addr_A_offset}),
+        .out        ({write_addr_B_annulled, write_addr_A_annulled, read_addr_B_annulled, read_addr_A_annulled})
+    );
+
+// --------------------------------------------------------------------
 
     localparam PIPE_DEPTH_MEMORY_READ  = 2;
     localparam PIPE_DEPTH_MEMORY_WRITE = 2;
@@ -146,8 +175,8 @@ module Datapath
     (
         .clock                  (clock),
 
-        .read_addr_A            (read_addr_A_offset),
-        .read_addr_B            (read_addr_B_offset),
+        .read_addr_A            (read_addr_A_annulled),
+        .read_addr_B            (read_addr_B_annulled),
         .write_addr_A           (write_addr_Ra),
         .write_addr_B           (write_addr_Rb),
         
@@ -233,8 +262,8 @@ module Datapath
     DL_write_addr
     (
         .clock  (clock),
-        .in     ({write_addr_B_offset, write_addr_A_offset}),
-        .out    ({write_addr_Rb,       write_addr_Ra})
+        .in     ({write_addr_B_annulled, write_addr_A_annulled}),
+        .out    ({write_addr_Rb,         write_addr_Ra})
     );
 
 // --------------------------------------------------------------------
