@@ -1,0 +1,57 @@
+#! /bin/bash
+
+INSTALL_BASE="/home/laforest/Octavo/Octavo"
+
+TOP_LEVEL_MODULE="Datapath_test_bench"
+TESTBENCH="./${TOP_LEVEL_MODULE}.v"
+
+LPM_LIBRARY="$QUARTUS_BASE/quartus/eda/sim_lib/220model.v"
+ALT_LIBRARY="$QUARTUS_BASE/quartus/eda/sim_lib/altera_mf.v"
+
+SIM_DEFS="$INSTALL_BASE/Parts/SimSynth/simulation_defines.vh"
+
+SOURCES="./no_init_file.mem \
+         $INSTALL_BASE/Parts/Misc/Global_Defines.vh \
+         $INSTALL_BASE/Parts/Misc/Inverter.v \
+         $INSTALL_BASE/Parts/Misc/Annuller.v \
+         $INSTALL_BASE/Parts/Misc/Register_Array.v \
+         $INSTALL_BASE/Parts/Misc/Write_Address_Split.v \
+         $INSTALL_BASE/Parts/Multithreading/Delay_Line.v \
+         $INSTALL_BASE/Parts/Addressing/Address_Range_Translator.v \
+         $INSTALL_BASE/Parts/Addressing/Address_Range_Decoder_Static.v \
+         $INSTALL_BASE/Parts/Addressing/Binary_to_N_Decoder.v \
+         $INSTALL_BASE/Parts/Addressing/Memory_Addressing.v \
+         $INSTALL_BASE/Parts/Multiplexers/Addressed_Mux.v \
+         $INSTALL_BASE/Parts/Multiplexers/Translated_Addressed_Mux.v \
+         $INSTALL_BASE/Parts/Multiplexers/Bitwise_2to1_Mux.v \
+         $INSTALL_BASE/Parts/ALU/Dyadic_Boolean_Operations.vh \
+         $INSTALL_BASE/Parts/ALU/Dyadic_Boolean_Operator.v \
+         $INSTALL_BASE/Parts/ALU/AddSub_Ripple_Carry_NoCarry.v \
+         $INSTALL_BASE/Parts/ALU/R_Flags.v \
+         $INSTALL_BASE/Parts/ALU/Carryin_Calculator.v \
+         $INSTALL_BASE/Parts/ALU/Triadic_ALU_Operations.vh \
+         $INSTALL_BASE/Parts/ALU/Triadic_ALU.v \
+         $INSTALL_BASE/Parts/IO_Predication/IO_Active.v \
+         $INSTALL_BASE/Parts/IO_Predication/IO_All_Ready.v \
+         $INSTALL_BASE/Parts/IO_Predication/IO_Check.v \
+         $INSTALL_BASE/Parts/IO_Predication/IO_Read_Predication.v \
+         $INSTALL_BASE/Parts/IO_Predication/IO_Write_Predication.v \
+         $INSTALL_BASE/Parts/Memory/RAM_SDP_NEW.v \
+         $INSTALL_BASE/Parts/Memory/Memory.v \
+         $INSTALL_BASE/Parts/Datapath/Memory_IO_Predication.v \
+         $INSTALL_BASE/Parts/Datapath/Datapath_IO_Predication.v \
+         $INSTALL_BASE/Parts/Datapath/Datapath_Memory.v \
+         $INSTALL_BASE/Parts/Datapath/Datapath.v
+"
+
+VLIB="work"
+
+VSIM_ACTIONS="vcd file $TOP_LEVEL_MODULE.vcd ; vcd add -r /* ; run -all ; quit"
+
+rm $TOP_LEVEL_MODULE.wlf $TOP_LEVEL_MODULE.vcd
+vlib $VLIB 2>&1 > LOG
+vlog -mfcu -incr -lint $LPM_LIBRARY $ALT_LIBRARY $SOURCES $SIM_DEFS $TESTBENCH 2>&1 >> LOG
+vsim -voptargs="+acc" -c -do "$VSIM_ACTIONS" $TOP_LEVEL_MODULE 2>&1 >> LOG
+vcd2wlf $TOP_LEVEL_MODULE.vcd $TOP_LEVEL_MODULE.wlf 2>&1 >> LOG
+rm vsim.wlf
+
