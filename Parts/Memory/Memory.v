@@ -32,12 +32,11 @@ module Memory
 )
 (
     input   wire                                        clock,
-    input   wire                                        IO_ready,
 
     input   wire                                        read_enable,
     input   wire    [ADDR_WIDTH-1:0]                    read_addr,
     input   wire                                        read_addr_is_IO,
-    output  wire    [WORD_WIDTH-1:0]                    read_data,
+    output  reg     [WORD_WIDTH-1:0]                    read_data,
     input   wire    [(WORD_WIDTH*IO_PORT_COUNT)-1:0]    io_read_data,   // io_rden generated externally, see notes above
 
     input   wire                                        write_enable,
@@ -57,7 +56,8 @@ module Memory
 // -----------------------------------------------------------
 
     initial begin
-        io_wren = 0;
+        read_data = 0;
+        io_wren   = 0;
     end
 
 // -----------------------------------------------------------
@@ -121,7 +121,6 @@ module Memory
 
     // Disable RAM read enable if reading from IO port or from address zero
     // or if reads are not enabled in general.
-    // See later for logic to clear read data to zero.
 
     always @(*) begin
         mem_rden <= (read_addr_is_IO == 0) & (read_addr != 0) & (read_enable == 1);
@@ -130,13 +129,11 @@ module Memory
 // -----------------------------------------------------------
 
     reg     read_addr_is_IO_stage2  = 0;
-    reg     IO_ready_stage2         = 0;
-    reg     mem_rden_stage2         = 0;
+    reg     read_addr_stage2        = 0;
 
     always @(posedge clock) begin
         read_addr_is_IO_stage2  <= read_addr_is_IO;
-        IO_ready_stage2         <= IO_ready;
-        mem_rden_stage2         <= mem_rden;
+        read_addr_stage2        <= read_addr;
     end
 
 
@@ -144,31 +141,20 @@ module Memory
 // -----------------------------------------------------------
 // Read Stage 2
 
-    // If IO_ready is zero, output zero always, 
-    // else output IO  read data if read_addr_is_IO is set,
-    // else output RAM read data
+    // Select I/O read data or Memory read data
+    // See later for logic to clear read data to zero.
 
-    wire    [WORD_WIDTH-1:0]    read_data_raw;
+    reg [WORD_WIDTH-1:0] read_data_raw = 0;
 
-    Addressed_Mux
-    #(
-        .WORD_WIDTH     (WORD_WIDTH),
-        .ADDR_WIDTH     (ADDR_WIDTH),
-        .INPUT_COUNT    (2)
-    )
-    Read_Select
-    (
-        addr            ({IO_ready_stage2,read_addr_is_IO_stage2}),  // {MSB,...,LSB}  
-        in              ({io_read_data_selected,mem_read_data,ZERO,ZERO}),
-        out             (read_data_raw)
-    );
+    always @(*) begin
+        read_data_raw <= (read_addr_is_IO_stage2 == 1) ? io_read_data_selected : mem_read_data;
+    end
 
 // -----------------------------------------------------------
 
     // Special case logic: clear read data to zero if reading address zero.
     // This works because no IO port is to be mapped at address 0.
-    // Doing it this way is clearer than expanding the Read_Select mux and
-    // does not depend on the read enable output behaviour of the particular RAM used.
+    // Does not depend on the read enable output behaviour of the particular RAM used.
 
     wire [WORD_WIDTH-1:0] read_data_annulled;
 
@@ -178,7 +164,7 @@ module Memory
     )
     Read_Data_Clear
     (
-        .annul      ((mem_rden_stage2 == 0)),
+        .annul      ((read_addr_stage2 == 0)),
         .in         (read_data_raw),
         .out        (read_data_annulled)
     );

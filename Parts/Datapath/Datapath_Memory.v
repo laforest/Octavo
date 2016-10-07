@@ -129,7 +129,6 @@ module Datapath_Memory
     M_A
     (
         .clock                  (clock),
-        .IO_ready               (IO_ready),
 
         .read_enable            (read_enable_A),
         .read_addr              (read_addr_A_local),
@@ -161,7 +160,6 @@ module Datapath_Memory
     M_B
     (
         .clock                  (clock),
-        .IO_ready               (IO_ready),
 
         .read_enable            (read_enable_B),
         .read_addr              (read_addr_B_local),
