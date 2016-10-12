@@ -70,14 +70,14 @@ module Datapath_test_bench
         split                   = control[`TRIADIC_CTRL_WIDTH-1];
         branch_cancel           = 0;
 
-        read_addr_A             = 10'd1;
-        read_addr_B             = 10'd2;
-        write_addr_D            = 12'd1027;
+        read_addr_A             = 10'd2;
+        read_addr_B             = 10'd3;
+        write_addr_D            = 12'd4;
 
-        read_addr_A_offset      = 0;
-        read_addr_B_offset      = 0;
-        write_addr_A_offset     = 0;
-        write_addr_B_offset     = 0;
+        read_addr_A_offset      = 10'd2;
+        read_addr_B_offset      = 10'd3;
+        write_addr_A_offset     = 12'd4;
+        write_addr_B_offset     = 12'd4;
         
         // Always ready at start
         io_read_EF_A            = -1;
