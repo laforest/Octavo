@@ -23,7 +23,7 @@ module Translated_Addressed_Mux
         .ADDR_COUNT             (INPUT_COUNT),
         .ADDR_BASE              (INPUT_BASE_ADDR),
         .ADDR_WIDTH             (INPUT_ADDR_WIDTH),
-        .REGISTERED             (`FALSE)
+        .REGISTERED             (0)
     )
     ART
     (

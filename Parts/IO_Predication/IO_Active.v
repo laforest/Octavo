@@ -26,7 +26,7 @@ module IO_Active
         .ADDR_COUNT             (PORT_COUNT),
         .ADDR_BASE              (PORT_BASE_ADDR),
         .ADDR_WIDTH             (PORT_ADDR_WIDTH),
-        .REGISTERED             (`FALSE)
+        .REGISTERED             (0)
     )
     IO_Port
     (
