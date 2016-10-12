@@ -35,16 +35,12 @@ module Address_Range_Translator
     // slowly. It appears the translation table trick only works when
     // outputting straight into a RAM.
 
-    reg     [ADDR_WIDTH-1:0]    cooked_address;
+    reg     [ADDR_WIDTH-1:0]    cooked_address = 0;
 
     generate
         if (REGISTERED == 1'b1) begin
             always @(posedge clock) begin
                 cooked_address <= raw_address;
-            end
-
-            initial begin
-                cooked_address = 0;
             end
         end
         else begin
