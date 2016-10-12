@@ -40,13 +40,13 @@ module Address_Range_Decoder_Static
 
 // --------------------------------------------------------------------
 
-    reg     [ADDR_WIDTH-1:0]    i;
+    integer                     i;
     reg     [ADDR_COUNT-1:0]    per_addr_match = 0;
 
     // Check each address in base/bound range for match
     always @(*) begin
         for(i = ADDR_BASE; i <= ADDR_BOUND; i = i + 1) begin : addr_decode
-            per_addr_match[i-ADDR_BASE] <= (addr == i);
+            per_addr_match[i-ADDR_BASE] <= (addr == i[ADDR_WIDTH-1:0]);
         end
     end
 
