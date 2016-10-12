@@ -24,7 +24,7 @@ module Triadic_ALU_test_bench
     
 
     initial begin
-        $dumpfile("Triadic_ALU_test_bench.vcd");
+        //$dumpfile("Triadic_ALU_test_bench.vcd");
         //$dumpvars(0);
         cycle   = 0;
         clock   = 0;
