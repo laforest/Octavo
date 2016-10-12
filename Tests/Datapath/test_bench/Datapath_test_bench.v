@@ -6,8 +6,8 @@ module Datapath_test_bench
     parameter   WRITE_ADDR_WIDTH        = 12,
     parameter   MEM_DEPTH               = 1024,
     parameter   MEM_RAMSTYLE            = "M10K",
-    parameter   MEM_INIT_FILE_A         = "no_init_file.mem",
-    parameter   MEM_INIT_FILE_B         = "no_init_file.mem",
+    parameter   MEM_INIT_FILE_A         = "./empty.mem",
+    parameter   MEM_INIT_FILE_B         = "./empty.mem",
     parameter   MEM_WRITE_BASE_ADDR_B   = 1024,
     parameter   ALU_REGISTER_S_ADDR     = 4,
     parameter   IO_PORT_COUNT           = 3,
@@ -87,7 +87,7 @@ module Datapath_test_bench
 
         io_read_data_A          = {36'd3,36'd2,36'd1};
         io_read_data_B          = {36'd6,36'd5,36'd4};
-        `DELAY_CLOCK_CYCLES(32) $finish;
+        `DELAY_CLOCK_CYCLES(128) $finish;
     end
 
     always @(*) begin

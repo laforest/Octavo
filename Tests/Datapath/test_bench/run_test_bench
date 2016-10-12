@@ -10,8 +10,7 @@ ALT_LIBRARY="$QUARTUS_BASE/quartus/eda/sim_lib/altera_mf.v"
 
 SIM_DEFS="$INSTALL_BASE/Parts/SimSynth/simulation_defines.vh"
 
-SOURCES="./no_init_file.mem \
-         $INSTALL_BASE/Parts/Misc/Global_Defines.vh \
+SOURCES="$INSTALL_BASE/Parts/Misc/Global_Defines.vh \
          $INSTALL_BASE/Parts/Misc/Inverter.v \
          $INSTALL_BASE/Parts/Misc/Annuller.v \
          $INSTALL_BASE/Parts/Misc/Register_Array.v \
