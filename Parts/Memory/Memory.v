@@ -111,7 +111,7 @@ module Memory
         .out                (io_read_data_selected_raw)
     );
 
-    reg io_read_data_selected = 0;
+    reg [WORD_WIDTH-1:0] io_read_data_selected = 0;
 
     always @(posedge clock) begin
         io_read_data_selected <= io_read_data_selected_raw;
@@ -128,8 +128,8 @@ module Memory
 
 // -----------------------------------------------------------
 
-    reg     read_addr_is_IO_stage2  = 0;
-    reg     read_addr_stage2        = 0;
+    reg                         read_addr_is_IO_stage2  = 0;
+    reg     [ADDR_WIDTH-1:0]    read_addr_stage2        = 0;
 
     always @(posedge clock) begin
         read_addr_is_IO_stage2  <= read_addr_is_IO;
