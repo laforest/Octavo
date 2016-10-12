@@ -18,13 +18,14 @@ module IO_Check
     input   wire                        enable,
     input   wire    [ADDR_WIDTH-1:0]    addr,
     input   wire    [PORT_COUNT-1:0]    port_EF,
-    output  wire                        port_EF_masked,
+    output  reg                         port_EF_masked,
     output  reg                         addr_is_IO
 );
 // --------------------------------------------------------------------
 
     initial begin
-        addr_is_IO = 0;
+        port_EF_masked = 0;
+        addr_is_IO     = 0;
     end
 
 // --------------------------------------------------------------------
@@ -93,22 +94,9 @@ module IO_Check
     // address (EMPTY (0) for writes, FULL (1) for reads), since memory is
     // always "ready".
 
-    // If we are not enabled, always return NOT_READY.
-
-    localparam NOT_READY = ~READY_STATE;
-
-    Addressed_Mux
-    #(
-        .WORD_WIDTH     (1),
-        .ADDR_WIDTH     (2),
-        .INPUT_COUNT    (4)
-    )
-    IO_EF_Mask
-    (
-        .addr           ({enable_stage2,addr_is_IO}),
-        .in             ({port_EF_selected, READY_STATE, NOT_READY, NOT_READY}), 
-        .out            (port_EF_masked)
-    );
+    always @(*) begin
+        port_EF_masked <= (addr_is_IO == 1) ? port_EF_selected : READY_STATE;
+    end
 
 endmodule
 
