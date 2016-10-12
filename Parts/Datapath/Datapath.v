@@ -224,9 +224,9 @@ module Datapath
     localparam PIPE_DEPTH_ALU = 4;
 
     reg     [WORD_WIDTH-1:0]    R           = 0;
-    reg                         R_zero      = 0;
-    reg                         R_negative  = 0;
     reg     [WORD_WIDTH-1:0]    S           = 0;
+    wire                        R_zero;
+    wire                        R_negative;
 
     Triadic_ALU
     #(
@@ -313,10 +313,7 @@ module Datapath
     end
 
 // --------------------------------------------------------------------
-// Generate R word-masks fed back to ALU
-
-    wire R_is_zero;
-    wire R_is_neg;
+// Generate R flags fed back to ALU
 
     R_Flags
     #(
@@ -325,14 +322,9 @@ module Datapath
     RF
     (
         .R              (R),
-        .R_zero         (R_is_zero),
-        .R_negative     (R_is_neg)
+        .R_zero         (R_zero),
+        .R_negative     (R_negative)
     );
-
-    always @(*) begin
-        R_zero      <= {WORD_WIDTH{R_is_zero}};
-        R_negative  <= {WORD_WIDTH{R_is_neg}};
-    end
 
 endmodule
 
