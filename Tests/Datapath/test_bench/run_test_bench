@@ -45,7 +45,7 @@ SOURCES="$INSTALL_BASE/Parts/Misc/Global_Defines.vh \
 
 VLIB="work"
 
-VSIM_ACTIONS="vcd file $TOP_LEVEL_MODULE.vcd ; vcd add -r /* ; run -all ; quit"
+VSIM_ACTIONS="vcd file $TOP_LEVEL_MODULE.vcd ; vcd add -r /* ; run -all"
 
 rm $TOP_LEVEL_MODULE.wlf $TOP_LEVEL_MODULE.vcd
 vlib $VLIB 2>&1 > LOG
