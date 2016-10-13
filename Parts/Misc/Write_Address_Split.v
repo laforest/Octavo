@@ -7,6 +7,7 @@
 module Write_Address_Split
 #(
     parameter   WRITE_ADDR_WIDTH            = 0,
+    parameter   WRITE_BASE_ADDR             = 0,
     parameter   LOWER_UPPER_SPLIT           = 0  // 0/1 lower/upper half of D
 )
 (
@@ -19,8 +20,8 @@ module Write_Address_Split
     // Assumes an even number of write address bits.
     localparam WRITE_ADDR_WIDTH_SPLIT = WRITE_ADDR_WIDTH / 2;
 
-    // To pad the upper bits of split memory write addresses.
-    localparam WRITE_ADDR_ZERO_SPLIT = {WRITE_ADDR_WIDTH_SPLIT{1'b0}};
+    // Fill upper bits of split write addresses with write base address upper bits.
+    localparam WRITE_ADDR_OFFSET_SPLIT = WRITE_BASE_ADDR[WRITE_ADDR_WIDTH-1:WRITE_ADDR_WIDTH_SPLIT];
 
     initial begin
         write_addr_translated = 0;
@@ -40,7 +41,7 @@ module Write_Address_Split
         write_addr_lower_half = write_addr[WRITE_ADDR_WIDTH_SPLIT-1:0];
         write_addr_upper_half = write_addr[WRITE_ADDR_WIDTH-1:WRITE_ADDR_WIDTH_SPLIT];
         write_addr_half       = (LOWER_UPPER_SPLIT == 0) ? write_addr_lower_half : write_addr_upper_half;
-        write_addr_split      = {WRITE_ADDR_ZERO_SPLIT,write_addr_half};
+        write_addr_split      = {WRITE_ADDR_OFFSET_SPLIT,write_addr_half};
         write_addr_translated = (split == 1) ? write_addr_split : write_addr;
     end
 

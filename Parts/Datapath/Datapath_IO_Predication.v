@@ -50,6 +50,7 @@ module Datapath_IO_Predication
     Write_Address_Split
     #(
         .WRITE_ADDR_WIDTH       (WRITE_ADDR_WIDTH), 
+        .WRITE_BASE_ADDR        (MEM_WRITE_BASE_ADDR_A),
         .LOWER_UPPER_SPLIT      (1) // Memory A gets upper half of split D
     )
     WAS_A
@@ -85,6 +86,7 @@ module Datapath_IO_Predication
     Write_Address_Split
     #(
         .WRITE_ADDR_WIDTH       (WRITE_ADDR_WIDTH), 
+        .WRITE_BASE_ADDR        (MEM_WRITE_BASE_ADDR_B),
         .LOWER_UPPER_SPLIT      (0) // Memory B gets lower half of split D
     )
     WAS_B
