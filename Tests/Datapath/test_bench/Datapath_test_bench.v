@@ -79,22 +79,27 @@ module Datapath_test_bench
 
         read_addr_A             = 10'd2;
         read_addr_B             = 10'd3;
-        write_addr_D            = 12'd1026;
+        write_addr_D            = {6'd3,6'd1};
 
         read_addr_A_offset      = 10'd2;
         read_addr_B_offset      = 10'd3;
-        write_addr_A_offset     = 12'd1026;
-        write_addr_B_offset     = 12'd1026;
+        write_addr_A_offset     = 12'd3;
+        write_addr_B_offset     = 12'd1025;
         
-        // Always ready at start
-        io_read_EF_A            = -1;
-        io_read_EF_B            = -1;
-        io_write_EF_A           = 0;
-        io_write_EF_B           = 0;
+        // All not ready at start
+        io_read_EF_A            = 0;
+        io_read_EF_B            = 0;
+        io_write_EF_A           = -1;
+        io_write_EF_B           = -1;
 
         io_read_data_A          = {36'd3,36'd2,36'd1};
         io_read_data_B          = {36'd6,36'd5,36'd4};
         `DELAY_CLOCK_CYCLES(128) $finish;
+    end
+
+    // Update on the fly
+    always @(*) begin
+        split = control[`TRIADIC_CTRL_WIDTH-1];
     end
 
     always @(*) begin
@@ -108,7 +113,13 @@ module Datapath_test_bench
     always @(posedge clock) begin
         // control <= `ALU_NOP;
         //`DELAY_CLOCK_CYCLES(1);
-        control <= `ALU_A_PLUS_B;
+        control <= `ALU_DMOV;
+        `DELAY_CLOCK_CYCLES(20);
+        // Enable all ports to start computation
+        io_read_EF_A            = -1;
+        io_read_EF_B            = -1;
+        io_write_EF_A           = 0;
+        io_write_EF_B           = 0;
         `DELAY_CLOCK_CYCLES(1);
         // control <= `ALU_DMOV;
         // `DELAY_CLOCK_CYCLES(1);
