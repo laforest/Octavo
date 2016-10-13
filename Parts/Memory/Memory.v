@@ -4,11 +4,11 @@
 
 // I/O port addresses are relative to local memory location zero.
 
-// Special behaviour on address zero: returns zero on reads, read and write
-// enables are disabled to save power and enforce behaviour.
+// Special behaviour when read/write enable not set: 
+// returns zero on reads, and read and write
+// enables are disabled to save BRAM power and enforce behaviour.
 
 // Same for when addressing an I/O port: RAM is disabled to save power.
-// Never map IO ports to address zero.
 
 // If you do not want write-forwarding, but keep the high speed, at the price
 // of indeterminate behaviour on overlapping read/writes, use "no_rw_check" as
@@ -119,21 +119,21 @@ module Memory
 
 // -----------------------------------------------------------
 
-    // Disable RAM read enable if reading from IO port or from address zero
+    // Disable RAM read enable if reading from IO port 
     // or if reads are not enabled in general.
 
     always @(*) begin
-        mem_rden <= (read_addr_is_IO == 0) & (read_addr != 0) & (read_enable == 1);
+        mem_rden <= (read_addr_is_IO == 0) & (read_enable == 1);
     end
 
 // -----------------------------------------------------------
 
+    reg                         read_enable_stage2         = 0;
     reg                         read_addr_is_IO_stage2  = 0;
-    reg     [ADDR_WIDTH-1:0]    read_addr_stage2        = 0;
 
     always @(posedge clock) begin
+        read_enable_stage2      <= read_enable; 
         read_addr_is_IO_stage2  <= read_addr_is_IO;
-        read_addr_stage2        <= read_addr;
     end
 
 
@@ -152,8 +152,7 @@ module Memory
 
 // -----------------------------------------------------------
 
-    // Special case logic: clear read data to zero if reading address zero.
-    // This works because no IO port is to be mapped at address 0.
+    // Special case logic: clear read data to zero if read enable not set.
     // Does not depend on the read enable output behaviour of the particular RAM used.
 
     wire [WORD_WIDTH-1:0] read_data_annulled;
@@ -164,7 +163,7 @@ module Memory
     )
     Read_Data_Clear
     (
-        .annul      ((read_addr_stage2 == 0)),
+        .annul      ((read_enable_stage2 == 0)),
         .in         (read_data_raw),
         .out        (read_data_annulled)
     );
@@ -221,12 +220,11 @@ module Memory
 // -----------------------------------------------------------
 // Write Stage 2
 
-    // Disable RAM write enable if writing to IO port or to address zero
+    // Disable RAM write enable if writing to IO port 
     // or if writes are not enabled in general.
-    // Note that no IO port is to be mapped at address 0.
 
     always @(*) begin
-        mem_wren_stage2 <= (write_addr_is_IO_stage2 == 0) & (write_addr_stage2 != 0) & (write_enable_stage2 == 1);
+        mem_wren_stage2 <= (write_addr_is_IO_stage2 == 0) & & (write_enable_stage2 == 1);
     end
 
 // -----------------------------------------------------------

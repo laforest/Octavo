@@ -7,8 +7,14 @@ module Datapath_IO_Predication
     parameter   READ_ADDR_WIDTH             = 0,
     parameter   WRITE_ADDR_WIDTH            = 0,
     parameter   MEM_ADDR_WIDTH              = 0,
-    parameter   MEM_DEPTH                   = 0,
+    parameter   MEM_READ_BASE_ADDR_A        = 0,
+    parameter   MEM_READ_BOUND_ADDR_A       = 0,
+    parameter   MEM_WRITE_BASE_ADDR_A       = 0,
+    parameter   MEM_WRITE_BOUND_ADDR_A      = 0,
+    parameter   MEM_READ_BASE_ADDR_B        = 0,
+    parameter   MEM_READ_BOUND_ADDR_B       = 0,
     parameter   MEM_WRITE_BASE_ADDR_B       = 0,
+    parameter   MEM_WRITE_BOUND_ADDR_B      = 0,
     parameter   PORT_COUNT                  = 0,
     parameter   PORT_BASE_ADDR              = 0,
     parameter   PORT_ADDR_WIDTH             = 0
@@ -57,10 +63,10 @@ module Datapath_IO_Predication
     #(
         .READ_ADDR_WIDTH        (READ_ADDR_WIDTH),
         .WRITE_ADDR_WIDTH       (WRITE_ADDR_WIDTH),
-        .MEM_READ_BASE_ADDR     (0),
-         // Memory A Write Base Address is always zero
-        .MEM_WRITE_BASE_ADDR    (0),
-        .MEM_DEPTH              (MEM_DEPTH)
+        .MEM_READ_BASE_ADDR     (MEM_READ_BASE_ADDR_A),
+        .MEM_READ_BOUND_ADDR    (MEM_READ_BOUND_ADDR_A),
+        .MEM_WRITE_BASE_ADDR    (MEM_WRITE_BASE_ADDR_A),
+        .MEM_WRITE_BOUND_ADDR   (MEM_WRITE_BOUND_ADDR_A)
     )
     MA_A
     (
@@ -92,9 +98,10 @@ module Datapath_IO_Predication
     #(
         .READ_ADDR_WIDTH        (READ_ADDR_WIDTH),
         .WRITE_ADDR_WIDTH       (WRITE_ADDR_WIDTH),
-        .MEM_READ_BASE_ADDR     (0),
+        .MEM_READ_BASE_ADDR     (MEM_READ_BASE_ADDR_B),
+        .MEM_READ_BOUND_ADDR    (MEM_READ_BOUND_ADDR_B),
         .MEM_WRITE_BASE_ADDR    (MEM_WRITE_BASE_ADDR_B),
-        .MEM_DEPTH              (MEM_DEPTH)
+        .MEM_WRITE_BOUND_ADDR   (MEM_WRITE_BOUND_ADDR_B)
     )
     MA_B
     (

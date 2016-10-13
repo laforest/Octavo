@@ -8,7 +8,14 @@ module Datapath_test_bench
     parameter   MEM_RAMSTYLE            = "M10K",
     parameter   MEM_INIT_FILE_A         = "./empty.mem",
     parameter   MEM_INIT_FILE_B         = "./empty.mem",
-    parameter   MEM_WRITE_BASE_ADDR_B   = 1024,
+    parameter   MEM_READ_BASE_ADDR_A    = 1,
+    parameter   MEM_READ_BOUND_ADDR_A   = 1023,
+    parameter   MEM_WRITE_BASE_ADDR_A   = 1,
+    parameter   MEM_WRITE_BOUND_ADDR_A  = 1023,
+    parameter   MEM_READ_BASE_ADDR_B    = 1,
+    parameter   MEM_READ_BOUND_ADDR_B   = 1023,
+    parameter   MEM_WRITE_BASE_ADDR_B   = 1025, // 1    + 1024
+    parameter   MEM_WRITE_BOUND_ADDR_B  = 2047, // 1023 + 1024
     parameter   ALU_REGISTER_S_ADDR     = 4,
     parameter   IO_PORT_COUNT           = 3,
     parameter   IO_PORT_BASE_ADDR       = 1,
@@ -72,12 +79,12 @@ module Datapath_test_bench
 
         read_addr_A             = 10'd2;
         read_addr_B             = 10'd3;
-        write_addr_D            = 12'd4;
+        write_addr_D            = 12'd1026;
 
         read_addr_A_offset      = 10'd2;
         read_addr_B_offset      = 10'd3;
-        write_addr_A_offset     = 12'd4;
-        write_addr_B_offset     = 12'd4;
+        write_addr_A_offset     = 12'd1026;
+        write_addr_B_offset     = 12'd1026;
         
         // Always ready at start
         io_read_EF_A            = -1;
@@ -114,11 +121,17 @@ module Datapath_test_bench
         .WORD_WIDTH             (WORD_WIDTH),
         .READ_ADDR_WIDTH        (READ_ADDR_WIDTH),
         .WRITE_ADDR_WIDTH       (WRITE_ADDR_WIDTH),
-        .MEM_DEPTH              (MEM_DEPTH),
         .MEM_RAMSTYLE           (MEM_RAMSTYLE),
         .MEM_INIT_FILE_A        (MEM_INIT_FILE_A),
         .MEM_INIT_FILE_B        (MEM_INIT_FILE_B),
+        .MEM_READ_BASE_ADDR_A   (MEM_READ_BASE_ADDR_A),
+        .MEM_READ_BOUND_ADDR_A  (MEM_READ_BOUND_ADDR_A),
+        .MEM_WRITE_BASE_ADDR_A  (MEM_WRITE_BASE_ADDR_A),
+        .MEM_WRITE_BOUND_ADDR_A (MEM_WRITE_BOUND_ADDR_A),
+        .MEM_READ_BASE_ADDR_B   (MEM_READ_BASE_ADDR_B),
+        .MEM_READ_BOUND_ADDR_B  (MEM_READ_BOUND_ADDR_B),
         .MEM_WRITE_BASE_ADDR_B  (MEM_WRITE_BASE_ADDR_B),
+        .MEM_WRITE_BOUND_ADDR_B (MEM_WRITE_BOUND_ADDR_B),
         .ALU_REGISTER_S_ADDR    (ALU_REGISTER_S_ADDR),
         .IO_PORT_COUNT          (IO_PORT_COUNT),
         .IO_PORT_BASE_ADDR      (IO_PORT_BASE_ADDR),

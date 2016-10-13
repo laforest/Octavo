@@ -3,18 +3,34 @@
 // Includes read/write address decoding
 // Any split address has already been dealt with before arriving here.
 
+// The read and write base/bound addresses define the depth of the memory (set
+// by the smaller of the two ranges), and any access outside of that range
+// will be disabled, even if the instantiated memory is larger due to Block
+// RAM size granularity.
+
+// It is assumed that bound >= base.
+
+// Do not map anything (e.g. I/O ports) outside of the range. It will not work.
+// This is actually a feature: it's how we implement the special zero location:
+// reads return zero, writes do nothing.
+
 module Datapath_Memory
 #(
     parameter   WORD_WIDTH                              = 0,
     parameter   READ_ADDR_WIDTH                         = 0,
     parameter   WRITE_ADDR_WIDTH                        = 0,
     parameter   MEM_ADDR_WIDTH                          = 0,
-    parameter   MEM_DEPTH                               = 0,
     parameter   MEM_RAMSTYLE                            = "",
     parameter   MEM_INIT_FILE_A                         = "",
     parameter   MEM_INIT_FILE_B                         = "",
-    // Memory A Write Base Address is always zero
+    parameter   MEM_READ_BASE_ADDR_A                    = 0,
+    parameter   MEM_READ_BOUND_ADDR_A                   = 0,
+    parameter   MEM_WRITE_BASE_ADDR_A                   = 0,
+    parameter   MEM_WRITE_BOUND_ADDR_A                  = 0,
+    parameter   MEM_READ_BASE_ADDR_B                    = 0,
+    parameter   MEM_READ_BOUND_ADDR_B                   = 0,
     parameter   MEM_WRITE_BASE_ADDR_B                   = 0,
+    parameter   MEM_WRITE_BOUND_ADDR_B                  = 0,
     parameter   IO_PORT_COUNT                           = 0,
     parameter   IO_PORT_BASE_ADDR                       = 0,
     parameter   IO_PORT_ADDR_WIDTH                      = 0
@@ -56,6 +72,19 @@ module Datapath_Memory
 // --------------------------------------------------------------------
 // --------------------------------------------------------------------
 
+    // Smaller of the read/write ranges sets the memory depth. 
+
+    localparam MEM_READ_DEPTH_A  = MEM_READ_BOUND_ADDR_A  - MEM_READ_BASE_ADDR_A  + 1;
+    localparam MEM_WRITE_DEPTH_A = MEM_WRITE_BOUND_ADDR_A - MEM_WRITE_BASE_ADDR_A + 1;
+    localparam MEM_DEPTH_A       = (MEM_READ_DEPTH_A <= MEM_WRITE_DEPTH_A) ? MEM_READ_DEPTH_A : MEM_WRITE_DEPTH_A;
+
+    localparam MEM_READ_DEPTH_B  = MEM_READ_BOUND_ADDR_B  - MEM_READ_BASE_ADDR_B  + 1;
+    localparam MEM_WRITE_DEPTH_B = MEM_WRITE_BOUND_ADDR_B - MEM_WRITE_BASE_ADDR_B + 1;
+    localparam MEM_DEPTH_B       = (MEM_READ_DEPTH_B <= MEM_WRITE_DEPTH_B) ? MEM_READ_DEPTH_B : MEM_WRITE_DEPTH_B;
+
+// --------------------------------------------------------------------
+// --------------------------------------------------------------------
+
     wire read_enable_A;
     wire write_enable_A;
 
@@ -63,10 +92,10 @@ module Datapath_Memory
     #(
         .READ_ADDR_WIDTH        (READ_ADDR_WIDTH),
         .WRITE_ADDR_WIDTH       (WRITE_ADDR_WIDTH),
-        .MEM_READ_BASE_ADDR     (0),
-        // Memory A Write Base Address is always zero
-        .MEM_WRITE_BASE_ADDR    (0),
-        .MEM_DEPTH              (MEM_DEPTH)
+        .MEM_READ_BASE_ADDR     (MEM_READ_BASE_ADDR_A),
+        .MEM_READ_BOUND_ADDR    (MEM_READ_BOUND_ADDR_A),
+        .MEM_WRITE_BASE_ADDR    (MEM_WRITE_BASE_ADDR_A),
+        .MEM_WRITE_BOUND_ADDR   (MEM_WRITE_BOUND_ADDR_A)
     )
     MA_A
     (
@@ -85,9 +114,10 @@ module Datapath_Memory
     #(
         .READ_ADDR_WIDTH        (READ_ADDR_WIDTH),
         .WRITE_ADDR_WIDTH       (WRITE_ADDR_WIDTH),
-        .MEM_READ_BASE_ADDR     (0),
+        .MEM_READ_BASE_ADDR     (MEM_READ_BASE_ADDR_B),
+        .MEM_READ_BOUND_ADDR    (MEM_READ_BOUND_ADDR_B),
         .MEM_WRITE_BASE_ADDR    (MEM_WRITE_BASE_ADDR_B),
-        .MEM_DEPTH              (MEM_DEPTH)
+        .MEM_WRITE_BOUND_ADDR   (MEM_WRITE_BOUND_ADDR_B)
     )
     MA_B
     (
@@ -125,7 +155,7 @@ module Datapath_Memory
     #(
         .WORD_WIDTH             (WORD_WIDTH), 
         .ADDR_WIDTH             (MEM_ADDR_WIDTH), 
-        .MEM_DEPTH              (MEM_DEPTH), 
+        .MEM_DEPTH              (MEM_DEPTH_A), 
         .MEM_RAMSTYLE           (MEM_RAMSTYLE), 
         .MEM_INIT_FILE          (MEM_INIT_FILE_A), 
         .IO_PORT_COUNT          (IO_PORT_COUNT), 
@@ -156,7 +186,7 @@ module Datapath_Memory
     #(
         .WORD_WIDTH             (WORD_WIDTH), 
         .ADDR_WIDTH             (MEM_ADDR_WIDTH), 
-        .MEM_DEPTH              (MEM_DEPTH), 
+        .MEM_DEPTH              (MEM_DEPTH_B), 
         .MEM_RAMSTYLE           (MEM_RAMSTYLE), 
         .MEM_INIT_FILE          (MEM_INIT_FILE_B), 
         .IO_PORT_COUNT          (IO_PORT_COUNT), 
