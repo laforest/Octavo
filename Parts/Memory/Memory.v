@@ -10,6 +10,10 @@
 
 // Same for when addressing an I/O port: RAM is disabled to save power.
 
+// See RAM_SDP.v for the meaning of the READ_NEW_DATA parameter.
+// Typically, you will want it enabled. (set to 1) as it enables
+// write-formwarding and higher speed.
+
 // If you do not want write-forwarding, but keep the high speed, at the price
 // of indeterminate behaviour on overlapping read/writes, use "no_rw_check" as
 // part of the RAMSTYLE (e.g.: "M10K, no_rw_check").
@@ -26,6 +30,7 @@ module Memory
     parameter   MEM_DEPTH                               = 0,
     parameter   MEM_RAMSTYLE                            = "",
     parameter   MEM_INIT_FILE                           = "",
+    parameter   MEM_READ_NEW_DATA                       = 0,
     parameter   IO_PORT_COUNT                           = 0,
     parameter   IO_PORT_BASE_ADDR                       = 0,
     parameter   IO_PORT_ADDR_WIDTH                      = 0
@@ -71,12 +76,13 @@ module Memory
     reg     [WORD_WIDTH-1:0]    write_data_stage2   = 0;
     reg     [ADDR_WIDTH-1:0]    write_addr_stage2   = 0;
 
-    RAM_SDP_NEW 
+    RAM_SDP 
     #(
         .WORD_WIDTH     (WORD_WIDTH),
         .ADDR_WIDTH     (ADDR_WIDTH),
         .DEPTH          (MEM_DEPTH),
         .RAMSTYLE       (MEM_RAMSTYLE),
+        .READ_NEW_DATA  (MEM_READ_NEW_DATA),
         .USE_INIT_FILE  (1),
         .INIT_FILE      (MEM_INIT_FILE)
     )

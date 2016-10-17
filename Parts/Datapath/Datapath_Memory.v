@@ -21,6 +21,7 @@ module Datapath_Memory
     parameter   WRITE_ADDR_WIDTH                        = 0,
     parameter   MEM_ADDR_WIDTH                          = 0,
     parameter   MEM_RAMSTYLE                            = "",
+    parameter   MEM_READ_NEW_DATA                       = 0,
     parameter   MEM_INIT_FILE_A                         = "",
     parameter   MEM_INIT_FILE_B                         = "",
     parameter   MEM_READ_BASE_ADDR_A                    = 0,
@@ -158,6 +159,7 @@ module Datapath_Memory
         .MEM_DEPTH              (MEM_DEPTH_A), 
         .MEM_RAMSTYLE           (MEM_RAMSTYLE), 
         .MEM_INIT_FILE          (MEM_INIT_FILE_A), 
+        .MEM_READ_NEW_DATA      (MEM_READ_NEW_DATA),
         .IO_PORT_COUNT          (IO_PORT_COUNT), 
         .IO_PORT_BASE_ADDR      (IO_PORT_BASE_ADDR), 
         .IO_PORT_ADDR_WIDTH     (IO_PORT_ADDR_WIDTH)
@@ -189,6 +191,7 @@ module Datapath_Memory
         .MEM_DEPTH              (MEM_DEPTH_B), 
         .MEM_RAMSTYLE           (MEM_RAMSTYLE), 
         .MEM_INIT_FILE          (MEM_INIT_FILE_B), 
+        .MEM_READ_NEW_DATA      (MEM_READ_NEW_DATA),
         .IO_PORT_COUNT          (IO_PORT_COUNT), 
         .IO_PORT_BASE_ADDR      (IO_PORT_BASE_ADDR), 
         .IO_PORT_ADDR_WIDTH     (IO_PORT_ADDR_WIDTH)
