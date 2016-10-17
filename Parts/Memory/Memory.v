@@ -73,21 +73,22 @@ module Memory
 
     RAM_SDP_NEW 
     #(
-        .WORD_WIDTH (WORD_WIDTH),
-        .ADDR_WIDTH (ADDR_WIDTH),
-        .DEPTH      (MEM_DEPTH),
-        .RAMSTYLE   (MEM_RAMSTYLE),
-        .INIT_FILE  (MEM_INIT_FILE)
+        .WORD_WIDTH     (WORD_WIDTH),
+        .ADDR_WIDTH     (ADDR_WIDTH),
+        .DEPTH          (MEM_DEPTH),
+        .RAMSTYLE       (MEM_RAMSTYLE),
+        .USE_INIT_FILE  (1),
+        .INIT_FILE      (MEM_INIT_FILE)
     )
     MEM
     (
-        .clock      (clock),
-        .wren       (mem_wren_stage2),
-        .write_addr (write_addr_stage2),
-        .write_data (write_data_stage2),
-        .rden       (mem_rden),
-        .read_addr  (read_addr), 
-        .read_data  (mem_read_data)
+        .clock          (clock),
+        .wren           (mem_wren_stage2),
+        .write_addr     (write_addr_stage2),
+        .write_data     (write_data_stage2),
+        .rden           (mem_rden),
+        .read_addr      (read_addr),
+        .read_data      (mem_read_data)
     );
 
 // -----------------------------------------------------------
