@@ -70,7 +70,7 @@ set_global_assignment -name VERILOG_FILE IO_All_Ready.v
 set_global_assignment -name VERILOG_FILE IO_Check.v
 set_global_assignment -name VERILOG_FILE IO_Read_Predication.v
 set_global_assignment -name VERILOG_FILE IO_Write_Predication.v
-set_global_assignment -name VERILOG_FILE RAM_SDP_NEW.v
+set_global_assignment -name VERILOG_FILE RAM_SDP.v
 set_global_assignment -name VERILOG_FILE Memory.v
 set_global_assignment -name VERILOG_FILE Memory_IO_Predication.v
 set_global_assignment -name VERILOG_FILE Datapath_IO_Predication.v
@@ -197,6 +197,7 @@ set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
 set_global_assignment -name OPTIMIZE_POWER_DURING_FITTING "NORMAL COMPILATION"
 set_global_assignment -name ECO_OPTIMIZE_TIMING OFF
 set_global_assignment -name ALM_REGISTER_PACKING_EFFORT MEDIUM
+
 
 
 

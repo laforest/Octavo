@@ -35,7 +35,7 @@ SOURCES="$INSTALL_BASE/Parts/Misc/Global_Defines.vh \
          $INSTALL_BASE/Parts/IO_Predication/IO_Check.v \
          $INSTALL_BASE/Parts/IO_Predication/IO_Read_Predication.v \
          $INSTALL_BASE/Parts/IO_Predication/IO_Write_Predication.v \
-         $INSTALL_BASE/Parts/Memory/RAM_SDP_NEW.v \
+         $INSTALL_BASE/Parts/Memory/RAM_SDP.v \
          $INSTALL_BASE/Parts/Memory/Memory.v \
          $INSTALL_BASE/Parts/Datapath/Memory_IO_Predication.v \
          $INSTALL_BASE/Parts/Datapath/Datapath_IO_Predication.v \
