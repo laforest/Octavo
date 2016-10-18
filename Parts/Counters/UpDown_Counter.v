@@ -25,7 +25,7 @@ module UpDown_Counter
 
 // --------------------------------------------------------------------
 
-    reg                     increment;
+    reg [WORD_WIDTH-1:0] increment;
 
     always @(*) begin
         increment   = (up_down == 1'b1) ? one : minus_one;
