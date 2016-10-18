@@ -15,7 +15,9 @@ SOURCES="$INSTALL_BASE/Parts/Misc/Global_Defines.vh \
          $INSTALL_BASE/Parts/Misc/Annuller.v \
          $INSTALL_BASE/Parts/Misc/Register_Array.v \
          $INSTALL_BASE/Parts/Misc/Write_Address_Split.v \
+         $INSTALL_BASE/Parts/Counters/UpDown_Counter.v \
          $INSTALL_BASE/Parts/Multithreading/Delay_Line.v \
+         $INSTALL_BASE/Parts/Multithreading/Thread_Number.v \
          $INSTALL_BASE/Parts/Addressing/Address_Range_Translator.v \
          $INSTALL_BASE/Parts/Addressing/Address_Range_Decoder_Static.v \
          $INSTALL_BASE/Parts/Addressing/Binary_to_N_Decoder.v \

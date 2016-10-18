@@ -51,6 +51,8 @@ set_global_assignment -name VERILOG_FILE Annuller.v
 set_global_assignment -name VERILOG_FILE Register_Array.v
 set_global_assignment -name VERILOG_FILE Write_Address_Split.v
 set_global_assignment -name VERILOG_FILE Delay_Line.v
+set_global_assignment -name VERILOG_FILE UpDown_Counter.v
+set_global_assignment -name VERILOG_FILE Thread_Number.v
 set_global_assignment -name VERILOG_FILE Address_Range_Translator.v
 set_global_assignment -name VERILOG_FILE Address_Range_Decoder_Static.v
 set_global_assignment -name VERILOG_FILE Binary_to_N_Decoder.v
@@ -124,6 +126,7 @@ set_global_assignment -name SEARCH_PATH /home/laforest/Octavo/Octavo/Parts/Datap
 set_global_assignment -name SEARCH_PATH /home/laforest/Octavo/Octavo/Parts/Memory/
 set_global_assignment -name SEARCH_PATH /home/laforest/Octavo/Octavo/Parts/IO_Predication/
 set_global_assignment -name SEARCH_PATH /home/laforest/Octavo/Octavo/Parts/Addressing/
+set_global_assignment -name SEARCH_PATH /home/laforest/Octavo/Octavo/Parts/Counters/
 
 # Fitter Assignments
 # ==================
@@ -197,6 +200,8 @@ set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
 set_global_assignment -name OPTIMIZE_POWER_DURING_FITTING "NORMAL COMPILATION"
 set_global_assignment -name ECO_OPTIMIZE_TIMING OFF
 set_global_assignment -name ALM_REGISTER_PACKING_EFFORT MEDIUM
+
+
 
 
 
