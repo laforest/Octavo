@@ -24,6 +24,8 @@ module Thread_Number
     // Avoids width-mismatch warnings
     localparam ZERO = {THREAD_COUNT_WIDTH{1'b0}};
 
+    reg last_thread = 0;
+
     always @(*) begin
         // Doing it this way to avoid an adder/subtracter comparator.
         last_thread = (current_thread == (THREAD_COUNT-1));
