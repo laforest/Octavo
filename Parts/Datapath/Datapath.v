@@ -242,8 +242,8 @@ module Datapath
 
     localparam PIPE_DEPTH_ALU = 4;
 
-    reg     [WORD_WIDTH-1:0]    R           = 0;
-    reg     [WORD_WIDTH-1:0]    S           = 0;
+    reg     [WORD_WIDTH-1:0]    R = 0;
+    wire    [WORD_WIDTH-1:0]    S;
     wire                        R_zero;
     wire                        R_negative;
 
@@ -324,12 +324,61 @@ module Datapath
     );
 
 // --------------------------------------------------------------------
-// R and S registers. S is memory-addressed and persistent.
+// R register. Previous result of same thread.
 
     always @(posedge clock) begin
         R <= RS;
-        S <= (write_addr_RS == ALU_REGISTER_S_ADDR) ? RS : S;
     end
+
+// --------------------------------------------------------------------
+// S Register, once instance per thread. 
+// Like R, but memory-addressed and persistent.
+
+    wire [`OCTAVO_THREAD_COUNT_WIDTH-1:0] S_thread_write;
+    wire [`OCTAVO_THREAD_COUNT_WIDTH-1:0] S_thread_read;
+
+    reg S_wren = 0;
+
+    always @(*) begin
+        S_wren <= (write_addr_RS == ALU_REGISTER_S_ADDR);
+    end
+
+    Thread_Number
+    #(
+        .INITIAL_THREAD     (0),
+        .THREAD_COUNT       (`OCTAVO_THREAD_COUNT),
+        .THREAD_COUNT_WIDTH (`OCTAVO_THREAD_COUNT_WIDTH)
+    )
+    TN_S
+    (
+        .clock              (clock),
+        .current_thread     (S_thread_write),
+        .next_thread        (S_thread_read)
+    );
+
+    // Read address leads by one cycle to have value read out 
+    // by the time we need it and (maybe) overwrite it.
+
+    RAM_SDP 
+    #(
+        .WORD_WIDTH     (WORD_WIDTH),
+        .ADDR_WIDTH     (`OCTAVO_THREAD_COUNT_WIDTH),
+        .DEPTH          (`OCTAVO_THREAD_COUNT),
+        .RAMSTYLE       ("MLAB,no_rw_check"),
+        .READ_NEW_DATA  (0),
+        .USE_INIT_FILE  (0),
+        .INIT_FILE      ()
+    )
+    S_Register
+    (
+        .clock          (clock),
+        .wren           (S_wren),
+        .write_addr     (S_thread_write),
+        .write_data     (RS),
+        .rden           (1'b1),
+        .read_addr      (S_thread_read), 
+        .read_data      (S)
+    );
 
 // --------------------------------------------------------------------
 // Generate R flags fed back to ALU
