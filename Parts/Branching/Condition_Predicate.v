@@ -9,9 +9,9 @@
 // (provided externally). The external input is for future expansion.
 // (e.g.: chaining predicate calculations)
 
-// The ALU provides the carryout and lessthan predicates.  Another module can
-// calculate zero/negative, both usually from the previous instruction result.
-// Use a sentinel value as a zero-predicate.
+// The ALU provides the carryout and lessthan (Negative XOR Overflow)
+// predicates.  Another module can calculate zero/negative, both usually from
+// the previous instruction result.  Use a sentinel value as a zero-predicate.
 
 // Total non-redundant predicates: 202 out of 256 (2 bits + 2 bits + 4 bits)
 // (16 cases are always 0 or 1, keep 2 for use)
@@ -43,6 +43,8 @@ module Condition_Predicate
     end
 
 // --------------------------------------------------------------------
+// --------------------------------------------------------------------
+// Stage 0
 
     wire selected_A_raw;
 
@@ -97,6 +99,8 @@ module Condition_Predicate
     end
 
 // --------------------------------------------------------------------
+// --------------------------------------------------------------------
+// Stage 1
 
     wire [WORD_WIDTH-1:0] predicate_raw;
 

@@ -24,7 +24,6 @@ module Down_Counter_Zero
     input   wire                        load_wren,
     input   wire    [WORD_WIDTH-1:0]    load_value,
     output  wire                        zero
-     
 );
 
 // --------------------------------------------------------------------

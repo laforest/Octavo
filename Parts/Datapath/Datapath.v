@@ -388,7 +388,7 @@ module Datapath
     #(
         .WORD_WIDTH     (WORD_WIDTH)
     )
-    RF
+    RF_ALU
     (
         .R              (R),
         .R_zero         (R_zero),
