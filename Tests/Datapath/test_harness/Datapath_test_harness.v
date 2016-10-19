@@ -17,6 +17,7 @@ module Datapath_test_harness
     parameter   MEM_WRITE_BASE_ADDR_B   = 1025, // 1    + 1024
     parameter   MEM_WRITE_BOUND_ADDR_B  = 2047, // 1023 + 1024
     parameter   ALU_REGISTER_S_ADDR     = 4,
+    parameter   ALU_REGISTER_S_RAMSTYLE = "MLAB,no_rw_check",
     parameter   IO_PORT_COUNT           = 3,
     parameter   IO_PORT_BASE_ADDR       = 1,
     parameter   IO_PORT_ADDR_WIDTH      = 2
@@ -75,67 +76,68 @@ module Datapath_test_harness
 
     Datapath
     #(
-        .WORD_WIDTH             (WORD_WIDTH),
-        .READ_ADDR_WIDTH        (READ_ADDR_WIDTH),
-        .WRITE_ADDR_WIDTH       (WRITE_ADDR_WIDTH),
-        .MEM_RAMSTYLE           (MEM_RAMSTYLE),
-        .MEM_READ_NEW_DATA      (MEM_READ_NEW_DATA),
-        .MEM_INIT_FILE_A        (MEM_INIT_FILE_A),
-        .MEM_INIT_FILE_B        (MEM_INIT_FILE_B),
-        .MEM_READ_BASE_ADDR_A   (MEM_READ_BASE_ADDR_A),
-        .MEM_READ_BOUND_ADDR_A  (MEM_READ_BOUND_ADDR_A),
-        .MEM_WRITE_BASE_ADDR_A  (MEM_WRITE_BASE_ADDR_A),
-        .MEM_WRITE_BOUND_ADDR_A (MEM_WRITE_BOUND_ADDR_A),
-        .MEM_READ_BASE_ADDR_B   (MEM_READ_BASE_ADDR_B),
-        .MEM_READ_BOUND_ADDR_B  (MEM_READ_BOUND_ADDR_B),
-        .MEM_WRITE_BASE_ADDR_B  (MEM_WRITE_BASE_ADDR_B),
-        .MEM_WRITE_BOUND_ADDR_B (MEM_WRITE_BOUND_ADDR_B),
-        .ALU_REGISTER_S_ADDR    (ALU_REGISTER_S_ADDR),
-        .IO_PORT_COUNT          (IO_PORT_COUNT),
-        .IO_PORT_BASE_ADDR      (IO_PORT_BASE_ADDR),
-        .IO_PORT_ADDR_WIDTH     (IO_PORT_ADDR_WIDTH) 
+        .WORD_WIDTH                 (WORD_WIDTH),
+        .READ_ADDR_WIDTH            (READ_ADDR_WIDTH),
+        .WRITE_ADDR_WIDTH           (WRITE_ADDR_WIDTH),
+        .MEM_RAMSTYLE               (MEM_RAMSTYLE),
+        .MEM_READ_NEW_DATA          (MEM_READ_NEW_DATA),
+        .MEM_INIT_FILE_A            (MEM_INIT_FILE_A),
+        .MEM_INIT_FILE_B            (MEM_INIT_FILE_B),
+        .MEM_READ_BASE_ADDR_A       (MEM_READ_BASE_ADDR_A),
+        .MEM_READ_BOUND_ADDR_A      (MEM_READ_BOUND_ADDR_A),
+        .MEM_WRITE_BASE_ADDR_A      (MEM_WRITE_BASE_ADDR_A),
+        .MEM_WRITE_BOUND_ADDR_A     (MEM_WRITE_BOUND_ADDR_A),
+        .MEM_READ_BASE_ADDR_B       (MEM_READ_BASE_ADDR_B),
+        .MEM_READ_BOUND_ADDR_B      (MEM_READ_BOUND_ADDR_B),
+        .MEM_WRITE_BASE_ADDR_B      (MEM_WRITE_BASE_ADDR_B),
+        .MEM_WRITE_BOUND_ADDR_B     (MEM_WRITE_BOUND_ADDR_B),
+        .ALU_REGISTER_S_ADDR        (ALU_REGISTER_S_ADDR),
+        .ALU_REGISTER_S_RAMSTYLE    (ALU_REGISTER_S_RAMSTYLE),
+        .IO_PORT_COUNT              (IO_PORT_COUNT),
+        .IO_PORT_BASE_ADDR          (IO_PORT_BASE_ADDR),
+        .IO_PORT_ADDR_WIDTH         (IO_PORT_ADDR_WIDTH) 
     )
     DUT
     (
-        .clock                  (clock),
-        .control                (control),
+        .clock                      (clock),
+        .control                    (control),
 
-        .split                  (split),
-        .branch_cancel          (branch_cancel),
+        .split                      (split),
+        .branch_cancel              (branch_cancel),
 
-        .read_addr_A            (read_addr_A),
-        .read_addr_B            (read_addr_B),
-        .write_addr_D           (write_addr_D),
+        .read_addr_A                (read_addr_A),
+        .read_addr_B                (read_addr_B),
+        .write_addr_D               (write_addr_D),
 
-        .read_addr_A_offset     (read_addr_A_offset),
-        .read_addr_B_offset     (read_addr_B_offset),
-        .write_addr_A_offset    (write_addr_A_offset),
-        .write_addr_B_offset    (write_addr_B_offset),
+        .read_addr_A_offset         (read_addr_A_offset),
+        .read_addr_B_offset         (read_addr_B_offset),
+        .write_addr_A_offset        (write_addr_A_offset),
+        .write_addr_B_offset        (write_addr_B_offset),
         
-        .io_read_EF_A           (io_read_EF_A),
-        .io_read_EF_B           (io_read_EF_B),
-        .io_write_EF_A          (io_write_EF_A),
-        .io_write_EF_B          (io_write_EF_B),
+        .io_read_EF_A               (io_read_EF_A),
+        .io_read_EF_B               (io_read_EF_B),
+        .io_write_EF_A              (io_write_EF_A),
+        .io_write_EF_B              (io_write_EF_B),
 
-        .io_read_data_A         (io_read_data_A),
-        .io_read_data_B         (io_read_data_B),
-        .io_write_data_A        (io_write_data_A),
-        .io_write_data_B        (io_write_data_B),
+        .io_read_data_A             (io_read_data_A),
+        .io_read_data_B             (io_read_data_B),
+        .io_write_data_A            (io_write_data_A),
+        .io_write_data_B            (io_write_data_B),
 
-        .io_rden_A              (io_rden_A),
-        .io_rden_B              (io_rden_B),
-        .io_wren_A              (io_wren_A),
-        .io_wren_B              (io_wren_B),
+        .io_rden_A                  (io_rden_A),
+        .io_rden_B                  (io_rden_B),
+        .io_wren_A                  (io_wren_A),
+        .io_wren_B                  (io_wren_B),
 
-        .Ra                     (Ra),
-        .Rb                     (Rb),
-        .Rcarry_out             (Rcarry_out),
-        .Roverflow              (Roverflow),
+        .Ra                         (Ra),
+        .Rb                         (Rb),
+        .Rcarry_out                 (Rcarry_out),
+        .Roverflow                  (Roverflow),
 
-        .write_addr_Ra          (write_addr_Ra),
-        .write_addr_Rb          (write_addr_Rb),
+        .write_addr_Ra              (write_addr_Ra),
+        .write_addr_Rb              (write_addr_Rb),
 
-        .IO_ready               (IO_ready)
+        .IO_ready                   (IO_ready)
     );
 
 // --------------------------------------------------------------------

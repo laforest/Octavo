@@ -19,6 +19,7 @@ module Datapath
     parameter   MEM_WRITE_BASE_ADDR_B                   = 0,
     parameter   MEM_WRITE_BOUND_ADDR_B                  = 0,
     parameter   ALU_REGISTER_S_ADDR                     = 0,
+    parameter   ALU_REGISTER_S_RAMSTYLE                 = "",
     parameter   IO_PORT_COUNT                           = 0,
     parameter   IO_PORT_BASE_ADDR                       = 0,
     parameter   IO_PORT_ADDR_WIDTH                      = 0
@@ -364,7 +365,7 @@ module Datapath
         .WORD_WIDTH     (WORD_WIDTH),
         .ADDR_WIDTH     (`OCTAVO_THREAD_COUNT_WIDTH),
         .DEPTH          (`OCTAVO_THREAD_COUNT),
-        .RAMSTYLE       ("MLAB,no_rw_check"),
+        .RAMSTYLE       (ALU_REGISTER_S_RAMSTYLE),
         .READ_NEW_DATA  (0),
         .USE_INIT_FILE  (0),
         .INIT_FILE      ()
