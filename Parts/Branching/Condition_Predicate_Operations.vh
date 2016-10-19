@@ -6,8 +6,9 @@
 
     // Never changes
     `define GROUP_SELECTOR_WIDTH    2
+    `define COND_FLAG_COUNT         8
 
-    // First, the A/B group selectors
+    // First, the A/B group condition flag selectors
 
     `define A_GROUP_NEGATIVE        2'd0
     `define A_GROUP_CARRYOUT        2'd1

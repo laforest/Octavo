@@ -8,20 +8,18 @@ module Branch_Detector
 #(
     parameter WORD_WIDTH    = 0,  // Must be larger than CONFIG_WIDTH
     parameter PC_WIDTH      = 0,
-    parameter RAMSTYLE      = "",
-    // Leave unchanged. See Condition_Predicate.v
-    parameter FLAG_COUNT    = ((2**`GROUP_SELECTOR_WIDTH) * 2);
+    parameter RAMSTYLE      = ""
 )
 (
-    input   wire                        clock,
-    input   wire    [PC_WIDTH-1:0]      pc,
-    input   wire    [FLAG_COUNT-1:0]    flags_previous,
-    input   wire    [WORD_WIDTH-1:0]    configuration,
-    input   wire                        wren,
-    input   wire                        IO_ready_previous, // Enters Stage 4
-    output  wire    [PC_WIDTH-1:0]      destination,
-    output  reg                         jump,
-    output  reg                         cancel
+    input   wire                            clock,
+    input   wire    [PC_WIDTH-1:0]          pc,
+    input   wire    [`COND_FLAG_COUNT-1:0]  flags_previous,
+    input   wire                            configuration_wren,
+    input   wire    [WORD_WIDTH-1:0]        configuration_data,
+    input   wire                            IO_ready_previous, // Enters Stage 4
+    output  wire    [PC_WIDTH-1:0]          destination,
+    output  reg                             jump,
+    output  reg                             cancel
 );
 
 // --------------------------------------------------------------------
@@ -56,7 +54,7 @@ module Branch_Detector
     Delay_Line
     #(
         .DEPTH  (2),
-        .WIDTH  (FLAG_COUNT)
+        .WIDTH  (`COND_FLAG_COUNT)
     )
     DL_pc
     (
@@ -114,9 +112,9 @@ module Branch_Detector
     Branch_Configuration
     (
         .clock          (clock),
-        .wren           (wren),
+        .wren           (configuration_wren),
         .write_addr     (thread_write),
-        .write_data     (configuration[CONFIG_WIDTH-1:0]), // MSB unused, if any
+        .write_data     (configuration_data[CONFIG_WIDTH-1:0]), // MSB unused, if any
         .rden           (1'b1),
         .read_addr      (thread_read),
         .read_data      (branch_configuration)
