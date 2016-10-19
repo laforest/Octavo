@@ -6,7 +6,7 @@
 
 module Branch_Detector
 #(
-    parameter WORD_WIDTH    = 0,
+    parameter WORD_WIDTH    = 0,  // Must be larger than CONFIG_WIDTH
     parameter PC_WIDTH      = 0,
     parameter RAMSTYLE      = "",
     // Leave unchanged. See Condition_Predicate.v
@@ -15,13 +15,21 @@ module Branch_Detector
 (
     input   wire                        clock,
     input   wire    [PC_WIDTH-1:0]      pc,
-    input   wire    [FLAG_COUNT-1:0]    flags,
+    input   wire    [FLAG_COUNT-1:0]    flags_previous,
     input   wire    [WORD_WIDTH-1:0]    configuration,
     input   wire                        wren,
+    input   wire                        IO_ready_previous, // Enters Stage 4
     output  wire    [PC_WIDTH-1:0]      destination,
     output  reg                         jump,
     output  reg                         cancel
 );
+
+// --------------------------------------------------------------------
+
+    initial begin
+        jump    = 0;
+        cancel  = 0;
+    end
 
 // --------------------------------------------------------------------
 // --------------------------------------------------------------------
@@ -29,11 +37,11 @@ module Branch_Detector
 
     wire [PC_WIDTH-1:0] pc_stage2;
 
-    Delay_Line 
+    Delay_Line
     #(
-        .DEPTH  (2), 
+        .DEPTH  (2),
         .WIDTH  (PC_WIDTH)
-    ) 
+    )
     DL_pc
     (
         .clock  (clock),
@@ -43,18 +51,18 @@ module Branch_Detector
 
 // --------------------------------------------------------------------
 
-    wire [PC_WIDTH-1:0] flags_stage2;
+    wire [PC_WIDTH-1:0] flags_previous_stage2;
 
-    Delay_Line 
+    Delay_Line
     #(
-        .DEPTH  (2), 
+        .DEPTH  (2),
         .WIDTH  (FLAG_COUNT)
-    ) 
+    )
     DL_pc
     (
         .clock  (clock),
-        .in     (flags),
-        .out    (flags_stage2)
+        .in     (flags_previous),
+        .out    (flags_previous_stage2)
     );
 
 // --------------------------------------------------------------------
@@ -93,7 +101,7 @@ module Branch_Detector
 
     wire    [CONFIG_WIDTH-1:0]  branch_configuration;
 
-    RAM_SDP 
+    RAM_SDP
     #(
         .WORD_WIDTH     (CONFIG_WIDTH),
         .ADDR_WIDTH     (`OCTAVO_THREAD_COUNT_WIDTH),
@@ -110,7 +118,7 @@ module Branch_Detector
         .write_addr     (thread_write),
         .write_data     (configuration[CONFIG_WIDTH-1:0]), // MSB unused, if any
         .rden           (1'b1),
-        .read_addr      (thread_read), 
+        .read_addr      (thread_read),
         .read_data      (branch_configuration)
     );
 
@@ -139,11 +147,11 @@ module Branch_Detector
         branch_origin_match <= (pc_stage2 == branch_origin) | (branch_origin_enable == 0);
     end
 
-    Delay_Line 
+    Delay_Line
     #(
-        .DEPTH  (2), 
+        .DEPTH  (2),
         .WIDTH  (1)
-    ) 
+    )
     DL_bom
     (
         .clock  (clock),
@@ -168,8 +176,8 @@ module Branch_Detector
     wire                                    predicate_stage4;
 
     always @(*) begin
-        {A_negative,A_carryout,A_sentinel,A_external,B_lessthan,B_counter,B_sentinel,B_external} <= flags_stage2;
-        {A_selector,B_selector,AB_operator} <= branch_condition;
+        {A_negative,A_carryout,A_sentinel,A_external,B_lessthan,B_counter,B_sentinel,B_external} <= flags_previous_stage2;
+        {A_selector,B_selector,AB_operator}                                                      <= branch_condition;
     end
 
     Condition_Predicate
@@ -199,11 +207,11 @@ module Branch_Detector
 
     localparam MISC_WIDTH = PC_WIDTH + 2;
 
-    Delay_Line 
+    Delay_Line
     #(
-        .DEPTH  (2), 
+        .DEPTH  (2),
         .WIDTH  (MISC_WIDTH)
-    ) 
+    )
     DL_misc
     (
         .clock  (clock),
@@ -228,11 +236,35 @@ module Branch_Detector
         destination <= branch_destination_stage4;
     end
 
+// --------------------------------------------------------------------
+
     // Signal a jump if we've reached the branch origin and met its conditions.
+    // If the previous instruction was annulled via IO_ready, then instead
+    // return the saved jump value, since the current condition is invalid.
+
+    wire jump_saved;
+
+    // DEPTH: minus one since delayed version used before jump output register
+
+    Delay_Line
+    #(
+        .DEPTH  (`OCTAVO_THREAD_COUNT - 1),
+        .WIDTH  (1)
+    )
+    DL_bom
+    (
+        .clock  (clock),
+        .in     (jump),
+        .out    (jump_saved)
+    );
 
     always @(posedge clock) begin
-        jump <= branch_origin_match_stage4 & predicate_stage4;
+        jump = (predicate_stage4 == 1);
+        jump = (IO_ready_previous == 0) ? jump_saved : jump;
+        jump = (branch_origin_match_stage4 == 1) & (jump == 1);
     end
+
+// --------------------------------------------------------------------
 
     // If we have reached the branch origin, and the branch state (taken, not
     // taken) does not match the branch prediction, and branch prediction is
@@ -240,7 +272,7 @@ module Branch_Detector
     // Filtered later by jump signal.
 
     always @(posedge clock) begin
-        cancel <= branch_origin_match_stage4 & (branch_predict_taken_stage4 != predicate_stage4) & branch_predict_enable_stage4;
+        cancel <= (branch_origin_match_stage4 == 1) & (branch_predict_taken_stage4 != predicate_stage4) & (branch_predict_enable_stage4 == 1);
     end
 
 endmodule
