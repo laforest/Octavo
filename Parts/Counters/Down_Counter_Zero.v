@@ -1,16 +1,9 @@
 
-// Counts downward to zero, with zero signal,
-// and optional automatic reload.
-
+// Counts downward to zero, with zero signal.
 // Counts down one step if run is set.
-
-// If reload is set when the counter reaches zero,
-// it reloads and resumes its countdown.
-
-// By default, reloads to the INITIAL_COUNT value.
-// Else, to the last load value written.
-
-// Loading a value overrules a coincident reload.
+// Halts when it reaches zero.
+// Must load a new value to restart.
+// Load overrides run.
 
 module Down_Counter_Zero
 #(
@@ -20,39 +13,32 @@ module Down_Counter_Zero
 (
     input   wire                        clock,
     input   wire                        run,
-    input   wire                        reload,
     input   wire                        load_wren,
     input   wire    [WORD_WIDTH-1:0]    load_value,
-    output  wire                        zero
+    output  reg                         zero
 );
 
 // --------------------------------------------------------------------
 
-    localparam ALL_ZERO = {WORD_WIDTH{1'b0}};
-    localparam ALL_ONE  = {WORD_WIDTH{1'b1}};
+    initial begin
+        zero = 0;
+    end
+
+    localparam ZERO = {WORD_WIDTH{1'b0}};
 
 // --------------------------------------------------------------------
 
-    reg [WORD_WIDTH-1:0] reload_value;
-    reg                  load_wren_counter;
-    reg [WORD_WIDTH-1:0] load_value_counter;
+    // Halt counter at zero.
 
-    initial begin
-        reload_value = INITIAL_COUNT [WORD_WIDTH-1:0];
-    end
+    reg run_counter = 0;
 
     always @(*) begin
-        load_wren_counter   = load_wren | (reload & zero);
-        load_value_counter  = (load_wren == 1'b1) ? load_value : reload_value;
-    end
-
-    always @(posedge clock) begin
-        reload_value <= load_value_counter;
+        run_counter <= (run == 1'b1) & (zero == 1'b0);
     end
 
 // --------------------------------------------------------------------
 
-    reg {WORD_WIDTH-1:0] count;
+    wire [WORD_WIDTH-1:0] count;
 
     UpDown_Counter
     #(
@@ -62,26 +48,18 @@ module Down_Counter_Zero
     (
         .clock          (clock),
         .up_down        (1'b0),     // down
-        .run            (run),
-        .wren           (load_wren_counter),
-        .write_data     (load_value_counter),
+        .run            (run_counter),
+        .wren           (load_wren),
+        .write_data     (load_value),
         .count          (count),
         .next_count     ()          // N/C
     );
 
 // --------------------------------------------------------------------
 
-    Sentinel_Value_Check
-    #(
-        .WORD_WIDTH (WORD_WIDTH)
-    )
-    is_zero
-    (
-        .in         (count),
-        .sentinel   (ALL_ZERO), 
-        .mask       (ALL_ONE),
-        .match      (zero)
-    );
+    always @(*) begin
+        zero <= (count == ZERO);
+    end
 
 endmodule
 
