@@ -5,60 +5,43 @@
 // Must load a new value to restart.
 // Load overrides run.
 
+// Uses a separate count value store to support sharing the counter hardware.
+// (e.g.: an array of memory locations, each updated in turn)
+
 module Down_Counter_Zero
 #(
-    parameter WORD_WIDTH                = 0,
-    parameter INITIAL_COUNT             = 0
+    parameter WORD_WIDTH                = 0
 )
 (
-    input   wire                        clock,
     input   wire                        run,
+    input   wire    [WORD_WIDTH-1:0]    count_in;
     input   wire                        load_wren,
     input   wire    [WORD_WIDTH-1:0]    load_value,
+    output  reg                         count_out_wren,
+    output  reg     [WORD_WIDTH-1:0]    count_out,
     output  reg                         zero
 );
 
 // --------------------------------------------------------------------
 
     initial begin
-        zero = 0;
+        count_out_wren  = 0;
+        count_out       = 0;
+        zero            = 0;
     end
 
     localparam ZERO = {WORD_WIDTH{1'b0}};
+    localparam ONE  = {{(WORD_WIDTH-1){1'b0}},1'b1};
 
 // --------------------------------------------------------------------
 
-    // Halt counter at zero.
-
-    reg run_counter = 0;
+    reg                     count_run = 0;
 
     always @(*) begin
-        run_counter <= (run == 1'b1) & (zero == 1'b0);
-    end
-
-// --------------------------------------------------------------------
-
-    wire [WORD_WIDTH-1:0] count;
-
-    UpDown_Counter
-    #(
-        .WORD_WIDTH     (WORD_WIDTH),
-        .INITIAL_COUNT  (INITIAL_COUNT)
-    )
-    (
-        .clock          (clock),
-        .up_down        (1'b0),     // down
-        .run            (run_counter),
-        .wren           (load_wren),
-        .write_data     (load_value),
-        .count          (count),
-        .next_count     ()          // N/C
-    );
-
-// --------------------------------------------------------------------
-
-    always @(*) begin
-        zero <= (count == ZERO);
+        count_run       = (run == 1'b1) & (zero == 1'b0);
+        count_out_wren  = (count_run == 1'b1) | (load_wren == 1'b1);
+        count_out       = (load_wren == 1'b1) ? load_value : (count_in - ONE); 
+        zero            = (count_out == ZERO);
     end
 
 endmodule
