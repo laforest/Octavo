@@ -17,7 +17,8 @@ module UpDown_Counter
 );
 
     initial begin
-        count = INITIAL_COUNT [WORD_WIDTH-1:0];
+        count       = INITIAL_COUNT [WORD_WIDTH-1:0];
+        next_count  = 0;
     end
 
     localparam one          = {{WORD_WIDTH-1{1'b0}},1'b1};
