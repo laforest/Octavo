@@ -1,0 +1,4 @@
+#! /bin/bash
+
+quartus_sh --flow compile Word_OR_Reducer_test_harness 2>&1 | tee LOG_QUARTUS
+
