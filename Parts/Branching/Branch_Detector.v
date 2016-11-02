@@ -1,8 +1,9 @@
 
 // Branch Detector: compares the Program Counter and some ALU result flags
 // (from the previous instruction) to pre-set values.  If conditions are met,
-// outputs a branch destination address, a jump signal, and a cancellation
-// signal (which turns the current parallel ALU operation into a NOP).
+// outputs a branch reached signal, a branch destination address, a jump
+// signal, and a cancellation signal (which turns the current parallel ALU
+// operation into a NOP).
 
 module Branch_Detector
 #(
@@ -17,6 +18,7 @@ module Branch_Detector
     input   wire                            configuration_wren,
     input   wire    [WORD_WIDTH-1:0]        configuration_data,
     input   wire                            IO_ready_previous, // Enters Stage 4
+    output  reg                             reached,
     output  wire    [PC_WIDTH-1:0]          destination,
     output  reg                             jump,
     output  reg                             cancel
@@ -25,6 +27,7 @@ module Branch_Detector
 // --------------------------------------------------------------------
 
     initial begin
+        reached = 0;
         jump    = 0;
         cancel  = 0;
     end
@@ -229,9 +232,11 @@ module Branch_Detector
 // Stage 4
 
     // Send out the branch destination. Filtered later by jump signal.
+    // Send out the branch reached signal. Used by counters later on.
 
     always @(posedge clock) begin
         destination <= branch_destination_stage4;
+        reached     <= branch_origin_match_stage4;
     end
 
 // --------------------------------------------------------------------
