@@ -262,9 +262,9 @@ module Branch_Detector
     );
 
     always @(posedge clock) begin
-        jump = (predicate_stage4 == 1);
-        jump = (IO_ready_previous == 0) ? jump_saved : jump;
-        jump = (branch_origin_match_stage4 == 1) & (jump == 1);
+        jump = (predicate_stage4 == 1'b1);
+        jump = (IO_ready_previous == 1'b0) ? jump_saved : jump;
+        jump = (branch_origin_match_stage4 == 1'b1) & (jump == 1'b1);
     end
 
 // --------------------------------------------------------------------
