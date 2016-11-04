@@ -25,13 +25,11 @@ module Sentinel_Value_Check
 
     reg [WORD_WIDTH-1:0] masked_in          = 0;
     reg [WORD_WIDTH-1:0] masked_sentinel    = 0;
-    reg [WORD_WIDTH-1:0] raw_match          = 0;
 
     always @(*) begin
         masked_in       = in       & ~mask;
         masked_sentinel = sentinel & ~mask;
-        raw_match       = ~(masked_in ^ masked_sentinel);
-        match           = & raw_match;
+        match           = (masked_in == masked_sentinel);
     end
 
 endmodule
