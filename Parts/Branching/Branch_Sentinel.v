@@ -12,7 +12,7 @@ module Branch_Sentinel
 )
 (
     input   wire                        clock,
-    input   wire    [WORD_WIDTH-1:0]    R_previous,
+    input   wire    [WORD_WIDTH-1:0]    R,
     input   wire                        configuration_wren,
     input   wire                        configuration_addr,
     input   wire    [WORD_WIDTH-1:0]    configuration_data,
@@ -114,7 +114,7 @@ module Branch_Sentinel
     )
     BS_SVC
     (
-        .in         (R_previous),
+        .in         (R),
         .sentinel   (sentinel),
         .mask       (mask),
         .match      (match)
