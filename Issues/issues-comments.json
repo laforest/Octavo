@@ -25,7 +25,7 @@
     },
     "created_at": "2013-06-14T00:22:05Z",
     "updated_at": "2013-06-14T00:22:05Z",
-    "body": "Moved to Milestone"
+    "body": "Moved to Milestone\n"
   },
   {
     "url": "https://api.github.com/repos/laforest/Octavo/issues/comments/20944795",
@@ -53,7 +53,7 @@
     },
     "created_at": "2013-07-14T22:04:55Z",
     "updated_at": "2013-07-14T22:04:55Z",
-    "body": "On second thought: no. \r\n\r\nSupport for SystemVerilog is less common than for Verilog-2001. Also, it seems that making Meshes in Verilog can't be done reasonnably nor will SV grant the necessary code introspection to really build larger systems sensibly. The real difficulty came from the long-ago decision to bundle the scalar and SIMD I/O ports in the same vector. Lesson learnt: *don't mix \"kinds\" within vectors* It makes composability very hard.\r\n\r\nA better approach would be to have a base Octavo_ControlPath, Octavo_DataPath, an Octavo_Scalar core, an Octavo_SIMD core built from these (with a separate port vector for SIMD I/O), an Octavo_Mesh core, etc... each with their own generator scripts (in Python), each in their own subtrees.\r\n\r\nWith the parameters kept in a dict, any design hierarchy and introspection can be done in the scripts caling eachother, leaving the Verilog to solely specify single (parameterizable) building blocks, which is what it's good at."
+    "body": "On second thought: no. \n\nSupport for SystemVerilog is less common than for Verilog-2001. Also, it seems that making Meshes in Verilog can't be done reasonnably nor will SV grant the necessary code introspection to really build larger systems sensibly. The real difficulty came from the long-ago decision to bundle the scalar and SIMD I/O ports in the same vector. Lesson learnt: _don't mix \"kinds\" within vectors_ It makes composability very hard.\n\nA better approach would be to have a base Octavo_ControlPath, Octavo_DataPath, an Octavo_Scalar core, an Octavo_SIMD core built from these (with a separate port vector for SIMD I/O), an Octavo_Mesh core, etc... each with their own generator scripts (in Python), each in their own subtrees.\n\nWith the parameters kept in a dict, any design hierarchy and introspection can be done in the scripts caling eachother, leaving the Verilog to solely specify single (parameterizable) building blocks, which is what it's good at.\n"
   },
   {
     "url": "https://api.github.com/repos/laforest/Octavo/issues/comments/26879410",
@@ -81,7 +81,7 @@
     },
     "created_at": "2013-10-23T04:04:08Z",
     "updated_at": "2013-10-23T04:05:31Z",
-    "body": "Another alternative would be giving up the idea of using a solid block of memory for PC.\r\n\r\nPipeline the PC for 7 stages.  \r\nAt Ctrl0, a 2:1 mux that picks OP or JMP controlled by I/O ready bit\r\n- or pack this into JMP? at Ctrl1?\r\n\r\n\r\nAt Ctrl1, a 2:1 mux that picks D or the previous PC, also controlled by the I/O ready bit\r\nand of course, increment the PC as well\r\n\r\nSome concern would be routing and area for the PC pipeline, but I doubt it would add too much...\r\nAlso, it is not as easy to add more threads as the original design.\r\nBut Octavo is pretty squeeze with memory sharing between 8 threads, that shouldn't be a big concern."
+    "body": "Another alternative would be giving up the idea of using a solid block of memory for PC.\n\nPipeline the PC for 7 stages.  \nAt Ctrl0, a 2:1 mux that picks OP or JMP controlled by I/O ready bit\n- or pack this into JMP? at Ctrl1?\n\nAt Ctrl1, a 2:1 mux that picks D or the previous PC, also controlled by the I/O ready bit\nand of course, increment the PC as well\n\nSome concern would be routing and area for the PC pipeline, but I doubt it would add too much...\nAlso, it is not as easy to add more threads as the original design.\nBut Octavo is pretty squeeze with memory sharing between 8 threads, that shouldn't be a big concern.\n"
   },
   {
     "url": "https://api.github.com/repos/laforest/Octavo/issues/comments/26910966",
@@ -109,7 +109,7 @@
     },
     "created_at": "2013-10-23T14:47:03Z",
     "updated_at": "2013-10-23T14:47:03Z",
-    "body": "Stringing out the PC memory as a pipeline itself. Never thought of that. :)\r\n\r\nThe area impact would be approx. (on Stratix IV): 8x10 bits -> 80 registers -> 40 ALMs, vs. the current 10 ALMs of 1 MLAB. Routing shouldn't be a problem given the long pipeline. Also, since the Cyclone IV don't have MLABs, it would port well. (Cyclone V has MLABs though...)\r\n\r\nThe main problem I see is that without a block of memory for the PCs, we can't load their initial values from a file as easily. It would take some indirection like instantiating a block memory, but with no readers/writers, and load the PC registers in an initial block, just like in the Address_Translator module.\r\n\r\nYou did make me remember something else though: for a vanilla 36-bit Octavo, only 10 of the 20 bits in each MLAB word is used, so I could store \"PC-1\" in the other 10 bits, removing the subtractor altogether! \r\n\r\nI'll look into that."
+    "body": "Stringing out the PC memory as a pipeline itself. Never thought of that. :)\n\nThe area impact would be approx. (on Stratix IV): 8x10 bits -> 80 registers -> 40 ALMs, vs. the current 10 ALMs of 1 MLAB. Routing shouldn't be a problem given the long pipeline. Also, since the Cyclone IV don't have MLABs, it would port well. (Cyclone V has MLABs though...)\n\nThe main problem I see is that without a block of memory for the PCs, we can't load their initial values from a file as easily. It would take some indirection like instantiating a block memory, but with no readers/writers, and load the PC registers in an initial block, just like in the Address_Translator module.\n\nYou did make me remember something else though: for a vanilla 36-bit Octavo, only 10 of the 20 bits in each MLAB word is used, so I could store \"PC-1\" in the other 10 bits, removing the subtractor altogether! \n\nI'll look into that.\n"
   },
   {
     "url": "https://api.github.com/repos/laforest/Octavo/issues/comments/26937261",
@@ -137,7 +137,7 @@
     },
     "created_at": "2013-10-23T19:20:11Z",
     "updated_at": "2013-10-23T19:20:11Z",
-    "body": "Fixed, but not fully tested yet in Predication branch."
+    "body": "Fixed, but not fully tested yet in Predication branch.\n"
   },
   {
     "url": "https://api.github.com/repos/laforest/Octavo/issues/comments/43424199",
@@ -165,7 +165,7 @@
     },
     "created_at": "2014-05-17T21:09:42Z",
     "updated_at": "2014-05-17T21:09:42Z",
-    "body": "It is nice that you could move A and B data together, but is it really useful to move to 2 different destinations at the same time?\r\n\r\nIf you mainly use the double-move instruction to send A and B data to accelerators, then only one D destination is sufficient.  For example, you want to use an accelerator to write to main memory.  A will store the destination address and B will store the data, but it is the same accelerator doing the \"write to main memory\" action.  So if the accelerator at D can accept A and B at the same time, there's little reason to split the inputs of the same accelerator into two D destinations.\r\n\r\n"
+    "body": "It is nice that you could move A and B data together, but is it really useful to move to 2 different destinations at the same time?\n\nIf you mainly use the double-move instruction to send A and B data to accelerators, then only one D destination is sufficient.  For example, you want to use an accelerator to write to main memory.  A will store the destination address and B will store the data, but it is the same accelerator doing the \"write to main memory\" action.  So if the accelerator at D can accept A and B at the same time, there's little reason to split the inputs of the same accelerator into two D destinations.\n"
   },
   {
     "url": "https://api.github.com/repos/laforest/Octavo/issues/comments/44690367",
@@ -193,7 +193,7 @@
     },
     "created_at": "2014-05-30T19:29:57Z",
     "updated_at": "2014-05-30T19:29:57Z",
-    "body": "Two destinations are still important, as one expected common case is moving data through one Octavo core to another. With a double-move, a single instruction can read from 2 I/O ports and write to 2 different I/O ports. For compiler-scheduled data movements (array reversal, matrix transposition, moving data in a mesh of cores), that would be a big win.\r\n\r\nThere is little point in moving a double-word combined from A and B into a single location anywhere in D address space: regular memory locations can't accept a double word, and the only way to write such a double word to an accelerator is to use 2 I/O ports, which must each be in different (A or B) memories since each memory can only do one write and one read, each word-wide, at a time.\r\n\r\nThat's the key reason for a double-move: together the A and B memories can do 2 read and 2 writes at a time, but normal operations only use 2 reads and 1 write. We're wasting half the potential write bandwidth when needing to only move data."
+    "body": "Two destinations are still important, as one expected common case is moving data through one Octavo core to another. With a double-move, a single instruction can read from 2 I/O ports and write to 2 different I/O ports. For compiler-scheduled data movements (array reversal, matrix transposition, moving data in a mesh of cores), that would be a big win.\n\nThere is little point in moving a double-word combined from A and B into a single location anywhere in D address space: regular memory locations can't accept a double word, and the only way to write such a double word to an accelerator is to use 2 I/O ports, which must each be in different (A or B) memories since each memory can only do one write and one read, each word-wide, at a time.\n\nThat's the key reason for a double-move: together the A and B memories can do 2 read and 2 writes at a time, but normal operations only use 2 reads and 1 write. We're wasting half the potential write bandwidth when needing to only move data.\n"
   },
   {
     "url": "https://api.github.com/repos/laforest/Octavo/issues/comments/69480548",
@@ -221,7 +221,7 @@
     },
     "created_at": "2015-01-11T02:05:57Z",
     "updated_at": "2015-01-11T02:08:18Z",
-    "body": "It turns out that, arbitrarily, the next branch after a taken or not taken branch can be itself, or any other branch, so a stack containing BTM entries would need to be able to push/pop itself an arbitrary number of steps when the current branch is or is not taken.\r\n\r\nThese would require extra bits in each BTM entry, and starts to recapitulate the (discarded) original \"sub-processor\" approach to branches, which spends most of its time idling, and replicates the state of the PC. \r\n\r\nHow to handle cases where there are more branches than BTM entries resembles the stack allocation problem, which is not a pretty one to solve compared to the simple register allocation one we have now with independent BTM entries.\r\n\r\nAlthough capturing the basic pattern of properly nested loops as a stack of BTM entries would free up a lot of BTM entries, it does force a sequence onto branches which might otherwise fold together, such as when the bottom of an enclosing loop is empty, and we can thus fold its branch with that of the inner loop. Thus we'd need multiple stacks to get branch folding anyway...\r\n\r\n__However, perhaps we can place the BTM entry stacks under software control, so we can pre-load the entries for multiple program parts, as a sort of branching context, and use a single instruction (a write to H memory) to push/pop one or more stacks (as circular buffers) to change contexts at useful times! That way we get fuller use of the MLAB memories (32 depth / 8 threads = 4 entries per stack), folding branches, basic operation remains unchanged, and we can cache BTM entries on the stack (so we can unload them from data memory too), rotating them out as needed.__\r\n"
+    "body": "It turns out that, arbitrarily, the next branch after a taken or not taken branch can be itself, or any other branch, so a stack containing BTM entries would need to be able to push/pop itself an arbitrary number of steps when the current branch is or is not taken.\n\nThese would require extra bits in each BTM entry, and starts to recapitulate the (discarded) original \"sub-processor\" approach to branches, which spends most of its time idling, and replicates the state of the PC. \n\nHow to handle cases where there are more branches than BTM entries resembles the stack allocation problem, which is not a pretty one to solve compared to the simple register allocation one we have now with independent BTM entries.\n\nAlthough capturing the basic pattern of properly nested loops as a stack of BTM entries would free up a lot of BTM entries, it does force a sequence onto branches which might otherwise fold together, such as when the bottom of an enclosing loop is empty, and we can thus fold its branch with that of the inner loop. Thus we'd need multiple stacks to get branch folding anyway...\n\n**However, perhaps we can place the BTM entry stacks under software control, so we can pre-load the entries for multiple program parts, as a sort of branching context, and use a single instruction (a write to H memory) to push/pop one or more stacks (as circular buffers) to change contexts at useful times! That way we get fuller use of the MLAB memories (32 depth / 8 threads = 4 entries per stack), folding branches, basic operation remains unchanged, and we can cache BTM entries on the stack (so we can unload them from data memory too), rotating them out as needed.**\n"
   },
   {
     "url": "https://api.github.com/repos/laforest/Octavo/issues/comments/70394900",
@@ -249,7 +249,7 @@
     },
     "created_at": "2015-01-18T03:18:26Z",
     "updated_at": "2015-01-18T03:18:26Z",
-    "body": "Fixed around commit 179d46f83b6c7753d1069a78cb9f3c4372298c0a, by which time there was basic (new) assembler support.\r\n\r\nThe actual solution was to extend the Destination operand from 10 to 12 bits, allowing us to map A/B/I memories in that order at base write addresses 0/1024/2048, with the last 1024 words being H (\"High\") memory, write-only, where we can place control registers for later hardware extensions.\r\n\r\nThus we eliminate data and instruction memory duplication. :)"
+    "body": "Fixed around commit 179d46f83b6c7753d1069a78cb9f3c4372298c0a, by which time there was basic (new) assembler support.\n\nThe actual solution was to extend the Destination operand from 10 to 12 bits, allowing us to map A/B/I memories in that order at base write addresses 0/1024/2048, with the last 1024 words being H (\"High\") memory, write-only, where we can place control registers for later hardware extensions.\n\nThus we eliminate data and instruction memory duplication. :)\n"
   },
   {
     "url": "https://api.github.com/repos/laforest/Octavo/issues/comments/70395018",
@@ -277,7 +277,7 @@
     },
     "created_at": "2015-01-18T03:24:22Z",
     "updated_at": "2015-01-18T03:24:22Z",
-    "body": "Actually superseded by #30, also closed."
+    "body": "Actually superseded by #30, also closed.\n"
   },
   {
     "url": "https://api.github.com/repos/laforest/Octavo/issues/comments/70395034",
@@ -305,7 +305,7 @@
     },
     "created_at": "2015-01-18T03:25:17Z",
     "updated_at": "2015-01-18T03:25:17Z",
-    "body": "Supersedes #3, closed by same commit 179d46f83b6c7753d1069a78cb9f3c4372298c0a"
+    "body": "Supersedes #3, closed by same commit 179d46f83b6c7753d1069a78cb9f3c4372298c0a\n"
   },
   {
     "url": "https://api.github.com/repos/laforest/Octavo/issues/comments/70395148",
@@ -333,7 +333,7 @@
     },
     "created_at": "2015-01-18T03:32:32Z",
     "updated_at": "2015-01-18T03:32:32Z",
-    "body": "We could also automatically \"context-switch\" the BTM by indexing on the PC.\r\nHowever, this complicates calculating the addresses for pre-loading.\r\n\r\n__Ultimately, the problem is that these schemes break down badly when the number of live branches exceeds the capacity of the BTM. Managing the BTM gets very complex, relative to the simple register-allocation scheme we can use now.__\r\n\r\nFor now, close this, and re-visit maybe after #2 gets fixed: we may simply want to convert the BTM entries into CALL/RET-controlled stacks to save branch contexts."
+    "body": "We could also automatically \"context-switch\" the BTM by indexing on the PC.\nHowever, this complicates calculating the addresses for pre-loading.\n\n**Ultimately, the problem is that these schemes break down badly when the number of live branches exceeds the capacity of the BTM. Managing the BTM gets very complex, relative to the simple register-allocation scheme we can use now.**\n\nFor now, close this, and re-visit maybe after #2 gets fixed: we may simply want to convert the BTM entries into CALL/RET-controlled stacks to save branch contexts.\n"
   },
   {
     "url": "https://api.github.com/repos/laforest/Octavo/issues/comments/70395386",
@@ -361,7 +361,7 @@
     },
     "created_at": "2015-01-18T03:45:29Z",
     "updated_at": "2015-01-18T03:45:29Z",
-    "body": "Concern: we need an \"escape valve\" where if we have a deeper call tree than the hardware supports, we can fall back to regular software subroutine calling conventions.\r\n\r\nThen again, per-core Octavo code is rather small, so we may simply make the stacks as deep as practical, hopefully 16-deep, and call it a hard limit. However, the deeper the stacks, the poorer the usage of their memory. (Exponentially decreasing usage of each additional bottom stack element)\r\n\r\nPerhaps, at the limit, we could raise an interrupt (see #10) to at least alert the software, which can then die (as in: \"this should never happen\") or engage in an expensive stack flush/restore."
+    "body": "Concern: we need an \"escape valve\" where if we have a deeper call tree than the hardware supports, we can fall back to regular software subroutine calling conventions.\n\nThen again, per-core Octavo code is rather small, so we may simply make the stacks as deep as practical, hopefully 16-deep, and call it a hard limit. However, the deeper the stacks, the poorer the usage of their memory. (Exponentially decreasing usage of each additional bottom stack element)\n\nPerhaps, at the limit, we could raise an interrupt (see #10) to at least alert the software, which can then die (as in: \"this should never happen\") or engage in an expensive stack flush/restore.\n"
   },
   {
     "url": "https://api.github.com/repos/laforest/Octavo/issues/comments/70395477",
@@ -389,7 +389,7 @@
     },
     "created_at": "2015-01-18T03:50:09Z",
     "updated_at": "2015-01-18T03:50:09Z",
-    "body": "For a while now, we dropped the full Modelsim (licencing scheme became too much of a bother) and switched to Altera-Modelsim, almost seamlessly.\r\n\r\nNote that Modelsim (either version) is a 32-bit Linux app, so some ia32-libs will be required to make it work. See Arch Linux wiki on the subject."
+    "body": "For a while now, we dropped the full Modelsim (licencing scheme became too much of a bother) and switched to Altera-Modelsim, almost seamlessly.\n\nNote that Modelsim (either version) is a 32-bit Linux app, so some ia32-libs will be required to make it work. See Arch Linux wiki on the subject.\n"
   },
   {
     "url": "https://api.github.com/repos/laforest/Octavo/issues/comments/70395620",
@@ -417,7 +417,7 @@
     },
     "created_at": "2015-01-18T03:58:05Z",
     "updated_at": "2015-01-18T03:58:05Z",
-    "body": "Update: the interrupt vector would be set in H memory now.\r\nNo need to use an I/O port.\r\nsee #30 "
+    "body": "Update: the interrupt vector would be set in H memory now.\nNo need to use an I/O port.\nsee #30 \n"
   },
   {
     "url": "https://api.github.com/repos/laforest/Octavo/issues/comments/70395699",
@@ -445,7 +445,7 @@
     },
     "created_at": "2015-01-18T04:02:46Z",
     "updated_at": "2015-01-18T04:02:46Z",
-    "body": "Or also include the result of the previous thread instruction as the third term.\r\nWe can ignore the previous as ncessary by adjusting the thruth table."
+    "body": "Or also include the result of the previous thread instruction as the third term.\nWe can ignore the previous as ncessary by adjusting the thruth table.\n"
   },
   {
     "url": "https://api.github.com/repos/laforest/Octavo/issues/comments/70960982",
@@ -473,7 +473,7 @@
     },
     "created_at": "2015-01-22T02:18:57Z",
     "updated_at": "2015-01-22T02:18:57Z",
-    "body": "Alternative: couple read and write AOM modules to create stack pointer memory locations. Reads increment pointer, writes decrement it. Creates 2 simple stacks, one in A and B each.\r\nMust wait for #31, #32, and #46 to happen first, as they will alter the AOM design.\r\n\r\nBenefit: no I/O port usage, and better memory usage (keeps A and B at full usage, rather than wasting their R/W operation accessing I/O-interfaced stack hardware).\r\n\r\nCost: some memory space.\r\nEstimate: 2048 A+B locations total, so 256/thread assuming even split. Reserve 8 memory locations in each of A and B as stacks (two 8-deep stacks instead of one 16-deep stack). Thus, 256-16 = 240 memory locations remaining. \r\n\r\nAs an upper hypothetical worst case cost: Say -(8*2) for read I/O ports, -(8*2) for read AOM entries, and -(2*32) as \"register file\",  that's 240-96 = 144 A+B memory locations left per thread, which is workable.\r\n\r\nHowever, what should happen on stack under/over-flow? Triggering an interrupt makes this work also dependent on #10, and then requires rarely-used ISRs present, using-up some of the 1024 words of I memory. Note that the stack ISR could be a single simple instance whose sole purpose is to raise a \"this should *never* happen alarm\". (See software punt below)\r\nDoing a conventional spill/fill to external memory would be simplified by circular buffer behaviour (see below)\r\nHow small could we make such an ISR?\r\n\r\nForcing the stack pointer to saturate complicates the AOM in ways that may not be useful elsewhere, but makes the failure apparent immediately to software. \r\nA circular buffer behaviour would be useful in the AOM, but would hide the under/over-flow until many CALL/RETs later.\r\n\r\nWe could punt this problem to software: forbid functional recursion or iterated function calls that alter stack depth, leaving a statically calculable stack depth (including any reservations for regular ISRs).\r\n"
+    "body": "Alternative: couple read and write AOM modules to create stack pointer memory locations. Reads increment pointer, writes decrement it. Creates 2 simple stacks, one in A and B each.\nMust wait for #31, #32, and #46 to happen first, as they will alter the AOM design.\n\nBenefit: no I/O port usage, and better memory usage (keeps A and B at full usage, rather than wasting their R/W operation accessing I/O-interfaced stack hardware).\n\nCost: some memory space.\nEstimate: 2048 A+B locations total, so 256/thread assuming even split. Reserve 8 memory locations in each of A and B as stacks (two 8-deep stacks instead of one 16-deep stack). Thus, 256-16 = 240 memory locations remaining. \n\nAs an upper hypothetical worst case cost: Say -(8_2) for read I/O ports, -(8_2) for read AOM entries, and -(2*32) as \"register file\",  that's 240-96 = 144 A+B memory locations left per thread, which is workable.\n\nHowever, what should happen on stack under/over-flow? Triggering an interrupt makes this work also dependent on #10, and then requires rarely-used ISRs present, using-up some of the 1024 words of I memory. Note that the stack ISR could be a single simple instance whose sole purpose is to raise a \"this should _never_ happen alarm\". (See software punt below)\nDoing a conventional spill/fill to external memory would be simplified by circular buffer behaviour (see below)\nHow small could we make such an ISR?\n\nForcing the stack pointer to saturate complicates the AOM in ways that may not be useful elsewhere, but makes the failure apparent immediately to software. \nA circular buffer behaviour would be useful in the AOM, but would hide the under/over-flow until many CALL/RETs later.\n\nWe could punt this problem to software: forbid functional recursion or iterated function calls that alter stack depth, leaving a statically calculable stack depth (including any reservations for regular ISRs).\n"
   },
   {
     "url": "https://api.github.com/repos/laforest/Octavo/issues/comments/71301625",
@@ -501,7 +501,7 @@
     },
     "created_at": "2015-01-24T05:44:18Z",
     "updated_at": "2015-01-24T05:44:18Z",
-    "body": "The addition of the AOM/BTM has functionally already done this, but it's not explicit in the code.\r\nHaving an explicit spine pipeline, as shown in fig. 6.4, pg 113 in the thesis, would make it clearer in the code from/to which pipeline stages information moves."
+    "body": "The addition of the AOM/BTM has functionally already done this, but it's not explicit in the code.\nHaving an explicit spine pipeline, as shown in fig. 6.4, pg 113 in the thesis, would make it clearer in the code from/to which pipeline stages information moves.\n"
   },
   {
     "url": "https://api.github.com/repos/laforest/Octavo/issues/comments/215705389",
@@ -529,6 +529,174 @@
     },
     "created_at": "2016-04-29T13:03:17Z",
     "updated_at": "2016-04-29T13:03:17Z",
-    "body": "Added to Pay Off Technical Debt milestone as future development will happen for Cyclone V primarily."
+    "body": "Added to Pay Off Technical Debt milestone as future development will happen for Cyclone V primarily.\n"
+  },
+  {
+    "url": "https://api.github.com/repos/laforest/Octavo/issues/comments/217435415",
+    "html_url": "https://github.com/laforest/Octavo/issues/58#issuecomment-217435415",
+    "issue_url": "https://api.github.com/repos/laforest/Octavo/issues/58",
+    "id": 217435415,
+    "user": {
+      "login": "laforest",
+      "id": 3973179,
+      "avatar_url": "https://avatars.githubusercontent.com/u/3973179?v=3",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/laforest",
+      "html_url": "https://github.com/laforest",
+      "followers_url": "https://api.github.com/users/laforest/followers",
+      "following_url": "https://api.github.com/users/laforest/following{/other_user}",
+      "gists_url": "https://api.github.com/users/laforest/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/laforest/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/laforest/subscriptions",
+      "organizations_url": "https://api.github.com/users/laforest/orgs",
+      "repos_url": "https://api.github.com/users/laforest/repos",
+      "events_url": "https://api.github.com/users/laforest/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/laforest/received_events",
+      "type": "User",
+      "site_admin": false
+    },
+    "created_at": "2016-05-06T13:10:07Z",
+    "updated_at": "2016-05-06T13:10:07Z",
+    "body": "At least on Cyclone V, under Quartus Prime Lite 15.1, MLABs are _not_ merged.\nNor are they used in a sub-MLAB granularity.\nEach inferred MLAB memory uses a minimum of 10 ALMs (one whole MLAB).\nIn hindsight this was too much to ask of the CAD tools.\nWill address in #62 .\n"
+  },
+  {
+    "url": "https://api.github.com/repos/laforest/Octavo/issues/comments/218334064",
+    "html_url": "https://github.com/laforest/Octavo/issues/36#issuecomment-218334064",
+    "issue_url": "https://api.github.com/repos/laforest/Octavo/issues/36",
+    "id": 218334064,
+    "user": {
+      "login": "laforest",
+      "id": 3973179,
+      "avatar_url": "https://avatars.githubusercontent.com/u/3973179?v=3",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/laforest",
+      "html_url": "https://github.com/laforest",
+      "followers_url": "https://api.github.com/users/laforest/followers",
+      "following_url": "https://api.github.com/users/laforest/following{/other_user}",
+      "gists_url": "https://api.github.com/users/laforest/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/laforest/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/laforest/subscriptions",
+      "organizations_url": "https://api.github.com/users/laforest/orgs",
+      "repos_url": "https://api.github.com/users/laforest/repos",
+      "events_url": "https://api.github.com/users/laforest/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/laforest/received_events",
+      "type": "User",
+      "site_admin": false
+    },
+    "created_at": "2016-05-11T00:51:38Z",
+    "updated_at": "2016-05-11T00:51:38Z",
+    "body": "That link is gone. As is the method of using a \"message_off\" directive.\nYou now right-click on messages in the GUI and suppress them.\nThis creates a .srf file which lists the patterns to suppress.\nThe suppressed messages end up in a .smsg file for each P&R stage.\n"
+  },
+  {
+    "url": "https://api.github.com/repos/laforest/Octavo/issues/comments/218634075",
+    "html_url": "https://github.com/laforest/Octavo/issues/46#issuecomment-218634075",
+    "issue_url": "https://api.github.com/repos/laforest/Octavo/issues/46",
+    "id": 218634075,
+    "user": {
+      "login": "laforest",
+      "id": 3973179,
+      "avatar_url": "https://avatars.githubusercontent.com/u/3973179?v=3",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/laforest",
+      "html_url": "https://github.com/laforest",
+      "followers_url": "https://api.github.com/users/laforest/followers",
+      "following_url": "https://api.github.com/users/laforest/following{/other_user}",
+      "gists_url": "https://api.github.com/users/laforest/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/laforest/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/laforest/subscriptions",
+      "organizations_url": "https://api.github.com/users/laforest/orgs",
+      "repos_url": "https://api.github.com/users/laforest/repos",
+      "events_url": "https://api.github.com/users/laforest/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/laforest/received_events",
+      "type": "User",
+      "site_admin": false
+    },
+    "created_at": "2016-05-12T01:10:57Z",
+    "updated_at": "2016-05-12T01:10:57Z",
+    "body": "We need to do this first to enable solving #62 for the AOM.\nIf we can't address the DO/PO/PI entries with the LSB of the address bits, we can't pack them into a single MLAB.\n"
+  },
+  {
+    "url": "https://api.github.com/repos/laforest/Octavo/issues/comments/219726876",
+    "html_url": "https://github.com/laforest/Octavo/issues/39#issuecomment-219726876",
+    "issue_url": "https://api.github.com/repos/laforest/Octavo/issues/39",
+    "id": 219726876,
+    "user": {
+      "login": "laforest",
+      "id": 3973179,
+      "avatar_url": "https://avatars.githubusercontent.com/u/3973179?v=3",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/laforest",
+      "html_url": "https://github.com/laforest",
+      "followers_url": "https://api.github.com/users/laforest/followers",
+      "following_url": "https://api.github.com/users/laforest/following{/other_user}",
+      "gists_url": "https://api.github.com/users/laforest/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/laforest/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/laforest/subscriptions",
+      "organizations_url": "https://api.github.com/users/laforest/orgs",
+      "repos_url": "https://api.github.com/users/laforest/repos",
+      "events_url": "https://api.github.com/users/laforest/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/laforest/received_events",
+      "type": "User",
+      "site_admin": false
+    },
+    "created_at": "2016-05-17T14:02:14Z",
+    "updated_at": "2016-05-17T14:02:14Z",
+    "body": "Add to this: there is a bug where the internal wren signal is only 1-bit wide, not WRITE_PORT_COUNT bits wide. This was hidden because most tests instantiate only one write port. Will change default to 2 or 4 ports.\n"
+  },
+  {
+    "url": "https://api.github.com/repos/laforest/Octavo/issues/comments/220395999",
+    "html_url": "https://github.com/laforest/Octavo/issues/4#issuecomment-220395999",
+    "issue_url": "https://api.github.com/repos/laforest/Octavo/issues/4",
+    "id": 220395999,
+    "user": {
+      "login": "laforest",
+      "id": 3973179,
+      "avatar_url": "https://avatars.githubusercontent.com/u/3973179?v=3",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/laforest",
+      "html_url": "https://github.com/laforest",
+      "followers_url": "https://api.github.com/users/laforest/followers",
+      "following_url": "https://api.github.com/users/laforest/following{/other_user}",
+      "gists_url": "https://api.github.com/users/laforest/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/laforest/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/laforest/subscriptions",
+      "organizations_url": "https://api.github.com/users/laforest/orgs",
+      "repos_url": "https://api.github.com/users/laforest/repos",
+      "events_url": "https://api.github.com/users/laforest/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/laforest/received_events",
+      "type": "User",
+      "site_admin": false
+    },
+    "created_at": "2016-05-19T17:31:20Z",
+    "updated_at": "2016-05-19T17:31:20Z",
+    "body": "Turns out Memory.v didn't make it into the Datapath! (but it's parts are.)\nThis needs to be done as part of #31 \n"
+  },
+  {
+    "url": "https://api.github.com/repos/laforest/Octavo/issues/comments/222765213",
+    "html_url": "https://github.com/laforest/Octavo/issues/31#issuecomment-222765213",
+    "issue_url": "https://api.github.com/repos/laforest/Octavo/issues/31",
+    "id": 222765213,
+    "user": {
+      "login": "laforest",
+      "id": 3973179,
+      "avatar_url": "https://avatars.githubusercontent.com/u/3973179?v=3",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/laforest",
+      "html_url": "https://github.com/laforest",
+      "followers_url": "https://api.github.com/users/laforest/followers",
+      "following_url": "https://api.github.com/users/laforest/following{/other_user}",
+      "gists_url": "https://api.github.com/users/laforest/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/laforest/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/laforest/subscriptions",
+      "organizations_url": "https://api.github.com/users/laforest/orgs",
+      "repos_url": "https://api.github.com/users/laforest/repos",
+      "events_url": "https://api.github.com/users/laforest/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/laforest/received_events",
+      "type": "User",
+      "site_admin": false
+    },
+    "created_at": "2016-05-31T17:46:05Z",
+    "updated_at": "2016-05-31T17:46:05Z",
+    "body": "Not quite. Since I/O (and it's predication) and memory are so intertwined, this solutions ends up as a packaging of I/O, predication, RAM, and the final selection/enables as a Memory module, instantiated once for the A and B data memories.\n"
   }
 ]
