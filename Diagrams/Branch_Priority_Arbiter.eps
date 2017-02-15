@@ -1,8 +1,8 @@
 %!PS-Adobe-3.0 EPSF-3.0
-%%Title: Branch_Priority_Arbiter.fig
+%%Title: /home/laforest/Octavo/Octavo/Diagrams/Branch_Priority_Arbiter.fig
 %%Creator: fig2dev Version 3.2 Patchlevel 5e
-%%CreationDate: Fri Feb 10 09:32:22 2017
-%%BoundingBox: 0 0 198 164
+%%CreationDate: Tue Feb 14 22:37:58 2017
+%%BoundingBox: 0 0 164 198
 %Magnification: 1.0000
 %%EndComments
 %%BeginProlog
@@ -76,13 +76,64 @@ end
   bind def
 /shd {dup dup currentrgbcolor 4 -2 roll mul 4 -2 roll mul
   4 -2 roll mul srgb} bind def
+/reencdict 12 dict def /ReEncode { reencdict begin
+/newcodesandnames exch def /newfontname exch def /basefontname exch def
+/basefontdict basefontname findfont def /newfont basefontdict maxlength dict def
+basefontdict { exch dup /FID ne { dup /Encoding eq
+{ exch dup length array copy newfont 3 1 roll put }
+{ exch newfont 3 1 roll put } ifelse } { pop pop } ifelse } forall
+newfont /FontName newfontname put newcodesandnames aload pop
+128 1 255 { newfont /Encoding get exch /.notdef put } for
+newcodesandnames length 2 idiv { newfont /Encoding get 3 1 roll put } repeat
+newfontname newfont definefont pop end } def
+/isovec [
+8#055 /minus 8#200 /grave 8#201 /acute 8#202 /circumflex 8#203 /tilde
+8#204 /macron 8#205 /breve 8#206 /dotaccent 8#207 /dieresis
+8#210 /ring 8#211 /cedilla 8#212 /hungarumlaut 8#213 /ogonek 8#214 /caron
+8#220 /dotlessi 8#230 /oe 8#231 /OE
+8#240 /space 8#241 /exclamdown 8#242 /cent 8#243 /sterling
+8#244 /currency 8#245 /yen 8#246 /brokenbar 8#247 /section 8#250 /dieresis
+8#251 /copyright 8#252 /ordfeminine 8#253 /guillemotleft 8#254 /logicalnot
+8#255 /hyphen 8#256 /registered 8#257 /macron 8#260 /degree 8#261 /plusminus
+8#262 /twosuperior 8#263 /threesuperior 8#264 /acute 8#265 /mu 8#266 /paragraph
+8#267 /periodcentered 8#270 /cedilla 8#271 /onesuperior 8#272 /ordmasculine
+8#273 /guillemotright 8#274 /onequarter 8#275 /onehalf
+8#276 /threequarters 8#277 /questiondown 8#300 /Agrave 8#301 /Aacute
+8#302 /Acircumflex 8#303 /Atilde 8#304 /Adieresis 8#305 /Aring
+8#306 /AE 8#307 /Ccedilla 8#310 /Egrave 8#311 /Eacute
+8#312 /Ecircumflex 8#313 /Edieresis 8#314 /Igrave 8#315 /Iacute
+8#316 /Icircumflex 8#317 /Idieresis 8#320 /Eth 8#321 /Ntilde 8#322 /Ograve
+8#323 /Oacute 8#324 /Ocircumflex 8#325 /Otilde 8#326 /Odieresis 8#327 /multiply
+8#330 /Oslash 8#331 /Ugrave 8#332 /Uacute 8#333 /Ucircumflex
+8#334 /Udieresis 8#335 /Yacute 8#336 /Thorn 8#337 /germandbls 8#340 /agrave
+8#341 /aacute 8#342 /acircumflex 8#343 /atilde 8#344 /adieresis 8#345 /aring
+8#346 /ae 8#347 /ccedilla 8#350 /egrave 8#351 /eacute
+8#352 /ecircumflex 8#353 /edieresis 8#354 /igrave 8#355 /iacute
+8#356 /icircumflex 8#357 /idieresis 8#360 /eth 8#361 /ntilde 8#362 /ograve
+8#363 /oacute 8#364 /ocircumflex 8#365 /otilde 8#366 /odieresis 8#367 /divide
+8#370 /oslash 8#371 /ugrave 8#372 /uacute 8#373 /ucircumflex
+8#374 /udieresis 8#375 /yacute 8#376 /thorn 8#377 /ydieresis] def
+/Times-Roman /Times-Roman-iso isovec ReEncode
+ /DrawEllipse {
+	/endangle exch def
+	/startangle exch def
+	/yrad exch def
+	/xrad exch def
+	/y exch def
+	/x exch def
+	/savematrix mtrx currentmatrix def
+	x y tr xrad yrad sc 0 0 1 startangle endangle arc
+	closepath
+	savematrix setmatrix
+	} def
+
 /$F2psBegin {$F2psDict begin /$F2psEnteredState save def} def
 /$F2psEnd {$F2psEnteredState restore end} def
 
 /pageheader {
 save
-newpath 0 164 moveto 0 0 lineto 198 0 lineto 198 164 lineto closepath clip newpath
--551.8 658.4 translate
+newpath 0 198 moveto 0 0 lineto 164 0 lineto 164 198 lineto closepath clip newpath
+-523.5 692.4 translate
 1 -1 scale
 $F2psBegin
 10 setmiterlimit
@@ -99,16 +150,23 @@ pageheader
 % Fig objects follow
 %
 % 
+% here starts figure with depth 1001
+% Grid
+0.5 setgray
+% Vertical
+% Horizontal
+% here ends figure;
+% 
 % here starts figure with depth 50
 % Polyline
 0 slj
 0 slc
 15.000 slw
-n 9720 8820 m 9990 8820 l 9990 9270 l 9720 9270 l
+n 9720 9900 m 9990 9900 l 9990 10350 l 9720 10350 l
  cp gs col0 s gr 
 % Polyline
-n 9810 9270 m 9855 9180 l
- 9900 9270 l gs col0 s gr 
+n 9810 10350 m 9855 10260 l
+ 9900 10350 l gs col0 s gr 
 % Polyline
 n 9720 9360 m 9990 9360 l 9990 9810 l 9720 9810 l
  cp gs col0 s gr 
@@ -116,225 +174,325 @@ n 9720 9360 m 9990 9360 l 9990 9810 l 9720 9810 l
 n 9810 9810 m 9855 9720 l
  9900 9810 l gs col0 s gr 
 % Polyline
-n 9360 8100 m 9990 8100 l 9990 8730 l 9360 8730 l
+n 9360 8640 m 9990 8640 l 9990 9270 l 9360 9270 l
  cp gs col0 s gr 
 % Polyline
-n 9720 9900 m 9990 9900 l 9990 10350 l 9720 10350 l
+n 9720 10440 m 9990 10440 l 9990 10890 l 9720 10890 l
  cp gs col0 s gr 
 % Polyline
-n 9810 10350 m 9855 10260 l
- 9900 10350 l gs col0 s gr 
+n 9810 10890 m 9855 10800 l
+ 9900 10890 l gs col0 s gr 
+% Polyline
+n 9720 8100 m 9990 8100 l 9990 8550 l 9720 8550 l
+ cp gs col0 s gr 
+% Polyline
+n 9810 8550 m 9855 8460 l
+ 9900 8550 l gs col0 s gr 
 % Polyline
 7.500 slw
-n 10845 8910 m
- 10845 8955 l gs col0 s gr 
-% Polyline
-n 10845 9135 m
- 10845 9180 l gs col0 s gr 
-% Polyline
-n 10845 9450 m
- 10845 9495 l gs col0 s gr 
-% Polyline
-n 10845 9675 m
- 10845 9720 l gs col0 s gr 
-% Polyline
-n 10845 9990 m
- 10845 10035 l gs col0 s gr 
-% Polyline
-n 10845 10215 m
- 10845 10260 l gs col0 s gr 
-% Polyline
 gs  clippath
-9284 8295 m 9375 8295 l 9375 8265 l 9284 8265 l 9284 8265 l 9344 8280 l 9284 8295 l cp
+9284 8745 m 9375 8745 l 9375 8715 l 9284 8715 l 9284 8715 l 9344 8730 l 9284 8745 l cp
 eoclip
-n 9360 8280 m
- 9180 8280 l gs col0 s gr gr
+n 9360 8730 m
+ 9180 8730 l gs col0 s gr gr
 
 % arrowhead
-n 9284 8295 m 9344 8280 l 9284 8265 l 9284 8295 l  cp gs 0.00 setgray ef gr  col0 s
+n 9284 8745 m 9344 8730 l 9284 8715 l 9284 8745 l  cp gs 0.00 setgray ef gr  col0 s
+% Polyline
+gs  clippath
+9284 9195 m 9375 9195 l 9375 9165 l 9284 9165 l 9284 9165 l 9344 9180 l 9284 9195 l cp
+eoclip
+n 9360 9180 m
+ 9180 9180 l gs col0 s gr gr
+
+% arrowhead
+n 9284 9195 m 9344 9180 l 9284 9165 l 9284 9195 l  cp gs 0.00 setgray ef gr  col0 s
+% Polyline
+gs  clippath
+9284 8970 m 9375 8970 l 9375 8940 l 9284 8940 l 9284 8940 l 9344 8955 l 9284 8970 l cp
+eoclip
+n 9360 8955 m
+ 9180 8955 l gs col0 s gr gr
+
+% arrowhead
+n 9284 8970 m 9344 8955 l 9284 8940 l 9284 8970 l  cp gs 0.00 setgray ef gr  col0 s
+% Polyline
+n 9180 8730 m
+ 8550 8730 l gs col0 s gr 
+% Polyline
+n 9180 8955 m
+ 8550 8955 l gs col0 s gr 
+% Polyline
+n 8730 8955 m
+ 8730 9090 l gs col0 s gr 
+% Polyline
+n 8640 8730 m 8640 9270 l
+ 8730 9270 l gs col0 s gr 
+% Polyline
+n 9540 9675 m
+ 8595 9675 l gs col0 s gr 
+% Polyline
+gs  clippath
+9644 9690 m 9735 9690 l 9735 9660 l 9644 9660 l 9644 9660 l 9704 9675 l 9644 9690 l cp
+eoclip
+n 9720 9675 m
+ 9540 9675 l gs col0 s gr gr
+
+% arrowhead
+n 9644 9690 m 9704 9675 l 9644 9660 l 9644 9690 l  cp gs 0.00 setgray ef gr  col0 s
+% Polyline
+gs  clippath
+9644 9510 m 9735 9510 l 9735 9480 l 9644 9480 l 9644 9480 l 9704 9495 l 9644 9510 l cp
+eoclip
+n 9720 9495 m
+ 9540 9495 l gs col0 s gr gr
+
+% arrowhead
+n 9644 9510 m 9704 9495 l 9644 9480 l 9644 9510 l  cp gs 0.00 setgray ef gr  col0 s
+% Polyline
+n 9540 9495 m
+ 8595 9495 l gs col0 s gr 
+% Polyline
+gs  clippath
+9644 10140 m 9735 10140 l 9735 10110 l 9644 10110 l 9644 10110 l 9704 10125 l 9644 10140 l cp
+eoclip
+n 9720 10125 m
+ 9540 10125 l gs col0 s gr gr
+
+% arrowhead
+n 9644 10140 m 9704 10125 l 9644 10110 l 9644 10140 l  cp gs 0.00 setgray ef gr  col0 s
+% Polyline
+n 9090 10035 m
+ 9090 9675 l gs col0 s gr 
+% Polyline
+n 9000 9495 m 9000 10215 l
+ 9090 10215 l gs col0 s gr 
+% Polyline
+gs  clippath
+9644 8340 m 9735 8340 l 9735 8310 l 9644 8310 l 9644 8310 l 9704 8325 l 9644 8340 l cp
+eoclip
+n 9720 8325 m
+ 9540 8325 l gs col0 s gr gr
+
+% arrowhead
+n 9644 8340 m 9704 8325 l 9644 8310 l 9644 8340 l  cp gs 0.00 setgray ef gr  col0 s
+% Polyline
+n 9090 8415 m
+ 9090 8730 l gs col0 s gr 
+% Polyline
+n 9090 8235 m 9000 8235 l
+ 9000 8955 l gs col0 s gr 
 % Polyline
  [60] 0 sd
 n 9990 7875 m
- 9990 10440 l gs col0 s gr  [] 0 sd
+ 9990 10980 l gs col0 s gr  [] 0 sd
 % Polyline
 gs  clippath
-9644 9195 m 9735 9195 l 9735 9165 l 9644 9165 l 9644 9165 l 9704 9180 l 9644 9195 l cp
+10094 10770 m 10185 10770 l 10185 10740 l 10094 10740 l 10094 10740 l 10154 10755 l 10094 10770 l cp
 eoclip
-n 9720 9180 m
- 9000 9180 l gs col0 s gr gr
+n 10170 10755 m
+ 9990 10755 l gs col0 s gr gr
 
 % arrowhead
-n 9644 9195 m 9704 9180 l 9644 9165 l 9644 9195 l  cp gs 0.00 setgray ef gr  col0 s
+n 10094 10770 m 10154 10755 l 10094 10740 l 10094 10770 l  cp gs 0.00 setgray ef gr  col0 s
 % Polyline
 gs  clippath
-9644 9735 m 9735 9735 l 9735 9705 l 9644 9705 l 9644 9705 l 9704 9720 l 9644 9735 l cp
+10094 10590 m 10185 10590 l 10185 10560 l 10094 10560 l 10094 10560 l 10154 10575 l 10094 10590 l cp
 eoclip
-n 9720 9720 m
- 9045 9720 l gs col0 s gr gr
+n 10170 10575 m
+ 9990 10575 l gs col0 s gr gr
 
 % arrowhead
-n 9644 9735 m 9704 9720 l 9644 9705 l 9644 9735 l  cp gs 0.00 setgray ef gr  col0 s
+n 10094 10590 m 10154 10575 l 10094 10560 l 10094 10590 l  cp gs 0.00 setgray ef gr  col0 s
 % Polyline
 gs  clippath
-9284 8565 m 9375 8565 l 9375 8535 l 9284 8535 l 9284 8535 l 9344 8550 l 9284 8565 l cp
+10094 10140 m 10185 10140 l 10185 10110 l 10094 10110 l 10094 10110 l 10154 10125 l 10094 10140 l cp
 eoclip
-n 9360 8550 m
- 9180 8550 l gs col0 s gr gr
+n 10170 10125 m
+ 9990 10125 l gs col0 s gr gr
 
 % arrowhead
-n 9284 8565 m 9344 8550 l 9284 8535 l 9284 8565 l  cp gs 0.00 setgray ef gr  col0 s
+n 10094 10140 m 10154 10125 l 10094 10110 l 10094 10140 l  cp gs 0.00 setgray ef gr  col0 s
 % Polyline
 gs  clippath
-9644 8925 m 9735 8925 l 9735 8895 l 9644 8895 l 9644 8895 l 9704 8910 l 9644 8925 l cp
+10094 9690 m 10185 9690 l 10185 9660 l 10094 9660 l 10094 9660 l 10154 9675 l 10094 9690 l cp
 eoclip
-n 9720 8910 m
- 9000 8910 l gs col0 s gr gr
+n 10170 9675 m
+ 9990 9675 l gs col0 s gr gr
 
 % arrowhead
-n 9644 8925 m 9704 8910 l 9644 8895 l 9644 8925 l  cp gs 0.00 setgray ef gr  col0 s
+n 10094 9690 m 10154 9675 l 10094 9660 l 10094 9690 l  cp gs 0.00 setgray ef gr  col0 s
 % Polyline
 gs  clippath
-9644 9465 m 9735 9465 l 9735 9435 l 9644 9435 l 9644 9435 l 9704 9450 l 9644 9465 l cp
+10094 9510 m 10185 9510 l 10185 9480 l 10094 9480 l 10094 9480 l 10154 9495 l 10094 9510 l cp
 eoclip
-n 9720 9450 m
- 9045 9450 l gs col0 s gr gr
+n 10170 9495 m
+ 9990 9495 l gs col0 s gr gr
 
 % arrowhead
-n 9644 9465 m 9704 9450 l 9644 9435 l 9644 9465 l  cp gs 0.00 setgray ef gr  col0 s
+n 10094 9510 m 10154 9495 l 10094 9480 l 10094 9510 l  cp gs 0.00 setgray ef gr  col0 s
 % Polyline
-n 9990 8910 m 10260 8910 l
- 10260 9000 l gs col0 s gr 
+n 10170 10440 m 10170 10890 l 10350 10800 l 10350 10530 l
+ 10170 10440 l  cp gs col0 s gr 
+% Polyline
+gs  clippath
+10454 10680 m 10545 10680 l 10545 10650 l 10454 10650 l 10454 10650 l 10514 10665 l 10454 10680 l cp
+eoclip
+n 10530 10665 m
+ 10350 10665 l gs col0 s gr gr
+
+% arrowhead
+n 10454 10680 m 10514 10665 l 10454 10650 l 10454 10680 l  cp gs 0.00 setgray ef gr  col0 s
+% Polyline
+gs  clippath
+10245 10409 m 10245 10500 l 10275 10500 l 10275 10409 l 10275 10409 l 10260 10469 l 10245 10409 l cp
+eoclip
+n 10260 10485 m
+ 10260 10305 l gs col0 s gr gr
+
+% arrowhead
+n 10245 10409 m 10260 10469 l 10275 10409 l 10245 10409 l  cp gs 0.00 setgray ef gr  col0 s
+% Polyline
+n 10170 9360 m 10170 10350 l 10350 10260 l 10350 9450 l
+ 10170 9360 l  cp gs col0 s gr 
+% Polyline
+gs  clippath
+10245 9329 m 10245 9420 l 10275 9420 l 10275 9329 l 10275 9329 l 10260 9389 l 10245 9329 l cp
+eoclip
+n 10260 9405 m
+ 10260 9225 l gs col0 s gr gr
+
+% arrowhead
+n 10245 9329 m 10260 9389 l 10275 9329 l 10245 9329 l  cp gs 0.00 setgray ef gr  col0 s
+% Polyline
+gs  clippath
+10454 9870 m 10545 9870 l 10545 9840 l 10454 9840 l 10454 9840 l 10514 9855 l 10454 9870 l cp
+eoclip
+n 10530 9855 m
+ 10350 9855 l gs col0 s gr gr
+
+% arrowhead
+n 10454 9870 m 10514 9855 l 10454 9840 l 10454 9870 l  cp gs 0.00 setgray ef gr  col0 s
 % Polyline
 n 9990 9180 m 10260 9180 l
- 10260 9090 l gs col0 s gr 
+ 10260 9225 l gs col0 s gr 
 % Polyline
-n 9990 9450 m 10260 9450 l
- 10260 9540 l gs col0 s gr 
+n 9990 8955 m 10260 8955 l
+ 10260 9180 l gs col0 s gr 
 % Polyline
-n 9990 9720 m 10260 9720 l
- 10260 9630 l gs col0 s gr 
+n 9990 8730 m 10260 8730 l
+ 10260 8955 l gs col0 s gr 
 % Polyline
-n 10170 9270 m 10170 9810 l
- 10260 9810 l gs col0 s gr 
-% Polyline
-n 10080 8820 m 10080 9360 l
- 10260 9360 l gs col0 s gr 
+n 10215 9270 m
+ 10305 9225 l gs col0 s gr 
 % Polyline
 gs  clippath
-9644 10005 m 9735 10005 l 9735 9975 l 9644 9975 l 9644 9975 l 9704 9990 l 9644 10005 l cp
+10454 8340 m 10545 8340 l 10545 8310 l 10454 8310 l 10454 8310 l 10514 8325 l 10454 8340 l cp
 eoclip
-n 9720 9990 m
- 9225 9990 l gs col0 s gr gr
+n 10530 8325 m
+ 10350 8325 l gs col0 s gr gr
 
 % arrowhead
-n 9644 10005 m 9704 9990 l 9644 9975 l 9644 10005 l  cp gs 0.00 setgray ef gr  col0 s
+n 10454 8340 m 10514 8325 l 10454 8310 l 10454 8340 l  cp gs 0.00 setgray ef gr  col0 s
+% Polyline
+n 10350 8325 m
+ 9990 8325 l gs col0 s gr 
+% Polyline
+ [60] 0 sd
+n 10890 7875 m
+ 10890 10980 l gs col0 s gr  [] 0 sd
+% Polyline
+n 9540 10755 m
+ 8730 10755 l gs col0 s gr 
 % Polyline
 gs  clippath
-9644 10275 m 9735 10275 l 9735 10245 l 9644 10245 l 9644 10245 l 9704 10260 l 9644 10275 l cp
+9644 10770 m 9735 10770 l 9735 10740 l 9644 10740 l 9644 10740 l 9704 10755 l 9644 10770 l cp
 eoclip
-n 9720 10260 m
- 9225 10260 l gs col0 s gr gr
+n 9720 10755 m
+ 9540 10755 l gs col0 s gr gr
 
 % arrowhead
-n 9644 10275 m 9704 10260 l 9644 10245 l 9644 10275 l  cp gs 0.00 setgray ef gr  col0 s
-% Polyline
-n 9990 9990 m 10260 9990 l
- 10260 10080 l gs col0 s gr 
-% Polyline
-n 9990 10260 m 10260 10260 l
- 10260 10170 l gs col0 s gr 
-% Polyline
-n 10170 9810 m 10170 10350 l
- 10260 10350 l gs col0 s gr 
-% Polyline
-n 10080 9360 m 10080 9900 l
- 10260 9900 l gs col0 s gr 
-% Polyline
-n 9990 8280 m 10080 8280 l 10080 8820 l
- 10260 8820 l gs col0 s gr 
-% Polyline
-n 9990 8550 m 10170 8550 l 10170 9270 l
- 10260 9270 l gs col0 s gr 
+n 9644 10770 m 9704 10755 l 9644 10740 l 9644 10770 l  cp gs 0.00 setgray ef gr  col0 s
 % Polyline
 gs  clippath
-11489 9060 m 11580 9060 l 11580 9030 l 11489 9030 l 11489 9030 l 11549 9045 l 11489 9060 l cp
+9644 10590 m 9735 10590 l 9735 10560 l 9644 10560 l 9644 10560 l 9704 10575 l 9644 10590 l cp
 eoclip
-n 11565 9045 m
- 11385 9045 l gs col0 s gr gr
+n 9720 10575 m
+ 9540 10575 l gs col0 s gr gr
 
 % arrowhead
-n 11489 9060 m 11549 9045 l 11489 9030 l 11489 9060 l  cp gs 0.00 setgray ef gr  col0 s
+n 9644 10590 m 9704 10575 l 9644 10560 l 9644 10590 l  cp gs 0.00 setgray ef gr  col0 s
 % Polyline
-gs  clippath
-11489 9600 m 11580 9600 l 11580 9570 l 11489 9570 l 11489 9570 l 11549 9585 l 11489 9600 l cp
-eoclip
-n 11565 9585 m
- 11385 9585 l gs col0 s gr gr
-
-% arrowhead
-n 11489 9600 m 11549 9585 l 11489 9570 l 11489 9600 l  cp gs 0.00 setgray ef gr  col0 s
+n 9540 10575 m
+ 8730 10575 l gs col0 s gr 
 % Polyline
-gs  clippath
-11489 10140 m 11580 10140 l 11580 10110 l 11489 10110 l 11489 10110 l 11549 10125 l 11489 10140 l cp
-eoclip
-n 11565 10125 m
- 11385 10125 l gs col0 s gr gr
-
-% arrowhead
-n 11489 10140 m 11549 10125 l 11489 10110 l 11489 10140 l  cp gs 0.00 setgray ef gr  col0 s
+n 9090 10620 m
+ 9180 10530 l gs col0 s gr 
 % Polyline
-n 11340 10170 m
- 11430 10080 l gs col0 s gr 
-% Polyline
-n 10125 10215 m
- 10035 10305 l gs col0 s gr 
-% Polyline
-n 10734 10308 m
- 10824 10218 l gs col0 s gr 
-% Polyline
-n 10742 10033 m
- 10832 9943 l gs col0 s gr 
-% Polyline
-n 10035 10035 m
- 10125 9945 l gs col0 s gr 
-/Times-Roman ff 190.50 scf sf
-9540 8460 m
+n 9090 10800 m
+ 9180 10710 l gs col0 s gr 
+/Times-Roman-iso ff 190.50 scf sf
+9540 9000 m
 gs 1 -1 sc (PA) col0 sh gr
-/Times-Roman ff 190.50 scf sf
-8775 8325 m
-gs 1 -1 sc (BR0) col0 sh gr
-/Times-Roman ff 190.50 scf sf
-8775 8595 m
-gs 1 -1 sc (BR1) col0 sh gr
-/Times-Roman ff 190.50 scf sf
+/Times-Roman-iso ff 190.50 scf sf
+8325 8775 m
+gs 1 -1 sc (J0) col0 sh gr
+/Times-Roman-iso ff 190.50 scf sf
+8325 9000 m
+gs 1 -1 sc (J1) col0 sh gr
+/Times-Roman-iso ff 190.50 scf sf
+8325 9540 m
+gs 1 -1 sc (C0) col0 sh gr
+/Times-Roman-iso ff 190.50 scf sf
+8325 9720 m
+gs 1 -1 sc (C1) col0 sh gr
+/Times-Roman-iso ff 127.00 scf sf
+9405 9000 m
+gs 1 -1 sc (1) col0 sh gr
+/Times-Roman-iso ff 127.00 scf sf
+9405 9225 m
+gs 1 -1 sc (2) col0 sh gr
+/Times-Roman-iso ff 127.00 scf sf
+9405 8775 m
+gs 1 -1 sc (0) col0 sh gr
+/Times-Roman-iso ff 190.50 scf sf
 9855 8010 m
 gs 1 -1 sc (0) col0 sh gr
-/Times-Roman ff 190.50 scf sf
-11610 9090 m
-gs 1 -1 sc (J) col0 sh gr
-/Times-Roman ff 190.50 scf sf
-11610 9630 m
-gs 1 -1 sc (C) col0 sh gr
-/Times-Roman ff 190.50 scf sf
-11610 10170 m
+/Times-Roman-iso ff 127.00 scf sf
+10215 10620 m
+gs 1 -1 sc (0) col0 sh gr
+/Times-Roman-iso ff 127.00 scf sf
+10215 10800 m
+gs 1 -1 sc (1) col0 sh gr
+/Times-Roman-iso ff 190.50 scf sf
+10530 10710 m
 gs 1 -1 sc (BD) col0 sh gr
-/Times-Roman ff 190.50 scf sf
-8775 8955 m
-gs 1 -1 sc (J0) col0 sh gr
-/Times-Roman ff 190.50 scf sf
-8775 9225 m
-gs 1 -1 sc (J1) col0 sh gr
-/Times-Roman ff 190.50 scf sf
-8775 9495 m
-gs 1 -1 sc (C0) col0 sh gr
-/Times-Roman ff 190.50 scf sf
-8775 9765 m
-gs 1 -1 sc (C1) col0 sh gr
-/Times-Roman ff 190.50 scf sf
-8775 10035 m
+/Times-Roman-iso ff 127.00 scf sf
+10215 10170 m
+gs 1 -1 sc (2) col0 sh gr
+/Times-Roman-iso ff 127.00 scf sf
+10215 9720 m
+gs 1 -1 sc (1) col0 sh gr
+/Times-Roman-iso ff 127.00 scf sf
+10215 9540 m
+gs 1 -1 sc (0) col0 sh gr
+/Times-Roman-iso ff 190.50 scf sf
+10530 9900 m
+gs 1 -1 sc (C) col0 sh gr
+/Times-Roman-iso ff 127.00 scf sf
+10350 9270 m
+gs 1 -1 sc (one-hot) col0 sh gr
+/Times-Roman-iso ff 190.50 scf sf
+10530 8370 m
+gs 1 -1 sc (J) col0 sh gr
+/Times-Roman-iso ff 190.50 scf sf
+10755 8010 m
+gs 1 -1 sc (1) col0 sh gr
+/Times-Roman-iso ff 190.50 scf sf
+8325 10620 m
 gs 1 -1 sc (BD0) col0 sh gr
-/Times-Roman ff 190.50 scf sf
-8775 10305 m
+/Times-Roman-iso ff 190.50 scf sf
+8325 10800 m
 gs 1 -1 sc (BD1) col0 sh gr
 % here ends figure;
 % 
@@ -342,237 +500,104 @@ gs 1 -1 sc (BD1) col0 sh gr
 % Arc
 7.500 slw
 0 slc
-n 10575.0 9450.0 135.0 -90.0000 90.0000 arc
+n 9045.0 9180.0 135.0 -90.0000 90.0000 arc
 gs col0 s gr
 
 % Polyline
 0 slj
-n 10260 9540 m
- 10395 9540 l gs col0 s gr 
+n 8730 9270 m
+ 8865 9270 l gs col0 s gr 
 % Polyline
-n 10260 9360 m
- 10395 9360 l gs col0 s gr 
-% Polyline
-1 slc
-n 10395 9315 m
- 10395 9585 l gs col0 s gr 
-% Polyline
-n 10575 9315 m
- 10395 9315 l gs col0 s gr 
-% Polyline
-0 slc
-n 10575 9585 m
- 10395 9585 l gs col0 s gr 
-% Polyline
-n 10845 9450 m
- 10710 9450 l gs col0 s gr 
-% Arc
-n 10575.0 9720.0 135.0 -90.0000 90.0000 arc
-gs col0 s gr
-
-% Polyline
-n 10260 9810 m
- 10395 9810 l gs col0 s gr 
-% Polyline
-n 10260 9630 m
- 10395 9630 l gs col0 s gr 
+n 8730 9090 m
+ 8865 9090 l gs col0 s gr 
 % Polyline
 1 slc
-n 10395 9585 m
- 10395 9855 l gs col0 s gr 
+n 8865 9045 m
+ 8865 9315 l gs col0 s gr 
 % Polyline
-n 10575 9585 m
- 10395 9585 l gs col0 s gr 
+n 9045 9045 m
+ 8865 9045 l gs col0 s gr 
 % Polyline
 0 slc
-n 10575 9855 m
- 10395 9855 l gs col0 s gr 
+n 9045 9315 m
+ 8865 9315 l gs col0 s gr 
 % Polyline
-n 10845 9720 m
- 10710 9720 l gs col0 s gr 
+n 9315 9180 m
+ 9180 9180 l gs col0 s gr 
+% Ellipse
+gs
+8833 9272 tr
+-90.000 rot
+n 0 0 23 23 0 360 DrawEllipse 90.000 rot
+gs col7 1.00 shd ef gr gs col0 s gr
+gr
+
+% Ellipse
+gs
+8833 9089 tr
+-90.000 rot
+n 0 0 23 23 0 360 DrawEllipse 90.000 rot
+gs col7 1.00 shd ef gr gs col0 s gr
+gr
+
 % Arc
-n 10575.0 9180.0 135.0 -90.0000 90.0000 arc
+n 9292.5 9967.5 293.4 32.4712 85.6013 arc
+gs col0 s gr
+
+% Arc
+n 9292.5 10282.5 293.4 -32.4712 -85.6013 arcn
+gs col0 s gr
+
+% Arc
+n 9000.0 10125.0 225.0 -36.8699 36.8699 arc
 gs col0 s gr
 
 % Polyline
-n 10260 9270 m
- 10395 9270 l gs col0 s gr 
-% Polyline
-n 10260 9090 m
- 10395 9090 l gs col0 s gr 
+n 9630 10125 m
+ 9540 10125 l gs col0 s gr 
 % Polyline
 1 slc
-n 10395 9045 m
- 10395 9315 l gs col0 s gr 
+n 9180 10260 m
+ 9315 10260 l gs col0 s gr 
 % Polyline
-n 10575 9045 m
- 10395 9045 l gs col0 s gr 
+n 9180 9990 m
+ 9315 9990 l gs col0 s gr 
 % Polyline
 0 slc
-n 10575 9315 m
- 10395 9315 l gs col0 s gr 
+n 9090 10215 m
+ 9202 10215 l gs col0 s gr 
 % Polyline
-n 10845 9180 m
- 10710 9180 l gs col0 s gr 
+n 9090 10035 m
+ 9202 10035 l gs col0 s gr 
 % Arc
-n 10575.0 8910.0 135.0 -90.0000 90.0000 arc
+n 9292.5 8167.5 293.4 32.4712 85.6013 arc
+gs col0 s gr
+
+% Arc
+n 9292.5 8482.5 293.4 -32.4712 -85.6013 arcn
+gs col0 s gr
+
+% Arc
+n 9000.0 8325.0 225.0 -36.8699 36.8699 arc
 gs col0 s gr
 
 % Polyline
-n 10260 9000 m
- 10395 9000 l gs col0 s gr 
-% Polyline
-n 10260 8820 m
- 10395 8820 l gs col0 s gr 
+n 9630 8325 m
+ 9540 8325 l gs col0 s gr 
 % Polyline
 1 slc
-n 10395 8775 m
- 10395 9045 l gs col0 s gr 
+n 9180 8460 m
+ 9315 8460 l gs col0 s gr 
 % Polyline
-n 10575 8775 m
- 10395 8775 l gs col0 s gr 
-% Polyline
-0 slc
-n 10575 9045 m
- 10395 9045 l gs col0 s gr 
-% Polyline
-n 10845 8910 m
- 10710 8910 l gs col0 s gr 
-% Arc
-n 10575.0 9990.0 135.0 -90.0000 90.0000 arc
-gs col0 s gr
-
-% Polyline
-n 10260 10080 m
- 10395 10080 l gs col0 s gr 
-% Polyline
-n 10260 9900 m
- 10395 9900 l gs col0 s gr 
-% Polyline
-1 slc
-n 10395 9855 m
- 10395 10125 l gs col0 s gr 
-% Polyline
-n 10575 9855 m
- 10395 9855 l gs col0 s gr 
+n 9180 8190 m
+ 9315 8190 l gs col0 s gr 
 % Polyline
 0 slc
-n 10575 10125 m
- 10395 10125 l gs col0 s gr 
+n 9090 8415 m
+ 9202 8415 l gs col0 s gr 
 % Polyline
-n 10845 9990 m
- 10710 9990 l gs col0 s gr 
-% Arc
-n 10575.0 10260.0 135.0 -90.0000 90.0000 arc
-gs col0 s gr
-
-% Polyline
-n 10260 10350 m
- 10395 10350 l gs col0 s gr 
-% Polyline
-n 10260 10170 m
- 10395 10170 l gs col0 s gr 
-% Polyline
-1 slc
-n 10395 10125 m
- 10395 10395 l gs col0 s gr 
-% Polyline
-n 10575 10125 m
- 10395 10125 l gs col0 s gr 
-% Polyline
-0 slc
-n 10575 10395 m
- 10395 10395 l gs col0 s gr 
-% Polyline
-n 10845 10260 m
- 10710 10260 l gs col0 s gr 
-% Arc
-n 11047.5 8887.5 293.4 32.4712 85.6013 arc
-gs col0 s gr
-
-% Arc
-n 11047.5 9202.5 293.4 -32.4712 -85.6013 arcn
-gs col0 s gr
-
-% Arc
-n 10755.0 9045.0 225.0 -36.8699 36.8699 arc
-gs col0 s gr
-
-% Polyline
-n 11385 9045 m
- 11295 9045 l gs col0 s gr 
-% Polyline
-1 slc
-n 10935 9180 m
- 11070 9180 l gs col0 s gr 
-% Polyline
-n 10935 8910 m
- 11070 8910 l gs col0 s gr 
-% Polyline
-0 slc
-n 10845 9135 m
- 10957 9135 l gs col0 s gr 
-% Polyline
-n 10845 8955 m
- 10957 8955 l gs col0 s gr 
-% Arc
-n 11047.5 9427.5 293.4 32.4712 85.6013 arc
-gs col0 s gr
-
-% Arc
-n 11047.5 9742.5 293.4 -32.4712 -85.6013 arcn
-gs col0 s gr
-
-% Arc
-n 10755.0 9585.0 225.0 -36.8699 36.8699 arc
-gs col0 s gr
-
-% Polyline
-n 11385 9585 m
- 11295 9585 l gs col0 s gr 
-% Polyline
-1 slc
-n 10935 9720 m
- 11070 9720 l gs col0 s gr 
-% Polyline
-n 10935 9450 m
- 11070 9450 l gs col0 s gr 
-% Polyline
-0 slc
-n 10845 9675 m
- 10957 9675 l gs col0 s gr 
-% Polyline
-n 10845 9495 m
- 10957 9495 l gs col0 s gr 
-% Arc
-n 11047.5 9967.5 293.4 32.4712 85.6013 arc
-gs col0 s gr
-
-% Arc
-n 11047.5 10282.5 293.4 -32.4712 -85.6013 arcn
-gs col0 s gr
-
-% Arc
-n 10755.0 10125.0 225.0 -36.8699 36.8699 arc
-gs col0 s gr
-
-% Polyline
-n 11385 10125 m
- 11295 10125 l gs col0 s gr 
-% Polyline
-1 slc
-n 10935 10260 m
- 11070 10260 l gs col0 s gr 
-% Polyline
-n 10935 9990 m
- 11070 9990 l gs col0 s gr 
-% Polyline
-0 slc
-n 10845 10215 m
- 10957 10215 l gs col0 s gr 
-% Polyline
-n 10845 10035 m
- 10957 10035 l gs col0 s gr 
+n 9090 8235 m
+ 9202 8235 l gs col0 s gr 
 % here ends figure;
 pagefooter
 showpage
