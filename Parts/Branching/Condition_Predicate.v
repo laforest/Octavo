@@ -19,7 +19,6 @@
 
 module Condition_Predicate
 (
-    input   wire                                    clock,
     input   wire    [`GROUP_SELECTOR_WIDTH-1:0]     A_selector,
     input   wire                                    A_negative,
     input   wire                                    A_carryout,
@@ -31,26 +30,20 @@ module Condition_Predicate
     input   wire                                    B_sentinel,
     input   wire                                    B_external,
     input   wire    [`DYADIC_CTRL_WIDTH-1:0]        AB_operator,
-    output  reg                                     predicate
+    output  wire                                    predicate
 );
 
 // --------------------------------------------------------------------
 
     localparam WORD_WIDTH = 1; // Predicates are 1/0
 
-    initial begin
-        predicate = 0;
-    end
-
 // --------------------------------------------------------------------
-// --------------------------------------------------------------------
-// Stage 0
 
-    wire selected_A_raw;
+    wire selected_A;
 
     Addressed_Mux
     #(
-        .WORD_WIDTH     (1),
+        .WORD_WIDTH     (WORD_WIDTH),
         .ADDR_WIDTH     (`GROUP_SELECTOR_WIDTH),
         .INPUT_COUNT    (2**`GROUP_SELECTOR_WIDTH)
     )
@@ -58,22 +51,16 @@ module Condition_Predicate
     (
         .addr           (A_selector),    
         .in             ({A_external,A_sentinel,A_carryout,A_negative}),
-        .out            (selected_A_raw)
+        .out            (selected_A)
     );
-
-    reg selected_A = 0;
-
-    always @(posedge clock) begin
-        selected_A <= selected_A_raw;
-    end
 
 // --------------------------------------------------------------------
 
-    wire selected_B_raw;
+    wire selected_B;
 
     Addressed_Mux
     #(
-        .WORD_WIDTH     (1),
+        .WORD_WIDTH     (WORD_WIDTH),
         .ADDR_WIDTH     (`GROUP_SELECTOR_WIDTH),
         .INPUT_COUNT    (2**`GROUP_SELECTOR_WIDTH)
     )
@@ -81,28 +68,10 @@ module Condition_Predicate
     (
         .addr           (B_selector),    
         .in             ({B_external,B_sentinel,B_counter,B_lessthan}),
-        .out            (selected_B_raw)
+        .out            (selected_B)
     );
 
-    reg selected_B = 0;
-
-    always @(posedge clock) begin
-        selected_B <= selected_B_raw;
-    end
-
 // --------------------------------------------------------------------
-
-    reg [`DYADIC_CTRL_WIDTH-1:0] AB_operator_piped = 0;
-
-    always @(posedge clock) begin
-        AB_operator_piped <= AB_operator;
-    end
-
-// --------------------------------------------------------------------
-// --------------------------------------------------------------------
-// Stage 1
-
-    wire [WORD_WIDTH-1:0] predicate_raw;
 
     Dyadic_Boolean_Operator
     #(
@@ -110,15 +79,11 @@ module Condition_Predicate
     )
     AB_Combiner
     (
-        .op             (AB_operator_piped),
+        .op             (AB_operator),
         .a              (selected_A),
         .b              (selected_B),
-        .o              (predicate_raw)
+        .o              (predicate)
     );
-
-    always @(posedge clock) begin
-        predicate <= predicate_raw;
-    end
 
 endmodule
 
