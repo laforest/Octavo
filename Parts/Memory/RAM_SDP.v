@@ -27,6 +27,10 @@
 // part of the RAMSTYLE (e.g.: "M10K, no_rw_check").
 // Depending on the FPGA hardware, this may also help when returning OLD data.
 
+// NOTE: set_global_assignment -name ADD_PASS_THROUGH_LOGIC_TO_INFERRED_RAMS
+// OFF to disable creation of write-forwarding logic, as Quartus ignores the
+// "no_rw_check" RAMSTYLE for M10K BRAMs.
+
 // Also, we don't want a synchronous clear on the output: 
 // any register driving it cannot be retimed, and it may not be as portable.
 

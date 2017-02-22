@@ -18,6 +18,10 @@
 // of indeterminate behaviour on overlapping read/writes, use "no_rw_check" as
 // part of the RAMSTYLE (e.g.: "M10K, no_rw_check").
 
+// NOTE: set_global_assignment -name ADD_PASS_THROUGH_LOGIC_TO_INFERRED_RAMS
+// OFF to disable creation of write-forwarding logic, as Quartus ignores the
+// "no_rw_check" RAMSTYLE for M10K BRAMs.
+
 // The "missing" io_rden (read enable) signal should be generated externally,
 // in the stage before the Memory, so the io_rden signal can be provided at
 // the same time as the read_addr. 
