@@ -5,7 +5,7 @@
 `define TRIADIC_ALU_OPERATIONS
 
     // Number of bits in ALU control word, never changes.
-    `define TRIADIC_CTRL_WIDTH      20
+    `define TRIADIC_ALU_CTRL_WIDTH  20
 
     // First, some primitives
 
