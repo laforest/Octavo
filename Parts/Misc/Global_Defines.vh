@@ -11,3 +11,9 @@
 `define OCTAVO_THREAD_COUNT         8
 `define OCTAVO_THREAD_COUNT_WIDTH   3
 
+// Opcodes are always 4 bits. 
+// The operand field widths may change though.
+
+`define OPCODE_COUNT    16
+`define OPCODE_WIDTH    4
+
