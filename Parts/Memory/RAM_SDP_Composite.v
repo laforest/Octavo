@@ -20,8 +20,8 @@ module RAM_SDP_Composite
     parameter       RAMSTYLE            = "",
     parameter       READ_NEW_DATA       = 0,
     parameter       USE_INIT_FILE       = 0,
-    parameter       INIT_FILE           = "",
     // Parameters for the individual sub-RAMs
+    parameter       SUB_INIT_FILE       = "",
     parameter       SUB_ADDR_WIDTH      = 0,
     parameter       SUB_DEPTH           = 0
 )
@@ -110,7 +110,7 @@ module RAM_SDP_Composite
         .RAMSTYLE       (RAMSTYLE),
         .READ_NEW_DATA  (READ_NEW_DATA),
         .USE_INIT_FILE  (USE_INIT_FILE),
-        .INIT_FILE      (INIT_FILE)
+        .INIT_FILE      (SUB_INIT_FILE)
     )
     SUB_RAM             [SUB_RAM_COUNT-1:0]
     (
