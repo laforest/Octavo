@@ -1,5 +1,5 @@
 
-// On-Chip Memory/Register File. Provides read and write I/O ports.
+// On-Chip Data_Memory/Register File. Provides read and write I/O ports.
 // Only the addressed write I/O port changes values on write.
 
 // I/O port addresses are relative to local memory location zero.
@@ -23,11 +23,11 @@
 // "no_rw_check" RAMSTYLE for M10K BRAMs.
 
 // The "missing" io_rden (read enable) signal should be generated externally,
-// in the stage before the Memory, so the io_rden signal can be provided at
+// in the stage before the Data_Memory, so the io_rden signal can be provided at
 // the same time as the read_addr. 
 // The same applies to the read_addr_is_IO signal.
 
-module Memory
+module Data_Memory
 #(
     parameter   WORD_WIDTH                              = 0,
     parameter   ADDR_WIDTH                              = 0,
@@ -90,7 +90,7 @@ module Memory
         .USE_INIT_FILE  (1),
         .INIT_FILE      (MEM_INIT_FILE)
     )
-    MEM
+    DMEM
     (
         .clock          (clock),
         .wren           (mem_wren_stage2),
