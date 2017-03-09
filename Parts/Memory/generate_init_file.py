@@ -26,6 +26,11 @@ def file_dump(width, depth, file_name, fill=0):
             f.write(output + "\n")
 
 if __name__ == "__main__":
-    file_name = argv[1];
-    file_dump(36, 1024, file_name)
+    if len(argv) != 4:
+        print("3 arguments: width, depth, filename\n")
+        exit
+    width       = int(argv[1])
+    depth       = int(argv[2])
+    file_name   = argv[3]
+    file_dump(width, depth, file_name)
 
