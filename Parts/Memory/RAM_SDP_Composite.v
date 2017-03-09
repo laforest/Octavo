@@ -54,19 +54,19 @@ module RAM_SDP_Composite
     always @(*) begin
         sub_read_selector   = read_addr  [ADDR_WIDTH-1:ADDR_WIDTH-ADDR_WIDTH_MSB]; 
         sub_write_selector  = write_addr [ADDR_WIDTH-1:ADDR_WIDTH-ADDR_WIDTH_MSB]; 
-        sub_read_addr       = read_addr  [ADDR_WIDTH-ADDR_WIDTH_LSB:0];
-        sub_write_addr      = write_addr [ADDR_WIDTH-ADDR_WIDTH_LSB:0];
+        sub_read_addr       = read_addr  [ADDR_WIDTH_LSB-1:0];
+        sub_write_addr      = write_addr [ADDR_WIDTH_LSB-1:0];
     end
 
 // --------------------------------------------------------------------
 // Enable reads and writes to each sub-RAM based on selectors.
 
-    reg [SUB_RAM_COUNT-1:0] sub_wren = 0;
-    reg [SUB_RAM_COUNT-1:0] sub_rden = 0;
+    wire [SUB_RAM_COUNT-1:0] sub_wren;
+    wire [SUB_RAM_COUNT-1:0] sub_rden;
 
     generate
         genvar i;
-        for(i = 0; i < SUB_RAM_COUNT; i = i+1) begin
+        for(i = 0; i < SUB_RAM_COUNT; i = i+1) begin : enables
 
             Address_Range_Decoder_Static
             #(
