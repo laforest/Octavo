@@ -10,7 +10,7 @@ module Instruction_Field_Extractor
     parameter       A_OPERAND_WIDTH         = 0,
     parameter       B_OPERAND_WIDTH         = 0,
     // Don't set at instantiation
-    // Assumes D_OPERAND_WIDTH is even
+    // Assumes D_OPERAND_WIDTH is even, else MSB dropped
     parameter       D_SPLIT_WIDTH           = D_OPERAND_WIDTH / 2
 )
 (
@@ -36,7 +36,7 @@ module Instruction_Field_Extractor
 
     always @(*) begin
         {opcode,D_operand,A_operand,B_operand}  = instruction [USED_BIT_WIDTH-1:0];
-        {D_split_upper,D_split_lower}           = D_operand;
+        {D_split_upper,D_split_lower}           = D_operand   [(D_SPLIT_WIDTH*2)-1:0];
     end
 
 endmodule
