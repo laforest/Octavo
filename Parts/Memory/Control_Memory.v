@@ -1,8 +1,6 @@
 
 // Control Memory, which translates an opcode into a control word to define
-// the ALU operation on the A/B operands.
-
-// Multi-threaded.
+// the ALU operation on the A/B operands. Multithreaded.
 
 module Control_Memory
 #(
@@ -14,7 +12,10 @@ module Control_Memory
     parameter       SUB_DEPTH           = 0,
     // Interface (per thread)
     parameter       OPCODE_WIDTH        = 0,
-    parameter       CONTROL_WIDTH       = 0
+    parameter       CONTROL_WIDTH       = 0,
+    // Multithreading
+    parameter       THREAD_COUNT        = 0,
+    parameter       THREAD_COUNT_WIDTH  = 0
 )
 (
     input  wire                     clock,
@@ -28,18 +29,18 @@ module Control_Memory
 
 // -----------------------------------------------------------
 
-    localparam CM_ADDR_WIDTH = OPCODE_WIDTH      + `OCTAVO_THREAD_ADDR_WIDTH;
-    localparam CM_DEPTH      = (2**OPCODE_WIDTH) * `OCTAVO_THREAD_COUNT;
+    localparam CM_ADDR_WIDTH = OPCODE_WIDTH      + THREAD_COUNT_WIDTH;
+    localparam CM_DEPTH      = (2**OPCODE_WIDTH) * THREAD_COUNT;
 
 // -----------------------------------------------------------
 
-    wire [`OCTAVO_THREAD_ADDR_WIDTH-1:0] current_thread;
+    wire [THREAD_COUNT_WIDTH-1:0] current_thread;
 
     Thread_Number
     #(
         .INITIAL_THREAD     (0),
-        .THREAD_COUNT       (`OCTAVO_THREAD_COUNT),
-        .THREAD_ADDR_WIDTH  (`OCTAVO_THREAD_ADDR_WIDTH)
+        .THREAD_COUNT       (THREAD_COUNT),
+        .THREAD_COUNT_WIDTH (THREAD_COUNT_WIDTH)
     )
     TID
     (
