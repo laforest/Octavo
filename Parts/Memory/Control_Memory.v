@@ -1,15 +1,23 @@
 
 // Control Memory, which translates an opcode into a control word to define
-// the ALU operation on the A/B operands. Multithreaded.
+// the ALU operation on the A/B operands. 
+
+// Multithreaded, and can use simple or composite RAM for
+// portability/performance.
 
 module Control_Memory
 #(
-    // Individual sub-RAMs
-    parameter       RAMSTYLE            = "",
-    parameter       READ_NEW_DATA       = 0,
+    // If USE_COMPOSITE == 1: use a monolithic inferred RAM
+    parameter       USE_COMPOSITE       = 0,
+    parameter       INIT_FILE           = "",
+    // else if USE_COMPOSITE == 0: use a composite inferred RAM
+    // Individual sub-RAM parameters
     parameter       SUB_INIT_FILE       = "",
     parameter       SUB_ADDR_WIDTH      = 0,
     parameter       SUB_DEPTH           = 0,
+    // Common to composite and monolithic
+    parameter       RAMSTYLE            = "",
+    parameter       READ_NEW_DATA       = 0,
     // Interface (per thread)
     parameter       OPCODE_WIDTH        = 0,
     parameter       CONTROL_WIDTH       = 0,
@@ -60,30 +68,61 @@ module Control_Memory
     end
 
 // --------------------------------------------------------------------
+// Select composite/monolithic RAM. 
+// Coded to fail on invalid parameter value.
 
-    RAM_SDP_Composite
-    #(
-        .WORD_WIDTH     (CONTROL_WIDTH),
-        .ADDR_WIDTH     (CM_ADDR_WIDTH),
-        .DEPTH          (CM_DEPTH),
-        .RAMSTYLE       (RAMSTYLE),
-        .READ_NEW_DATA  (READ_NEW_DATA),
-        // Must use an init file, else all zero init decodes to all NOPs
-        .USE_INIT_FILE  (1),
-        .SUB_INIT_FILE  (SUB_INIT_FILE),
-        .SUB_ADDR_WIDTH (SUB_ADDR_WIDTH),
-        .SUB_DEPTH      (SUB_DEPTH)
-    )
-    CM
-    (
-        .clock          (clock),
-        .wren           (wren),
-        .write_addr     (cm_write_addr),
-        .write_data     (write_data),
-        .rden           (rden),
-        .read_addr      (cm_read_addr), 
-        .read_data      (read_data)
-    );
+    generate
+        if (USE_COMPOSITE == 1) begin
+            RAM_SDP_Composite
+            #(
+                .WORD_WIDTH     (CONTROL_WIDTH),
+                .ADDR_WIDTH     (CM_ADDR_WIDTH),
+                .DEPTH          (CM_DEPTH),
+                .RAMSTYLE       (RAMSTYLE),
+                .READ_NEW_DATA  (READ_NEW_DATA),
+                // Must use an init file, else all zero init decodes to all NOPs
+                .USE_INIT_FILE  (1),
+                .SUB_INIT_FILE  (SUB_INIT_FILE),
+                .SUB_ADDR_WIDTH (SUB_ADDR_WIDTH),
+                .SUB_DEPTH      (SUB_DEPTH)
+            )
+            CM
+            (
+                .clock          (clock),
+                .wren           (wren),
+                .write_addr     (cm_write_addr),
+                .write_data     (write_data),
+                .rden           (rden),
+                .read_addr      (cm_read_addr), 
+                .read_data      (read_data)
+            );
+        end
+        else begin
+            if (USE_COMPOSITE == 0) begin
+                RAM_SDP
+                #(
+                    .WORD_WIDTH     (CONTROL_WIDTH),
+                    .ADDR_WIDTH     (CM_ADDR_WIDTH),
+                    .DEPTH          (CM_DEPTH),
+                    .RAMSTYLE       (RAMSTYLE),
+                    .READ_NEW_DATA  (READ_NEW_DATA),
+                    // Must use an init file, else all zero init decodes to all NOPs
+                    .USE_INIT_FILE  (1),
+                    .INIT_FILE      (INIT_FILE)
+                )
+                CM
+                (
+                    .clock          (clock),
+                    .wren           (wren),
+                    .write_addr     (cm_write_addr),
+                    .write_data     (write_data),
+                    .rden           (rden),
+                    .read_addr      (cm_read_addr), 
+                    .read_data      (read_data)
+                );
+            end
+        end
+    endgenerate
 
 endmodule
 

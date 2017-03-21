@@ -18,7 +18,9 @@ module Instruction_Memory
     parameter       IMEM_DEPTH                      = 0,
     parameter       IMEM_RAMSTYLE                   = "",
     parameter       IMEM_INIT_FILE                  = "",
-    // Control Mem Individual sub-RAMs
+    // Control Mem 
+    parameter       CMEM_USE_COMPOSITE              = 0,
+    parameter       CMEM_INIT_FILE                  = "",
     parameter       CMEM_RAMSTYLE                   = "",
     parameter       CMEM_READ_NEW_DATA              = 0,
     parameter       CMEM_SUB_INIT_FILE              = "",
@@ -115,12 +117,16 @@ module Instruction_Memory
 
     Control_Memory
     #(
-        // Individual sub-RAMs
-        .RAMSTYLE           (CMEM_RAMSTYLE),
-        .READ_NEW_DATA      (CMEM_READ_NEW_DATA),
+        // Use composite or monolithic inferred RAM?
+        .USE_COMPOSITE      (CMEM_USE_COMPOSITE),
+        .INIT_FILE          (CMEM_INIT_FILE),
+        // Individual sub-RAMs (composite)
         .SUB_INIT_FILE      (CMEM_SUB_INIT_FILE),
         .SUB_ADDR_WIDTH     (CMEM_SUB_ADDR_WIDTH),
         .SUB_DEPTH          (CMEM_SUB_DEPTH),
+        // Common parameters
+        .RAMSTYLE           (CMEM_RAMSTYLE),
+        .READ_NEW_DATA      (CMEM_READ_NEW_DATA),
         // Interface (per thread)
         .OPCODE_WIDTH       (OPCODE_WIDTH),
         .CONTROL_WIDTH      (CMEM_WORD_WIDTH),

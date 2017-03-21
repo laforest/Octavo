@@ -1,20 +1,24 @@
 
+// This is an experimental 40-bit version...
+
 module Generic_test_harness
 #(
     // Instruction format
-    parameter       INSTRUCTION_WIDTH               = 36,
-    parameter       OPCODE_WIDTH                    = 4,
-    parameter       D_OPERAND_WIDTH                 = 12,
-    parameter       A_OPERAND_WIDTH                 = 10,
-    parameter       B_OPERAND_WIDTH                 = 10,
+    parameter       INSTRUCTION_WIDTH               = 40,
+    parameter       OPCODE_WIDTH                    = 5,
+    parameter       D_OPERAND_WIDTH                 = 13,
+    parameter       A_OPERAND_WIDTH                 = 11,
+    parameter       B_OPERAND_WIDTH                 = 11,
     // Instruction Mem
-    parameter       IMEM_WORD_WIDTH                 = 36,
-    parameter       IMEM_ADDR_WIDTH                 = 10,
+    parameter       IMEM_WORD_WIDTH                 = 40,
+    parameter       IMEM_ADDR_WIDTH                 = 11,
     parameter       IMEM_READ_NEW                   = 0,
-    parameter       IMEM_DEPTH                      = 1024,
+    parameter       IMEM_DEPTH                      = 2048,
     parameter       IMEM_RAMSTYLE                   = "M10K,no_rw_check",
     parameter       IMEM_INIT_FILE                  = "empty.imem",
     // Control Mem Individual sub-RAMs
+    parameter       CMEM_USE_COMPOSITE              = 1,
+    parameter       CMEM_INIT_FILE                  = "empty.cmem",
     parameter       CMEM_RAMSTYLE                   = "MLAB,no_rw_check",
     parameter       CMEM_READ_NEW_DATA              = 0,
     parameter       CMEM_SUB_INIT_FILE              = "empty.cmem",
@@ -106,6 +110,8 @@ module Generic_test_harness
         .IMEM_RAMSTYLE          (IMEM_RAMSTYLE),
         .IMEM_INIT_FILE         (IMEM_INIT_FILE),
         // Control Mem Individual sub-RAMs
+        .CMEM_USE_COMPOSITE     (CMEM_USE_COMPOSITE),
+        .CMEM_INIT_FILE         (CMEM_INIT_FILE),
         .CMEM_RAMSTYLE          (CMEM_RAMSTYLE),
         .CMEM_READ_NEW_DATA     (CMEM_READ_NEW_DATA),
         .CMEM_SUB_INIT_FILE     (CMEM_SUB_INIT_FILE),
