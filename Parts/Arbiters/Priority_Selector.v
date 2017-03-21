@@ -42,30 +42,16 @@ module Priority_Selector
 
 // --------------------------------------------------------------------
 
-    wire [(WORD_COUNT*WORD_WIDTH)-1:0] selected_in
-
-    Annuller
+    One_Hot_Mux
     #(
-        .WORD_WIDTH (WORD_WIDTH)
+        .WORD_WIDTH     (WORD_WIDTH),
+        .WORD_COUNT     (WORD_COUNT)
     )
-    Select_Input    [WORD_COUNT-1:0]
+    Output_Filter
     (
-        annul       (~one_hot_selector),
-        in          (in),
-        out         (selected_in)
-    );
-
-// --------------------------------------------------------------------
-
-    Word_OR_Reducer
-    #(
-        .WORD_WIDTH (WORD_WIDTH),
-        .WORD_COUNT (WORD_COUNT)
-    )
-    Merge
-    (
-        in          (selected_in),
-        out         (out)
+        .selectors      (one_hot_selector),
+        .in             (in),
+        .out            (out)
     );
 
 endmodule
