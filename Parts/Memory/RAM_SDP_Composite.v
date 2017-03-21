@@ -1,15 +1,8 @@
 
 // Simple Dual-Port RAM, implemented as a composite of smaller RAMs.
-
-// For example, if we let Quartus infer a single deep MLAB-based memory with
-// a registered output, it will do so, but places the single output register
-// after the mux, as the behavioural code describes, rather than at the output
-// of each MLAB.  Furthermore, since the mux is inferred, the output register
-// will not get retimed across the mux, and so becomes a critical path.
-
-// This implementation instead yields multiple memories with registered
-// outputs, and a mux placed after these. Use this if the automatically
-// inferred RAM is too slow.
+// Useful for portability reasons, or if the CAD tool infers sub-optimal
+// monolitic RAMs.
+// The explicit read/write enables might save power.
 
 module RAM_SDP_Composite
 #(
@@ -126,6 +119,12 @@ module RAM_SDP_Composite
 // --------------------------------------------------------------------
 // Select the output of the read-enabled sub-RAM
 
+    reg [ADDR_WIDTH_MSB-1:0] sub_read_selector_synced = 0;
+
+    always @(posedge clock) begin
+        sub_read_selector_synced <= sub_read_selector;
+    end
+
     Addressed_Mux
     #(
         .WORD_WIDTH     (WORD_WIDTH),
@@ -134,7 +133,7 @@ module RAM_SDP_Composite
     )
     SUB_READ_MUX
     (
-        .addr           (sub_read_selector),    
+        .addr           (sub_read_selector_synced),    
         .in             (sub_read_data),
         .out            (read_data)
     );
