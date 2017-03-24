@@ -18,7 +18,7 @@ module One_Hot_Mux
 
 // --------------------------------------------------------------------
 
-    wire [(WORD_COUNT*WORD_WIDTH)-1:0] selected_in
+    wire [(WORD_COUNT*WORD_WIDTH)-1:0] selected_in;
 
     Annuller
     #(
@@ -26,9 +26,9 @@ module One_Hot_Mux
     )
     Select_Input    [WORD_COUNT-1:0]
     (
-        annul       (~selectors),
-        in          (in),
-        out         (selected_in)
+        .annul       (~selectors),
+        .in          (in),
+        .out         (selected_in)
     );
 
 // --------------------------------------------------------------------
@@ -40,8 +40,8 @@ module One_Hot_Mux
     )
     Merge
     (
-        in          (selected_in),
-        out         (out)
+        .in          (selected_in),
+        .out         (out)
     );
 
 endmodule
