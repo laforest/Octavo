@@ -1,0 +1,34 @@
+#! /bin/bash
+
+INSTALL_BASE="/home/laforest/Octavo/Octavo"
+
+TOP_LEVEL_MODULE="Generic_test_bench"
+TESTBENCH="./${TOP_LEVEL_MODULE}.v"
+
+LPM_LIBRARY="$QUARTUS_BASE/quartus/eda/sim_lib/220model.v"
+ALT_LIBRARY="$QUARTUS_BASE/quartus/eda/sim_lib/altera_mf.v"
+
+SIM_DEFS="$INSTALL_BASE/Parts/SimSynth/simulation_defines.vh"
+
+SOURCES="$INSTALL_BASE/Parts/Counters/UpDown_Counter.v \
+         $INSTALL_BASE/Parts/Arbiters/Priority_Arbiter.v \
+         $INSTALL_BASE/Parts/Misc/Annuller.v \
+         $INSTALL_BASE/Parts/Misc/Word_OR_Reducer.v \
+         $INSTALL_BASE/Parts/Multiplexers/One_Hot_Mux.v \
+         $INSTALL_BASE/Parts/Memory/RAM_SDP.v \
+         $INSTALL_BASE/Parts/Multithreading/Delay_Line.v \
+         $INSTALL_BASE/Parts/Multithreading/Thread_Number.v \
+         $INSTALL_BASE/Parts/AOM/Address_Offset_Module_PO_Memory.v \
+         $INSTALL_BASE/Parts/AOM/Address_Offset_Module.v
+"
+VLIB="work"
+
+VSIM_ACTIONS="vcd file $TOP_LEVEL_MODULE.vcd ; vcd add -r /* ; run -all ; quit"
+
+rm $TOP_LEVEL_MODULE.wlf $TOP_LEVEL_MODULE.vcd
+vlib $VLIB 2>&1 > LOG
+vlog -mfcu -incr -lint $LPM_LIBRARY $ALT_LIBRARY $SOURCES $SIM_DEFS $TESTBENCH 2>&1 >> LOG
+vsim -voptargs="+acc" -c -do "$VSIM_ACTIONS" $TOP_LEVEL_MODULE 2>&1 >> LOG
+vcd2wlf $TOP_LEVEL_MODULE.vcd $TOP_LEVEL_MODULE.wlf 2>&1 >> LOG
+rm vsim.wlf
+
