@@ -1,158 +1,168 @@
 
 // The Controller holds and provides Program Counter values for each thread, 
-// including the previous PC value to re-issue annulled instructions.
+// including the previous pc value to re-issue annulled instructions.
 
 // There's a built-in Thread_Number counter, so this assumes 
 // fixed round-robin thread scheduling.
 
-// Requires one pipeline stage, due to PC memory.
-
-// -----------------------------------------------------------
-
-module PC_Selector
+module Thread_PC_Controller
 #(
-    parameter       PC_WIDTH        = 0
-)
-(
-    input   wire                    jump,
-    input   wire    [PC_WIDTH-1:0]  jump_target,
-    input   wire                    annul,
-    input   wire    [PC_WIDTH-1:0]  current_pc,
-    input   wire    [PC_WIDTH-1:0]  previous_pc,
-    output  reg     [PC_WIDTH-1:0]  PC
-);
-    reg [PC_WIDTH-1:0] normal_pc;
-
-    always @(*) begin
-        normal_pc = (jump  == 1'b1) ? jump_target : current_pc;
-        PC        = (annul == 1'b1) ? previous_pc : normal_pc;
-    end
-endmodule
-
-// -----------------------------------------------------------
-// -----------------------------------------------------------
-
-module Thread_PC_Controller 
-#(
-    parameter       PC_WIDTH            = 0,
-    parameter       THREAD_ADDR_WIDTH   = 0,
-    parameter       THREAD_COUNT        = 0,
+    parameter       PC_WIDTH            = 0,   
+    // Common RAM parameters
     parameter       RAMSTYLE            = "",
-    parameter       INIT_FILE           = ""
-
+    parameter       READ_NEW_DATA       = 0,
+    parameter       USE_INIT_FILE       = 0,
+    parameter       PC_INIT_FILE        = "",
+    parameter       PC_PREV_INIT_FILE   = "",
+    // Multithreading
+    parameter       THREAD_COUNT        = 0,
+    parameter       THREAD_COUNT_WIDTH  = 0
 )
 (
-    input   wire                        clock,
+    input   wire                        clock, 
+    input   wire                        IO_ready,
+    input   wire                        cancel,
     input   wire                        jump,
-    input   wire    [PC_WIDTH-1:0]      jump_target,
-    input   wire                        annul,
-    output  wire    [PC_WIDTH-1:0]      PC 
+    input   wire    [PC_WIDTH-1:0]      jump_destination,
+    output  reg     [PC_WIDTH-1:0]      pc
 );
 
-// -----------------------------------------------------------
+// ---------------------------------------------------------------------
 
-    // Delay one cycle to align to output of PC_Memory below.
-
-    reg                 annul_synced        = 0;
-    reg                 jump_synced         = 0;
-    reg [PC_WIDTH-1:0]  jump_target_synced  = 0;
-
-    always @(posedge clock) begin
-        annul_synced        = annul;
-        jump_synced         = jump;
-        jump_target_synced  = jump_target;
+    initial begin
+        pc = 0;
     end
 
-// -----------------------------------------------------------
+// ---------------------------------------------------------------------
+// ---------------------------------------------------------------------
+// Stage 0
 
-    wire [THREAD_ADDR_WIDTH-1:0] current_thread;
-    wire [THREAD_ADDR_WIDTH-1:0] next_thread;
+    wire [THREAD_COUNT_WIDTH-1:0] read_thread;
 
     Thread_Number
     #(
         .INITIAL_THREAD     (0),
         .THREAD_COUNT       (THREAD_COUNT),
-        .THREAD_ADDR_WIDTH  (THREAD_ADDR_WIDTH)
+        .THREAD_COUNT_WIDTH (THREAD_COUNT_WIDTH)
     )
-    TID
+    TID_READ
     (
         .clock              (clock),
-        .current_thread     (current_thread),
-        .next_thread        (next_thread)
+        .current_thread     (read_thread),
+        .next_thread        ()
     );
 
-// -----------------------------------------------------------
+// ---------------------------------------------------------------------
+// Write thread number is behind read thread number by the number of pipeline 
+// stages in the module, so we can write back the new pc to the same memory entry.
 
-    // Must be zero to overwrite PC of Thread 0, thus its first NOP runs twice.
-    reg [THREAD_ADDR_WIDTH-1:0] previous_thread = 0;
+    localparam STAGE_COUNT = 2;
 
-    // Write address to store back next and current PCs
-    // Delayed by 1 cycle to match pipelined next PC value adder below.
-    always @(posedge clock) begin
-        previous_thread <= current_thread;
-    end
+    wire [THREAD_COUNT_WIDTH-1:0] write_thread;
 
-// -----------------------------------------------------------
-
-    // No write forwarding logic needed. Writes never collide with reads.
-
-    wire    [PC_WIDTH-1:0]  previous_pc;
-    wire    [PC_WIDTH-1:0]  current_pc;
-    reg     [PC_WIDTH-1:0]  next_pc;
-    reg     [PC_WIDTH-1:0]  pc_reg;
-
-    RAM_SDP_OLD 
+    Thread_Number
     #(
-        .PC_WIDTH           (PC_WIDTH * 2),
-        .THREAD_ADDR_WIDTH  (THREAD_ADDR_WIDTH),
+        .INITIAL_THREAD     (THREAD_COUNT-STAGE_COUNT),
         .THREAD_COUNT       (THREAD_COUNT),
-        .RAMSTYLE           (RAMSTYLE),
-        .INIT_FILE          (INIT_FILE)
+        .THREAD_COUNT_WIDTH (THREAD_COUNT_WIDTH)
     )
-    PC_Memory 
+    TID_WRITE
     (
-        .clock      (clock),
-        .wren       (1'b1),
-        .write_addr (previous_thread),
-        .write_data ({next_pc, pc_reg}),
-        .rden       (1'b1)
-        .read_addr  (next_thread), 
-        .read_data  ({current_pc, previous_pc})
+        .clock              (clock),
+        .current_thread     (write_thread),
+        .next_thread        ()
     );
 
-// -----------------------------------------------------------
+// ---------------------------------------------------------------------
+// Program Counters, current and previous values
 
-    PC_Selector
+    reg  [PC_WIDTH-1:0] pc_next     = 0;
+    wire [PC_WIDTH-1:0] pc_current;
+    wire [PC_WIDTH-1:0] pc_previous;
+
+    RAM_SDP
     #(
-        .PC_WIDTH       (PC_WIDTH)
+        .WORD_WIDTH     (PC_WIDTH),
+        .ADDR_WIDTH     (THREAD_COUNT_WIDTH),
+        .DEPTH          (THREAD_COUNT),
+        .RAMSTYLE       (RAMSTYLE),
+        .READ_NEW_DATA  (READ_NEW_DATA),
+        .USE_INIT_FILE  (USE_INIT_FILE),
+        .INIT_FILE      (PC_INIT_FILE)
     )
-    PC_Selector
-    (,
-        .jump           (jump_synced),
-        .annul          (annul_synced),
-        .current_pc     (current_pc),
-        .previous_pc    (previous_pc),
-        .jump_target    (jump_target_synced),
-        .PC             (PC)
+    PC_MEM
+    (
+        .clock          (clock),
+        .wren           (1'b1),
+        .write_addr     (write_thread),
+        .write_data     (pc_next),
+        .rden           (1'b1),
+        .read_addr      (read_thread),
+        .read_data      (pc_current)
     );
 
-// -----------------------------------------------------------
+    RAM_SDP
+    #(
+        .WORD_WIDTH     (PC_WIDTH),
+        .ADDR_WIDTH     (THREAD_COUNT_WIDTH),
+        .DEPTH          (THREAD_COUNT),
+        .RAMSTYLE       (RAMSTYLE),
+        .READ_NEW_DATA  (READ_NEW_DATA),
+        .USE_INIT_FILE  (USE_INIT_FILE),
+        .INIT_FILE      (PC_PREV_INIT_FILE)
+    )
+    PC_PREV_MEM
+    (
+        .clock          (clock),
+        .wren           (1'b1),
+        .write_addr     (write_thread),
+        .write_data     (pc),
+        .rden           (1'b1),
+        .read_addr      (read_thread),
+        .read_data      (pc_previous)
+    );
 
-    // Prevents jump_target->PC_Memory critical path.
-    // Placed here, rather than after adder, to separate PC_Selector
-    // muxes from adder.
+// ---------------------------------------------------------------------
+// Sync inputs to Stage 1
+
+    reg                 IO_ready_stage1         = 0;
+    reg                 cancel_stage1           = 0;
+    reg                 jump_stage1             = 0;
+    reg [PC_WIDTH-1:0]  jump_destination_stage1 = 0;
 
     always @(posedge clock) begin
-        pc_reg <= PC;
+        IO_ready_stage1         <= IO_ready;
+        cancel_stage1           <= cancel;
+        jump_stage1             <= jump;
+        jump_destination_stage1 <= jump_destination;
     end
 
-// -----------------------------------------------------------
+// ---------------------------------------------------------------------
+// ---------------------------------------------------------------------
+// Stage 1
 
-    // Workaround to use bit vector selection to eliminate truncation warnings
-    integer one = 1;
+    reg [PC_WIDTH-1:0]  pc_new  = 0;
+    reg                 reissue = 0;
+
+    // Cancelling an instruction overrides re-issuing it 
+    // because IO is not ready.
+    always @(*) begin
+        pc_new  <= (jump_stage1 == 1'b1) ? jump_destination_stage1 : pc_current;
+        reissue <= (IO_ready_stage1 == 1'b0) & (cancel_stage1 == 1'b0);
+    end
+
+    always @(posedge clock) begin
+        pc <= (reissue == 1'b1) ? pc_previous : pc_new;
+    end
+
+// ---------------------------------------------------------------------
+// Prepare PC of next instruction
+
+    localparam PC_ONE = {{PC_WIDTH-1{1'b0}},1'b1};
 
     always @(*) begin
-        next_pc <= pc_reg + one[PC_WIDTH-1:0];
+        pc_next <= pc + PC_ONE;
     end
 
 endmodule
+
