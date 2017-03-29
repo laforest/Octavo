@@ -13,7 +13,7 @@ module Sentinel_Value_Check
     parameter       WORD_WIDTH          = 0
 )
 (
-    input   wire    [WORD_WIDTH-1:0]    in,
+    input   wire    [WORD_WIDTH-1:0]    data_in,
     input   wire    [WORD_WIDTH-1:0]    sentinel, 
     input   wire    [WORD_WIDTH-1:0]    mask,
     output  reg                         match
@@ -27,7 +27,7 @@ module Sentinel_Value_Check
     reg [WORD_WIDTH-1:0] masked_sentinel    = 0;
 
     always @(*) begin
-        masked_in       = in       & ~mask;
+        masked_in       = data_in  & ~mask;
         masked_sentinel = sentinel & ~mask;
         match           = (masked_in == masked_sentinel);
     end
