@@ -3,45 +3,49 @@
 // Checks if the result of the previous instruction matches
 // a sentinel value: a test for equality, with masking.
 
-// Multi-threaded
+// Multi-threaded: one sentinel and mask value per thread.
+// Make sure R and the configuration writes are properly synchronized
+// to the same thread.
 
 module Branch_Sentinel
 #(
     parameter       WORD_WIDTH          = 0,
-    parameter       RAMSTYLE            = ""
+    // Common RAM parameters
+    parameter       RAMSTYLE            = "",
+    parameter       READ_NEW_DATA       = 0,
+    // Multithreading
+    parameter       THREAD_COUNT        = 0,
+    parameter       THREAD_COUNT_WIDTH  = 0
 )
 (
     input   wire                        clock,
     input   wire    [WORD_WIDTH-1:0]    R,
     input   wire                        configuration_wren,
-    input   wire                        configuration_addr,
+    input   wire                        configuration_addr, // 0/1 for sentinel/mask
     input   wire    [WORD_WIDTH-1:0]    configuration_data,
     output  wire                        match
 );
 
 // --------------------------------------------------------------------
 
-    // Multiplex the memory amongst all threads.
-    // Read one thread ahead so we have the values for the thread ready
-    // before we write them back in the next cycle.
-
-    wire [`OCTAVO_THREAD_COUNT_WIDTH-1:0] thread_number_read;
-    wire [`OCTAVO_THREAD_COUNT_WIDTH-1:0] thread_number_write;
+    wire [THREAD_COUNT_WIDTH-1:0] thread_addr;
 
     module Thread_Number
     #(
         .INITIAL_THREAD     (0),
-        .THREAD_COUNT       (`OCTAVO_THREAD_COUNT),
-        .THREAD_COUNT_WIDTH (`OCTAVO_THREAD_COUNT_WIDTH)
+        .THREAD_COUNT       (THREAD_COUNT),
+        .THREAD_COUNT_WIDTH (THREAD_COUNT_WIDTH)
     )
     BS_TN
     (
         .clock              (clock),
-        .current_thread     (thread_number_write),
-        .next_thread        (thread_number_read)
+        .current_thread     (thread_addr),
+        .next_thread        ()
     );
 
-// --------------------------------------------------------------------
+// ---------------------------------------------------------------------
+// ---------------------------------------------------------------------
+// Stage 0
 
     // Sentinel value. One word per thread.
 
@@ -55,10 +59,10 @@ module Branch_Sentinel
     RAM_SDP
     #(
         .WORD_WIDTH     (WORD_WIDTH),
-        .ADDR_WIDTH     (`OCTAVO_THREAD_COUNT_WIDTH),
-        .DEPTH          (`OCTAVO_THREAD_COUNT),
+        .ADDR_WIDTH     (THREAD_COUNT_WIDTH),
+        .DEPTH          (THREAD_COUNT),
         .RAMSTYLE       (RAMSTYLE),
-        .READ_NEW_DATA  (0),
+        .READ_NEW_DATA  (READ_NEW_DATA),
         .USE_INIT_FILE  (0),
         .INIT_FILE      (),
     )
@@ -66,10 +70,10 @@ module Branch_Sentinel
     (
         .clock          (clock),
         .wren           (sentinel_wren),
-        .write_addr     (thread_number_write),
+        .write_addr     (thread_addr),
         .write_data     (configuration_data),
         .rden           (1'b1),
-        .read_addr      (thread_number_read),
+        .read_addr      (thread_addr),
         .read_data      (sentinel)
     );
 
@@ -84,14 +88,13 @@ module Branch_Sentinel
         mask_wren <= (configuration_addr == 1'b1) & (configuration_wren == 1'b1);
     end
 
-
     RAM_SDP
     #(
         .WORD_WIDTH     (WORD_WIDTH),
-        .ADDR_WIDTH     (`OCTAVO_THREAD_COUNT_WIDTH),
-        .DEPTH          (`OCTAVO_THREAD_COUNT),
+        .ADDR_WIDTH     (THREAD_COUNT_WIDTH),
+        .DEPTH          (THREAD_COUNT),
         .RAMSTYLE       (RAMSTYLE),
-        .READ_NEW_DATA  (0),
+        .READ_NEW_DATA  (READ_NEW_DATA),
         .USE_INIT_FILE  (0),
         .INIT_FILE      (),
     )
@@ -99,14 +102,16 @@ module Branch_Sentinel
     (
         .clock          (clock),
         .wren           (mask_wren),
-        .write_addr     (thread_number_write),
+        .write_addr     (thread_addr),
         .write_data     (configuration_data),
         .rden           (1'b1),
-        .read_addr      (thread_number_read),
+        .read_addr      (thread_addr),
         .read_data      (mask)
     );
 
-// --------------------------------------------------------------------
+// ---------------------------------------------------------------------
+// ---------------------------------------------------------------------
+// Stage 1 (unregistered)
 
     Sentinel_Value_Check
     #(
@@ -114,7 +119,7 @@ module Branch_Sentinel
     )
     BS_SVC
     (
-        .in         (R),
+        .data_in    (R),
         .sentinel   (sentinel),
         .mask       (mask),
         .match      (match)
