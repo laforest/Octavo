@@ -1,12 +1,12 @@
 
-// Programmable Offsets and Increments (PO/PI) Memory for the Address Offset
-// Module. This memory internally self-increments when we access an indirect
-// memory location. We can also externally write to update a PO entry, with
-// priority over the self-increment.
+// Programmable Offsets and Increments (PO/PI) Memory for the Address Module.
+// This memory internally self-increments when we access an indirect memory
+// location. We can also externally write to update a PO entry, with priority
+// over the self-increment.
 
 `default_nettype none
 
-module Address_Offset_Module_PO_Memory
+module Address_Module_PO_Memory
 #(
     // Offsets are address-wide to reach all memory
     parameter       ADDR_WIDTH                  = 0,
@@ -26,15 +26,19 @@ module Address_Offset_Module_PO_Memory
 (
     input   wire                                clock,
     input   wire    [THREAD_COUNT_WIDTH-1:0]    read_thread,
-    input   wire    [THREAD_COUNT_WIDTH-1:0]    write_thread,
+    input   wire    [THREAD_COUNT_WIDTH-1:0]    write_thread_current,
+    input   wire    [THREAD_COUNT_WIDTH-1:0]    write_thread_previous,
     input   wire    [ADDR_WIDTH-1:0]            raw_addr,
-    input   wire                                abort,
+    input   wire                                IO_Ready_current,
+    input   wire                                Cancel_current,
+    input   wire                                IO_Ready_previous,
+    input   wire                                Cancel_previous,
     // External write port 
     input   wire                                po_wren,
     input   wire    [PO_ADDR_WIDTH-1:0]         po_write_addr,
     input   wire    [PO_ENTRY_WIDTH-1:0]        po_write_data,
-    // Raw address was indirect memory, and accessed, so enable self-increment
-    input   wire                                po_increment,
+    // Raw address accessed indirect memory, so enable self-increment
+    input   wire                                po_incr_enable,
     output  reg     [ADDR_WIDTH-1:0]            programmed_offset
 );
 
@@ -43,6 +47,9 @@ module Address_Offset_Module_PO_Memory
     initial begin
         programmed_offset = 0;
     end
+
+    // Stages from input to output
+    localparam MODULE_PIPE_DEPTH = 2;
 
     localparam PO_MEM_ADDR_WIDTH = PO_ADDR_WIDTH  + THREAD_COUNT_WIDTH;
     localparam PO_MEM_DEPTH      = PO_ENTRY_COUNT * THREAD_COUNT;
@@ -63,15 +70,16 @@ module Address_Offset_Module_PO_Memory
     end
 
 // ---------------------------------------------------------------------
-// Pass the read address back as the internal write address for self-increment
-// Make sure it arrives one clock cycle before the same thread reads again so
-// that thread gets the updated value.
+
+// Pass the read address back to the input as the internal write address for
+// self-increment. Make sure it arrives at the same write thread number as the
+// past read thread number that read it.
 
     wire [PO_ADDR_WIDTH-1:0] po_int_write_addr;
 
     Delay_Line 
     #(
-        .DEPTH  (THREAD_COUNT-1),
+        .DEPTH  (MODULE_PIPE_DEPTH),
         .WIDTH  (PO_ADDR_WIDTH)
     ) 
     INT_WRITE_ADDR
@@ -89,7 +97,7 @@ module Address_Offset_Module_PO_Memory
 
     Delay_Line 
     #(
-        .DEPTH  (THREAD_COUNT-2),
+        .DEPTH  (MODULE_PIPE_DEPTH-1),
         .WIDTH  (PO_ENTRY_WIDTH)
     ) 
     INT_WRITE_DATA
@@ -100,22 +108,14 @@ module Address_Offset_Module_PO_Memory
     );
 
 // ---------------------------------------------------------------------
-// Signals for write arbitration
 
-    // External writes updating a PO/PI entry
-    // Internal writes post-incrementing a PO/PI entry
+    // External writes (from previous thread instruction updating an entry)
+    // have priority over internal writes (from current instruction read
+    // causing post-increment), which means be careful not to prevent an
+    // internal write to another entry.
+
     wire                            po_ext_wren;
     wire                            po_int_wren;
-
-    // Final arbtrated values to PO memory
-    reg                             po_mem_wren         = 0;
-    wire    [PO_ENTRY_WIDTH-1:0]    po_mem_write_data;
-    wire    [PO_ADDR_WIDTH-1:0]     po_mem_write_addr_base;
-    reg     [PO_MEM_ADDR_WIDTH-1:0] po_mem_write_addr   = 0;
-
-// ---------------------------------------------------------------------
-// External writes have priority over internal writes, which means
-// be careful not to prevent an internal write to another entry.
 
     localparam PO_WRITE_SOURCE_COUNT = 2;
 
@@ -125,16 +125,31 @@ module Address_Offset_Module_PO_Memory
     )
     PO_WREN_SELECT
     (
-        .requests       ({po_increment, po_wren}),
-        .grant          ({po_int_wren,  po_ext_wren})
+        .requests       ({po_incr_enable, po_wren}),
+        .grant          ({po_int_wren,    po_ext_wren})
     );
 
-    // Don't self-increment if the instruction was aborted,
-    // but let an external update through.
+// ---------------------------------------------------------------------
+
+    // Don't self-increment if the current instruction was Annulled or
+    // Cancelled. Don't update an entry if the previous instruction was
+    // Annulled or Cancelled.
+
+    reg po_int_wren_masked = 0;
+    reg po_ext_wren_masked = 0;
+    reg po_mem_wren        = 0;
+
     always @(*) begin
-        po_mem_wren = (po_int_wren == 1'b1) & (abort == 1'b0);
-        po_mem_wren = (po_mem_wren == 1'b1) | (po_ext_wren == 1'b1);
+        po_int_wren_masked  = (po_int_wren == 1'b1) & (IO_Ready_current == 1'b1)  & (Cancel_current == 1'b0);
+        po_ext_wren_masked  = (po_ext_wren == 1'b1) & (IO_Ready_previous == 1'b1) & (Cancel_previous == 1'b0);
+        po_mem_wren         = (po_int_wren_masked == 1'b1) | (po_ext_wren_masked == 1'b1);
     end
+
+// ---------------------------------------------------------------------
+
+    // Use the arbitrated po_*_wren to select the other write inputs
+
+    wire [PO_ADDR_WIDTH-1:0] po_mem_write_addr_base;
 
     One_Hot_Mux
     #(
@@ -148,9 +163,33 @@ module Address_Offset_Module_PO_Memory
         .out            (po_mem_write_addr_base)
     );
 
+// ----
+
+    wire [THREAD_COUNT_WIDTH-1:0] po_mem_write_thread;
+
+    One_Hot_Mux
+    #(
+        .WORD_WIDTH     (THREAD_COUNT_WIDTH),
+        .WORD_COUNT     (PO_WRITE_SOURCE_COUNT)
+    )
+    PO_WRITE_THREAD_SELECT
+    (
+        .selectors      ({po_int_wren,          po_ext_wren}),
+        .in             ({write_thread_current, write_thread_previous}),
+        .out            (po_mem_write_thread)
+    );
+
+// ----
+
+    reg [PO_MEM_ADDR_WIDTH-1:0] po_mem_write_addr = 0;
+
     always @(*) begin
-        po_mem_write_addr <= {write_thread, po_mem_write_addr_base};
+        po_mem_write_addr <= {po_mem_write_thread, po_mem_write_addr_base};
     end
+
+// ----
+
+    wire [PO_ENTRY_WIDTH-1:0] po_mem_write_data;
 
     One_Hot_Mux
     #(
@@ -194,9 +233,14 @@ module Address_Offset_Module_PO_Memory
 // ---------------------------------------------------------------------
 // Stage 1
 
-// ---------------------------------------------------------------------
-// Post-increment Programmed Offset (po)
-// Programmed Increment (pi) is in signed-magnitude representation (for range symmetry)
+// The Post-increment Programmed Offset (po) is a two's-complement signed
+// number. The programmed Increment (pi) is in signed-magnitude representation
+// for range symmetry.
+
+// The offset is in the LSB position, so by default the increment and sign are
+// zero, resulting in a plain pointer without post-increment.  This
+// arrangement should avoid overhead when pointer-chasing instead of
+// array-walking.
 
     reg [ADDR_WIDTH-1:0]        po_raw          = 0;
     reg [ADDR_WIDTH-1:0]        po_post_inc     = 0;
@@ -204,9 +248,9 @@ module Address_Offset_Module_PO_Memory
     reg [PO_INCR_WIDTH-2:0]     pi              = 0;
 
     always @(*) begin
-        {po_raw, pi_sign, pi}   = po_mem_read_data;
+        {pi_sign, pi, po_raw}   = po_mem_read_data;
         po_post_inc             = (pi_sign == 1'b0) ? (po_raw + pi) : (po_raw - pi);
-        new_po_entry            = {po_post_inc, pi_sign, pi};
+        new_po_entry            = {pi_sign, pi, po_post_inc};
     end
 
     always @(posedge clock) begin
