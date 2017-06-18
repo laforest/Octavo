@@ -1,10 +1,10 @@
 
-// Address Offset Module: adds an offset to an instruction operand, depending
+// Address Module: adds an offset to an instruction operand, depending
 // on the thread, and whether the memory is shared or indirect.
 
 `default_nettype none
 
-module Address_Offset_Module
+module Address_Module
 #(
     // Offsets are address-wide to enable full offset range
     parameter       ADDR_WIDTH              = 0,
@@ -135,32 +135,33 @@ module Address_Offset_Module
 
     Address_Offset_Module_PO_Memory
     #(
-        .ADDR_WIDTH         (ADDR_WIDTH),
-        .PO_INCR_WIDTH      (PO_INCR_WIDTH),
-        .PO_ENTRY_COUNT     (PO_ENTRY_COUNT),
-        .PO_ENTRY_WIDTH     (PO_ENTRY_WIDTH),
-        .PO_ADDR_WIDTH      (PO_ADDR_WIDTH),
-        .PO_INIT_FILE       (PO_INIT_FILE),
-        .RAMSTYLE           (RAMSTYLE),
-        .READ_NEW_DATA      (READ_NEW_DATA),
-        .THREAD_COUNT       (THREAD_COUNT),
-        .THREAD_COUNT_WIDTH (THREAD_COUNT_WIDTH)
+        .ADDR_WIDTH             (ADDR_WIDTH),
+        .PO_INCR_WIDTH          (PO_INCR_WIDTH),
+        .PO_ENTRY_COUNT         (PO_ENTRY_COUNT),
+        .PO_ENTRY_WIDTH         (PO_ENTRY_WIDTH),
+        .PO_ADDR_WIDTH          (PO_ADDR_WIDTH),
+        .PO_INIT_FILE           (PO_INIT_FILE),
+        .RAMSTYLE               (RAMSTYLE),
+        .READ_NEW_DATA          (READ_NEW_DATA),
+        .THREAD_COUNT           (THREAD_COUNT),
+        .THREAD_COUNT_WIDTH     (THREAD_COUNT_WIDTH)
     )
     PO_MEM
     (
-        .clock              (clock),
-        .read_thread        (read_thread),
-        .write_thread       (write_thread),
-        .raw_addr           (raw_addr),
-        .IO_Ready_current   (IO_Ready_current),
-        .Cancel_current     (Cancel_current),
-        .IO_Ready_previous  (IO_Ready_previous),
-        .Cancel_previous    (Cancel_previous),
-        .po_wren            (po_wren),
-        .po_write_addr      (po_write_addr),
-        .po_write_data      (po_write_data),
-        .po_incr_enable     (po_incr_enable),
-        .programmed_offset  (programmed_offset)
+        .clock                  (clock),
+        .read_thread            (read_thread),
+        .write_thread_current   (write_thread_current),
+        .write_thread_previous  (write_thread_current),
+        .raw_addr               (raw_addr),
+        .IO_Ready_current       (IO_Ready_current),
+        .Cancel_current         (Cancel_current),
+        .IO_Ready_previous      (IO_Ready_previous),
+        .Cancel_previous        (Cancel_previous),
+        .po_wren                (po_wren),
+        .po_write_addr          (po_write_addr),
+        .po_write_data          (po_write_data),
+        .po_incr_enable         (po_incr_enable),
+        .programmed_offset      (programmed_offset)
     );
 
 // ---------------------------------------------------------------------
@@ -193,7 +194,7 @@ module Address_Offset_Module
     (
         .clock          (clock),
         .wren           (do_wren_local),
-        .write_addr     (write_thread),
+        .write_addr     (write_thread_previous),
         .write_data     (do_write_data),
         .rden           (1'b1),
         .read_addr      (read_thread),
