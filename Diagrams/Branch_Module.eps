@@ -1,7 +1,7 @@
 %!PS-Adobe-3.0 EPSF-3.0
-%%Title: /home/laforest/Octavo/Octavo/Diagrams/Branch_Module.fig
+%%Title: Branch_Module.fig
 %%Creator: fig2dev Version 3.2 Patchlevel 5e
-%%CreationDate: Thu Jun  8 23:23:06 2017
+%%CreationDate: Tue Jun 27 03:02:04 2017
 %%BoundingBox: 0 0 519 218
 %Magnification: 1.0000
 %%EndComments
@@ -76,19 +76,6 @@ end
   bind def
 /shd {dup dup currentrgbcolor 4 -2 roll mul 4 -2 roll mul
   4 -2 roll mul srgb} bind def
- /DrawEllipse {
-	/endangle exch def
-	/startangle exch def
-	/yrad exch def
-	/xrad exch def
-	/y exch def
-	/x exch def
-	/savematrix mtrx currentmatrix def
-	x y tr xrad yrad sc 0 0 1 startangle endangle arc
-	closepath
-	savematrix setmatrix
-	} def
-
 /$F2psBegin {$F2psDict begin /$F2psEnteredState save def} def
 /$F2psEnd {$F2psEnteredState restore end} def
 
@@ -487,17 +474,11 @@ n 3600 5445 m 3510 5445 l 3510 7155 l
 n 3600 6255 m
  3510 6255 l gs col0 s gr 
 % Polyline
-n 3285 5805 m
+n 3150 5805 m
  3600 5805 l gs col0 s gr 
 % Polyline
-n 3600 6075 m
+n 3510 6075 m
  3375 6075 l gs col0 s gr 
-% Polyline
-n 2925 5220 m
- 3195 5220 l gs col0 s gr 
-% Polyline
-n 3375 5220 m
- 3375 4500 l gs col0 s gr 
 /Times-Roman ff 190.50 scf sf
 4095 5670 m
 gs 1 -1 sc (0) col0 sh gr
@@ -604,9 +585,6 @@ gs 1 -1 sc (p) col0 sh gr
 2700 4320 m
 gs 1 -1 sc (PC) col0 sh gr
 /Times-Roman ff 190.50 scf sf
-2700 5265 m
-gs 1 -1 sc (C) col0 sh gr
-/Times-Roman ff 190.50 scf sf
 10350 5490 m
 gs 1 -1 sc (3) col0 sh gr
 /Times-Roman ff 190.50 scf sf
@@ -657,46 +635,9 @@ gs 1 -1 sc (RB/DB') col0 sh gr
 /Times-Roman ff 190.50 scf sf
 6075 4905 m
 gs 1 -1 sc (IOR) col0 sh gr
-% here ends figure;
-% 
-% here starts figure with depth 1
-% Polyline
-0 slj
-0 slc
-7.500 slw
-n 3194 5220 m
- 3194 5355 l gs col0 s gr 
-% Polyline
-1 slc
-n 3419 5355 m
- 3149 5355 l gs col0 s gr 
-% Arc
-0 slc
-n 3284.0 5535.0 135.0 0.0000 180.0000 arc
-gs col0 s gr
-
-% Ellipse
-gs
-3194 5322 tr
--270.001 rot
-n 0 0 28 28 0 360 DrawEllipse 270.001 rot
-gs col7 1.00 shd ef gr gs col0 s gr
-gr
-
-% Polyline
-n 3374 5220 m
- 3374 5355 l gs col0 s gr 
-% Polyline
-1 slc
-n 3419 5535 m
- 3419 5355 l gs col0 s gr 
-% Polyline
-0 slc
-n 3149 5535 m
- 3149 5355 l gs col0 s gr 
-% Polyline
-n 3284 5805 m
- 3284 5670 l gs col0 s gr 
+/Times-Roman ff 190.50 scf sf
+2700 5850 m
+gs 1 -1 sc (wren) col0 sh gr
 % here ends figure;
 pagefooter
 showpage
