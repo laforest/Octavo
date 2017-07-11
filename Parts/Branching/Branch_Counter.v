@@ -26,6 +26,7 @@ module Branch_Counter
     input   wire                        clock,
     input   wire                        branch_reached,
     input   wire                        IO_Ready,
+    input   wire                        IO_Ready_previous,
     input   wire                        load,
     input   wire    [WORD_WIDTH-1:0]    load_value,
     output  wire                        running
@@ -40,44 +41,86 @@ module Branch_Counter
     localparam SUBTRACT             = 1'b1;
 
 // --------------------------------------------------------------------
-// Delay branch_reached to synchronize with module output.
-// We use to enable writing back the decremented count, generated a few cycles
-// later at the output.
+// Delay write from previous instruction to synchronize with module output.
+// We can then arbitrate them.
 
-    wire branch_reached_delayed;
+    wire                        IO_Ready_previous_sync;
+    wire                        load_sync;
+    wire    [WORD_WIDTH-1:0]    load_value_sync;
 
     Delay_Line 
     #(
         .DEPTH  (MODULE_PIPE_DEPTH), 
+        .WIDTH  (1+1+WORD_WIDTH)
+    ) 
+    BC_LOAD
+    (
+        .clock  (clock),
+        .in     (IO_Ready_previous,      load,      load_value),
+        .out    (IO_Ready_previous_sync, load_sync, load_value_sync)
+    );
+
+// --------------------------------------------------------------------
+// Delay branch_reached to synchronize with module output.
+// We use to enable writing back the decremented count, generated a few cycles
+// later at the output.
+
+    wire branch_reached_sync;
+
+    Delay_Line 
+    #(
+        .DEPTH  (DECREMENT_PIPE_DEPTH), 
         .WIDTH  (1)
     ) 
+    BC_BR
     (
         .clock  (clock),
         .in     (branch_reached),
-        .out    (branch_reached_delayed)
+        .out    (branch_reached_sync)
+    );
+
+// --------------------------------------------------------------------
+// Delay IO_Ready to synchronize with module output.
+// Note that we don't care about Cancel here, as even with a cancelled
+// instruction, we have reached the branch, and thus the counter must
+// decrement.
+
+    wire IO_Ready_sync;
+
+    Delay_Line 
+    #(
+        .DEPTH  (DECREMENT_PIPE_DEPTH-1), 
+        .WIDTH  (1)
+    ) 
+    BC_IOR
+    (
+        .clock  (clock),
+        .in     (IO_Ready),
+        .out    (IO_Ready_sync)
     );
 
 // --------------------------------------------------------------------
 // Calculate counter memory write enable
-// Store decremented value if counter is running, instruction not annulled, and
-// branch is reached.
-// Store loaded count value at any time.
+// Store decremented value if counter is running, current instruction 
+// is not annulled, and branch is reached.
+// Store loaded count value at any time, if previous instruction 
+// is not annulled.
 
     reg wren = 0;
 
     always @(*) begin
-        wren = (running == 1'b1) & (IO_Ready == 1'b1) & (branch_reached_delayed == 1'b1);
-        wren = wren | load;
+        wren = (running == 1'b1) & (IO_Ready_sync == 1'b1) & (branch_reached_sync == 1'b1);
+        wren = wren | ((load_sync == 1'b1) & (IO_Ready_previous_sync == 1'b1));
     end
 
 // --------------------------------------------------------------------
 // Select new count value
 
-    wire [WORD_WIDTH-1:0] new_value;
+    reg  [WORD_WIDTH-1:0] new_value = 0;
     wire [WORD_WIDTH-1:0] decremented_count;
 
     always @(*) begin
-        new_value <= (load == 1'b1) ? load_value : decremented_count;
+        new_value <= (load_sync == 1'b1) ? load_value_sync : decremented_count;
     end
 
 // --------------------------------------------------------------------
