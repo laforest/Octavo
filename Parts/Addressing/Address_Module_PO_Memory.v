@@ -26,8 +26,7 @@ module Address_Module_PO_Memory
 (
     input   wire                                clock,
     input   wire    [THREAD_COUNT_WIDTH-1:0]    read_thread,
-    input   wire    [THREAD_COUNT_WIDTH-1:0]    write_thread_current,
-    input   wire    [THREAD_COUNT_WIDTH-1:0]    write_thread_previous,
+    input   wire    [THREAD_COUNT_WIDTH-1:0]    write_thread,
     input   wire    [ADDR_WIDTH-1:0]            raw_addr,
     input   wire                                IO_Ready_current,
     input   wire                                Cancel_current,
@@ -165,26 +164,10 @@ module Address_Module_PO_Memory
 
 // ----
 
-    wire [THREAD_COUNT_WIDTH-1:0] po_mem_write_thread;
-
-    One_Hot_Mux
-    #(
-        .WORD_WIDTH     (THREAD_COUNT_WIDTH),
-        .WORD_COUNT     (PO_WRITE_SOURCE_COUNT)
-    )
-    PO_WRITE_THREAD_SELECT
-    (
-        .selectors      ({po_int_wren,          po_ext_wren}),
-        .in             ({write_thread_current, write_thread_previous}),
-        .out            (po_mem_write_thread)
-    );
-
-// ----
-
     reg [PO_MEM_ADDR_WIDTH-1:0] po_mem_write_addr = 0;
 
     always @(*) begin
-        po_mem_write_addr <= {po_mem_write_thread, po_mem_write_addr_base};
+        po_mem_write_addr <= {write_thread, po_mem_write_addr_base};
     end
 
 // ----
