@@ -13,7 +13,7 @@ module Triadic_ALU
     input   wire                                clock,
     input   wire                                IO_Ready,
     input   wire                                Cancel,
-    input   wire    [ADDR_WIDTH-1:0]            DA,         // Write address operand for Ra
+    input   wire    [ADDR_WIDTH-1:0]            DB,         // Write address operand for Rb
     input   wire    [`TRIADIC_CTRL_WIDTH-1:0]   control,    // Bits defining various sub-operations
     input   wire    [WORD_WIDTH-1:0]            A,          // First source argument
     input   wire    [WORD_WIDTH-1:0]            B,          // Second source argument
@@ -42,10 +42,10 @@ module Triadic_ALU
         .control    (control),      // Bits defining various sub-operations
         .A          (A),            // First source argument
         .B          (B),            // Second source argument
-        .R          (R),            // Third source argument  (previous result)
+        .R          (R),            // Third source argument  (previous Ra result)
         .R_zero     (R_zero),       // Computed flag in feedback pipeline (Ra->R)
         .R_negative (R_negative),   // Computed flag in feedback pipeline (Ra->R)
-        .S          (S),            // Fourth source argument (saved result)
+        .S          (S),            // Fourth source argument (saved Rb result)
         .Ra         (Ra),           // First result
         .Rb         (Rb),           // Second result
         .carry_out  (carry_out),    // predicate from +/-A+/-B
@@ -69,14 +69,15 @@ module Triadic_ALU
         .clock          (clock),
 
         .Ra             (Ra),           // ALU First Result
-        .DA             (DA),           // Write Address for Ra
+        .Rb             (Rb),           // ALU Second Result
+        .DB             (DB),           // Write Address for Rb
         .IO_Ready       (IO_Ready),
         .Cancel         (Cancel),
 
         .R              (R),            // Previous Result (Ra from prev instr.)
         .R_zero,        (R_zero)        // Is R zero? (all-1 if true)
         .R_negative     (R_negative),   // Is R negative? (all-1 if true)
-        .S              (S)             // Stored Previous Result (from Ra)
+        .S              (S)             // Stored Previous Result (from Rb)
     );
 
 endmodule

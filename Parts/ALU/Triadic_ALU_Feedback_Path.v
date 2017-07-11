@@ -14,20 +14,21 @@ module Triadic_ALU_Feedback_Path
     input   wire                        clock,
 
     input   wire    [WORD_WIDTH-1:0]    Ra,         // ALU First Result
-    input   wire    [ADDR_WIDTH-1:0]    DA,         // Write Address for Ra
+    input   wire    [WORD_WIDTH-1:0]    Rb,         // ALU Second Result
+    input   wire    [ADDR_WIDTH-1:0]    DB,         // Write Address for Rb
     input   wire                        IO_Ready,
     input   wire                        Cancel,
 
     output  wire    [WORD_WIDTH-1:0]    R,          // Previous Result (Ra from prev instr.)
     output  wire                        R_zero,     // Is R zero? (all-1 if true)
     output  wire                        R_negative, // Is R negative? (all-1 if true)
-    output  wire    [WORD_WIDTH-1:0]    S           // Stored Previous Result (from Ra)
+    output  wire    [WORD_WIDTH-1:0]    S           // Stored Previous Result (from Rb)
 );
 
 // --------------------------------------------------------------------
 
     localparam INPUT_SYNC_DEPTH  = 2;
-    localparam INPUT_SYNC_WIDTH  = 1 + 1 + ADDR_WIDTH + WORD_WIDTH;
+    localparam INPUT_SYNC_WIDTH  = 1 + 1 + ADDR_WIDTH + WORD_WIDTH + WORD_WIDTH;
 
     localparam OUTPUT_SYNC_DEPTH = 1;
     localparam OUTPUT_SYNC_WIDTH = 1 + 1 + WORD_WIDTH + WORD_WIDTH;
@@ -39,8 +40,9 @@ module Triadic_ALU_Feedback_Path
 
     wire                    IO_Ready_stage1;
     wire                    Cancel_stage1;
-    wire [WORD_WIDTH-1:0]   DA_stage1;
+    wire [WORD_WIDTH-1:0]   DB_stage1;
     wire [WORD_WIDTH-1:0]   Ra_stage1
+    wire [WORD_WIDTH-1:0]   Rb_stage1
 
     Delay_Line 
     #(
@@ -50,14 +52,14 @@ module Triadic_ALU_Feedback_Path
     Input_Sync
     (
         .clock  (clock),
-        .in     (IO_Ready,          Cancel,         DA,         Ra),
-        .out    (IO_Ready_stage1,   Cancel_stage1,  DA_stage1,  Ra_stage1)
+        .in     (IO_Ready,          Cancel,         DB,         Ra,         Rb),
+        .out    (IO_Ready_stage1,   Cancel_stage1,  DB_stage1,  Ra_stage1   Rb_stage1)
     );
 
 // --------------------------------------------------------------------
 // Stage 1
 
-    // Store Ra into S if DA matches S_WRITE_ADDR and not a NOP
+    // Store Rb into S if DB matches S_WRITE_ADDR and not a NOP
 
     reg not_nop = 0;
 
@@ -78,7 +80,7 @@ module Triadic_ALU_Feedback_Path
     S_ADDR_MATCH
     (
         .enable         (not_nop),
-        .addr           (DA_stage1),
+        .addr           (DB_stage1),
         .hit            (wren)   
     );
 
@@ -102,7 +104,7 @@ module Triadic_ALU_Feedback_Path
         .clock          (clock),
         .wren           (wren),
         .write_addr     (0),
-        .write_data     (Ra_stage1),
+        .write_data     (Rb_stage1),
         .rden           (1),
         .read_addr      (0),
         .read_data      (S_stage0)
