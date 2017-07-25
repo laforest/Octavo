@@ -1,17 +1,16 @@
 
-// The Controller holds and provides Program Counter values for each thread, 
-// including the previous pc value to re-issue annulled instructions.
+// The Controller holds and provides Program Counter values for each thread,
+// issued in a fixed round-robin order, including the previous pc value to
+// re-issue annulled instructions.
 
-// There's a built-in Thread_Number counter, so this assumes 
-// fixed round-robin thread scheduling.
+`default_nettype none
 
-module Thread_PC_Controller
+module Controller
 #(
     parameter       PC_WIDTH            = 0,   
     // Common RAM parameters
     parameter       RAMSTYLE            = "",
     parameter       READ_NEW_DATA       = 0,
-    parameter       USE_INIT_FILE       = 0,
     parameter       PC_INIT_FILE        = "",
     parameter       PC_PREV_INIT_FILE   = "",
     // Multithreading
@@ -87,7 +86,7 @@ module Thread_PC_Controller
         .DEPTH          (THREAD_COUNT),
         .RAMSTYLE       (RAMSTYLE),
         .READ_NEW_DATA  (READ_NEW_DATA),
-        .USE_INIT_FILE  (USE_INIT_FILE),
+        .USE_INIT_FILE  (1),
         .INIT_FILE      (PC_INIT_FILE)
     )
     PC_MEM
@@ -108,7 +107,7 @@ module Thread_PC_Controller
         .DEPTH          (THREAD_COUNT),
         .RAMSTYLE       (RAMSTYLE),
         .READ_NEW_DATA  (READ_NEW_DATA),
-        .USE_INIT_FILE  (USE_INIT_FILE),
+        .USE_INIT_FILE  (1),
         .INIT_FILE      (PC_PREV_INIT_FILE)
     )
     PC_PREV_MEM
@@ -144,8 +143,7 @@ module Thread_PC_Controller
     reg [PC_WIDTH-1:0]  pc_new  = 0;
     reg                 reissue = 0;
 
-    // Cancelling an instruction overrides re-issuing it 
-    // because IO is not ready.
+    // Cancelling an instruction overrides re-issuing it if IO is not ready.
     always @(*) begin
         pc_new  <= (jump_stage1 == 1'b1) ? jump_destination_stage1 : pc_current;
         reissue <= (IO_ready_stage1 == 1'b0) & (cancel_stage1 == 1'b0);
