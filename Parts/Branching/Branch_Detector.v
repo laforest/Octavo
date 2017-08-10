@@ -117,7 +117,7 @@ module Branch_Detector
 
     // Check if the pc has reached a branch, or if we accept any pc value.
 
-    reg     branch_origin_match = 0;
+    reg branch_origin_match = 0;
 
     always @(*) begin
         branch_origin_match <= (pc == branch_origin) | (branch_origin_enable == 0);

@@ -44,7 +44,7 @@ module Branch_Arbiter
 
     reg                         jumps_none  = 0;
     reg                         jumps_any   = 0;
-    reg [BRANCH_COUNT_ALL-1:0]  jumps_all    = 0;
+    reg [BRANCH_COUNT_ALL-1:0]  jumps_all   = 0;
 
     always @(*) begin
         jumps_any   = |jumps;
