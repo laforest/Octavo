@@ -52,8 +52,8 @@ module Triadic_ALU_Feedback_Path
     Input_Sync
     (
         .clock  (clock),
-        .in     (IO_Ready,          Cancel,         DB,         Ra,         Rb),
-        .out    (IO_Ready_stage1,   Cancel_stage1,  DB_stage1,  Ra_stage1   Rb_stage1)
+        .in     ({IO_Ready,          Cancel,         DB,         Ra,         Rb}),
+        .out    ({IO_Ready_stage1,   Cancel_stage1,  DB_stage1,  Ra_stage1   Rb_stage1})
     );
 
 // --------------------------------------------------------------------
@@ -152,8 +152,8 @@ module Triadic_ALU_Feedback_Path
     Output_Sync
     (
         .clock  (clock),
-        .in     (Ra_stage0, R_zero_stage0,  R_negative_stage0,  S_stage0),
-        .out    (R,         R_zero,         R_negative,         S)
+        .in     ({Ra_stage0, R_zero_stage0,  R_negative_stage0,  S_stage0}),
+        .out    ({R,         R_zero,         R_negative,         S})
     );
 
 
