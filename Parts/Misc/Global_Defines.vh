@@ -17,3 +17,13 @@
 `define OPCODE_COUNT    16
 `define OPCODE_WIDTH    4
 
+// The Flow Control module needs to know how much to delay some internal
+// signals to sync with the output of the Instruction Memory.
+
+`define INSTR_FETCH_PIPE_DEPTH  4
+
+// How many memory words are used to configure each Branch Module
+// See Branch_Module_Mapped.v for details
+
+`define BRANCH_CONFIG_ENTRIES   6
+

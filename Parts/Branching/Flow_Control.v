@@ -40,12 +40,9 @@ module Flow_Control
 
 // --------------------------------------------------------------------
 
-    // How many memory words are used to configure each Branch Module
-    // See Branch_Module_Mapped.v for details
-
-    localparam BRANCH_CONFIG_ENTRIES    = 6; // TODO Place in define file
+    // What is the range of physical addresses for configuration?
     // Zero-based addressing, so -1
-    localparam CONFIG_ADDR_BOUND        = CONFIG_ADDR_BASE + (BRANCH_COUNT * BRANCH_CONFIG_ENTRIES) - 1;
+    localparam CONFIG_ADDR_BOUND = CONFIG_ADDR_BASE + (BRANCH_COUNT * `BRANCH_CONFIG_ENTRIES) - 1;
 
 // --------------------------------------------------------------------
 
@@ -199,13 +196,11 @@ module Flow_Control
     // This is necessary to calculate the branch conditions
     // (i.e.: Have we arrived at the location (PC) of a branch?)
 
-    localparam INSTR_FETCH_PIPE_DEPTH = 4; // TODO Place in define file
-
     wire [PC_WIDTH-1:0] PC_current;
 
     Delay_Line 
     #(
-        .DEPTH  (INSTR_FETCH_PIPE_DEPTH), 
+        .DEPTH  (`INSTR_FETCH_PIPE_DEPTH), 
         .WIDTH  (PC_WIDTH)
     ) 
     DL_PC
