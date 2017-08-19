@@ -31,6 +31,7 @@ module Branch_Module_Mapped
     input   wire                        IOR_previous,
     input   wire    [FLAGS_WIDTH-1:0]   flags_previous,
     input   wire    [WORD_WIDTH-1:0]    R_previous,
+    input   wire                        config_wren,
     input   wire    [ADDR_WIDTH-1:0]    config_addr,
     input   wire    [WORD_WIDTH-1:0]    config_data,
     output  wire                        jump,
@@ -85,7 +86,7 @@ module Branch_Module_Mapped
     )
     ARDS_BS1
     (
-        .enable     (1'b1),
+        .enable     (config_wren),
         .addr       (config_addr_translated),
         .hit        (bs1_config_wren)
     );
@@ -102,7 +103,7 @@ module Branch_Module_Mapped
     )
     ARDS_BS2
     (
-        .enable     (1'b1),
+        .enable     (config_wren),
         .addr       (config_addr_translated),
         .hit        (bs2_config_wren)
     );
@@ -119,7 +120,7 @@ module Branch_Module_Mapped
     )
     ARDS_BC
     (
-        .enable     (1'b1),
+        .enable     (config_wren),
         .addr       (config_addr_translated),
         .hit        (bc_config_wren)
     );
@@ -136,7 +137,7 @@ module Branch_Module_Mapped
     )
     ARDS_BD
     (
-        .enable     (1'b1),
+        .enable     (config_wren),
         .addr       (config_addr_translated),
         .hit        (bd_config_wren)
     );
