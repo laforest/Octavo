@@ -199,8 +199,8 @@ module Datapath_IO_Predication
 
     IO_All_Ready
     #(
-        .READ_PORT_COUNT    (2),
-        .WRITE_PORT_COUNT   (2)
+        .READ_PORT_COUNT    (`READ_PORT_COUNT),
+        .WRITE_PORT_COUNT   (`WRITE_PORT_COUNT)
     )
     IAR
     (

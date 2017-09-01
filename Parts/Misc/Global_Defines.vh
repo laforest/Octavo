@@ -19,6 +19,7 @@
 
 // The Flow Control module needs to know how much to delay some internal
 // signals to sync with the output of the Instruction Memory.
+// See Instruction_Memory.v
 
 `define INSTR_FETCH_PIPE_DEPTH  4
 
@@ -26,4 +27,11 @@
 // See Branch_Module_Mapped.v for details
 
 `define BRANCH_CONFIG_ENTRIES   6
+
+// There are 2 Data Memories, A and B, which can each do a read and a write
+// each cycle. Thus, there can also be that many I/O ports active at once.
+// See Datapath_IO_Predication.v
+
+`define READ_PORT_COUNT     2
+`define WRITE_PORT_COUNT    2
 
