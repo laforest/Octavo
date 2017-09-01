@@ -1,16 +1,21 @@
 
-// Extracts the "split" bit from the ALU control bits.
-// The split bit changes the write addressing mode, using the D operand as two
-// separate halves. This affects multiple modules later on.
+// Extracts the "split" bit from the ALU control bits.  The split bit changes
+// the write addressing mode, using the D operand as two separate halves. This
+// affects multiple modules later on.
 
-// FIXME This is a hack, but no clean solution presents itself.
-// See Triadic_ALU_Operations.vh and Triadic_ALU.v for control bits ordering.
+// FIXME This is a hack, but no clean solution presents itself.  See
+// Triadic_ALU_Operations.vh and Triadic_ALU_Forward_Path.v for control bits
+// ordering.
+
 // For now, the split bit is the MSB.
 
 module Split_Extractor
+#(
+    parameter       WORD_WIDTH          = 0
+)
 (
-    input   wire    [`TRIADIC_CTRL_WIDTH-1:0]   control,
-    output  reg                                 split
+    input   wire    [WORD_WIDTH-1:0]    control,
+    output  reg                         split
 );
 
     initial begin
@@ -18,7 +23,7 @@ module Split_Extractor
     end
 
     always @(*) begin
-        split <= control[`TRIADIC_CTRL_WIDTH-1];
+        split <= control [WORD_WIDTH-1];
     end
 
 endmodule
