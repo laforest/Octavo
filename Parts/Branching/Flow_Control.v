@@ -29,7 +29,7 @@ module Flow_Control
     input   wire                        clock,
     input   wire                        IOR,
     input   wire                        IOR_previous,
-    input   wire                        cancel_current,
+    input   wire                        cancel_previous,
     input   wire    [FLAGS_WIDTH-1:0]   flags_previous,
     input   wire    [WORD_WIDTH-1:0]    R_previous,
     input   wire    [ADDR_WIDTH-1:0]    config_addr,
@@ -73,7 +73,7 @@ module Flow_Control
     reg config_write_ok = 0;
 
     always @(*) begin
-        config_write_ok <= (IOR_previous == 1'b1) & (cancel_current == 1'b0);
+        config_write_ok <= (IOR_previous == 1'b1) & (cancel_previous == 1'b0);
     end
 
     wire config_wren;
