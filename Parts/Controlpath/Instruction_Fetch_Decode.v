@@ -36,14 +36,14 @@ module Instruction_Fetch_Decode
     input   wire                            clock,
 
     input   wire                            im_wren,
-    input   wire    [IMEM_ADDR_WIDTH-1:0]   im_write_addr,
-    input   wire    [IMEM_WORD_WIDTH-1:0]   im_write_data,
+    input   wire    [IM_ADDR_WIDTH-1:0]     im_write_addr,
+    input   wire    [IM_WORD_WIDTH-1:0]     im_write_data,
     input   wire                            im_rden,
-    input   wire    [IMEM_ADDR_WIDTH-1:0]   im_read_addr,
+    input   wire    [IM_ADDR_WIDTH-1:0]     im_read_addr,
 
     input   wire                            od_wren,
     input   wire    [OPCODE_WIDTH-1:0]      od_write_addr,
-    input   wire    [CMEM_WORD_WIDTH-1:0]   od_write_data,
+    input   wire    [OD_WORD_WIDTH-1:0]     od_write_data,
 
     output  reg     [CMEM_WORD_WIDTH-1:0]   ALU_control,
     output  wire    [D_OPERAND_WIDTH-1:0]   DA,
