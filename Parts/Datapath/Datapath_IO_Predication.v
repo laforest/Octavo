@@ -3,10 +3,12 @@
 
 module Datapath_IO_Predication
 #(
-
+    // Global read/write address ranges
     parameter   READ_ADDR_WIDTH             = 0,
     parameter   WRITE_ADDR_WIDTH            = 0,
+    // Physical memory address width (<= to global addresses)
     parameter   MEM_ADDR_WIDTH              = 0,
+    // Expressed as global addresses
     parameter   MEM_READ_BASE_ADDR_A        = 0,
     parameter   MEM_READ_BOUND_ADDR_A       = 0,
     parameter   MEM_WRITE_BASE_ADDR_A       = 0,
@@ -15,17 +17,18 @@ module Datapath_IO_Predication
     parameter   MEM_READ_BOUND_ADDR_B       = 0,
     parameter   MEM_WRITE_BASE_ADDR_B       = 0,
     parameter   MEM_WRITE_BOUND_ADDR_B      = 0,
+    // Local memory address
     parameter   PORT_COUNT                  = 0,
     parameter   PORT_BASE_ADDR              = 0,
     parameter   PORT_ADDR_WIDTH             = 0
 )
 (
     input   wire                            clock,
-    input   wire                            split,
 
     input   wire    [READ_ADDR_WIDTH-1:0]   read_addr_A,
     input   wire    [READ_ADDR_WIDTH-1:0]   read_addr_B,
-    input   wire    [WRITE_ADDR_WIDTH-1:0]  write_addr_D,
+    input   wire    [WRITE_ADDR_WIDTH-1:0]  write_addr_A,
+    input   wire    [WRITE_ADDR_WIDTH-1:0]  write_addr_B,
 
     input   wire    [PORT_COUNT-1:0]        read_EF_A,
     input   wire    [PORT_COUNT-1:0]        read_EF_B,
@@ -45,20 +48,6 @@ module Datapath_IO_Predication
 
     wire                        read_enable_A;
     wire                        write_enable_A;
-    wire [WRITE_ADDR_WIDTH-1:0] write_addr_A;
-
-    Write_Address_Split
-    #(
-        .WRITE_ADDR_WIDTH       (WRITE_ADDR_WIDTH), 
-        .WRITE_BASE_ADDR        (MEM_WRITE_BASE_ADDR_A),
-        .LOWER_UPPER_SPLIT      (1) // Memory A gets upper half of split D
-    )
-    WAS_A
-    (
-        .split                  (split),
-        .write_addr             (write_addr_D),
-        .write_addr_translated  (write_addr_A)
-    );
 
     Memory_Addressing
     #(
@@ -81,20 +70,6 @@ module Datapath_IO_Predication
 
     wire                        read_enable_B;
     wire                        write_enable_B;
-    wire [WRITE_ADDR_WIDTH-1:0] write_addr_B;
-
-    Write_Address_Split
-    #(
-        .WRITE_ADDR_WIDTH       (WRITE_ADDR_WIDTH), 
-        .WRITE_BASE_ADDR        (MEM_WRITE_BASE_ADDR_B),
-        .LOWER_UPPER_SPLIT      (0) // Memory B gets lower half of split D
-    )
-    WAS_B
-    (
-        .split                  (split),
-        .write_addr             (write_addr_D),
-        .write_addr_translated  (write_addr_B)
-    );
 
     Memory_Addressing
     #(
@@ -119,12 +94,6 @@ module Datapath_IO_Predication
     wire read_EF_masked_A;
     wire write_EF_masked_A;
 
-    reg [MEM_ADDR_WIDTH-1:0] write_addr_A_local = 0;
-
-    always @(*) begin
-        write_addr_A_local <= write_addr_A[MEM_ADDR_WIDTH-1:0];
-    end
-
     Memory_IO_Predication
     #(
         .ADDR_WIDTH         (MEM_ADDR_WIDTH),
@@ -140,7 +109,7 @@ module Datapath_IO_Predication
         .read_enable        (read_enable_A),
         .read_addr          (read_addr_A),
         .write_enable       (write_enable_A),
-        .write_addr         (write_addr_A_local),
+        .write_addr         (write_addr_A[MEM_ADDR_WIDTH-1:0]),
 
         .read_EF            (read_EF_A),
         .write_EF           (write_EF_A),
@@ -157,12 +126,6 @@ module Datapath_IO_Predication
     wire read_EF_masked_B;
     wire write_EF_masked_B;
 
-    reg [MEM_ADDR_WIDTH-1:0] write_addr_B_local = 0;
-
-    always @(*) begin
-        write_addr_B_local <= write_addr_B[MEM_ADDR_WIDTH-1:0];
-    end
-
     Memory_IO_Predication
     #(
         .ADDR_WIDTH         (MEM_ADDR_WIDTH),
@@ -178,7 +141,7 @@ module Datapath_IO_Predication
         .read_enable        (read_enable_B),
         .read_addr          (read_addr_B),
         .write_enable       (write_enable_B),
-        .write_addr         (write_addr_B_local),
+        .write_addr         (write_addr_B[MEM_ADDR_WIDTH-1:0]),
 
         .read_EF            (read_EF_B),
         .write_EF           (write_EF_B),
