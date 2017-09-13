@@ -74,9 +74,9 @@ module Addressing
     input   wire    [WRITE_ADDR_WIDTH-1:0]  write_addr,
     input   wire    [WRITE_WORD_WIDTH-1:0]  write_data,
 
-    output  wire    [A_ADDR_WIDTH-1:0]      A_offset_addr
-    output  wire    [B_ADDR_WIDTH-1:0]      B_offset_addr
-    output  wire    [D_ADDR_WIDTH-1:0]      DA_offset_addr
+    output  wire    [A_ADDR_WIDTH-1:0]      A_offset_addr,
+    output  wire    [B_ADDR_WIDTH-1:0]      B_offset_addr,
+    output  wire    [D_ADDR_WIDTH-1:0]      DA_offset_addr,
     output  wire    [D_ADDR_WIDTH-1:0]      DB_offset_addr
 );
 
