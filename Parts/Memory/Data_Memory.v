@@ -235,7 +235,7 @@ module Data_Memory
     // or if writes are not enabled in general.
 
     always @(*) begin
-        mem_wren_stage2 <= (write_addr_is_IO_stage2 == 0) & & (write_enable_stage2 == 1);
+        mem_wren_stage2 <= (write_addr_is_IO_stage2 == 0) & (write_enable_stage2 == 1);
     end
 
 // -----------------------------------------------------------
