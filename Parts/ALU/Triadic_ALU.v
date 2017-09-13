@@ -5,9 +5,15 @@
 
 module Triadic_ALU
 #(
-    parameter       WORD_WIDTH                  = 0
+    parameter       WORD_WIDTH                  = 0,
     parameter       ADDR_WIDTH                  = 0,
-    parameter       S_WRITE_ADDR                = 0
+    // S register
+    parameter       S_WRITE_ADDR                = 0,
+    parameter       S_RAMSTYLE                  = "",
+    parameter       S_READ_NEW_DATA             = 0,
+    // Multithreading
+    parameter       THREAD_COUNT                = 0,
+    parameter       THREAD_COUNT_WIDTH          = 0
 )
 (
     input   wire                                clock,
@@ -34,7 +40,7 @@ module Triadic_ALU
 
     Triadic_ALU_Forward_Path
     #(
-        WORD_WIDTH  (WORD_WIDTH)
+        .WORD_WIDTH  (WORD_WIDTH)
     )
     TALU_FWD
     (
@@ -60,9 +66,13 @@ module Triadic_ALU
 
     Triadic_ALU_Feedback_Path
     #(
-        WORD_WIDTH      (WORD_WIDTH),
-        ADDR_WIDTH      (ADDR_WIDTH),
-        S_WRITE_ADDR    (S_WRITE_ADDR)
+        .WORD_WIDTH         (WORD_WIDTH),
+        .ADDR_WIDTH         (ADDR_WIDTH),
+        .S_WRITE_ADDR       (S_WRITE_ADDR),
+        .S_RAMSTYLE         (S_RAMSTYLE),
+        .S_READ_NEW_DATA    (S_READ_NEW_DATA),
+        .THREAD_COUNT       (THREAD_COUNT),
+        .THREAD_COUNT_WIDTH (THREAD_COUNT_WIDTH)
     )
     TALU_FBK
     (

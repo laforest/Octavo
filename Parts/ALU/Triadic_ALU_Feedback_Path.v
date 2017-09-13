@@ -8,14 +8,20 @@ module Triadic_ALU_Feedback_Path
 #(
     parameter       WORD_WIDTH          = 0,
     parameter       ADDR_WIDTH          = 0,
-    parameter       S_WRITE_ADDR        = 0
+    // S register
+    parameter       S_WRITE_ADDR        = 0,
+    parameter       S_RAMSTYLE          = "",
+    parameter       S_READ_NEW_DATA     = 0,
+    // Multithreading
+    parameter       THREAD_COUNT        = 0,
+    parameter       THREAD_COUNT_WIDTH  = 0
 )
 (
     input   wire                        clock,
 
     input   wire    [WORD_WIDTH-1:0]    Ra,         // ALU First Result
     input   wire    [WORD_WIDTH-1:0]    Rb,         // ALU Second Result
-    input   wire    [ADDR_WIDTH-1:0]    DB,         // Write Address for Rb
+    input   wire    [ADDR_WIDTH-1:0]    DB,         // Write Address for Rb, used for S
     input   wire                        IO_Ready,
     input   wire                        Cancel,
 
@@ -69,7 +75,12 @@ module Triadic_ALU_Feedback_Path
 
 // --------------------------------------------------------------------
 
-    wire wren;
+    // S Register, once instance per thread. 
+    // Like R, but memory-addressed and persistent.
+    // For now, S is only a single register
+    // Expressing it this way leaves the door open to expansion
+
+    wire S_wren;
 
     Address_Range_Decoder_Static
     #(
@@ -81,32 +92,48 @@ module Triadic_ALU_Feedback_Path
     (
         .enable         (not_nop),
         .addr           (DB_stage1),
-        .hit            (wren)   
+        .hit            (S_wren)   
     );
 
-    // For now, S is only a single register
-    // Expressing it this way leaves the door open to expansion
+    wire [THREAD_COUNT_WIDTH-1:0] S_thread_write;
+    wire [THREAD_COUNT_WIDTH-1:0] S_thread_read;
+
+    Thread_Number
+    #(
+        .INITIAL_THREAD     (0),
+        .THREAD_COUNT       (THREAD_COUNT),
+        .THREAD_COUNT_WIDTH (THREAD_COUNT_WIDTH)
+    )
+    TN_S
+    (
+        .clock              (clock),
+        .current_thread     (S_thread_write),
+        .next_thread        (S_thread_read)
+    );
+
+    // Read address leads by one cycle to have value read out 
+    // by the time we need it and (maybe) overwrite it.
 
     wire [WORD_WIDTH-1:0] S_stage0;
 
     RAM_SDP 
     #(
         .WORD_WIDTH     (WORD_WIDTH),
-        .ADDR_WIDTH     (1),
-        .DEPTH          (1),
-        .RAMSTYLE       ("logic"),
-        .READ_NEW_DATA  (0),
+        .ADDR_WIDTH     (THREAD_COUNT_WIDTH),
+        .DEPTH          (THREAD_COUNT),
+        .RAMSTYLE       (S_RAMSTYLE),
+        .READ_NEW_DATA  (S_READ_NEW_DATA),
         .USE_INIT_FILE  (0),
         .INIT_FILE      ()
     )
-    S_reg
+    S_Register
     (
         .clock          (clock),
-        .wren           (wren),
-        .write_addr     (0),
+        .wren           (S_wren),
+        .write_addr     (S_thread_write),
         .write_data     (Rb_stage1),
-        .rden           (1),
-        .read_addr      (0),
+        .rden           (1'b1),
+        .read_addr      (S_thread_read), 
         .read_data      (S_stage0)
     );
 
