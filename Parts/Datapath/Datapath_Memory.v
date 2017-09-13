@@ -39,7 +39,13 @@ module Datapath_Memory
 (
     input   wire                                        clock,
 
-    // Translated addresses from Address Offset Module (AOM)
+    // Current and previous instruction status (Annuled/Cancelled)
+    input   wire                                        IOR,
+    input   wire                                        cancel,
+    input   wire                                        IOR_previous,
+    input   wire                                        cancel_previous,
+
+    // Translated addresses from Addressing Module
     input   wire    [READ_ADDR_WIDTH-1:0]               read_addr_A,
     input   wire    [READ_ADDR_WIDTH-1:0]               read_addr_B,
     input   wire    [WRITE_ADDR_WIDTH-1:0]              write_addr_A,
@@ -100,9 +106,14 @@ module Datapath_Memory
     )
     MA_A
     (
+        .IOR                    (IOR),
+        .cancel                 (cancel),
         .read_addr              (read_addr_A),
-        .write_addr             (write_addr_A),
         .read_enable            (read_enable_A),
+
+        .IOR_previous           (IOR_previous),
+        .cancel_previous        (cancel_previous),
+        .write_addr             (write_addr_A),
         .write_enable           (write_enable_A)
     );
 
@@ -122,9 +133,14 @@ module Datapath_Memory
     )
     MA_B
     (
+        .IOR                    (IOR),
+        .cancel                 (cancel),
         .read_addr              (read_addr_B),
-        .write_addr             (write_addr_B),
         .read_enable            (read_enable_B),
+
+        .IOR_previous           (IOR_previous),
+        .cancel_previous        (cancel_previous),
+        .write_addr             (write_addr_B),
         .write_enable           (write_enable_B)
     );
 
@@ -152,7 +168,7 @@ module Datapath_Memory
 // --------------------------------------------------------------------
 // --------------------------------------------------------------------
 
-    Memory
+    Data_Memory
     #(
         .WORD_WIDTH             (WORD_WIDTH), 
         .ADDR_WIDTH             (MEM_ADDR_WIDTH), 
@@ -164,7 +180,7 @@ module Datapath_Memory
         .IO_PORT_BASE_ADDR      (IO_PORT_BASE_ADDR), 
         .IO_PORT_ADDR_WIDTH     (IO_PORT_ADDR_WIDTH)
     )
-    M_A
+    DM_A
     (
         .clock                  (clock),
 
@@ -184,7 +200,7 @@ module Datapath_Memory
 
 // --------------------------------------------------------------------
 
-    Memory
+    Data_Memory
     #(
         .WORD_WIDTH             (WORD_WIDTH), 
         .ADDR_WIDTH             (MEM_ADDR_WIDTH), 
@@ -196,7 +212,7 @@ module Datapath_Memory
         .IO_PORT_BASE_ADDR      (IO_PORT_BASE_ADDR), 
         .IO_PORT_ADDR_WIDTH     (IO_PORT_ADDR_WIDTH)
     )
-    M_B
+    DM_B
     (
         .clock                  (clock),
 
