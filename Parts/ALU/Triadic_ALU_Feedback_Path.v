@@ -141,8 +141,8 @@ module Triadic_ALU_Feedback_Path
 
     // Compute R flags
 
-    wire R_zero_stage0;
-    wire R_negative_stage0;
+    wire R_zero_raw;
+    wire R_negative_raw;
 
     R_Flags
     #(
@@ -150,11 +150,18 @@ module Triadic_ALU_Feedback_Path
     )
     R_Flags
     (
-        .clock      (clock)
         .R          (Ra_stage1),
-        .R_zero     (R_zero_stage0),
-        .R_negative (R_negative_stage0)
+        .R_zero     (R_zero_raw),
+        .R_negative (R_negative_raw)
     );
+
+    reg  R_zero_stage0      = 0;
+    reg  R_negative_stage0  = 0;
+
+    always @(posedge clock) begin
+        R_zero_stage0       <= R_zero_raw;
+        R_negative_stage0   <= R_negative_raw;
+    end
 
 // --------------------------------------------------------------------
 

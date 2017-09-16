@@ -10,7 +10,6 @@ module R_Flags
     parameter WORD_WIDTH = 0
 )
 (
-    input   wire                    clock,
     input   wire  [WORD_WIDTH-1:0]  R,
     output  reg                     R_zero,
     output  reg                     R_negative
@@ -21,7 +20,7 @@ module R_Flags
         R_negative = 0;
     end
 
-    always @(posedge clock) begin
+    always @(*) begin
         R_zero     <= ~|R;
         R_negative <= R[WORD_WIDTH-1];
     end
