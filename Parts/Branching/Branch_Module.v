@@ -26,7 +26,11 @@ module Branch_Module
     input   wire    [PC_WIDTH-1:0]      PC,
     input   wire                        IOR,
     input   wire                        IOR_previous,
-    input   wire    [FLAGS_WIDTH-1:0]   flags_previous,
+    input   wire                        A_negative,
+    input   wire                        A_carryout,
+    input   wire                        A_external,
+    input   wire                        B_lessthan,
+    input   wire                        B_external,
     input   wire    [WORD_WIDTH-1:0]    R_previous,
     input   wire                        bs1_config_wren,
     input   wire                        bs2_config_wren,
@@ -91,25 +95,6 @@ module Branch_Module
 
 // --------------------------------------------------------------------
 
-    // Unpack/repack the flags. See Branch_Detector.v for sub-format.
-
-    reg [`GROUP_FLAG_COUNT-1:0] flags_previous_A    = 0;
-    reg [`GROUP_FLAG_COUNT-1:0] flags_previous_B    = 0;
-    reg                         A_negative          = 0;
-    reg                         A_carryout          = 0;
-    reg                         A_external          = 0;
-    reg                         B_lessthan          = 0;
-    reg                         B_external          = 0;
-    wire                        running_previous;
-
-    always @(*) begin
-        {A_negative, A_carryout, B_lessthan, A_external, B_external} = flags_previous;
-        flags_previous_A = {A_negative, A_carryout,       bs1_match, A_external};
-        flags_previous_B = {B_lessthan, running_previous, bs2_match, B_external};
-    end
-
-// --------------------------------------------------------------------
-
     wire branch_reached;
 
     Branch_Detector
@@ -123,9 +108,15 @@ module Branch_Module
     BM_BD
     (
         .clock              (clock),
-        .pc                 (PC),
-        .flags_previous_A   (flags_previous_A),
-        .flags_previous_B   (flags_previous_B),
+        .PC                 (PC),
+        .A_negative         (A_negative),
+        .A_carryout         (A_carryout),
+        .A_sentinel         (bs1_match),
+        .A_external         (A_external),
+        .B_lessthan         (B_lessthan),
+        .B_counter          (running_previous),
+        .B_sentinel         (bs2_match),
+        .B_external         (B_external),
         .IO_Ready_previous  (IOR_previous),
         .branch_config_wren (bd_config_wren),
         .branch_config_data (config_data),

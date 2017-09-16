@@ -6,7 +6,6 @@
 
     // Never changes
     `define GROUP_SELECTOR_WIDTH    2
-    `define GROUP_FLAG_COUNT        4
 
     // First, the A/B group condition flag selectors
 

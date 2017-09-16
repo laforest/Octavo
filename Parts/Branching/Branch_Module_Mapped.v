@@ -29,7 +29,11 @@ module Branch_Module_Mapped
     input   wire    [PC_WIDTH-1:0]      PC,
     input   wire                        IOR,
     input   wire                        IOR_previous,
-    input   wire    [FLAGS_WIDTH-1:0]   flags_previous,
+    input   wire                        A_negative,
+    input   wire                        A_carryout,
+    input   wire                        A_external,
+    input   wire                        B_lessthan,
+    input   wire                        B_external,
     input   wire    [WORD_WIDTH-1:0]    R_previous,
     input   wire                        config_wren,
     input   wire    [ADDR_WIDTH-1:0]    config_addr,
@@ -158,21 +162,25 @@ module Branch_Module_Mapped
         .THREAD_COUNT_WIDTH (THREAD_COUNT_WIDTH)
     )
     (
-        clock               (clock),
-        PC                  (PC),
-        IOR                 (IOR),
-        IOR_previous        (IOR_previous),
-        flags_previous      (flags_previous),
-        R_previous          (R_previous),
-        bs1_config_wren     (bs1_config_wren),
-        bs2_config_wren     (bs2_config_wren),
-        bd_config_wren      (bd_config_wren),
-        bc_config_wren      (bc_config_wren),
-        config_addr         (config_addr_translated[0]),
-        config_data         (config_data),
-        jump                (jump),
-        destination         (destination),
-        cancel              (cancel)
+        .clock              (clock),
+        .PC                 (PC),
+        .IOR                (IOR),
+        .IOR_previous       (IOR_previous),
+        .A_negative         (A_negative),
+        .A_carryout         (A_carryout),
+        .A_external         (A_external),
+        .B_lessthan         (B_lessthan),
+        .B_external         (B_external),
+        .R_previous         (R_previous),
+        .bs1_config_wren    (bs1_config_wren),
+        .bs2_config_wren    (bs2_config_wren),
+        .bd_config_wren     (bd_config_wren),
+        .bc_config_wren     (bc_config_wren),
+        .config_addr        (config_addr_translated[0]),
+        .config_data        (config_data),
+        .jump               (jump),
+        .destination        (destination),
+        .cancel             (cancel)
     );
 
 endmodule

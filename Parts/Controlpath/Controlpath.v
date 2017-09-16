@@ -57,7 +57,10 @@ module Controlpath
 
     // Flow Control
     input   wire                            IOR,
-    input   wire    [FLAGS_WIDTH-1:0]       flags_previous,
+    input   wire                            carryout,
+    input   wire                            overflow,
+    input   wire                            A_external,
+    input   wire                            B_external,
     input   wire    [WORD_WIDTH-1:0]        R_previous,
     output  wire                            cancel
 
@@ -69,6 +72,29 @@ module Controlpath
     output  wire    [B_OPERAND_WIDTH-1:0]   B
 
 );
+
+// --------------------------------------------------------------------
+
+    // Generate the other flags
+
+    wire negative
+
+    R_Flags
+    #(
+        .WORD_WIDTH (WORD_WIDTH)
+    )
+    RF_OTHER
+    (
+        .R          (R_previous),
+        .R_zero     (),
+        .R_negative (negative)
+    );
+
+    reg lessthan = 0;
+
+    always @(*) begin
+        lessthan <= overflow ^ negative;
+    end
 
 // --------------------------------------------------------------------
 
@@ -95,7 +121,11 @@ module Controlpath
         .IOR                (IOR),
         .IOR_previous       (IOR_previous),
         .cancel_previous    (cancel_previous),
-        .flags_previous     (flags_previous),
+        .A_negative         (negative),
+        .A_carryout         (carryout),
+        .A_external         (A_external),
+        .B_lessthan         (lessthan),
+        .B_external         (B_external),
         .R_previous         (R_previous),
         .config_addr        (config_addr),
         .config_data        (config_data),

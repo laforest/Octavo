@@ -17,9 +17,15 @@ module Branch_Detector
 )
 (
     input   wire                            clock,
-    input   wire    [PC_WIDTH-1:0]          pc,
-    input   wire    [`GROUP_FLAG_COUNT-1:0] flags_previous_A,
-    input   wire    [`GROUP_FLAG_COUNT-1:0] flags_previous_B,
+    input   wire    [PC_WIDTH-1:0]          PC,
+    input   wire                            A_negative,
+    input   wire                            A_carryout,
+    input   wire                            A_sentinel,
+    input   wire                            A_external,
+    input   wire                            B_lessthan,
+    input   wire                            B_counter,
+    input   wire                            B_sentinel,
+    input   wire                            B_external,
     input   wire                            IO_Ready_previous,
     input   wire                            branch_config_wren,
     input   wire    [WORD_WIDTH-1:0]        branch_config_data,
@@ -115,12 +121,12 @@ module Branch_Detector
 
 // --------------------------------------------------------------------
 
-    // Check if the pc has reached a branch, or if we accept any pc value.
+    // Check if the PC has reached a branch, or if we accept any PC value.
 
     reg branch_origin_match = 0;
 
     always @(*) begin
-        branch_origin_match <= (pc == branch_origin) | (branch_origin_enable == 0);
+        branch_origin_match <= (PC == branch_origin) | (branch_origin_enable == 0);
     end
 
 // --------------------------------------------------------------------
@@ -137,22 +143,12 @@ module Branch_Detector
 // Condition predicate calculation
 
     wire    [`GROUP_SELECTOR_WIDTH-1:0]     A_selector;
-    wire                                    A_negative;
-    wire                                    A_carryout;
-    wire                                    A_sentinel;
-    wire                                    A_external;
     wire    [`GROUP_SELECTOR_WIDTH-1:0]     B_selector;
-    wire                                    B_lessthan;
-    wire                                    B_counter;
-    wire                                    B_sentinel;
-    wire                                    B_external;
     wire    [`DYADIC_CTRL_WIDTH-1:0]        AB_operator;
     wire                                    predicate;
 
     always @(*) begin
-        {A_negative, A_carryout, A_sentinel, A_external} <= flags_previous_A;
-        {B_lessthan, B_counter,  B_sentinel, B_external} <= flags_previous_B;
-        {A_selector, B_selector, AB_operator}            <= branch_condition;
+        {A_selector, B_selector, AB_operator} <= branch_condition;
     end
 
     Condition_Predicate
