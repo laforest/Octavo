@@ -116,7 +116,6 @@ module Flow_Control
                 .WORD_WIDTH         (WORD_WIDTH),
                 .ADDR_WIDTH         (ADDR_WIDTH),
                 .PC_WIDTH           (PC_WIDTH),
-                .FLAGS_WIDTH        (FLAGS_WIDTH),
                 .BD_RAMSTYLE        (RAMSTYLE),
                 .BS_RAMSTYLE        (RAMSTYLE),
                 .BS_READ_NEW_DATA   (READ_NEW_DATA),

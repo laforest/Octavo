@@ -1,7 +1,7 @@
 
-// Control Path. For each thread:  calculates branches, the Program Counter,
-// and fetches the corresponding instruction along with its decoded control
-// bits.
+// Octavo Control Path. For each thread:  calculates branches, the Program
+// Counter, and fetches the corresponding instruction along with its decoded
+// control bits.
 
 module Controlpath
 #(
@@ -107,7 +107,6 @@ module Controlpath
         .ADDR_WIDTH         (ADDR_WIDTH),
         .WORD_WIDTH         (WORD_WIDTH),
         .PC_WIDTH           (PC_WIDTH),
-        .FLAGS_WIDTH        (FLAGS_WIDTH),
         .RAMSTYLE           (FC_RAMSTYLE),
         .READ_NEW_DATA      (FC_READ_NEW_DATA),
         .PC_INIT_FILE       (PC_INIT_FILE),

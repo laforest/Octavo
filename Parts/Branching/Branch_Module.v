@@ -8,7 +8,6 @@ module Branch_Module
 #(
     parameter       WORD_WIDTH          = 0,
     parameter       PC_WIDTH            = 0,
-    parameter       FLAGS_WIDTH         = 0,
     // Branch Detector RAM parameters
     parameter       BD_RAMSTYLE         = "",
     // Branch Sentinel RAM parameters

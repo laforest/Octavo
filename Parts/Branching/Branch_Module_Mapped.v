@@ -152,7 +152,6 @@ module Branch_Module_Mapped
     #(
         .WORD_WIDTH         (WORD_WIDTH),
         .PC_WIDTH           (PC_WIDTH),
-        .FLAGS_WIDTH        (FLAGS_WIDTH),
         .BD_RAMSTYLE        (BD_RAMSTYLE),
         .BS_RAMSTYLE        (BS_RAMSTYLE),
         .BS_READ_NEW_DATA   (BS_READ_NEW_DATA),
