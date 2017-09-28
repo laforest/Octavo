@@ -1,6 +1,8 @@
 
 // Infers carry-in to each bit position given both addends A/B and their sum S.
 
+`default_nettype none
+
 module Carryin_Calculator
 #(
     parameter WORD_WIDTH = 0

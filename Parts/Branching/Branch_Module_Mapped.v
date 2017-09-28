@@ -47,14 +47,14 @@ module Branch_Module_Mapped
 
     // Lay out sub-modules in translated memory range
 
-    localparam  BS1_CONFIG_BASE     = 0, // 0: Sentinel 1: Mask
-    localparam  BS1_CONFIG_BOUND    = 1,
-    localparam  BS2_CONFIG_BASE     = 2,
-    localparam  BS2_CONFIG_BOUND    = 3,
-    localparam  BC_CONFIG_BASE      = 4,
-    localparam  BC_CONFIG_BOUND     = 4,
-    localparam  BD_CONFIG_BASE      = 5,
-    localparam  BD_CONFIG_BOUND     = 5,
+    localparam  BS1_CONFIG_BASE     = 0; // 0: Sentinel 1: Mask
+    localparam  BS1_CONFIG_BOUND    = 1;
+    localparam  BS2_CONFIG_BASE     = 2;
+    localparam  BS2_CONFIG_BOUND    = 3;
+    localparam  BC_CONFIG_BASE      = 4;
+    localparam  BC_CONFIG_BOUND     = 4;
+    localparam  BD_CONFIG_BASE      = 5;
+    localparam  BD_CONFIG_BOUND     = 5;
 
     localparam  CONFIG_ADDR_BOUND   = CONFIG_ADDR_BASE + BD_CONFIG_BOUND;
 
@@ -66,10 +66,10 @@ module Branch_Module_Mapped
 
     Address_Range_Translator
     #(
-        ADDR_WIDTH          (ADDR_WIDTH),
-        ADDR_BASE           (CONFIG_ADDR_BASE),
-        ADDR_COUNT          (CONFIG_ADDR_BOUND),
-        REGISTERED          (1'b0)
+        .ADDR_WIDTH         (ADDR_WIDTH),
+        .ADDR_BASE          (CONFIG_ADDR_BASE),
+        .ADDR_COUNT         (CONFIG_ADDR_BOUND),
+        .REGISTERED         (1'b0)
     )
     ART
     (
@@ -148,7 +148,7 @@ module Branch_Module_Mapped
 
 // --------------------------------------------------------------------
 
-    module Branch_Module
+    Branch_Module
     #(
         .WORD_WIDTH         (WORD_WIDTH),
         .PC_WIDTH           (PC_WIDTH),
@@ -160,6 +160,7 @@ module Branch_Module_Mapped
         .THREAD_COUNT       (THREAD_COUNT),
         .THREAD_COUNT_WIDTH (THREAD_COUNT_WIDTH)
     )
+    BM
     (
         .clock              (clock),
         .PC                 (PC),

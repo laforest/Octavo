@@ -3,6 +3,8 @@
 
 `default_nettype none
 
+`include "Triadic_ALU_Operations.vh"
+
 module Datapath
 #(
     parameter   WORD_WIDTH                              = 0,
@@ -42,7 +44,6 @@ module Datapath
     parameter   DB_PO_ADDR_BASE                         = 0,
     parameter   DO_ADDR                                 = 0,
     parameter   PO_INCR_WIDTH                           = 0,
-    parameter   PO_ENTRY_WIDTH                          = 0,
     parameter   PO_ENTRY_COUNT                          = 0,
     parameter   PO_ADDR_WIDTH                           = 0,
     parameter   PO_INIT_FILE                            = "",
@@ -57,7 +58,7 @@ module Datapath
     input   wire                                        clock,
 
     // From Flow Control: ALU control bits
-    input   wire    [`TRIADIC_CTRL_WIDTH-1:0]           control,
+    input   wire    [`TRIADIC_ALU_CTRL_WIDTH-1:0]       control,
 
     // From Flow Control. Signals a cancelled current and previous instruction.
     input   wire                                        cancel,
@@ -118,9 +119,9 @@ module Datapath
     // Pass ALU control alongside Predication and Addressing
 
     localparam ADDRESSING_AND_PREDICATION_PIPE_DEPTH = 2;
-    localparam ADDRESSING_AND_PREDICATION_PIPE_WIDTH = `TRIADIC_CTRL_WIDTH;
+    localparam ADDRESSING_AND_PREDICATION_PIPE_WIDTH = `TRIADIC_ALU_CTRL_WIDTH;
 
-    wire [`TRIADIC_CTRL_WIDTH-1:0] control_stage2;
+    wire [`TRIADIC_ALU_CTRL_WIDTH-1:0] control_stage2;
 
     Delay_Line 
     #(
@@ -183,13 +184,18 @@ module Datapath
 
 // --------------------------------------------------------------------
 
+    wire [READ_ADDR_WIDTH-1:0]  read_addr_A_offset;
+    wire [READ_ADDR_WIDTH-1:0]  read_addr_B_offset;
+    wire [WRITE_ADDR_WIDTH-1:0] write_addr_A_offset;
+    wire [WRITE_ADDR_WIDTH-1:0] write_addr_B_offset;
+
     Addressing
     #(
         .WRITE_WORD_WIDTH       (WORD_WIDTH),
         .WRITE_ADDR_WIDTH       (WRITE_ADDR_WIDTH),
         .A_ADDR_WIDTH           (READ_ADDR_WIDTH),
         .B_ADDR_WIDTH           (READ_ADDR_WIDTH),
-        .D_ADDR_WIDTH           (WRITE_ADDR_WIDTH)
+        .D_ADDR_WIDTH           (WRITE_ADDR_WIDTH),
         .A_SHARED_ADDR_BASE     (A_SHARED_ADDR_BASE),
         .A_SHARED_ADDR_BOUND    (A_SHARED_ADDR_BOUND),
         .B_SHARED_ADDR_BASE     (B_SHARED_ADDR_BASE),
@@ -202,7 +208,6 @@ module Datapath
         .DB_PO_ADDR_BASE        (DB_PO_ADDR_BASE),
         .DO_ADDR                (DO_ADDR),
         .PO_INCR_WIDTH          (PO_INCR_WIDTH),
-        .PO_ENTRY_WIDTH         (PO_ENTRY_WIDTH),
         .PO_ENTRY_COUNT         (PO_ENTRY_COUNT),
         .PO_ADDR_WIDTH          (PO_ADDR_WIDTH),
         .PO_INIT_FILE           (PO_INIT_FILE),
@@ -243,13 +248,13 @@ module Datapath
     // Pass signals alongside the Datapath Memory
 
     localparam DATA_MEMORY_PIPE_DEPTH = 2;
-    localparam DATA_MEMORY_PIPE_WIDTH = `TRIADIC_CTRL_WIDTH + 1 + 1 + WRITE_ADDR_WIDTH + WRITE_ADDR_WIDTH;
+    localparam DATA_MEMORY_PIPE_WIDTH = `TRIADIC_ALU_CTRL_WIDTH + 1 + 1 + WRITE_ADDR_WIDTH + WRITE_ADDR_WIDTH;
 
-    wire [`TRIADIC_CTRL_WIDTH-1:0]  control_stage4;
-    wire                            write_addr_is_IO_A_stage4;
-    wire                            write_addr_is_IO_B_stage4;
-    wire [WRITE_ADDR_WIDTH-1:0]     write_addr_A_offset_stage4;
-    wire [WRITE_ADDR_WIDTH-1:0]     write_addr_B_offset_stage4;
+    wire [`TRIADIC_ALU_CTRL_WIDTH-1:0]  control_stage4;
+    wire                                write_addr_is_IO_A_stage4;
+    wire                                write_addr_is_IO_B_stage4;
+    wire [WRITE_ADDR_WIDTH-1:0]         write_addr_A_offset_stage4;
+    wire [WRITE_ADDR_WIDTH-1:0]         write_addr_B_offset_stage4;
 
     Delay_Line 
     #(
@@ -265,8 +270,8 @@ module Datapath
 
 // --------------------------------------------------------------------
 
-    wire [WORD_WIDTH-1:0] read_data_A;
-    wire [WORD_WIDTH-1:0] read_data_B;
+    wire [WORD_WIDTH-1:0]       read_data_A;
+    wire [WORD_WIDTH-1:0]       read_data_B;
 
     Datapath_Memory
     #(
@@ -355,7 +360,7 @@ module Datapath
 
     Triadic_ALU
     #(
-        .WORD_WIDTH         (WORD_WIDTH) 
+        .WORD_WIDTH         (WORD_WIDTH), 
         .ADDR_WIDTH         (WRITE_ADDR_WIDTH),
         .S_WRITE_ADDR       (S_WRITE_ADDR),
         .S_RAMSTYLE         (S_RAMSTYLE),
@@ -368,7 +373,7 @@ module Datapath
         .clock              (clock),
         .IO_Ready           (IO_ready_previous),
         .Cancel             (cancel_previous),
-        .DB                 (write_addr_Rb)
+        .DB                 (write_addr_Rb),
         .control            (control_stage4),
         .A                  (read_data_A),
         .B                  (read_data_B),

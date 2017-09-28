@@ -7,6 +7,8 @@
 // Make sure R and the configuration writes are properly synchronized
 // to the same thread.
 
+`default_nettype none
+
 module Branch_Sentinel
 #(
     parameter       WORD_WIDTH          = 0,
@@ -30,7 +32,7 @@ module Branch_Sentinel
 
     wire [THREAD_COUNT_WIDTH-1:0] thread_addr;
 
-    module Thread_Number
+    Thread_Number
     #(
         .INITIAL_THREAD     (0),
         .THREAD_COUNT       (THREAD_COUNT),
@@ -64,7 +66,7 @@ module Branch_Sentinel
         .RAMSTYLE       (RAMSTYLE),
         .READ_NEW_DATA  (READ_NEW_DATA),
         .USE_INIT_FILE  (0),
-        .INIT_FILE      (),
+        .INIT_FILE      ()
     )
     BS_sentinel
     (
@@ -81,7 +83,7 @@ module Branch_Sentinel
 
     // Mask value. One word per thread.
 
-    wire    [WORD_WIDTH-1:0]    mask        = 0;
+    wire    [WORD_WIDTH-1:0]    mask;
     reg                         mask_wren   = 0;
 
     always @(*) begin
@@ -96,7 +98,7 @@ module Branch_Sentinel
         .RAMSTYLE       (RAMSTYLE),
         .READ_NEW_DATA  (READ_NEW_DATA),
         .USE_INIT_FILE  (0),
-        .INIT_FILE      (),
+        .INIT_FILE      ()
     )
     BS_mask
     (

@@ -3,6 +3,8 @@
 // Returns the LSB set, where bit 0 has highest priority
 // Core logic from Hacker's Delight, Chapter 2.
 
+`default_nettype none
+
 module Priority_Arbiter_Structural
 #(
     parameter WORD_WIDTH                = 0

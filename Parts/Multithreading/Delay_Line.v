@@ -3,6 +3,8 @@
 // Allows easy adjustments via parameter calculations.
 // This is very useful to align various signals along a pipeline.
 
+`default_nettype none
+
 module Delay_Line 
 #(
     parameter       DEPTH           = 0, 

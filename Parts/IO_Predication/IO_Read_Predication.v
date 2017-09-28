@@ -2,6 +2,8 @@
 // I/O Read Predication. Allows us to prevent an I/O Port read operation if the
 // port isn't ready.
 
+`default_nettype none
+
 module IO_Read_Predication
 #(
     parameter   ADDR_WIDTH              = 0,

@@ -3,6 +3,8 @@
 // functions, but without using the carry-chain logic of an FPGA, which will
 // be more efficient for small word widths.
 
+`default_nettype none
+
 module Half_Adder
 #(
     parameter WORD_WIDTH                = 0

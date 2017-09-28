@@ -26,6 +26,8 @@
 // // control signals, synthesis tools might infer more sload and sclr signals
 // // for Stratix II devices.
 
+`default_nettype none
+
 module Annuller
 #(
     parameter       WORD_WIDTH         = 0

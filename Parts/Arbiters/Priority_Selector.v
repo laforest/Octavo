@@ -15,6 +15,8 @@
 // You may want to substitute a structural priority arbiter if that allows
 // a better logic optimization.
 
+`default_nettype none
+
 module Priority_Selector
 #(
     parameter       WORD_WIDTH                      = 0,

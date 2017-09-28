@@ -4,6 +4,8 @@
 
 // This is the read or write enable (rden or wren)
 
+`default_nettype none
+
 module IO_Active
 #(
     parameter   ADDR_WIDTH              = 0,

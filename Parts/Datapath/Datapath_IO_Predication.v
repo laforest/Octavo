@@ -1,6 +1,10 @@
 
 // I/O Predication for A and B Data Memories in Octavo Datapath
 
+`default_nettype none
+
+`include "Global_Defines.vh"
+
 module Datapath_IO_Predication
 #(
     // Global read/write address ranges

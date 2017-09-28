@@ -4,6 +4,8 @@
 // monolitic RAMs.
 // The explicit read/write enables might save power.
 
+`default_nettype none
+
 module RAM_SDP_Composite
 #(
     // Same parameters as RAM_SDP

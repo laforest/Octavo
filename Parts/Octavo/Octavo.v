@@ -1,6 +1,8 @@
 
 // The Octavo multi-threaded soft-processor
 
+`default_nettype none
+
 module Octavo
 #(
     // Data Path
@@ -41,7 +43,6 @@ module Octavo
     parameter   DB_PO_ADDR_BASE                         = 0,
     parameter   DO_ADDR                                 = 0,
     parameter   PO_INCR_WIDTH                           = 0,
-    parameter   PO_ENTRY_WIDTH                          = 0,
     parameter   PO_ENTRY_COUNT                          = 0,
     parameter   PO_ADDR_WIDTH                           = 0,
     parameter   PO_INIT_FILE                            = "",
@@ -144,17 +145,17 @@ module Octavo
 
 // --------------------------------------------------------------------
 
-    wire [`TRIADIC_CTRL_WIDTH-1:0]  control;
-    wire                            carryout;
-    wire                            overflow;
-    wire [WRITE_ADDR_WIDTH-1:0]     DA;
-    wire [WRITE_ADDR_WIDTH-1:0]     DB;
-    wire [READ_ADDR_WIDTH-1:0]      A;
-    wire [READ_ADDR_WIDTH-1:0]      B;
-    wire [WORD_WIDTH-1:0]           Ra;
-    wire [WORD_WIDTH-1:0]           Rb;
-    wire [WRITE_ADDR_WIDTH-1:0]     write_addr_Ra;
-    wire [WRITE_ADDR_WIDTH-1:0]     write_addr_Rb;
+    wire [`TRIADIC_ALU_CTRL_WIDTH-1:0]  control;
+    wire                                carryout;
+    wire                                overflow;
+    wire [WRITE_ADDR_WIDTH-1:0]         DA;
+    wire [WRITE_ADDR_WIDTH-1:0]         DB;
+    wire [READ_ADDR_WIDTH-1:0]          A;
+    wire [READ_ADDR_WIDTH-1:0]          B;
+    wire [WORD_WIDTH-1:0]               Ra;
+    wire [WORD_WIDTH-1:0]               Rb;
+    wire [WRITE_ADDR_WIDTH-1:0]         write_addr_Ra;
+    wire [WRITE_ADDR_WIDTH-1:0]         write_addr_Rb;
 
     Datapath
     #(
@@ -191,7 +192,6 @@ module Octavo
         .DB_PO_ADDR_BASE            (DB_PO_ADDR_BASE),
         .DO_ADDR                    (DO_ADDR),
         .PO_INCR_WIDTH              (PO_INCR_WIDTH),
-        .PO_ENTRY_WIDTH             (PO_ENTRY_WIDTH),
         .PO_ENTRY_COUNT             (PO_ENTRY_COUNT),
         .PO_ADDR_WIDTH              (PO_ADDR_WIDTH),
         .PO_INIT_FILE               (PO_INIT_FILE),

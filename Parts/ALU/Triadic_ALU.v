@@ -3,30 +3,34 @@
 // previous thread instruction (R), or a stored result from an even earlier
 // thread instruction (S).
 
+`default_nettype none
+
+`include "Triadic_ALU_Operations.vh"
+
 module Triadic_ALU
 #(
-    parameter       WORD_WIDTH                  = 0,
-    parameter       ADDR_WIDTH                  = 0,
+    parameter       WORD_WIDTH                      = 0,
+    parameter       ADDR_WIDTH                      = 0,
     // S register
-    parameter       S_WRITE_ADDR                = 0,
-    parameter       S_RAMSTYLE                  = "",
-    parameter       S_READ_NEW_DATA             = 0,
+    parameter       S_WRITE_ADDR                    = 0,
+    parameter       S_RAMSTYLE                      = "",
+    parameter       S_READ_NEW_DATA                 = 0,
     // Multithreading
-    parameter       THREAD_COUNT                = 0,
-    parameter       THREAD_COUNT_WIDTH          = 0
+    parameter       THREAD_COUNT                    = 0,
+    parameter       THREAD_COUNT_WIDTH              = 0
 )
 (
-    input   wire                                clock,
-    input   wire                                IO_Ready,
-    input   wire                                Cancel,
-    input   wire    [ADDR_WIDTH-1:0]            DB,         // Write address operand for Rb
-    input   wire    [`TRIADIC_CTRL_WIDTH-1:0]   control,    // Bits defining various sub-operations
-    input   wire    [WORD_WIDTH-1:0]            A,          // First source argument
-    input   wire    [WORD_WIDTH-1:0]            B,          // Second source argument
-    output  reg     [WORD_WIDTH-1:0]            Ra,         // First result
-    output  reg     [WORD_WIDTH-1:0]            Rb,         // Second result
-    output  wire                                carry_out,  // predicate from +/-A+/-B
-    output  wire                                overflow    // predicate from +/-A+/-B
+    input   wire                                    clock,
+    input   wire                                    IO_Ready,
+    input   wire                                    Cancel,
+    input   wire    [ADDR_WIDTH-1:0]                DB,         // Write address operand for Rb
+    input   wire    [`TRIADIC_ALU_CTRL_WIDTH-1:0]   control,    // Bits defining various sub-operations
+    input   wire    [WORD_WIDTH-1:0]                A,          // First source argument
+    input   wire    [WORD_WIDTH-1:0]                B,          // Second source argument
+    output  wire    [WORD_WIDTH-1:0]                Ra,         // First result
+    output  wire    [WORD_WIDTH-1:0]                Rb,         // Second result
+    output  wire                                    carry_out,  // predicate from +/-A+/-B
+    output  wire                                    overflow    // predicate from +/-A+/-B
 );
 
 // --------------------------------------------------------------------
@@ -85,7 +89,7 @@ module Triadic_ALU
         .Cancel         (Cancel),
 
         .R              (R),            // Previous Result (Ra from prev instr.)
-        .R_zero,        (R_zero)        // Is R zero? (all-1 if true)
+        .R_zero         (R_zero),       // Is R zero? (all-1 if true)
         .R_negative     (R_negative),   // Is R negative? (all-1 if true)
         .S              (S)             // Stored Previous Result (from Rb)
     );

@@ -4,6 +4,8 @@
 // Returns previous result (R) and stored previous result (S) to ALU Forward
 // Path, as well as some flags if R is zero or negative.
 
+`default_nettype none
+
 module Triadic_ALU_Feedback_Path
 #(
     parameter       WORD_WIDTH          = 0,
@@ -47,8 +49,8 @@ module Triadic_ALU_Feedback_Path
     wire                    IO_Ready_stage1;
     wire                    Cancel_stage1;
     wire [WORD_WIDTH-1:0]   DB_stage1;
-    wire [WORD_WIDTH-1:0]   Ra_stage1
-    wire [WORD_WIDTH-1:0]   Rb_stage1
+    wire [WORD_WIDTH-1:0]   Ra_stage1;
+    wire [WORD_WIDTH-1:0]   Rb_stage1;
 
     Delay_Line 
     #(
@@ -59,7 +61,7 @@ module Triadic_ALU_Feedback_Path
     (
         .clock  (clock),
         .in     ({IO_Ready,          Cancel,         DB,         Ra,         Rb}),
-        .out    ({IO_Ready_stage1,   Cancel_stage1,  DB_stage1,  Ra_stage1   Rb_stage1})
+        .out    ({IO_Ready_stage1,   Cancel_stage1,  DB_stage1,  Ra_stage1,  Rb_stage1})
     );
 
 // --------------------------------------------------------------------
@@ -170,7 +172,7 @@ module Triadic_ALU_Feedback_Path
     reg [WORD_WIDTH-1:0] Ra_stage0 = 0;
 
     always @(posedge clock) begin
-        Ra_stage0 <= Ra_stage1
+        Ra_stage0 <= Ra_stage1;
     end
 
 // --------------------------------------------------------------------
@@ -190,5 +192,5 @@ module Triadic_ALU_Feedback_Path
         .out    ({R,         R_zero,         R_negative,         S})
     );
 
-
+endmodule
 

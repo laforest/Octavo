@@ -9,6 +9,8 @@
 // Making the base and bound constant will optimize the hardware down to plain
 // logic. It's not as optimal as the Static version, but OK.
 
+`default_nettype none
+
 module Address_Range_Decoder_Arithmetic
 #(
     parameter       ADDR_WIDTH          = 0

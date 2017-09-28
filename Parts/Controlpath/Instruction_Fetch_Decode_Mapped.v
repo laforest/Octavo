@@ -1,6 +1,8 @@
 
 // Places Instruction_Fetch_Decode_Mapped in the write memory space.
 
+`default_nettype none
+
 module Instruction_Fetch_Decode_Mapped
 #(
     parameter       WORD_WIDTH              = 0,
@@ -81,10 +83,10 @@ module Instruction_Fetch_Decode_Mapped
 
     Address_Range_Translator
     #(
-        ADDR_WIDTH          (ADDR_WIDTH),
-        ADDR_BASE           (IM_BASE_ADDR_WRITE),
-        ADDR_COUNT          (IM_DEPTH),
-        REGISTERED          (1'b0)
+        .ADDR_WIDTH         (ADDR_WIDTH),
+        .ADDR_BASE          (IM_BASE_ADDR_WRITE),
+        .ADDR_COUNT         (IM_DEPTH),
+        .REGISTERED         (1'b0)
     )
     ART_IM
     (
@@ -99,10 +101,10 @@ module Instruction_Fetch_Decode_Mapped
 
     Address_Range_Translator
     #(
-        ADDR_WIDTH          (ADDR_WIDTH),
-        ADDR_BASE           (OD_BASE_ADDR_WRITE),
-        ADDR_COUNT          (OD_THREAD_DEPTH),
-        REGISTERED          (1'b0)
+        .ADDR_WIDTH         (ADDR_WIDTH),
+        .ADDR_BASE          (OD_BASE_ADDR_WRITE),
+        .ADDR_COUNT         (OD_THREAD_DEPTH),
+        .REGISTERED         (1'b0)
     )
     ART_OD
     (

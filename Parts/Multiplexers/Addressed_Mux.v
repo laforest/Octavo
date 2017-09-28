@@ -2,6 +2,8 @@
 // Generic multiplexer
 // Concatenate in with the zeroth element on the right.
 
+`default_nettype none
+
 module Addressed_Mux
 #(
     parameter       WORD_WIDTH                          = 0,

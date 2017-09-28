@@ -24,6 +24,8 @@
 
 // However, this implementation yields the smallest, fastest logic.
 
+`default_nettype none
+
 module Address_Range_Decoder_Static
 #(
     parameter       ADDR_WIDTH          = 0,

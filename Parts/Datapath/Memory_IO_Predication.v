@@ -1,6 +1,8 @@
 
 // I/O Predication for one Memory in Octavo Datapath
 
+`default_nettype none
+
 module Memory_IO_Predication
 #(
     parameter   ADDR_WIDTH                      = 0,

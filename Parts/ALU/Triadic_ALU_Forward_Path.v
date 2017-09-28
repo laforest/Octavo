@@ -26,23 +26,27 @@
 
 // --------------------------------------------------------------------
 
+`default_nettype none
+
+`include "Triadic_ALU_Operations.vh"
+
 module Triadic_ALU_Forward_Path
 #(
-    parameter       WORD_WIDTH                  = 0
+    parameter       WORD_WIDTH                      = 0
 )
 (
-    input   wire                                clock,
-    input   wire    [`TRIADIC_CTRL_WIDTH-1:0]   control,    // Bits defining various sub-operations
-    input   wire    [WORD_WIDTH-1:0]            A,          // First source argument
-    input   wire    [WORD_WIDTH-1:0]            B,          // Second source argument
-    input   wire    [WORD_WIDTH-1:0]            R,          // Third source argument  (previous result)
-    input   wire                                R_zero,     // Computed flag in feedback pipeline (Ra->R)
-    input   wire                                R_negative, // Computed flag in feedback pipeline (Ra->R)
-    input   wire    [WORD_WIDTH-1:0]            S,          // Fourth source argument (persistent value)
-    output  reg     [WORD_WIDTH-1:0]            Ra,         // First result
-    output  reg     [WORD_WIDTH-1:0]            Rb,         // Second result
-    output  wire                                carry_out,  // predicate from +/-A+/-B
-    output  wire                                overflow    // predicate from +/-A+/-B
+    input   wire                                    clock,
+    input   wire    [`TRIADIC_ALU_CTRL_WIDTH-1:0]   control,    // Bits defining various sub-operations
+    input   wire    [WORD_WIDTH-1:0]                A,          // First source argument
+    input   wire    [WORD_WIDTH-1:0]                B,          // Second source argument
+    input   wire    [WORD_WIDTH-1:0]                R,          // Third source argument  (previous result)
+    input   wire                                    R_zero,     // Computed flag in feedback pipeline (Ra->R)
+    input   wire                                    R_negative, // Computed flag in feedback pipeline (Ra->R)
+    input   wire    [WORD_WIDTH-1:0]                S,          // Fourth source argument (persistent value)
+    output  reg     [WORD_WIDTH-1:0]                Ra,         // First result
+    output  reg     [WORD_WIDTH-1:0]                Rb,         // Second result
+    output  wire                                    carry_out,  // predicate from +/-A+/-B
+    output  wire                                    overflow    // predicate from +/-A+/-B
 );
 
 // --------------------------------------------------------------------
@@ -72,7 +76,7 @@ module Triadic_ALU_Forward_Path
 
     // First, lets create the control pipeline
 
-    reg [`TRIADIC_CTRL_WIDTH-1:0] control_pipeline [PIPELINE_STAGES-1:0];
+    reg [`TRIADIC_ALU_CTRL_WIDTH-1:0] control_pipeline [PIPELINE_STAGES-1:0];
 
     initial begin
         for(i = 0; i < PIPELINE_STAGES; i = i+1) begin

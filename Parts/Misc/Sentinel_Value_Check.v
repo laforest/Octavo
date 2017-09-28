@@ -8,6 +8,8 @@
 // And an all-zero mask will cause a comparison to be exact.
 // (which will be the default behaviour at start)
 
+`default_nettype none
+
 module Sentinel_Value_Check
 #(
     parameter       WORD_WIDTH          = 0

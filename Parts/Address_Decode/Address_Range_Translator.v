@@ -12,6 +12,8 @@
 
 // Typically, you'll need this alongside an Address_Range_Decoder module.
 
+`default_nettype none
+
 module Address_Range_Translator
 #(
     parameter       ADDR_COUNT          = 0,

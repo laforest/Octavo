@@ -9,6 +9,8 @@
 
 // For now, the split bit is the MSB.
 
+`default_nettype none
+
 module Split_Extractor
 #(
     parameter       WORD_WIDTH          = 0

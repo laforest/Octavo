@@ -3,6 +3,8 @@
 // going from LSB to MSB and back around. Requests can be added or dropped
 // on-the-fly, but synchronously.
 
+`default_nettype none
+
 module Round_Robin_Arbiter
 #(
     parameter WORD_WIDTH                = 0
@@ -42,7 +44,7 @@ module Round_Robin_Arbiter
     #(
         .WORD_WIDTH (WORD_WIDTH)
     )
-    Grant
+    Grant_Mask
     (
         .bitvector  (grant),
         .mask       (mask)
@@ -59,7 +61,7 @@ module Round_Robin_Arbiter
     // Grant a request in priority order, but from the masked requests
     // (equal or lower priority to the request granted last cycle)
 
-    wire [WORD_WIDTH-1:0] grant_masked
+    wire [WORD_WIDTH-1:0] grant_masked;
 
     Priority_Arbiter
     #(

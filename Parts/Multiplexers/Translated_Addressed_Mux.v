@@ -3,6 +3,8 @@
 // address range. This allows us to use the raw memory address to select some
 // memory-mapped item.
 
+`default_nettype none
+
 module Translated_Addressed_Mux
 #(
     parameter       WORD_WIDTH                          = 0,

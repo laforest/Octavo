@@ -3,6 +3,8 @@
 // Counter, and fetches the corresponding instruction along with its decoded
 // control bits.
 
+`default_nettype none
+
 module Controlpath
 #(
     parameter       ADDR_WIDTH              = 0,
@@ -62,7 +64,7 @@ module Controlpath
     input   wire                            A_external,
     input   wire                            B_external,
     input   wire    [WORD_WIDTH-1:0]        R_previous,
-    output  wire                            cancel
+    output  wire                            cancel,
 
     // Instruction Fetch/Decode
     output  wire    [OD_WORD_WIDTH-1:0]     ALU_control,
@@ -77,7 +79,7 @@ module Controlpath
 
     // Generate the other flags
 
-    wire negative
+    wire negative;
 
     R_Flags
     #(

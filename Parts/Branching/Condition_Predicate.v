@@ -17,6 +17,8 @@
 // (16 cases are always 0 or 1, keep 2 for use)
 // (32 cases are always A or B, keep 8 for use, one per input)
 
+`default_nettype none
+
 module Condition_Predicate
 (
     input   wire    [`GROUP_SELECTOR_WIDTH-1:0]     A_selector,

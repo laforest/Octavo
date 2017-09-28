@@ -27,6 +27,8 @@
 // the same time as the read_addr. 
 // The same applies to the read_addr_is_IO signal.
 
+`default_nettype none
+
 module Data_Memory
 #(
     parameter   WORD_WIDTH                              = 0,

@@ -3,6 +3,8 @@
 // Allows different read and write memory maps
 // Base/Bound addresses are inclusive
 
+`default_nettype none
+
 module Memory_Addressing
 #(
     parameter   READ_ADDR_WIDTH             = 0,

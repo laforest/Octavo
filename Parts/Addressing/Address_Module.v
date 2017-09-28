@@ -97,8 +97,8 @@ module Address_Module
     SYNC_PREV_TO_OUTPUT
     (
         .clock   (clock),
-        .in      (IO_Ready_previous,      Cancel_previous,      po_wren,      po_write_addr,      po_write_data,      do_wren,      do_write_data),
-        .out     (IO_Ready_previous_sync, Cancel_previous_sync, po_wren_sync, po_write_addr_sync, po_write_data_sync, do_wren_sync, do_write_data_sync)
+        .in      ({IO_Ready_previous,      Cancel_previous,      po_wren,      po_write_addr,      po_write_data,      do_wren,      do_write_data}),
+        .out     ({IO_Ready_previous_sync, Cancel_previous_sync, po_wren_sync, po_write_addr_sync, po_write_data_sync, do_wren_sync, do_write_data_sync})
     );
 
 // ---------------------------------------------------------------------
@@ -165,7 +165,7 @@ module Address_Module
     wire [ADDR_WIDTH-1:0]   programmed_offset;
     reg                     po_incr_enable        = 0;
 
-    Address_Offset_Module_PO_Memory
+    Address_Module_PO_Memory
     #(
         .ADDR_WIDTH             (ADDR_WIDTH),
         .PO_INCR_WIDTH          (PO_INCR_WIDTH),

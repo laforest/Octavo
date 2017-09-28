@@ -14,6 +14,8 @@
 // This is actually a feature: it's how we implement the special zero location:
 // reads return zero, writes do nothing.
 
+`default_nettype none
+
 module Datapath_Memory
 #(
     parameter   WORD_WIDTH                              = 0,

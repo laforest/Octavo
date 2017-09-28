@@ -5,6 +5,8 @@
 
 // Also generates addition-specific predicates for later comparisons
 
+`default_nettype none
+
 module AddSub_Ripple_Carry_NoCarry
 #(
     parameter               WORD_WIDTH          = 0

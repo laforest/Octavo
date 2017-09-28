@@ -36,7 +36,6 @@ module Addressing
     parameter       DO_ADDR                 = 0,
     // Multiple Programmed Offset/Increment per Thread
     parameter       PO_INCR_WIDTH           = 0,
-    parameter       PO_ENTRY_WIDTH          = 0,
     parameter       PO_ENTRY_COUNT          = 0, // Sets indirect and PO addr bounds
     parameter       PO_ADDR_WIDTH           = 0,
     // Common initial PO entries for all threads
@@ -93,7 +92,6 @@ module Addressing
         .PO_ADDR_BASE       (A_PO_ADDR_BASE),
         .DO_ADDR            (DO_ADDR),
         .PO_INCR_WIDTH      (PO_INCR_WIDTH),
-        .PO_ENTRY_WIDTH     (PO_ENTRY_WIDTH),
         .PO_ENTRY_COUNT     (PO_ENTRY_COUNT),
         .PO_ADDR_WIDTH      (PO_ADDR_WIDTH),
         .PO_INIT_FILE       (PO_INIT_FILE),
@@ -134,7 +132,6 @@ module Addressing
         .PO_ADDR_BASE       (B_PO_ADDR_BASE),
         .DO_ADDR            (DO_ADDR),
         .PO_INCR_WIDTH      (PO_INCR_WIDTH),
-        .PO_ENTRY_WIDTH     (PO_ENTRY_WIDTH),
         .PO_ENTRY_COUNT     (PO_ENTRY_COUNT),
         .PO_ADDR_WIDTH      (PO_ADDR_WIDTH),
         .PO_INIT_FILE       (PO_INIT_FILE),
@@ -168,14 +165,13 @@ module Addressing
     #(
         .WRITE_WORD_WIDTH   (WRITE_WORD_WIDTH),
         .WRITE_ADDR_WIDTH   (WRITE_ADDR_WIDTH),
-        .ADDR_WIDTH         (DA_ADDR_WIDTH),
+        .ADDR_WIDTH         (D_ADDR_WIDTH),
         .SHARED_ADDR_BASE   (A_SHARED_ADDR_BASE),
         .SHARED_ADDR_BOUND  (A_SHARED_ADDR_BOUND),
         .INDIRECT_ADDR_BASE (A_INDIRECT_ADDR_BASE),
         .PO_ADDR_BASE       (DA_PO_ADDR_BASE),
         .DO_ADDR            (DO_ADDR),
         .PO_INCR_WIDTH      (PO_INCR_WIDTH),
-        .PO_ENTRY_WIDTH     (PO_ENTRY_WIDTH),
         .PO_ENTRY_COUNT     (PO_ENTRY_COUNT),
         .PO_ADDR_WIDTH      (PO_ADDR_WIDTH),
         .PO_INIT_FILE       (PO_INIT_FILE),
@@ -209,14 +205,13 @@ module Addressing
     #(
         .WRITE_WORD_WIDTH   (WRITE_WORD_WIDTH),
         .WRITE_ADDR_WIDTH   (WRITE_ADDR_WIDTH),
-        .ADDR_WIDTH         (DB_ADDR_WIDTH),
+        .ADDR_WIDTH         (D_ADDR_WIDTH),
         .SHARED_ADDR_BASE   (B_SHARED_ADDR_BASE),
         .SHARED_ADDR_BOUND  (B_SHARED_ADDR_BOUND),
         .INDIRECT_ADDR_BASE (B_INDIRECT_ADDR_BASE),
         .PO_ADDR_BASE       (DB_PO_ADDR_BASE),
         .DO_ADDR            (DO_ADDR),
         .PO_INCR_WIDTH      (PO_INCR_WIDTH),
-        .PO_ENTRY_WIDTH     (PO_ENTRY_WIDTH),
         .PO_ENTRY_COUNT     (PO_ENTRY_COUNT),
         .PO_ADDR_WIDTH      (PO_ADDR_WIDTH),
         .PO_INIT_FILE       (PO_INIT_FILE),
@@ -243,4 +238,6 @@ module Addressing
 
         .offset_addr        (DB_offset_addr)
     );
+
+endmodule
 

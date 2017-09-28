@@ -1,6 +1,8 @@
 
 // Selects each bit from two sources, based on a mask of same size.
 
+`default_nettype none
+
 module Bitwise_2to1_Mux
 #(
     parameter WORD_WIDTH = 0

@@ -5,6 +5,8 @@
 // EF bits from write ports must be inverted first, since EMPTY (0) is their
 // ready state.
 
+`default_nettype none
+
 module IO_All_Ready
 #(
     parameter   READ_PORT_COUNT             = 0,

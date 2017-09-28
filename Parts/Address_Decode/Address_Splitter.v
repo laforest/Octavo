@@ -18,10 +18,12 @@
 
 // *** THE NUMBER OF D ADDRESS BITS MUST BE EVEN ***
 
+`default_nettype none
+
 module Address_Splitter
 #(
     parameter   ADDR_WIDTH              = 0,
-    parameter   DB_BASE_ADDR            = 0,
+    parameter   DB_BASE_ADDR            = 0
 )
 (
     input   wire                        clock,

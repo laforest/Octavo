@@ -9,6 +9,8 @@
 // preserve individual instances either through netlist logical partitioning
 // or via source code directives at the module instance.
 
+`default_nettype none
+
 module Thread_Number
 #(
     parameter   INITIAL_THREAD                  = 0,

@@ -3,6 +3,8 @@
 
 `default_nettype none
 
+`include "Global_Defines.vh"
+
 module Flow_Control
 #(
     // How many branches can run in parallel
@@ -56,10 +58,10 @@ module Flow_Control
 
     Address_Range_Translator
     #(
-        ADDR_WIDTH          (ADDR_WIDTH),
-        ADDR_BASE           (CONFIG_ADDR_BASE),
-        ADDR_COUNT          (CONFIG_ADDR_BOUND),
-        REGISTERED          (1'b0)
+        .ADDR_WIDTH         (ADDR_WIDTH),
+        .ADDR_BASE          (CONFIG_ADDR_BASE),
+        .ADDR_COUNT         (CONFIG_ADDR_BOUND),
+        .REGISTERED         (1'b0)
     )
     ART
     (
@@ -100,16 +102,15 @@ module Flow_Control
     // Generate one Branch Module instance for each possible parallel branch
     // Map them consecutively in write address space for configuration
 
-    wire                jumps               [BRANCH_COUNT-1:0];
-    wire                cancels             [BRANCH_COUNT-1:0];
-    wire [PC_WIDTH-1:0] jump_destinations   [BRANCH_COUNT-1:0];
+    wire [BRANCH_COUNT-1:0]             jumps;
+    wire [BRANCH_COUNT-1:0]             cancels;
+    wire [(PC_WIDTH*BRANCH_COUNT)-1:0]  jump_destinations;
 
     generate
         genvar branch_number;
-        genvar base_addr;
-        for (branch_number = 0; branch_number < BRANCH_COUNT; branch_number=branch_number+1) begin: BMM_inst
+        for (branch_number = 0; branch_number < BRANCH_COUNT; branch_number = branch_number+1) begin: BMM_inst
 
-            base_addr = CONFIG_ADDR_BASE + (branch_number * BRANCH_CONFIG_ENTRIES);
+            localparam base_addr = CONFIG_ADDR_BASE + (branch_number * `BRANCH_CONFIG_ENTRIES);
 
             Branch_Module_Mapped
             #(
@@ -141,7 +142,7 @@ module Flow_Control
                 .config_addr        (config_addr_translated),
                 .config_data        (config_data),
                 .jump               (jumps              [branch_number]),
-                .destination        (jump_destinations  [branch_number]),
+                .destination        (jump_destinations  [(branch_number*PC_WIDTH) +: PC_WIDTH]),
                 .cancel             (cancels            [branch_number])
             );
         end
@@ -190,7 +191,7 @@ module Flow_Control
     FC_C
     (
         .clock              (clock), 
-        .IO_ready           (IO_ready),
+        .IO_ready           (IOR),
         .cancel             (cancel),
         .jump               (jump),
         .jump_destination   (jump_destination),

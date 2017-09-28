@@ -2,6 +2,8 @@
 // Reduces a word-wide register into a single bit.  This prevents
 // optimizations, and allows testing without running out of pins.
 
+`default_nettype none
+
 module harness_output_register 
 #(
     parameter   integer WIDTH           = 0

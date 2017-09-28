@@ -1,6 +1,8 @@
 
 // A counter which can count up or down by 1, wraps around when passing 0 or maximum.
 
+`default_nettype none
+
 module UpDown_Counter
 #(
     parameter WORD_WIDTH                = 0,

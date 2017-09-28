@@ -8,6 +8,8 @@
 
 // Same interface as AddSub_Ripple_Carry
 
+`default_nettype none
+
 module AddSub_Structural
 #(
     parameter WORD_WIDTH                        = 0

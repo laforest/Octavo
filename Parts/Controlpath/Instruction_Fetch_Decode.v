@@ -3,6 +3,8 @@
 // the current thread instruction, and the decoded control signals for the
 // opcode of the instruction.
 
+`default_nettype none
+
 module Instruction_Fetch_Decode
 #(
     // Instruction format
@@ -45,7 +47,7 @@ module Instruction_Fetch_Decode
     input   wire    [OPCODE_WIDTH-1:0]      od_write_addr,
     input   wire    [OD_WORD_WIDTH-1:0]     od_write_data,
 
-    output  reg     [CMEM_WORD_WIDTH-1:0]   ALU_control,
+    output  reg     [OD_WORD_WIDTH-1:0]     ALU_control,
     output  wire    [D_OPERAND_WIDTH-1:0]   DA,
     output  wire    [D_OPERAND_WIDTH-1:0]   DB,
     output  reg     [A_OPERAND_WIDTH-1:0]   A,

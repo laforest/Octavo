@@ -95,6 +95,7 @@ module Branch_Module
 // --------------------------------------------------------------------
 
     wire branch_reached;
+    wire running_previous;
 
     Branch_Detector
     #(
@@ -137,6 +138,7 @@ module Branch_Module
         .THREAD_COUNT       (THREAD_COUNT),
         .THREAD_COUNT_WIDTH (THREAD_COUNT_WIDTH)
     )
+    BC
     (
         .clock              (clock),
         .branch_reached     (branch_reached),

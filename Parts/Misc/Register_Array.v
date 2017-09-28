@@ -7,6 +7,8 @@
 // This is the way it is because you cannot pass multi-dimensional
 // arrays through ports in Verilog-2001.
 
+`default_nettype none
+
 module Register_Array 
 #(
     parameter       COUNT                   = 0, 
@@ -22,14 +24,13 @@ module Register_Array
         out <= {(COUNT*WIDTH){1'b0}};
     end
 
-    generate
-        integer i, j;
-        always @(posedge clock) begin
-            for(i = 0; i < COUNT; i = i+1) begin
-                j               = i * WIDTH;
-                out[j +: WIDTH] = (wren[i] == 1'b1) ? in[j +: WIDTH] : out[j +: WIDTH];
-            end
+    integer i, j;
+
+    always @(posedge clock) begin
+        for(i = 0; i < COUNT; i = i+1) begin
+            j               = i * WIDTH;
+            out[j +: WIDTH] = (wren[i] == 1'b1) ? in[j +: WIDTH] : out[j +: WIDTH];
         end
-    endgenerate
+    end
 endmodule
 

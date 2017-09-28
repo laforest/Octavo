@@ -2,7 +2,9 @@
 // Based on control input, implements one of the 16 possible two-variable
 // (dyadic) Boolean operators, as o = a op b.
 
-// Include Dyadic_Boolean_Operations.vh as necessary.
+`default_nettype none
+
+`include "Dyadic_Boolean_Operations.vh"
 
 module Dyadic_Boolean_Operator
 #(

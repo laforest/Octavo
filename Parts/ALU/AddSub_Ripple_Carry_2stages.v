@@ -6,6 +6,8 @@
 // The CAD tool should re-time registers as needed to map to the actual
 // carry-chain logic on the device.
 
+`default_nettype none
+
 module AddSub_Ripple_Carry_2stages
 #(
     parameter               WORD_WIDTH          = 0
@@ -46,14 +48,14 @@ module AddSub_Ripple_Carry_2stages
     #(
         .WORD_WIDTH     (WORD_WIDTH/2)
     )
-    alu_lower
+    addsub_lower
     (
-        .add_sub        (add_sub),
-        .cin            (cin),
-        .dataa          (lower_half_word(dataa)),
-        .datab          (lower_half_word(datab)),
-        .cout           (cout_lower),
-        .result         (result_lower)
+        .sub_add        (add_sub),
+        .carry_in       (cin),
+        .A              (lower_half_word(dataa)),
+        .B              (lower_half_word(datab)),
+        .carry_out      (cout_lower),
+        .sum         (result_lower)
     );
 
     reg                             cout_lower_reg;
@@ -90,12 +92,12 @@ module AddSub_Ripple_Carry_2stages
     )
     addsub_upper
     (
-        .add_sub        (add_sub_upper),
-        .cin            (cout_lower_reg),
-        .dataa          (dataa_upper),
-        .datab          (datab_upper),
-        .cout           (cout_upper),
-        .result         (result_upper)
+        .sub_add        (add_sub_upper),
+        .carry_in       (cout_lower_reg),
+        .A              (dataa_upper),
+        .B              (datab_upper),
+        .carry_out      (cout_upper),
+        .sum            (result_upper)
     );
 
     reg                           cout_upper_reg;

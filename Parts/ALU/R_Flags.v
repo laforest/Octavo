@@ -5,6 +5,8 @@
 // This created a critical path, with no room to pipeline in the ALU.
 // Place this in the middle of the R feedback pipeline instead.
 
+`default_nettype none
+
 module R_Flags
 #(
     parameter WORD_WIDTH = 0

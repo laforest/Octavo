@@ -8,6 +8,8 @@
 
 // This may fail for binary words of more than 32 bits.
 
+`default_nettype none
+
 module Binary_to_N_Decoder
 #(
     parameter       BINARY_WIDTH        = 0,

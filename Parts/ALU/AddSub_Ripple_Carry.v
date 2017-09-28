@@ -3,6 +3,8 @@
 // Computes A+B or A-B
 // Should infer to the usual LUT and carry-chain logic.
 
+`default_nettype none
+
 module AddSub_Ripple_Carry
 #(
     parameter               WORD_WIDTH          = 0

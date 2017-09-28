@@ -12,6 +12,8 @@
 
 // Multithreaded: one counter per thread, one each clock cycle.
 
+`default_nettype none
+
 module Branch_Counter
 #(
     parameter       WORD_WIDTH          = 0,
@@ -37,7 +39,7 @@ module Branch_Counter
     localparam MEM_PIPE_DEPTH       = 1;
     localparam DECREMENT_PIPE_DEPTH = 2;
     localparam MODULE_PIPE_DEPTH    = MEM_PIPE_DEPTH + DECREMENT_PIPE_DEPTH;
-    localparam COUNTER_ONE          = {{(COUNTER_WIDTH-1){1'b0}},1'b1};
+    localparam COUNTER_ONE          = {{(WORD_WIDTH-1){1'b0}},1'b1};
     localparam SUBTRACT             = 1'b1;
 
 // --------------------------------------------------------------------
@@ -56,8 +58,8 @@ module Branch_Counter
     BC_LOAD
     (
         .clock  (clock),
-        .in     (IO_Ready_previous,      load,      load_value),
-        .out    (IO_Ready_previous_sync, load_sync, load_value_sync)
+        .in     ({IO_Ready_previous,      load,      load_value}),
+        .out    ({IO_Ready_previous_sync, load_sync, load_value_sync})
     );
 
 // --------------------------------------------------------------------
@@ -129,7 +131,7 @@ module Branch_Counter
     wire [THREAD_COUNT_WIDTH-1:0] thread_number_read;
     wire [THREAD_COUNT_WIDTH-1:0] thread_number_write;
 
-    module Thread_Number
+    Thread_Number
     #(
         .INITIAL_THREAD     (0),
         .THREAD_COUNT       (THREAD_COUNT),
@@ -146,7 +148,7 @@ module Branch_Counter
     // Or the load value, assumed to be already synchronized to this thread
     // number.
 
-    module Thread_Number
+    Thread_Number
     #(
         .INITIAL_THREAD     (THREAD_COUNT - MODULE_PIPE_DEPTH),
         .THREAD_COUNT       (THREAD_COUNT),
@@ -172,7 +174,7 @@ module Branch_Counter
         .RAMSTYLE       (RAMSTYLE),
         .READ_NEW_DATA  (READ_NEW_DATA),
         .USE_INIT_FILE  (0),
-        .INIT_FILE      (),
+        .INIT_FILE      ()
     )
     BC_RAM
     (
@@ -219,13 +221,13 @@ module Branch_Counter
     )
     BC_DECREMENT
     (
-        clock       (clock),
-        add_sub     (SUBTRACT),
-        cin         (1'b0),
-        dataa       (count),
-        datab       (COUNTER_ONE),
-        cout        (),
-        result      (decremented_count)
+        .clock      (clock),
+        .add_sub    (SUBTRACT),
+        .cin        (1'b0),
+        .dataa      (count),
+        .datab      (COUNTER_ONE),
+        .cout       (),
+        .result     (decremented_count)
     );
 
 endmodule

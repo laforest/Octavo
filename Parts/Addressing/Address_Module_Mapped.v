@@ -24,10 +24,10 @@ module Address_Module_Mapped
     parameter       DO_ADDR                 = 0,
     // Multiple Programmed Offset/Increment per Thread
     parameter       PO_INCR_WIDTH           = 0,
-    parameter       PO_ENTRY_WIDTH          = 0,
     parameter       PO_ENTRY_COUNT          = 0, // Sets indirect and PO addr bounds
     parameter       PO_ADDR_WIDTH           = 0,
     parameter       PO_INIT_FILE            = "",
+    parameter       PO_ENTRY_WIDTH          = ADDR_WIDTH + PO_INCR_WIDTH, // Don't set an instantiation.
     // One Default Offset per Thread
     parameter       DO_INIT_FILE            = "",
     // Common RAM parameters
@@ -127,7 +127,7 @@ module Address_Module_Mapped
         .ADDR_BASE  (DO_ADDR),
         .ADDR_BOUND (DO_ADDR)
     )
-    ARDS_PO_WREN
+    ARDS_DO_WREN
     (
         .enable     (1'b1),
         .addr       (write_addr),
@@ -140,10 +140,10 @@ module Address_Module_Mapped
 
     Address_Range_Translator
     #(
-        ADDR_WIDTH          (PO_ADDR_WIDTH),
-        ADDR_BASE           (PO_ADDR_BASE),
-        ADDR_COUNT          (PO_ENTRY_COUNT),
-        REGISTERED          (1'b0)
+        .ADDR_WIDTH         (PO_ADDR_WIDTH),
+        .ADDR_BASE          (PO_ADDR_BASE),
+        .ADDR_COUNT         (PO_ENTRY_COUNT),
+        .REGISTERED         (1'b0)
     )
     ART_PO
     (
@@ -191,4 +191,6 @@ module Address_Module_Mapped
 
         .offset_addr            (offset_addr)
     );
+
+endmodule
 

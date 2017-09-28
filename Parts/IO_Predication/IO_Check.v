@@ -5,6 +5,8 @@
 // Detects if an address refers to an I/O port and outputs its Empty/Full bit,
 // masked if not an I/O port.
 
+`default_nettype none
+
 module IO_Check
 #(
     parameter   READY_STATE             = 0,

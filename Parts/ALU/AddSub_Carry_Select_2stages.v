@@ -10,6 +10,8 @@
 
 // WORD_WIDTH must be an *even* number.
 
+`default_nettype none
+
 module AddSub_Carry_Select_2stages
 #(
     parameter               WORD_WIDTH          = 0

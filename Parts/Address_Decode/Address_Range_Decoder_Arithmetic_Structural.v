@@ -12,6 +12,8 @@
 
 // It's kept here in case it works better on other platforms.
 
+`default_nettype none
+
 module Address_Range_Decoder_Arithmetic_Structural
 #(
     parameter       ADDR_WIDTH          = 0

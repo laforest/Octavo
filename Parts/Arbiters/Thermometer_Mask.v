@@ -11,6 +11,8 @@
 
 // Core logic from Hacker's Delight
 
+`default_nettype none
+
 module Thermometer_Mask
 #(
     parameter WORD_WIDTH                = 0

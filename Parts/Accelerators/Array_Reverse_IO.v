@@ -19,6 +19,8 @@
 // Note the instruction order matters to allow for values to propagate through
 // the queue.
 
+`default_nettype none
+
 module Array_Reverse_IO
 #(
     parameter   WORD_WIDTH                              = 36,

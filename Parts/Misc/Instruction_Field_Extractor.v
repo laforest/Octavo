@@ -5,6 +5,8 @@
 // Documents the overall intruction format.
 // See Address_Splitter for the split D address format.
 
+`default_nettype none
+
 module Instruction_Field_Extractor 
 #(
     parameter       WORD_WIDTH              = 0,

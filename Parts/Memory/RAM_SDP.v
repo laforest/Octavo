@@ -34,6 +34,8 @@
 // Also, we don't want a synchronous clear on the output: 
 // any register driving it cannot be retimed, and it may not be as portable.
 
+`default_nettype none
+
 module RAM_SDP 
 #(
     parameter       WORD_WIDTH          = 0,

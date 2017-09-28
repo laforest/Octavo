@@ -1,6 +1,8 @@
 
 // Computes a word-wide OR-reduction
 
+`default_nettype none
+
 module Word_OR_Reducer
 #(
     parameter       WORD_WIDTH                      = 0,

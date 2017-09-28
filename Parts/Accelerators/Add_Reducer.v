@@ -2,6 +2,8 @@
 // Sums 8 values to a single one, using a tree reduction. Adjusted to do so in 8 cycles.
 // Use: hook to 8 write ports, can read reduction result next thread cycle.
 
+`default_nettype none
+
 module Add_Reducer
 #(
     parameter WORD_WIDTH = 36,

@@ -4,6 +4,8 @@
 // We put something this simple into a module since it conveys intent,
 // and avoids an RTL schematic cluttered with a bunch of XOR gates.
 
+`default_nettype none
+
 module Inverter
 #(
     parameter       WORD_WIDTH         = 0

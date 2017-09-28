@@ -4,6 +4,8 @@
 
 // ECL XXX FIXME This code is ugly: separate into two shift register modules.
 
+`default_nettype none
+
 module Sliding_Window
 #(
     parameter   WORD_WIDTH  = 36,

@@ -2,6 +2,8 @@
 // Multi-threaded Accumulator: per-thread writes accumulate, a read clears the accumulated value.
 // simultaneous read/write gets current total and starts new accumulation
 
+`default_nettype none
+
 module Accumulator
 #(
     parameter WORD_WIDTH   = 36,

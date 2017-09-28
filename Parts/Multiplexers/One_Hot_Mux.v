@@ -5,6 +5,8 @@
 // If more than one selector bit is set, the output is the bitwise OR of the
 // associated words.
 
+`default_nettype none
+
 module One_Hot_Mux
 #(
     parameter       WORD_WIDTH                      = 0,

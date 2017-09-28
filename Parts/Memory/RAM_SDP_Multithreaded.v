@@ -14,6 +14,8 @@
 
 // See RAM_SDP.v for further parameter and operation documentation.
 
+`default_nettype none
+
 module RAM_SDP_Multithreaded
 #(
     parameter       WORD_WIDTH              = 0,
@@ -69,7 +71,7 @@ module RAM_SDP_Multithreaded
         .THREAD_COUNT       (THREAD_COUNT),
         .THREAD_COUNT_WIDTH (THREAD_COUNT_WIDTH)
     )
-    TN_READ
+    TN_WRITE
     (
         .clock              (clock),
         .current_thread     (write_thread),

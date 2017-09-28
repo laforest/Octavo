@@ -5,6 +5,8 @@
 // Similar as IO_Read_Predication, except the IO_Active check, to generate all
 // the write enables, is done separately, after the ALU.
 
+`default_nettype none
+
 module IO_Write_Predication
 #(
     parameter   ADDR_WIDTH              = 0,

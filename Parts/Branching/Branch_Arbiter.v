@@ -8,6 +8,8 @@
 
 // Unfortunately, I'm mixing "branch" and "jump" terminology here. Sorry.
 
+`default_nettype none
+
 module Branch_Arbiter
 #(
     parameter   PC_WIDTH                        = 0,
@@ -24,7 +26,7 @@ module Branch_Arbiter
     // The selected branch signals
     output wire                                 cancel,  
     output reg                                  jump,  
-    output wire [PC_WIDTH-1:0]                  jump_destination,  
+    output wire [PC_WIDTH-1:0]                  jump_destination
 );
 
 // ---------------------------------------------------------------------
@@ -88,8 +90,8 @@ module Branch_Arbiter
     reg [BRANCH_COUNT_ALL-1:0]  cancels_all_stage1  = 0;
 
     always @(posedge clock) begin
-        cancels_any = |cancels;
-        cancels_all = {cancels_any,cancels};
+        cancels_any         = |cancels;
+        cancels_all_stage1  = {cancels_any,cancels};
     end
 
 // ---------------------------------------------------------------------

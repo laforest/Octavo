@@ -2,6 +2,8 @@
 // Converts a single input bit into a word, so that no hardware gets optimized
 // away during synthesis. Allows testing without running out of pins.
 
+`default_nettype none
+
 module harness_input_register
 #(
     parameter   integer WIDTH           = 0

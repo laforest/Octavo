@@ -5,6 +5,10 @@
 // signal, and a cancellation signal (which turns the current parallel ALU
 // operation into a NOP).
 
+`default_nettype none
+
+`include "Condition_Predicate_Operations.vh"
+
 module Branch_Detector
 #(
     parameter WORD_WIDTH            = 0,  // Must be larger than CONFIG_WIDTH
@@ -86,7 +90,7 @@ module Branch_Detector
     reg                         branch_predict_enable   = 0;
     reg     [COND_WIDTH-1:0]    branch_condition        = 0;
 
-    wire    [CONFIG_WIDTH-1:0]  branch_configuration;
+    wire    [CONFIG_WIDTH-1:0]  branch_config;
 
     RAM_SDP
     #(
@@ -106,7 +110,7 @@ module Branch_Detector
         .write_data     (branch_config_data[CONFIG_WIDTH-1:0]), // MSB unused, if any
         .rden           (1'b1),
         .read_addr      (thread_read),
-        .read_data      (branch_configuration)
+        .read_data      (branch_config)
     );
 
 // --------------------------------------------------------------------
@@ -116,7 +120,7 @@ module Branch_Detector
     // Break-out the branch configuration signals
 
     always @(*) begin
-        {branch_origin,branch_origin_enable,branch_destination,branch_predict_taken,branch_predict_enable,branch_condition} <= branch_configuration;
+        {branch_origin,branch_origin_enable,branch_destination,branch_predict_taken,branch_predict_enable,branch_condition} <= branch_config;
     end
 
 // --------------------------------------------------------------------
@@ -142,9 +146,9 @@ module Branch_Detector
 // --------------------------------------------------------------------
 // Condition predicate calculation
 
-    wire    [`GROUP_SELECTOR_WIDTH-1:0]     A_selector;
-    wire    [`GROUP_SELECTOR_WIDTH-1:0]     B_selector;
-    wire    [`DYADIC_CTRL_WIDTH-1:0]        AB_operator;
+    reg     [`GROUP_SELECTOR_WIDTH-1:0]     A_selector  = 0;
+    reg     [`GROUP_SELECTOR_WIDTH-1:0]     B_selector  = 0;
+    reg     [`DYADIC_CTRL_WIDTH-1:0]        AB_operator = 0;
     wire                                    predicate;
 
     always @(*) begin
@@ -154,7 +158,6 @@ module Branch_Detector
     Condition_Predicate
     CP_BD
     (
-        .clock          (clock),
         .A_selector     (A_selector),
         .A_negative     (A_negative),
         .A_carryout     (A_carryout),
