@@ -13,12 +13,11 @@ module IO_Read_Predication
 )
 (
     input   wire                        clock,
-    input   wire                        IO_ready,
     input   wire                        enable,
     input   wire    [ADDR_WIDTH-1:0]    addr,
     input   wire    [PORT_COUNT-1:0]    EmptyFull,
     output  wire                        EmptyFull_masked,
-    output  wire    [PORT_COUNT-1:0]    io_rden,
+    output  reg     [PORT_COUNT-1:0]    io_rden,
     output  reg                         addr_is_IO
 );
 
@@ -26,6 +25,7 @@ module IO_Read_Predication
 
     initial begin
         addr_is_IO = 0;
+        io_rden    = 0;
     end
 
 // --------------------------------------------------------------------
@@ -75,10 +75,8 @@ module IO_Read_Predication
         .active             (io_rden_raw)
     );
 
-    reg [PORT_COUNT-1:0] io_rden_raw_reg = 0;
-
     always @(posedge clock) begin
-        io_rden_raw_reg <= io_rden_raw;
+        io_rden <= io_rden_raw;
     end
 
 // --------------------------------------------------------------------
@@ -90,25 +88,6 @@ module IO_Read_Predication
     always @(posedge clock) begin
         addr_is_IO <= addr_is_IO_raw;
     end
-
-// --------------------------------------------------------------------
-// --------------------------------------------------------------------
-
-// Only output read enable if all accessed ports are ready.
-// This prevents side-effects or lost data if an instruction is anulled.
-// This happens in the stage *after* Stage 2 of IO_Check, since that's when
-// the IO_ready signal is available.
-
-    Annuller
-    #(
-        .WORD_WIDTH (PORT_COUNT)
-    )
-    rden_enable
-    (
-        .annul      (~IO_ready),
-        .in         (io_rden_raw_reg),
-        .out        (io_rden)
-    );
 
 endmodule
 

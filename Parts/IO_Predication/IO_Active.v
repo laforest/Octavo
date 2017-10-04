@@ -60,7 +60,7 @@ module IO_Active
     )
     active_enable
     (
-        .annul      (~enable),
+        .annul      (enable == 1'b0),
         .in         (active_raw),
         .out        (active)
     );

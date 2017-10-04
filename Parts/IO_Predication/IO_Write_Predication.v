@@ -16,13 +16,18 @@ module IO_Write_Predication
 )
 (
     input   wire                        clock,
-    input   wire                        IO_ready,
     input   wire                        enable,
     input   wire    [ADDR_WIDTH-1:0]    addr,
     input   wire    [PORT_COUNT-1:0]    EmptyFull,
     output  wire                        EmptyFull_masked,
-    output  wire                        addr_is_IO
+    output  reg                         addr_is_IO
 );
+
+// -----------------------------------------------------------
+
+    initial begin
+        addr_is_IO = 0;
+    end
 
 // -----------------------------------------------------------
 // Stage 1 and 2
@@ -50,29 +55,9 @@ module IO_Write_Predication
 // --------------------------------------------------------------------
 // This is to line up to Stage 2 of the IO_Check
 
-    reg addr_is_IO_stage2 = 0;
-
     always @(posedge clock) begin
-        addr_is_IO_stage2 <= addr_is_IO_raw;
+        addr_is_IO <= addr_is_IO_raw;
     end
-
-// --------------------------------------------------------------------
-
-// Only output enable if all accessed ports are ready.
-// This prevents side-effects or lost data if an instruction is anulled.
-// This happens in the stage *after* Stage 2 of IO_Check, since that's when
-// the IO_ready signal is available.
-
-    Annuller
-    #(
-        .WORD_WIDTH (1)
-    )
-    wren_enable
-    (
-        .annul      (~IO_ready),
-        .in         (addr_is_IO_stage2),
-        .out        (addr_is_IO)
-    );
 
 endmodule
 

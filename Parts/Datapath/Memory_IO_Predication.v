@@ -12,7 +12,6 @@ module Memory_IO_Predication
 )
 (
     input   wire                                clock,
-    input   wire                                IO_ready,
 
     input   wire                                read_enable,
     input   wire    [ADDR_WIDTH-1:0]            read_addr,
@@ -41,7 +40,6 @@ module Memory_IO_Predication
     IORP
     (
         .clock              (clock),
-        .IO_ready           (IO_ready),
         .enable             (read_enable),
         .addr               (read_addr),
         .EmptyFull          (read_EF),
@@ -62,7 +60,6 @@ module Memory_IO_Predication
     IOWP
     (
         .clock              (clock),
-        .IO_ready           (IO_ready),
         .enable             (write_enable),
         .addr               (write_addr),
         .EmptyFull          (write_EF),
