@@ -163,6 +163,8 @@ module Datapath
     (
         .clock                  (clock),
 
+        .cancel                 (cancel),
+
         .read_addr_A            (read_addr_A),
         .read_addr_B            (read_addr_B),
         .write_addr_A           (write_addr_A),
@@ -272,6 +274,9 @@ module Datapath
 
     wire [WORD_WIDTH-1:0]       read_data_A;
     wire [WORD_WIDTH-1:0]       read_data_B;
+    wire                        write_addr_is_IO_A_stage8;
+    wire                        write_addr_is_IO_B_stage8;
+
 
     Datapath_Memory
     #(
@@ -337,9 +342,6 @@ module Datapath
 
     localparam ALU_PIPE_DEPTH = 4;
     localparam ALU_PIPE_WIDTH = 1 + 1 + WRITE_ADDR_WIDTH + WRITE_ADDR_WIDTH;
-
-    wire                        write_addr_is_IO_A_stage8;
-    wire                        write_addr_is_IO_B_stage8;
 
     Delay_Line 
     #(
