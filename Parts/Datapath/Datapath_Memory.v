@@ -108,13 +108,13 @@ module Datapath_Memory
     )
     MA_A
     (
-        .IOR                    (IOR),
-        .cancel                 (cancel),
+        .read_IOR               (IOR),
+        .read_cancel            (cancel),
         .read_addr              (read_addr_A),
         .read_enable            (read_enable_A),
 
-        .IOR_previous           (IOR_previous),
-        .cancel_previous        (cancel_previous),
+        .write_IOR              (IOR_previous),
+        .write_cancel           (cancel_previous),
         .write_addr             (write_addr_A),
         .write_enable           (write_enable_A)
     );
@@ -135,13 +135,13 @@ module Datapath_Memory
     )
     MA_B
     (
-        .IOR                    (IOR),
-        .cancel                 (cancel),
+        .read_IOR               (IOR),
+        .read_cancel            (cancel),
         .read_addr              (read_addr_B),
         .read_enable            (read_enable_B),
 
-        .IOR_previous           (IOR_previous),
-        .cancel_previous        (cancel_previous),
+        .write_IOR              (IOR_previous),
+        .write_cancel           (cancel_previous),
         .write_addr             (write_addr_B),
         .write_enable           (write_enable_B)
     );
