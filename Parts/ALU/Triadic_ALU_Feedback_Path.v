@@ -48,7 +48,7 @@ module Triadic_ALU_Feedback_Path
 
     wire                    IO_Ready_stage1;
     wire                    Cancel_stage1;
-    wire [WORD_WIDTH-1:0]   DB_stage1;
+    wire [ADDR_WIDTH-1:0]   DB_stage1;
     wire [WORD_WIDTH-1:0]   Ra_stage1;
     wire [WORD_WIDTH-1:0]   Rb_stage1;
 
