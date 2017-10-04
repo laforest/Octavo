@@ -44,7 +44,7 @@ module Instruction_Fetch_Decode_Mapped
 
     input   wire    [ADDR_WIDTH-1:0]        im_write_addr,
     input   wire    [WORD_WIDTH-1:0]        im_write_data,
-    input   wire    [ADDR_WIDTH-1:0]        im_read_addr,
+    input   wire    [IM_ADDR_WIDTH-1:0]     im_read_addr,
 
     input   wire    [ADDR_WIDTH-1:0]        od_write_addr,
     input   wire    [WORD_WIDTH-1:0]        od_write_data,
@@ -115,13 +115,13 @@ module Instruction_Fetch_Decode_Mapped
 
 // --------------------------------------------------------------------
 
-    localparam  IM_BOUND_ADDR_WRITE = IM_BASE_ADDR_WRITE + IM_DEPTH - 1;
+    localparam  IM_BOUND_ADDR_WRITE = IM_DEPTH - 1;
     wire        im_wren;
 
     Address_Range_Decoder_Static
     #(
         .ADDR_WIDTH (ADDR_WIDTH),
-        .ADDR_BASE  (IM_BASE_ADDR_WRITE),
+        .ADDR_BASE  (0),
         .ADDR_BOUND (IM_BOUND_ADDR_WRITE)
     )
     ARDS_IM
@@ -133,13 +133,13 @@ module Instruction_Fetch_Decode_Mapped
 
 // --------------------------------------------------------------------
 
-    localparam  OD_BOUND_ADDR_WRITE = OD_BASE_ADDR_WRITE + OD_THREAD_DEPTH - 1;
+    localparam  OD_BOUND_ADDR_WRITE = OD_THREAD_DEPTH - 1;
     wire        od_wren;
 
     Address_Range_Decoder_Static
     #(
         .ADDR_WIDTH (ADDR_WIDTH),
-        .ADDR_BASE  (OD_BASE_ADDR_WRITE),
+        .ADDR_BASE  (0),
         .ADDR_BOUND (OD_BOUND_ADDR_WRITE)
     )
     ARDS_OD
@@ -184,7 +184,7 @@ IFD
     .im_write_addr              (im_write_addr_translated[IM_ADDR_WIDTH-1:0]),
     .im_write_data              (im_write_data[IM_WORD_WIDTH-1:0]),
     .im_rden                    (im_rden),
-    .im_read_addr               (im_read_addr[IM_ADDR_WIDTH-1:0]),
+    .im_read_addr               (im_read_addr),
 
     .od_wren                    (od_wren),
     .od_write_addr              (od_write_addr_translated[OD_ADDR_WIDTH-1:0]),

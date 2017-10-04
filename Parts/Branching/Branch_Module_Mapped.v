@@ -56,7 +56,7 @@ module Branch_Module_Mapped
     localparam  BD_CONFIG_BASE      = 5;
     localparam  BD_CONFIG_BOUND     = 5;
 
-    localparam  CONFIG_ADDR_BOUND   = CONFIG_ADDR_BASE + BD_CONFIG_BOUND;
+    localparam  CONFIG_WORD_COUNT   = 6;
 
 // --------------------------------------------------------------------
 
@@ -68,7 +68,7 @@ module Branch_Module_Mapped
     #(
         .ADDR_WIDTH         (ADDR_WIDTH),
         .ADDR_BASE          (CONFIG_ADDR_BASE),
-        .ADDR_COUNT         (CONFIG_ADDR_BOUND),
+        .ADDR_COUNT         (CONFIG_WORD_COUNT),
         .REGISTERED         (1'b0)
     )
     ART
