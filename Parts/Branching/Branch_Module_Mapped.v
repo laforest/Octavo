@@ -45,36 +45,41 @@ module Branch_Module_Mapped
 
 // --------------------------------------------------------------------
 
-    // Lay out sub-modules in translated memory range
+    // Lay out sub-modules in their memory range
+    // Must agree with `BRANCH_CONFIG_ENTRIES in Global_Defines.vh
 
-    localparam  BS1_CONFIG_BASE     = 0; // 0: Sentinel 1: Mask
-    localparam  BS1_CONFIG_BOUND    = 1;
-    localparam  BS2_CONFIG_BASE     = 2;
-    localparam  BS2_CONFIG_BOUND    = 3;
-    localparam  BC_CONFIG_BASE      = 4;
-    localparam  BC_CONFIG_BOUND     = 4;
-    localparam  BD_CONFIG_BASE      = 5;
-    localparam  BD_CONFIG_BOUND     = 5;
-
-    localparam  CONFIG_WORD_COUNT   = 6;
+    localparam  BS1_CONFIG_BASE     = CONFIG_ADDR_BASE + 0; // 0: Sentinel 1: Mask
+    localparam  BS1_CONFIG_BOUND    = CONFIG_ADDR_BASE + 1;
+    localparam  BS2_CONFIG_BASE     = CONFIG_ADDR_BASE + 2;
+    localparam  BS2_CONFIG_BOUND    = CONFIG_ADDR_BASE + 3;
+    localparam  BC_CONFIG_BASE      = CONFIG_ADDR_BASE + 4;
+    localparam  BC_CONFIG_BOUND     = CONFIG_ADDR_BASE + 4;
+    localparam  BD_CONFIG_BASE      = CONFIG_ADDR_BASE + 5;
+    localparam  BD_CONFIG_BOUND     = CONFIG_ADDR_BASE + 5;
 
 // --------------------------------------------------------------------
 
-    // Translate physical memory range into 0-based range.
+    // We have a special case here where the config address is only used for
+    // the Branch Sentinels (BS1 and BS2), which each have 2 config memory
+    // locations. All other units have a single word of config memory. So we
+    // only need to translate the least-significant bit of the config address.
 
-    wire [ADDR_WIDTH-1:0] config_addr_translated;
+    // Depending on the CONFIG_BASE_ADDR, this translator should resolve to
+    // either a wire or an inverter, and thus likely vanish in optimization.
+
+    wire config_addr_translated;
 
     Address_Range_Translator
     #(
-        .ADDR_WIDTH         (ADDR_WIDTH),
-        .ADDR_BASE          (CONFIG_ADDR_BASE),
-        .ADDR_COUNT         (CONFIG_WORD_COUNT),
+        .ADDR_WIDTH         (1),
+        .ADDR_BASE          (CONFIG_ADDR_BASE[0]),
+        .ADDR_COUNT         (2),
         .REGISTERED         (1'b0)
     )
     ART
     (
         .clock              (1'b0),
-        .raw_address        (config_addr),
+        .raw_address        (config_addr[0]),
         .translated_address (config_addr_translated)
     );
 
@@ -91,7 +96,7 @@ module Branch_Module_Mapped
     ARDS_BS1
     (
         .enable     (config_wren),
-        .addr       (config_addr_translated),
+        .addr       (config_addr),
         .hit        (bs1_config_wren)
     );
 
@@ -108,7 +113,7 @@ module Branch_Module_Mapped
     ARDS_BS2
     (
         .enable     (config_wren),
-        .addr       (config_addr_translated),
+        .addr       (config_addr),
         .hit        (bs2_config_wren)
     );
 
@@ -125,7 +130,7 @@ module Branch_Module_Mapped
     ARDS_BC
     (
         .enable     (config_wren),
-        .addr       (config_addr_translated),
+        .addr       (config_addr),
         .hit        (bc_config_wren)
     );
 
@@ -142,7 +147,7 @@ module Branch_Module_Mapped
     ARDS_BD
     (
         .enable     (config_wren),
-        .addr       (config_addr_translated),
+        .addr       (config_addr),
         .hit        (bd_config_wren)
     );
 
@@ -176,7 +181,7 @@ module Branch_Module_Mapped
         .bs2_config_wren    (bs2_config_wren),
         .bd_config_wren     (bd_config_wren),
         .bc_config_wren     (bc_config_wren),
-        .config_addr        (config_addr_translated[0]),
+        .config_addr        (config_addr_translated),
         .config_data        (config_data),
         .jump               (jump),
         .destination        (destination),

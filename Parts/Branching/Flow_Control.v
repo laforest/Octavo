@@ -46,56 +46,13 @@ module Flow_Control
 
 // --------------------------------------------------------------------
 
-    // What is the range of physical addresses for configuration?
-    // Zero-based addressing, so -1
-    localparam CONFIG_ADDR_BOUND = CONFIG_ADDR_BASE + (BRANCH_COUNT * `BRANCH_CONFIG_ENTRIES) - 1;
-
-// --------------------------------------------------------------------
-
-    // Translate physical memory range into 0-based range.
-
-    wire [ADDR_WIDTH-1:0] config_addr_translated;
-
-    Address_Range_Translator
-    #(
-        .ADDR_WIDTH         (ADDR_WIDTH),
-        .ADDR_BASE          (CONFIG_ADDR_BASE),
-        .ADDR_COUNT         (CONFIG_ADDR_BOUND),
-        .REGISTERED         (1'b0)
-    )
-    ART
-    (
-        .clock              (1'b0),
-        .raw_address        (config_addr),
-        .translated_address (config_addr_translated)
-    );
-
-// --------------------------------------------------------------------
-
-    // Are we addressing the Flow Control module on a write?
-    // And has the configuration writing instruction 
-    // been Cancelled or Anulled? 
+    // Has the configuration writing instruction been Cancelled or Anulled? 
 
     reg config_write_ok = 0;
 
     always @(*) begin
         config_write_ok <= (IOR_previous == 1'b1) & (cancel_previous == 1'b0);
     end
-
-    wire config_wren;
-
-    Address_Range_Decoder_Static
-    #(
-        .ADDR_WIDTH (ADDR_WIDTH),
-        .ADDR_BASE  (CONFIG_ADDR_BASE),
-        .ADDR_BOUND (CONFIG_ADDR_BOUND)
-    )
-    ARDS
-    (
-        .enable     (config_write_ok),
-        .addr       (config_addr),
-        .hit        (config_wren)
-    );
 
 // --------------------------------------------------------------------
 
@@ -138,8 +95,8 @@ module Flow_Control
                 .B_lessthan         (B_lessthan),
                 .B_external         (B_external),
                 .R_previous         (R_previous),
-                .config_wren        (config_wren),
-                .config_addr        (config_addr_translated),
+                .config_wren        (config_write_ok),
+                .config_addr        (config_addr),
                 .config_data        (config_data),
                 .jump               (jumps              [branch_number]),
                 .destination        (jump_destinations  [(branch_number*PC_WIDTH) +: PC_WIDTH]),

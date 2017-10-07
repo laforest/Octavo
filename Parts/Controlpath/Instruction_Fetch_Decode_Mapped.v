@@ -77,78 +77,53 @@ module Instruction_Fetch_Decode_Mapped
 
 // --------------------------------------------------------------------
 
-    // Translate physical memory range into 0-based range.
+    localparam                  IM_BOUND_ADDR_WRITE = IM_DEPTH - 1;
 
-    wire [ADDR_WIDTH-1:0] im_write_addr_translated;
+    wire                        im_wren;
+    wire [IM_ADDR_WIDTH-1:0]    im_write_addr_translated;
 
-    Address_Range_Translator
+    Memory_Mapper
     #(
-        .ADDR_WIDTH         (ADDR_WIDTH),
-        .ADDR_BASE          (IM_BASE_ADDR_WRITE),
-        .ADDR_COUNT         (IM_DEPTH),
-        .REGISTERED         (1'b0)
+        .ADDR_WIDTH             (ADDR_WIDTH),
+        .ADDR_BASE              (IM_BASE_ADDR_WRITE),
+        .ADDR_BOUND             (IM_BOUND_ADDR_WRITE),
+        .ADDR_WIDTH_LSB         (IM_ADDR_WIDTH),
+        .REGISTERED             (0)
+
     )
-    ART_IM
+    MM_IM
     (
-        .clock              (1'b0),
-        .raw_address        (im_write_addr),
-        .translated_address (im_write_addr_translated)
+        .clock                  (1'b0),
+        .enable                 (instruction_ok),
+        .addr                   (im_write_addr),
+        .addr_translated_lsb    (im_write_addr_translated),
+        .addr_valid             (im_wren)
     );
 
 // --------------------------------------------------------------------
 
-    wire        [ADDR_WIDTH-1:0]    od_write_addr_translated;
+    localparam                      OD_BOUND_ADDR_WRITE = OD_THREAD_DEPTH - 1;
 
-    Address_Range_Translator
+    wire                            od_wren;
+    wire        [OD_ADDR_WIDTH-1:0] od_write_addr_translated;
+
+    Memory_Mapper
     #(
-        .ADDR_WIDTH         (ADDR_WIDTH),
-        .ADDR_BASE          (OD_BASE_ADDR_WRITE),
-        .ADDR_COUNT         (OD_THREAD_DEPTH),
-        .REGISTERED         (1'b0)
+        .ADDR_WIDTH             (ADDR_WIDTH),
+        .ADDR_BASE              (OD_BASE_ADDR_WRITE),
+        .ADDR_BOUND             (OD_BOUND_ADDR_WRITE),
+        .ADDR_WIDTH_LSB         (OD_ADDR_WIDTH),
+        .REGISTERED             (0)
+
     )
-    ART_OD
+    MM_OD
     (
-        .clock              (1'b0),
-        .raw_address        (od_write_addr),
-        .translated_address (od_write_addr_translated)
+        .clock                  (1'b0),
+        .enable                 (instruction_ok),
+        .addr                   (od_write_addr),
+        .addr_translated_lsb    (od_write_addr_translated),
+        .addr_valid             (od_wren)
     );
-
-// --------------------------------------------------------------------
-
-    localparam  IM_BOUND_ADDR_WRITE = IM_DEPTH - 1;
-    wire        im_wren;
-
-    Address_Range_Decoder_Static
-    #(
-        .ADDR_WIDTH (ADDR_WIDTH),
-        .ADDR_BASE  (0),
-        .ADDR_BOUND (IM_BOUND_ADDR_WRITE)
-    )
-    ARDS_IM
-    (
-        .enable     (instruction_ok),
-        .addr       (im_write_addr_translated),
-        .hit        (im_wren)
-    );
-
-// --------------------------------------------------------------------
-
-    localparam  OD_BOUND_ADDR_WRITE = OD_THREAD_DEPTH - 1;
-    wire        od_wren;
-
-    Address_Range_Decoder_Static
-    #(
-        .ADDR_WIDTH (ADDR_WIDTH),
-        .ADDR_BASE  (0),
-        .ADDR_BOUND (OD_BOUND_ADDR_WRITE)
-    )
-    ARDS_OD
-    (
-        .enable     (instruction_ok),
-        .addr       (od_write_addr_translated),
-        .hit        (od_wren)
-    );
-
 
 // --------------------------------------------------------------------
 
@@ -181,13 +156,13 @@ IFD
     .clock                      (clock),
 
     .im_wren                    (im_wren),
-    .im_write_addr              (im_write_addr_translated[IM_ADDR_WIDTH-1:0]),
+    .im_write_addr              (im_write_addr_translated),
     .im_write_data              (im_write_data[IM_WORD_WIDTH-1:0]),
     .im_rden                    (im_rden),
     .im_read_addr               (im_read_addr),
 
     .od_wren                    (od_wren),
-    .od_write_addr              (od_write_addr_translated[OD_ADDR_WIDTH-1:0]),
+    .od_write_addr              (od_write_addr_translated),
     .od_write_data              (od_write_data[OD_WORD_WIDTH-1:0]),
 
     .ALU_control                (ALU_control),

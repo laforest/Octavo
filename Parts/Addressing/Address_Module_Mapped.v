@@ -102,19 +102,25 @@ module Address_Module_Mapped
 
 // --------------------------------------------------------------------
 
-    wire po_wren;
+    wire                        po_wren;
+    wire [PO_ADDR_WIDTH-1:0]    write_addr_translated;
 
-    Address_Range_Decoder_Static
+    Memory_Mapper
     #(
-        .ADDR_WIDTH (WRITE_ADDR_WIDTH),
-        .ADDR_BASE  (PO_ADDR_BASE),
-        .ADDR_BOUND (PO_ADDR_BOUND)
+        .ADDR_WIDTH             (WRITE_ADDR_WIDTH),
+        .ADDR_BASE              (PO_ADDR_BASE),
+        .ADDR_BOUND             (PO_ADDR_BOUND),
+        .ADDR_WIDTH_LSB         (PO_ADDR_WIDTH),
+        .REGISTERED             (0)
+
     )
-    ARDS_PO_WREN
+    MM_PO
     (
-        .enable     (1'b1),
-        .addr       (write_addr),
-        .hit        (po_wren)
+        .clock                  (1'b0),
+        .enable                 (1'b1),
+        .addr                   (write_addr),
+        .addr_translated_lsb    (write_addr_translated),
+        .addr_valid             (po_wren)
     );
 
 // --------------------------------------------------------------------
@@ -132,24 +138,6 @@ module Address_Module_Mapped
         .enable     (1'b1),
         .addr       (write_addr),
         .hit        (do_wren)
-    );
-
-// --------------------------------------------------------------------
-
-    wire [PO_ADDR_WIDTH-1:0] write_addr_translated;
-
-    Address_Range_Translator
-    #(
-        .ADDR_WIDTH         (PO_ADDR_WIDTH),
-        .ADDR_BASE          (PO_ADDR_BASE),
-        .ADDR_COUNT         (PO_ENTRY_COUNT),
-        .REGISTERED         (1'b0)
-    )
-    ART_PO
-    (
-        .clock              (1'b0),
-        .raw_address        (write_addr[PO_ADDR_WIDTH-1:0]),
-        .translated_address (write_addr_translated)
     );
 
 // --------------------------------------------------------------------
