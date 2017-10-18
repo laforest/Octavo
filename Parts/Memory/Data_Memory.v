@@ -4,11 +4,10 @@
 
 // I/O port addresses are relative to local memory location zero.
 
-// Special behaviour when read/write enable not set: 
-// returns zero on reads, and read and write
-// enables are disabled to save BRAM power and enforce behaviour.
-
-// Same for when addressing an I/O port: RAM is disabled to save power.
+// Special behaviour when read/write enable not set: returns zero on reads,
+// and write enables are disabled to save BRAM power and enforce behaviour.
+// RAM read address is not decoded for enable due to timing, but is disabled
+// when addressing an I/O read port. Disabled reads are cleared to zero later.
 
 // See RAM_SDP.v for the meaning of the READ_NEW_DATA parameter.
 // Typically, you will want it enabled. (set to 1) as it enables
@@ -44,6 +43,12 @@ module Data_Memory
 (
     input   wire                                        clock,
 
+    // Current instruction (read) and previous instruction (write) status (Annuled/Cancelled)
+    input   wire                                        IOR,
+    input   wire                                        cancel,
+    input   wire                                        IOR_previous,
+    input   wire                                        cancel_previous,
+
     input   wire                                        read_enable,
     input   wire    [ADDR_WIDTH-1:0]                    read_addr,
     input   wire                                        read_addr_is_IO,
@@ -57,12 +62,6 @@ module Data_Memory
     output  reg     [IO_PORT_COUNT-1:0]                 io_wren,
     output  wire    [(WORD_WIDTH*IO_PORT_COUNT)-1:0]    io_write_data
 );
-
-// -----------------------------------------------------------
-
-    // When we need a zero of definite width.
-
-    localparam ZERO = {WORD_WIDTH{1'b0}};
 
 // -----------------------------------------------------------
 
@@ -132,20 +131,24 @@ module Data_Memory
 
 // -----------------------------------------------------------
 
-    // Disable RAM read enable if reading from IO port 
-    // or if reads are not enabled in general.
+    // Disable RAM read enable if reading from IO port. 
 
     always @(*) begin
-        mem_rden <= (read_addr_is_IO == 0) & (read_enable == 1);
+        mem_rden <= (read_addr_is_IO == 0);
     end
 
 // -----------------------------------------------------------
 
-    reg                         read_enable_stage2         = 0;
+    // Disable final data output if reads not enabled, or
+    // the instruction was Annulled or Cancelled.
+
+    // Pass read_addr_is_IO along for IO/RAM data mux 
+
+    reg                         read_enable_stage2      = 0;
     reg                         read_addr_is_IO_stage2  = 0;
 
     always @(posedge clock) begin
-        read_enable_stage2      <= read_enable; 
+        read_enable_stage2      <= (read_enable == 1'b1) & (IOR == 1'b1) & (cancel == 1'b0); 
         read_addr_is_IO_stage2  <= read_addr_is_IO;
     end
 
@@ -160,7 +163,7 @@ module Data_Memory
     reg [WORD_WIDTH-1:0] read_data_raw = 0;
 
     always @(*) begin
-        read_data_raw <= (read_addr_is_IO_stage2 == 1) ? io_read_data_selected : mem_read_data;
+        read_data_raw <= (read_addr_is_IO_stage2 == 1'b1) ? io_read_data_selected : mem_read_data;
     end
 
 // -----------------------------------------------------------
@@ -176,7 +179,7 @@ module Data_Memory
     )
     Read_Data_Clear
     (
-        .annul      ((read_enable_stage2 == 0)),
+        .annul      ((read_enable_stage2 == 1'b0)),
         .in         (read_data_raw),
         .out        (read_data_annulled)
     );
@@ -191,10 +194,13 @@ module Data_Memory
 // -----------------------------------------------------------
 // Write Stage 1
 
+    // Enable the write to I/O if in I/O address range, writes are enabled,
+    // and the instruction was not Annulled or Cancelled.
+
     reg     write_enable_io = 0;
 
     always @(*) begin
-        write_enable_io = (write_addr_is_IO == 1) & (write_enable == 1);
+        write_enable_io <= (write_addr_is_IO == 1) & (write_enable == 1) & (IOR_previous == 1'b1) & (cancel_previous == 1'b0);
     end
 
 // -----------------------------------------------------------
@@ -215,32 +221,26 @@ module Data_Memory
         .active             (io_wren_raw)
     );
 
-    reg     [IO_PORT_COUNT-1:0]     io_wren_stage2          = 0;
-    reg                             write_addr_is_IO_stage2 = 0;
-    reg                             write_enable_stage2     = 0;
-
 // -----------------------------------------------------------
 
+    // Disable RAM write enable if writing to IO port, 
+    // or if writes are not enabled in general,
+    // or if the instruction was Annulled or Cancelled.
+
+    // Pass other signals along for final Mem and I/O write.
+
+    reg     [IO_PORT_COUNT-1:0]     io_wren_stage2          = 0;
+
     always @(posedge clock) begin
-        io_wren_stage2          <= io_wren_raw;
-        write_addr_is_IO_stage2 <= write_addr_is_IO;
-        write_addr_stage2       <= write_addr;
-        write_data_stage2       <= write_data;
-        write_enable_stage2     <= write_enable;
+        mem_wren_stage2     <= (write_addr_is_IO == 0) & (write_enable == 1) & (IOR_previous == 1'b1) & (cancel_previous == 1'b0);
+        io_wren_stage2      <= io_wren_raw;
+        write_addr_stage2   <= write_addr;
+        write_data_stage2   <= write_data;
     end
 
 // -----------------------------------------------------------
 // -----------------------------------------------------------
 // Write Stage 2
-
-    // Disable RAM write enable if writing to IO port 
-    // or if writes are not enabled in general.
-
-    always @(*) begin
-        mem_wren_stage2 <= (write_addr_is_IO_stage2 == 0) & (write_enable_stage2 == 1);
-    end
-
-// -----------------------------------------------------------
 
     // Pass the IO write enables to the output
 
@@ -261,7 +261,7 @@ module Data_Memory
     ) 
     Write_IO
     (
-        .clock     (clock),
+        .clock      (clock),
         .wren       (io_wren_stage2),
         .in         ({IO_PORT_COUNT{write_data_stage2}}),
         .out        (io_write_data)

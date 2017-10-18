@@ -52,8 +52,8 @@ module Datapath_IO_Predication
 
 // --------------------------------------------------------------------
 
-    // Gate the I/O read enables if the instruction was cancelled or if I/O
-    // isn't all ready to avoid side-effect on the I/O ports.
+    // Gate the I/O read enables if the instruction was cancelled, or if I/O
+    // isn't all ready, to avoid side-effect on the I/O ports.
 
     reg stop_rden = 0;
 
@@ -71,53 +71,59 @@ module Datapath_IO_Predication
     wire                        read_enable_A;
     wire                        write_enable_A;
 
-    Memory_Addressing
+    Address_Range_Decoder_Static
     #(
-        .READ_ADDR_WIDTH        (READ_ADDR_WIDTH),
-        .WRITE_ADDR_WIDTH       (WRITE_ADDR_WIDTH),
-        .MEM_READ_BASE_ADDR     (MEM_READ_BASE_ADDR_A),
-        .MEM_READ_BOUND_ADDR    (MEM_READ_BOUND_ADDR_A),
-        .MEM_WRITE_BASE_ADDR    (MEM_WRITE_BASE_ADDR_A),
-        .MEM_WRITE_BOUND_ADDR   (MEM_WRITE_BOUND_ADDR_A)
+        .ADDR_WIDTH (READ_ADDR_WIDTH),
+        .ADDR_BASE  (MEM_READ_BASE_ADDR_A),
+        .ADDR_BOUND (MEM_READ_BOUND_ADDR_A)
     )
-    MA_A
+    Read_A
     (
-        .read_IOR               (1'b1),
-        .read_cancel            (1'b0),
-        .read_addr              (read_addr_A),
-        .read_enable            (read_enable_A),
-
-        .write_IOR              (1'b1),
-        .write_cancel           (1'b0),
-        .write_addr             (write_addr_A),
-        .write_enable           (write_enable_A)
+        .enable     (1'b1),
+        .addr       (read_addr_A),
+        .hit        (read_enable_A)
     );
 
-// --------------------------------------------------------------------
+    Address_Range_Decoder_Static
+    #(
+        .ADDR_WIDTH (WRITE_ADDR_WIDTH),
+        .ADDR_BASE  (MEM_WRITE_BASE_ADDR_A),
+        .ADDR_BOUND (MEM_WRITE_BOUND_ADDR_A)
+    )
+    Write_A
+    (
+        .enable     (1'b1),
+        .addr       (write_addr_A),
+        .hit        (write_enable_A)
+    );
 
     wire                        read_enable_B;
     wire                        write_enable_B;
 
-    Memory_Addressing
+    Address_Range_Decoder_Static
     #(
-        .READ_ADDR_WIDTH        (READ_ADDR_WIDTH),
-        .WRITE_ADDR_WIDTH       (WRITE_ADDR_WIDTH),
-        .MEM_READ_BASE_ADDR     (MEM_READ_BASE_ADDR_B),
-        .MEM_READ_BOUND_ADDR    (MEM_READ_BOUND_ADDR_B),
-        .MEM_WRITE_BASE_ADDR    (MEM_WRITE_BASE_ADDR_B),
-        .MEM_WRITE_BOUND_ADDR   (MEM_WRITE_BOUND_ADDR_B)
+        .ADDR_WIDTH (READ_ADDR_WIDTH),
+        .ADDR_BASE  (MEM_READ_BASE_ADDR_B),
+        .ADDR_BOUND (MEM_READ_BOUND_ADDR_B)
     )
-    MA_B
+    Read_B
     (
-        .read_IOR               (1'b1),
-        .read_cancel            (1'b0),
-        .read_addr              (read_addr_B),
-        .read_enable            (read_enable_B),
+        .enable     (1'b1),
+        .addr       (read_addr_B),
+        .hit        (read_enable_B)
+    );
 
-        .write_IOR              (1'b1),
-        .write_cancel           (1'b0),
-        .write_addr             (write_addr_B),
-        .write_enable           (write_enable_B)
+    Address_Range_Decoder_Static
+    #(
+        .ADDR_WIDTH (WRITE_ADDR_WIDTH),
+        .ADDR_BASE  (MEM_WRITE_BASE_ADDR_B),
+        .ADDR_BOUND (MEM_WRITE_BOUND_ADDR_B)
+    )
+    Write_B
+    (
+        .enable     (1'b1),
+        .addr       (write_addr_B),
+        .hit        (write_enable_B)
     );
 
 // --------------------------------------------------------------------

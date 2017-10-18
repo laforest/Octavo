@@ -10,9 +10,7 @@
 
 // It is assumed that bound >= base.
 
-// Do not map anything (e.g. I/O ports) outside of the range. It will not work.
-// This is actually a feature: it's how we implement the special zero location:
-// reads return zero, writes do nothing.
+// Don't map anything (I/O ports) to address 0.
 
 `default_nettype none
 
@@ -94,56 +92,69 @@ module Datapath_Memory
 // --------------------------------------------------------------------
 // --------------------------------------------------------------------
 
-    wire read_enable_A;
+    wire read_A_zero;
     wire write_enable_A;
 
-    Memory_Addressing
-    #(
-        .READ_ADDR_WIDTH        (READ_ADDR_WIDTH),
-        .WRITE_ADDR_WIDTH       (WRITE_ADDR_WIDTH),
-        .MEM_READ_BASE_ADDR     (MEM_READ_BASE_ADDR_A),
-        .MEM_READ_BOUND_ADDR    (MEM_READ_BOUND_ADDR_A),
-        .MEM_WRITE_BASE_ADDR    (MEM_WRITE_BASE_ADDR_A),
-        .MEM_WRITE_BOUND_ADDR   (MEM_WRITE_BOUND_ADDR_A)
-    )
-    MA_A
-    (
-        .read_IOR               (IOR),
-        .read_cancel            (cancel),
-        .read_addr              (read_addr_A),
-        .read_enable            (read_enable_A),
+    // Memory A is always in range of the read operands, but we disable access
+    // to address 0 to implement a zero register.
 
-        .write_IOR              (IOR_previous),
-        .write_cancel           (cancel_previous),
-        .write_addr             (write_addr_A),
-        .write_enable           (write_enable_A)
+    Address_Range_Decoder_Static
+    #(
+        .ADDR_WIDTH (READ_ADDR_WIDTH),
+        .ADDR_BASE  (0),
+        .ADDR_BOUND (0)
+    )
+    Mem_A_Zero
+    (
+        .enable     (1'b1),
+        .addr       (read_addr_A),
+        .hit        (read_A_zero)
+    );
+
+    Address_Range_Decoder_Static
+    #(
+        .ADDR_WIDTH (WRITE_ADDR_WIDTH),
+        .ADDR_BASE  (MEM_WRITE_BASE_ADDR_A),
+        .ADDR_BOUND (MEM_WRITE_BOUND_ADDR_A)
+    )
+    Mem_A_Write
+    (
+        .enable     (1'b1),
+        .addr       (write_addr_A),
+        .hit        (write_enable_A)
     );
 
 // --------------------------------------------------------------------
 
-    wire read_enable_B;
+    // Same for Memory B.
+
+    wire read_B_zero;
     wire write_enable_B;
 
-    Memory_Addressing
+    Address_Range_Decoder_Static
     #(
-        .READ_ADDR_WIDTH        (READ_ADDR_WIDTH),
-        .WRITE_ADDR_WIDTH       (WRITE_ADDR_WIDTH),
-        .MEM_READ_BASE_ADDR     (MEM_READ_BASE_ADDR_B),
-        .MEM_READ_BOUND_ADDR    (MEM_READ_BOUND_ADDR_B),
-        .MEM_WRITE_BASE_ADDR    (MEM_WRITE_BASE_ADDR_B),
-        .MEM_WRITE_BOUND_ADDR   (MEM_WRITE_BOUND_ADDR_B)
+        .ADDR_WIDTH (READ_ADDR_WIDTH),
+        .ADDR_BASE  (0),
+        .ADDR_BOUND (0)
     )
-    MA_B
+    Mem_B_Zero
     (
-        .read_IOR               (IOR),
-        .read_cancel            (cancel),
-        .read_addr              (read_addr_B),
-        .read_enable            (read_enable_B),
+        .enable     (1'b1),
+        .addr       (read_addr_B),
+        .hit        (read_B_zero)
+    );
 
-        .write_IOR              (IOR_previous),
-        .write_cancel           (cancel_previous),
-        .write_addr             (write_addr_B),
-        .write_enable           (write_enable_B)
+    Address_Range_Decoder_Static
+    #(
+        .ADDR_WIDTH (WRITE_ADDR_WIDTH),
+        .ADDR_BASE  (MEM_WRITE_BASE_ADDR_B),
+        .ADDR_BOUND (MEM_WRITE_BOUND_ADDR_B)
+    )
+    Mem_B_Write
+    (
+        .enable     (1'b1),
+        .addr       (write_addr_B),
+        .hit        (write_enable_B)
     );
 
 
@@ -186,7 +197,12 @@ module Datapath_Memory
     (
         .clock                  (clock),
 
-        .read_enable            (read_enable_A),
+        .IOR                    (IOR),
+        .cancel                 (cancel),
+        .IOR_previous           (IOR_previous),
+        .cancel_previous        (cancel_previous),
+
+        .read_enable            ((read_A_zero == 1'b0)),
         .read_addr              (read_addr_A_local),
         .read_addr_is_IO        (read_addr_is_IO_A),
         .read_data              (read_data_A),
@@ -218,7 +234,12 @@ module Datapath_Memory
     (
         .clock                  (clock),
 
-        .read_enable            (read_enable_B),
+        .IOR                    (IOR),
+        .cancel                 (cancel),
+        .IOR_previous           (IOR_previous),
+        .cancel_previous        (cancel_previous),
+
+        .read_enable            ((read_B_zero == 1'b0)),
         .read_addr              (read_addr_B_local),
         .read_addr_is_IO        (read_addr_is_IO_B),
         .read_data              (read_data_B),
