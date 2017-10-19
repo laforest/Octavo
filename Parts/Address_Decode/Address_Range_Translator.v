@@ -56,8 +56,13 @@ module Address_Range_Translator
 
     localparam ADDR_DEPTH = 2**ADDR_WIDTH;
 
-    integer                     i, j;
+    // Otherwise, it might end up as a Block RAM at random, and the logic
+    // cannot get optimized.
+
+    (* ramstyle = "logic" *) 
     reg     [ADDR_WIDTH-1:0]    translation_table [ADDR_DEPTH-1:0];
+
+    integer                     i, j;
 
     initial begin
         // In the case where ADDR_COUNT < ADDR_DEPTH, make sure all entries are defined
