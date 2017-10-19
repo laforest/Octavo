@@ -63,8 +63,10 @@ module Address_Module_Mapped
 
 // --------------------------------------------------------------------
 
-    localparam PO_ADDR_BOUND        = PO_ADDR_BASE       + PO_ENTRY_COUNT;
-    localparam INDIRECT_ADDR_BOUND  = INDIRECT_ADDR_BASE + PO_ENTRY_COUNT;
+    // 0-based addresses, hence -1
+
+    localparam PO_ADDR_BOUND        = PO_ADDR_BASE       + PO_ENTRY_COUNT - 1;
+    localparam INDIRECT_ADDR_BOUND  = INDIRECT_ADDR_BASE + PO_ENTRY_COUNT - 1;
 
 // --------------------------------------------------------------------
 
