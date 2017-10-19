@@ -77,7 +77,7 @@ module Instruction_Fetch_Decode_Mapped
 
 // --------------------------------------------------------------------
 
-    localparam                  IM_BOUND_ADDR_WRITE = IM_DEPTH - 1;
+    localparam                  IM_BOUND_ADDR_WRITE = IM_BASE_ADDR_WRITE + IM_DEPTH - 1;
 
     wire                        im_wren;
     wire [IM_ADDR_WIDTH-1:0]    im_write_addr_translated;
@@ -102,7 +102,7 @@ module Instruction_Fetch_Decode_Mapped
 
 // --------------------------------------------------------------------
 
-    localparam                      OD_BOUND_ADDR_WRITE = OD_THREAD_DEPTH - 1;
+    localparam                      OD_BOUND_ADDR_WRITE = OD_BASE_ADDR_WRITE + OD_THREAD_DEPTH - 1;
 
     wire                            od_wren;
     wire        [OD_ADDR_WIDTH-1:0] od_write_addr_translated;
