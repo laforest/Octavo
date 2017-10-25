@@ -1,7 +1,7 @@
 
 # Project-Wide Assignments
 # ========================
-set_global_assignment -name LAST_QUARTUS_VERSION "16.1.2 Lite Edition"
+set_global_assignment -name LAST_QUARTUS_VERSION "17.0.2 Lite Edition"
 set_global_assignment -name FLOW_DISABLE_ASSEMBLER ON
 set_global_assignment -name NUM_PARALLEL_PROCESSORS ALL
 set_global_assignment -name SDC_FILE /home/laforest/Octavo/Octavo/Parts/SimSynth/timing_constraints_Altera.sdc
@@ -16,9 +16,9 @@ set_global_assignment -name VERILOG_FILE harness_output_register.v
 set_global_assignment -name VERILOG_FILE Address_Range_Decoder_Arithmetic.v
 set_global_assignment -name VERILOG_FILE Address_Range_Decoder_Static.v
 set_global_assignment -name VERILOG_FILE Address_Range_Translator.v
+set_global_assignment -name VERILOG_FILE Memory_Mapper.v
 set_global_assignment -name VERILOG_FILE Address_Splitter.v
 set_global_assignment -name VERILOG_FILE Binary_to_N_Decoder.v
-set_global_assignment -name VERILOG_FILE Memory_Addressing.v
 set_global_assignment -name VERILOG_FILE Addressing.v
 set_global_assignment -name VERILOG_FILE Address_Module_Mapped.v
 set_global_assignment -name VERILOG_FILE Address_Module_PO_Memory.v
@@ -89,6 +89,7 @@ set_global_assignment -name VERILOG_FILE Octavo.v
 set_global_assignment -name VERILOG_FILE Generic_test_harness.v
 set_global_assignment -name FLOW_ENABLE_RTL_VIEWER ON
 set_global_assignment -name ADD_PASS_THROUGH_LOGIC_TO_INFERRED_RAMS OFF
+set_global_assignment -name HDL_MESSAGE_LEVEL LEVEL3
 
 # Classic Timing Assignments
 # ==========================
