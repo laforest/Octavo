@@ -6,41 +6,43 @@
 
 module Branch_Module_Mapped
 #(
-    parameter       WORD_WIDTH          = 0,
-    parameter       ADDR_WIDTH          = 0,
-    parameter       PC_WIDTH            = 0,
-    parameter       FLAGS_WIDTH         = 0,
+    parameter       WORD_WIDTH                  = 0,
+    parameter       ADDR_WIDTH                  = 0,
+    parameter       PC_WIDTH                    = 0,
+    parameter       FLAGS_WIDTH                 = 0,
     // Branch Detector RAM parameters
-    parameter       BD_RAMSTYLE         = "",
+    parameter       BD_RAMSTYLE                 = "",
     // Branch Sentinel RAM parameters
-    parameter       BS_RAMSTYLE         = "",
-    parameter       BS_READ_NEW_DATA    = 0,
+    parameter       BS_RAMSTYLE                 = "",
+    parameter       BS_READ_NEW_DATA            = 0,
     // Branch Counter RAM parameters
-    parameter       BC_RAMSTYLE         = "",
-    parameter       BC_READ_NEW_DATA    = 0,
+    parameter       BC_RAMSTYLE                 = "",
+    parameter       BC_READ_NEW_DATA            = 0,
     // Multithreading
-    parameter       THREAD_COUNT        = 0,
-    parameter       THREAD_COUNT_WIDTH  = 0,
+    parameter       THREAD_COUNT                = 0,
+    parameter       THREAD_COUNT_WIDTH          = 0,
     // Physical memory base address
-    parameter       CONFIG_ADDR_BASE    = 0
+    parameter       CONFIG_ADDR_BASE            = 0,
+    // Retiming
+    parameter       WRITE_ADDR_RETIME_STAGES    = 0
 )
 (
-    input   wire                        clock,
-    input   wire    [PC_WIDTH-1:0]      PC,
-    input   wire                        IOR,
-    input   wire                        IOR_previous,
-    input   wire                        A_negative,
-    input   wire                        A_carryout,
-    input   wire                        A_external,
-    input   wire                        B_lessthan,
-    input   wire                        B_external,
-    input   wire    [WORD_WIDTH-1:0]    R_previous,
-    input   wire                        config_wren,
-    input   wire    [ADDR_WIDTH-1:0]    config_addr,
-    input   wire    [WORD_WIDTH-1:0]    config_data,
-    output  wire                        jump,
-    output  wire    [PC_WIDTH-1:0]      destination,
-    output  wire                        cancel
+    input   wire                                clock,
+    input   wire    [PC_WIDTH-1:0]              PC,
+    input   wire                                IOR,
+    input   wire                                IOR_previous,
+    input   wire                                A_negative,
+    input   wire                                A_carryout,
+    input   wire                                A_external,
+    input   wire                                B_lessthan,
+    input   wire                                B_external,
+    input   wire    [WORD_WIDTH-1:0]            R_previous,
+    input   wire                                config_wren,
+    input   wire    [ADDR_WIDTH-1:0]            config_addr,
+    input   wire    [WORD_WIDTH-1:0]            config_data,
+    output  wire                                jump,
+    output  wire    [PC_WIDTH-1:0]              destination,
+    output  wire                                cancel
 );
 
 // --------------------------------------------------------------------
@@ -56,6 +58,22 @@ module Branch_Module_Mapped
     localparam  BC_CONFIG_BOUND     = CONFIG_ADDR_BASE + 4;
     localparam  BD_CONFIG_BASE      = CONFIG_ADDR_BASE + 5;
     localparam  BD_CONFIG_BOUND     = CONFIG_ADDR_BASE + 5;
+
+// --------------------------------------------------------------------
+
+    wire [ADDR_WIDTH-1:0] config_addr_retimed;
+
+    Delay_Line 
+    #(
+        .DEPTH  (WRITE_ADDR_RETIME_STAGES), 
+        .WIDTH  (ADDR_WIDTH)
+    ) 
+    DL_retime
+    (
+        .clock  (clock),
+        .in     (config_addr),
+        .out    (config_addr_retimed)
+    );
 
 // --------------------------------------------------------------------
 
@@ -79,7 +97,7 @@ module Branch_Module_Mapped
     ART
     (
         .clock              (1'b0),
-        .raw_address        (config_addr[0]),
+        .raw_address        (config_addr_retimed[0]),
         .translated_address (config_addr_translated)
     );
 
@@ -96,7 +114,7 @@ module Branch_Module_Mapped
     ARDS_BS1
     (
         .enable     (config_wren),
-        .addr       (config_addr),
+        .addr       (config_addr_retimed),
         .hit        (bs1_config_wren)
     );
 
@@ -113,7 +131,7 @@ module Branch_Module_Mapped
     ARDS_BS2
     (
         .enable     (config_wren),
-        .addr       (config_addr),
+        .addr       (config_addr_retimed),
         .hit        (bs2_config_wren)
     );
 
@@ -130,7 +148,7 @@ module Branch_Module_Mapped
     ARDS_BC
     (
         .enable     (config_wren),
-        .addr       (config_addr),
+        .addr       (config_addr_retimed),
         .hit        (bc_config_wren)
     );
 
@@ -147,7 +165,7 @@ module Branch_Module_Mapped
     ARDS_BD
     (
         .enable     (config_wren),
-        .addr       (config_addr),
+        .addr       (config_addr_retimed),
         .hit        (bd_config_wren)
     );
 

@@ -17,7 +17,8 @@ module Triadic_ALU
     parameter       S_READ_NEW_DATA                 = 0,
     // Multithreading
     parameter       THREAD_COUNT                    = 0,
-    parameter       THREAD_COUNT_WIDTH              = 0
+    parameter       THREAD_COUNT_WIDTH              = 0,
+    parameter       WRITE_ADDR_RETIME_STAGES        = 0
 )
 (
     input   wire                                    clock,
@@ -64,6 +65,23 @@ module Triadic_ALU
 
 // --------------------------------------------------------------------
 
+    wire [ADDR_WIDTH-1:0] DB_retimed;
+
+    Delay_Line 
+    #(
+        .DEPTH  (WRITE_ADDR_RETIME_STAGES), 
+        .WIDTH  (ADDR_WIDTH)
+    ) 
+    DL_retime
+    (
+        .clock  (clock),
+        .in     (DB),
+        .out    (DB_retimed)
+    );
+
+
+// --------------------------------------------------------------------
+
     // The feedback path (4 cycles) takes Ra and feeds it back as R or S, and
     // computes some flags. It starts at the end of the forward path and goes
     // backwards.
@@ -84,7 +102,7 @@ module Triadic_ALU
 
         .Ra             (Ra),           // ALU First Result
         .Rb             (Rb),           // ALU Second Result
-        .DB             (DB),           // Write Address for Rb
+        .DB             (DB_retimed),   // Write Address for Rb
         .IO_Ready       (IO_Ready),
         .Cancel         (Cancel),
 

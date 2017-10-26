@@ -58,7 +58,9 @@ module Datapath
     parameter   AD_READ_NEW_DATA                        = 0,
     // Multithreading
     parameter   THREAD_COUNT                            = 0,
-    parameter   THREAD_COUNT_WIDTH                      = 0
+    parameter   THREAD_COUNT_WIDTH                      = 0,
+    // Retiming
+    parameter   WRITE_ADDR_RETIME_STAGES                = 0
 )
 (
     input   wire                                        clock,
@@ -229,30 +231,31 @@ module Datapath
         .RAMSTYLE                   (AD_RAMSTYLE),
         .READ_NEW_DATA              (AD_READ_NEW_DATA),
         .THREAD_COUNT               (THREAD_COUNT),
-        .THREAD_COUNT_WIDTH         (THREAD_COUNT_WIDTH)
+        .THREAD_COUNT_WIDTH         (THREAD_COUNT_WIDTH),
+        .WRITE_ADDR_RETIME_STAGES   (WRITE_ADDR_RETIME_STAGES)
     )
     AD
     (
-        .clock                  (clock),
+        .clock                      (clock),
 
-        .A_raw_addr             (read_addr_A),
-        .B_raw_addr             (read_addr_B),
-        .DA_raw_addr            (write_addr_A),
-        .DB_raw_addr            (write_addr_B),
+        .A_raw_addr                 (read_addr_A),
+        .B_raw_addr                 (read_addr_B),
+        .DA_raw_addr                (write_addr_A),
+        .DB_raw_addr                (write_addr_B),
 
-        .IO_Ready_current       (IO_ready),
-        .Cancel_current         (cancel),
+        .IO_Ready_current           (IO_ready),
+        .Cancel_current             (cancel),
 
-        .IO_Ready_previous      (IO_ready_previous),
-        .Cancel_previous        (cancel_previous),
+        .IO_Ready_previous          (IO_ready_previous),
+        .Cancel_previous            (cancel_previous),
 
-        .write_addr             (write_addr_Rb),
-        .write_data             (Rb),
+        .write_addr                 (write_addr_Rb),
+        .write_data                 (Rb),
 
-        .A_offset_addr          (read_addr_A_offset),
-        .B_offset_addr          (read_addr_B_offset),
-        .DA_offset_addr         (write_addr_A_offset),
-        .DB_offset_addr         (write_addr_B_offset)
+        .A_offset_addr              (read_addr_A_offset),
+        .B_offset_addr              (read_addr_B_offset),
+        .DA_offset_addr             (write_addr_A_offset),
+        .DB_offset_addr             (write_addr_B_offset)
     );
 
 // --------------------------------------------------------------------
@@ -292,58 +295,59 @@ module Datapath
 
     Datapath_Memory
     #(
-        .WORD_WIDTH             (WORD_WIDTH),
-        .READ_ADDR_WIDTH        (READ_ADDR_WIDTH),
-        .WRITE_ADDR_WIDTH       (WRITE_ADDR_WIDTH),
-        .MEM_ADDR_WIDTH         (MEM_ADDR_WIDTH),
-        .MEM_RAMSTYLE           (MEM_RAMSTYLE),
-        .MEM_READ_NEW_DATA      (MEM_READ_NEW_DATA),
-        .MEM_INIT_FILE_A        (MEM_INIT_FILE_A),
-        .MEM_INIT_FILE_B        (MEM_INIT_FILE_B),
-        .MEM_READ_BASE_ADDR_A   (MEM_READ_BASE_ADDR_A),
-        .MEM_READ_BOUND_ADDR_A  (MEM_READ_BOUND_ADDR_A),
-        .MEM_WRITE_BASE_ADDR_A  (MEM_WRITE_BASE_ADDR_A),
-        .MEM_WRITE_BOUND_ADDR_A (MEM_WRITE_BOUND_ADDR_A),
-        .MEM_READ_BASE_ADDR_B   (MEM_READ_BASE_ADDR_B),
-        .MEM_READ_BOUND_ADDR_B  (MEM_READ_BOUND_ADDR_B),
-        .MEM_WRITE_BASE_ADDR_B  (MEM_WRITE_BASE_ADDR_B),
-        .MEM_WRITE_BOUND_ADDR_B (MEM_WRITE_BOUND_ADDR_B),
-        .IO_PORT_COUNT          (IO_PORT_COUNT),
-        .IO_PORT_BASE_ADDR      (IO_PORT_BASE_ADDR),
-        .IO_PORT_ADDR_WIDTH     (IO_PORT_ADDR_WIDTH) 
+        .WORD_WIDTH                 (WORD_WIDTH),
+        .READ_ADDR_WIDTH            (READ_ADDR_WIDTH),
+        .WRITE_ADDR_WIDTH           (WRITE_ADDR_WIDTH),
+        .MEM_ADDR_WIDTH             (MEM_ADDR_WIDTH),
+        .MEM_RAMSTYLE               (MEM_RAMSTYLE),
+        .MEM_READ_NEW_DATA          (MEM_READ_NEW_DATA),
+        .MEM_INIT_FILE_A            (MEM_INIT_FILE_A),
+        .MEM_INIT_FILE_B            (MEM_INIT_FILE_B),
+        .MEM_READ_BASE_ADDR_A       (MEM_READ_BASE_ADDR_A),
+        .MEM_READ_BOUND_ADDR_A      (MEM_READ_BOUND_ADDR_A),
+        .MEM_WRITE_BASE_ADDR_A      (MEM_WRITE_BASE_ADDR_A),
+        .MEM_WRITE_BOUND_ADDR_A     (MEM_WRITE_BOUND_ADDR_A),
+        .MEM_READ_BASE_ADDR_B       (MEM_READ_BASE_ADDR_B),
+        .MEM_READ_BOUND_ADDR_B      (MEM_READ_BOUND_ADDR_B),
+        .MEM_WRITE_BASE_ADDR_B      (MEM_WRITE_BASE_ADDR_B),
+        .MEM_WRITE_BOUND_ADDR_B     (MEM_WRITE_BOUND_ADDR_B),
+        .IO_PORT_COUNT              (IO_PORT_COUNT),
+        .IO_PORT_BASE_ADDR          (IO_PORT_BASE_ADDR),
+        .IO_PORT_ADDR_WIDTH         (IO_PORT_ADDR_WIDTH),
+        .WRITE_ADDR_RETIME_STAGES   (WRITE_ADDR_RETIME_STAGES) 
     )
     DM
     (
-        .clock                  (clock),
+        .clock                      (clock),
 
-        .IOR                    (IO_ready),
-        .cancel                 (cancel),
-        .IOR_previous           (IO_ready_previous),
-        .cancel_previous        (cancel_previous),
+        .IOR                        (IO_ready),
+        .cancel                     (cancel),
+        .IOR_previous               (IO_ready_previous),
+        .cancel_previous            (cancel_previous),
 
-        .read_addr_A            (read_addr_A_offset),
-        .read_addr_B            (read_addr_B_offset),
-        .write_addr_A           (write_addr_Ra),
-        .write_addr_B           (write_addr_Rb),
+        .read_addr_A                (read_addr_A_offset),
+        .read_addr_B                (read_addr_B_offset),
+        .write_addr_A               (write_addr_Ra),
+        .write_addr_B               (write_addr_Rb),
         
-        .write_data_A           (Ra),
-        .write_data_B           (Rb),
+        .write_data_A               (Ra),
+        .write_data_B               (Rb),
 
-        .io_read_data_A         (io_read_data_A),
-        .io_read_data_B         (io_read_data_B),
-        .io_write_data_A        (io_write_data_A),
-        .io_write_data_B        (io_write_data_B),
+        .io_read_data_A             (io_read_data_A),
+        .io_read_data_B             (io_read_data_B),
+        .io_write_data_A            (io_write_data_A),
+        .io_write_data_B            (io_write_data_B),
 
-        .read_addr_is_IO_A      (read_addr_is_IO_A),
-        .read_addr_is_IO_B      (read_addr_is_IO_B),
-        .write_addr_is_IO_A     (write_addr_is_IO_A_stage8),
-        .write_addr_is_IO_B     (write_addr_is_IO_B_stage8),
+        .read_addr_is_IO_A          (read_addr_is_IO_A),
+        .read_addr_is_IO_B          (read_addr_is_IO_B),
+        .write_addr_is_IO_A         (write_addr_is_IO_A_stage8),
+        .write_addr_is_IO_B         (write_addr_is_IO_B_stage8),
 
-        .io_wren_A              (io_wren_A),
-        .io_wren_B              (io_wren_B),
+        .io_wren_A                  (io_wren_A),
+        .io_wren_B                  (io_wren_B),
 
-        .read_data_A            (read_data_A),
-        .read_data_B            (read_data_B)
+        .read_data_A                (read_data_A),
+        .read_data_B                (read_data_B)
     );
 
 // --------------------------------------------------------------------
@@ -351,8 +355,11 @@ module Datapath
 // Stages 5 through 8
 
     // Pass signals alongside the ALU, to the Datapath output stage.
+    // Subtract one or more stages, which get re-added/replicated at the
+    // destinations. This is to eliminate address decoding as a critical path.
+    // Destination modules with retiming will also have the same parameter.
 
-    localparam ALU_PIPE_DEPTH = 4;
+    localparam ALU_PIPE_DEPTH = 4 - WRITE_ADDR_RETIME_STAGES;
     localparam ALU_PIPE_WIDTH = 1 + 1 + WRITE_ADDR_WIDTH + WRITE_ADDR_WIDTH;
 
     Delay_Line 
@@ -374,27 +381,28 @@ module Datapath
 
     Triadic_ALU
     #(
-        .WORD_WIDTH         (WORD_WIDTH), 
-        .ADDR_WIDTH         (WRITE_ADDR_WIDTH),
-        .S_WRITE_ADDR       (S_WRITE_ADDR),
-        .S_RAMSTYLE         (S_RAMSTYLE),
-        .S_READ_NEW_DATA    (S_READ_NEW_DATA),
-        .THREAD_COUNT       (THREAD_COUNT),
-        .THREAD_COUNT_WIDTH (THREAD_COUNT_WIDTH)
+        .WORD_WIDTH                 (WORD_WIDTH), 
+        .ADDR_WIDTH                 (WRITE_ADDR_WIDTH),
+        .S_WRITE_ADDR               (S_WRITE_ADDR),
+        .S_RAMSTYLE                 (S_RAMSTYLE),
+        .S_READ_NEW_DATA            (S_READ_NEW_DATA),
+        .THREAD_COUNT               (THREAD_COUNT),
+        .THREAD_COUNT_WIDTH         (THREAD_COUNT_WIDTH),
+        .WRITE_ADDR_RETIME_STAGES   (WRITE_ADDR_RETIME_STAGES)
     )
     ALU
     (
-        .clock              (clock),
-        .IO_Ready           (IO_ready_previous),
-        .Cancel             (cancel_previous),
-        .DB                 (write_addr_Rb),
-        .control            (control_stage4),
-        .A                  (read_data_A),
-        .B                  (read_data_B),
-        .Ra                 (Ra),
-        .Rb                 (Rb),
-        .carry_out          (Rcarry_out),
-        .overflow           (Roverflow)
+        .clock                      (clock),
+        .IO_Ready                   (IO_ready_previous),
+        .Cancel                     (cancel_previous),
+        .DB                         (write_addr_Rb),
+        .control                    (control_stage4),
+        .A                          (read_data_A),
+        .B                          (read_data_B),
+        .Ra                         (Ra),
+        .Rb                         (Rb),
+        .carry_out                  (Rcarry_out),
+        .overflow                   (Roverflow)
     );
 
 endmodule

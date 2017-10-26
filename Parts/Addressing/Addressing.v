@@ -53,7 +53,9 @@ module Addressing
     parameter       READ_NEW_DATA               = 0,
     // Multithreading
     parameter       THREAD_COUNT                = 0,
-    parameter       THREAD_COUNT_WIDTH          = 0
+    parameter       THREAD_COUNT_WIDTH          = 0,
+    // Retiming
+    parameter       WRITE_ADDR_RETIME_STAGES    = 0
 )
 (
     input   wire                            clock,
@@ -89,23 +91,24 @@ module Addressing
 
     Address_Module_Mapped
     #(
-        .WRITE_WORD_WIDTH   (WRITE_WORD_WIDTH),
-        .WRITE_ADDR_WIDTH   (WRITE_ADDR_WIDTH),
-        .ADDR_WIDTH         (A_ADDR_WIDTH),
-        .SHARED_ADDR_BASE   (A_SHARED_READ_ADDR_BASE),
-        .SHARED_ADDR_BOUND  (A_SHARED_READ_ADDR_BOUND),
-        .INDIRECT_ADDR_BASE (A_INDIRECT_READ_ADDR_BASE),
-        .PO_ADDR_BASE       (A_PO_ADDR_BASE),
-        .DO_ADDR            (DO_ADDR),
-        .PO_INCR_WIDTH      (PO_INCR_WIDTH),
-        .PO_ENTRY_COUNT     (PO_ENTRY_COUNT),
-        .PO_ADDR_WIDTH      (PO_ADDR_WIDTH),
-        .PO_INIT_FILE       (PO_INIT_FILE),
-        .DO_INIT_FILE       (DO_INIT_FILE),
-        .RAMSTYLE           (RAMSTYLE),
-        .READ_NEW_DATA      (READ_NEW_DATA),
-        .THREAD_COUNT       (THREAD_COUNT),
-        .THREAD_COUNT_WIDTH (THREAD_COUNT_WIDTH)
+        .WRITE_WORD_WIDTH           (WRITE_WORD_WIDTH),
+        .WRITE_ADDR_WIDTH           (WRITE_ADDR_WIDTH),
+        .ADDR_WIDTH                 (A_ADDR_WIDTH),
+        .SHARED_ADDR_BASE           (A_SHARED_READ_ADDR_BASE),
+        .SHARED_ADDR_BOUND          (A_SHARED_READ_ADDR_BOUND),
+        .INDIRECT_ADDR_BASE         (A_INDIRECT_READ_ADDR_BASE),
+        .PO_ADDR_BASE               (A_PO_ADDR_BASE),
+        .DO_ADDR                    (DO_ADDR),
+        .PO_INCR_WIDTH              (PO_INCR_WIDTH),
+        .PO_ENTRY_COUNT             (PO_ENTRY_COUNT),
+        .PO_ADDR_WIDTH              (PO_ADDR_WIDTH),
+        .PO_INIT_FILE               (PO_INIT_FILE),
+        .DO_INIT_FILE               (DO_INIT_FILE),
+        .RAMSTYLE                   (RAMSTYLE),
+        .READ_NEW_DATA              (READ_NEW_DATA),
+        .THREAD_COUNT               (THREAD_COUNT),
+        .THREAD_COUNT_WIDTH         (THREAD_COUNT_WIDTH),
+        .WRITE_ADDR_RETIME_STAGES   (WRITE_ADDR_RETIME_STAGES)
     )
     AMM_A
     (
@@ -129,23 +132,24 @@ module Addressing
 
     Address_Module_Mapped
     #(
-        .WRITE_WORD_WIDTH   (WRITE_WORD_WIDTH),
-        .WRITE_ADDR_WIDTH   (WRITE_ADDR_WIDTH),
-        .ADDR_WIDTH         (B_ADDR_WIDTH),
-        .SHARED_ADDR_BASE   (B_SHARED_READ_ADDR_BASE),
-        .SHARED_ADDR_BOUND  (B_SHARED_READ_ADDR_BOUND),
-        .INDIRECT_ADDR_BASE (B_INDIRECT_READ_ADDR_BASE),
-        .PO_ADDR_BASE       (B_PO_ADDR_BASE),
-        .DO_ADDR            (DO_ADDR),
-        .PO_INCR_WIDTH      (PO_INCR_WIDTH),
-        .PO_ENTRY_COUNT     (PO_ENTRY_COUNT),
-        .PO_ADDR_WIDTH      (PO_ADDR_WIDTH),
-        .PO_INIT_FILE       (PO_INIT_FILE),
-        .DO_INIT_FILE       (DO_INIT_FILE),
-        .RAMSTYLE           (RAMSTYLE),
-        .READ_NEW_DATA      (READ_NEW_DATA),
-        .THREAD_COUNT       (THREAD_COUNT),
-        .THREAD_COUNT_WIDTH (THREAD_COUNT_WIDTH)
+        .WRITE_WORD_WIDTH           (WRITE_WORD_WIDTH),
+        .WRITE_ADDR_WIDTH           (WRITE_ADDR_WIDTH),
+        .ADDR_WIDTH                 (B_ADDR_WIDTH),
+        .SHARED_ADDR_BASE           (B_SHARED_READ_ADDR_BASE),
+        .SHARED_ADDR_BOUND          (B_SHARED_READ_ADDR_BOUND),
+        .INDIRECT_ADDR_BASE         (B_INDIRECT_READ_ADDR_BASE),
+        .PO_ADDR_BASE               (B_PO_ADDR_BASE),
+        .DO_ADDR                    (DO_ADDR),
+        .PO_INCR_WIDTH              (PO_INCR_WIDTH),
+        .PO_ENTRY_COUNT             (PO_ENTRY_COUNT),
+        .PO_ADDR_WIDTH              (PO_ADDR_WIDTH),
+        .PO_INIT_FILE               (PO_INIT_FILE),
+        .DO_INIT_FILE               (DO_INIT_FILE),
+        .RAMSTYLE                   (RAMSTYLE),
+        .READ_NEW_DATA              (READ_NEW_DATA),
+        .THREAD_COUNT               (THREAD_COUNT),
+        .THREAD_COUNT_WIDTH         (THREAD_COUNT_WIDTH),
+        .WRITE_ADDR_RETIME_STAGES   (WRITE_ADDR_RETIME_STAGES)
     )
     AMM_B
     (
@@ -169,23 +173,24 @@ module Addressing
 
     Address_Module_Mapped
     #(
-        .WRITE_WORD_WIDTH   (WRITE_WORD_WIDTH),
-        .WRITE_ADDR_WIDTH   (WRITE_ADDR_WIDTH),
-        .ADDR_WIDTH         (D_ADDR_WIDTH),
-        .SHARED_ADDR_BASE   (A_SHARED_WRITE_ADDR_BASE),
-        .SHARED_ADDR_BOUND  (A_SHARED_WRITE_ADDR_BOUND),
-        .INDIRECT_ADDR_BASE (A_INDIRECT_WRITE_ADDR_BASE),
-        .PO_ADDR_BASE       (DA_PO_ADDR_BASE),
-        .DO_ADDR            (DO_ADDR),
-        .PO_INCR_WIDTH      (PO_INCR_WIDTH),
-        .PO_ENTRY_COUNT     (PO_ENTRY_COUNT),
-        .PO_ADDR_WIDTH      (PO_ADDR_WIDTH),
-        .PO_INIT_FILE       (PO_INIT_FILE),
-        .DO_INIT_FILE       (DO_INIT_FILE),
-        .RAMSTYLE           (RAMSTYLE),
-        .READ_NEW_DATA      (READ_NEW_DATA),
-        .THREAD_COUNT       (THREAD_COUNT),
-        .THREAD_COUNT_WIDTH (THREAD_COUNT_WIDTH)
+        .WRITE_WORD_WIDTH           (WRITE_WORD_WIDTH),
+        .WRITE_ADDR_WIDTH           (WRITE_ADDR_WIDTH),
+        .ADDR_WIDTH                 (D_ADDR_WIDTH),
+        .SHARED_ADDR_BASE           (A_SHARED_WRITE_ADDR_BASE),
+        .SHARED_ADDR_BOUND          (A_SHARED_WRITE_ADDR_BOUND),
+        .INDIRECT_ADDR_BASE         (A_INDIRECT_WRITE_ADDR_BASE),
+        .PO_ADDR_BASE               (DA_PO_ADDR_BASE),
+        .DO_ADDR                    (DO_ADDR),
+        .PO_INCR_WIDTH              (PO_INCR_WIDTH),
+        .PO_ENTRY_COUNT             (PO_ENTRY_COUNT),
+        .PO_ADDR_WIDTH              (PO_ADDR_WIDTH),
+        .PO_INIT_FILE               (PO_INIT_FILE),
+        .DO_INIT_FILE               (DO_INIT_FILE),
+        .RAMSTYLE                   (RAMSTYLE),
+        .READ_NEW_DATA              (READ_NEW_DATA),
+        .THREAD_COUNT               (THREAD_COUNT),
+        .THREAD_COUNT_WIDTH         (THREAD_COUNT_WIDTH),
+        .WRITE_ADDR_RETIME_STAGES   (WRITE_ADDR_RETIME_STAGES)
     )
     AMM_DA
     (
@@ -209,23 +214,24 @@ module Addressing
 
     Address_Module_Mapped
     #(
-        .WRITE_WORD_WIDTH   (WRITE_WORD_WIDTH),
-        .WRITE_ADDR_WIDTH   (WRITE_ADDR_WIDTH),
-        .ADDR_WIDTH         (D_ADDR_WIDTH),
-        .SHARED_ADDR_BASE   (B_SHARED_WRITE_ADDR_BASE),
-        .SHARED_ADDR_BOUND  (B_SHARED_WRITE_ADDR_BOUND),
-        .INDIRECT_ADDR_BASE (B_INDIRECT_WRITE_ADDR_BASE),
-        .PO_ADDR_BASE       (DB_PO_ADDR_BASE),
-        .DO_ADDR            (DO_ADDR),
-        .PO_INCR_WIDTH      (PO_INCR_WIDTH),
-        .PO_ENTRY_COUNT     (PO_ENTRY_COUNT),
-        .PO_ADDR_WIDTH      (PO_ADDR_WIDTH),
-        .PO_INIT_FILE       (PO_INIT_FILE),
-        .DO_INIT_FILE       (DO_INIT_FILE),
-        .RAMSTYLE           (RAMSTYLE),
-        .READ_NEW_DATA      (READ_NEW_DATA),
-        .THREAD_COUNT       (THREAD_COUNT),
-        .THREAD_COUNT_WIDTH (THREAD_COUNT_WIDTH)
+        .WRITE_WORD_WIDTH           (WRITE_WORD_WIDTH),
+        .WRITE_ADDR_WIDTH           (WRITE_ADDR_WIDTH),
+        .ADDR_WIDTH                 (D_ADDR_WIDTH),
+        .SHARED_ADDR_BASE           (B_SHARED_WRITE_ADDR_BASE),
+        .SHARED_ADDR_BOUND          (B_SHARED_WRITE_ADDR_BOUND),
+        .INDIRECT_ADDR_BASE         (B_INDIRECT_WRITE_ADDR_BASE),
+        .PO_ADDR_BASE               (DB_PO_ADDR_BASE),
+        .DO_ADDR                    (DO_ADDR),
+        .PO_INCR_WIDTH              (PO_INCR_WIDTH),
+        .PO_ENTRY_COUNT             (PO_ENTRY_COUNT),
+        .PO_ADDR_WIDTH              (PO_ADDR_WIDTH),
+        .PO_INIT_FILE               (PO_INIT_FILE),
+        .DO_INIT_FILE               (DO_INIT_FILE),
+        .RAMSTYLE                   (RAMSTYLE),
+        .READ_NEW_DATA              (READ_NEW_DATA),
+        .THREAD_COUNT               (THREAD_COUNT),
+        .THREAD_COUNT_WIDTH         (THREAD_COUNT_WIDTH),
+        .WRITE_ADDR_RETIME_STAGES   (WRITE_ADDR_RETIME_STAGES)
     )
     AMM_DB
     (

@@ -34,7 +34,8 @@ module Datapath_Memory
     parameter   MEM_WRITE_BOUND_ADDR_B                  = 0,
     parameter   IO_PORT_COUNT                           = 0,
     parameter   IO_PORT_BASE_ADDR                       = 0,
-    parameter   IO_PORT_ADDR_WIDTH                      = 0
+    parameter   IO_PORT_ADDR_WIDTH                      = 0,
+    parameter   WRITE_ADDR_RETIME_STAGES                = 0
 )
 (
     input   wire                                        clock,
@@ -90,6 +91,25 @@ module Datapath_Memory
     localparam MEM_DEPTH_B       = (MEM_READ_DEPTH_B <= MEM_WRITE_DEPTH_B) ? MEM_READ_DEPTH_B : MEM_WRITE_DEPTH_B;
 
 // --------------------------------------------------------------------
+
+    wire [WRITE_ADDR_WIDTH-1:0] write_addr_A_retimed;
+    wire [WRITE_ADDR_WIDTH-1:0] write_addr_B_retimed;
+    wire                        write_addr_is_IO_A_retimed;
+    wire                        write_addr_is_IO_B_retimed;
+
+    Delay_Line 
+    #(
+        .DEPTH  (WRITE_ADDR_RETIME_STAGES), 
+        .WIDTH  (WRITE_ADDR_WIDTH + WRITE_ADDR_WIDTH + 1 + 1)
+    ) 
+    DL_retime
+    (
+        .clock  (clock),
+        .in     ({write_addr_A,         write_addr_B,         write_addr_is_IO_A,         write_addr_is_IO_B}),
+        .out    ({write_addr_A_retimed, write_addr_B_retimed, write_addr_is_IO_A_retimed, write_addr_is_IO_B_retimed})
+    );
+
+// --------------------------------------------------------------------
 // --------------------------------------------------------------------
 
     wire read_A_zero;
@@ -120,7 +140,7 @@ module Datapath_Memory
     Mem_A_Write
     (
         .enable     (1'b1),
-        .addr       (write_addr_A),
+        .addr       (write_addr_A_retimed),
         .hit        (write_enable_A)
     );
 
@@ -153,7 +173,7 @@ module Datapath_Memory
     Mem_B_Write
     (
         .enable     (1'b1),
-        .addr       (write_addr_B),
+        .addr       (write_addr_B_retimed),
         .hit        (write_enable_B)
     );
 
@@ -172,10 +192,10 @@ module Datapath_Memory
     reg [MEM_ADDR_WIDTH-1:0] write_addr_B_local = 0;
 
     always @(*) begin
-        read_addr_A_local  <= read_addr_A  [MEM_ADDR_WIDTH-1:0];
-        read_addr_B_local  <= read_addr_B  [MEM_ADDR_WIDTH-1:0];
-        write_addr_A_local <= write_addr_A [MEM_ADDR_WIDTH-1:0];
-        write_addr_B_local <= write_addr_B [MEM_ADDR_WIDTH-1:0];
+        read_addr_A_local  <= read_addr_A           [MEM_ADDR_WIDTH-1:0];
+        read_addr_B_local  <= read_addr_B           [MEM_ADDR_WIDTH-1:0];
+        write_addr_A_local <= write_addr_A_retimed  [MEM_ADDR_WIDTH-1:0];
+        write_addr_B_local <= write_addr_B_retimed  [MEM_ADDR_WIDTH-1:0];
     end
 
 // --------------------------------------------------------------------
@@ -210,7 +230,7 @@ module Datapath_Memory
 
         .write_enable           (write_enable_A),
         .write_addr             (write_addr_A_local),
-        .write_addr_is_IO       (write_addr_is_IO_A),
+        .write_addr_is_IO       (write_addr_is_IO_A_retimed),
         .write_data             (write_data_A),
         .io_wren                (io_wren_A),
         .io_write_data          (io_write_data_A)
@@ -247,7 +267,7 @@ module Datapath_Memory
 
         .write_enable           (write_enable_B),
         .write_addr             (write_addr_B_local),
-        .write_addr_is_IO       (write_addr_is_IO_B),
+        .write_addr_is_IO       (write_addr_is_IO_B_retimed),
         .write_data             (write_data_B),
         .io_wren                (io_wren_B),
         .io_write_data          (io_write_data_B)

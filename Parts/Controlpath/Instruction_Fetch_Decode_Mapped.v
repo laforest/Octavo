@@ -5,55 +5,54 @@
 
 module Instruction_Fetch_Decode_Mapped
 #(
-    parameter       WORD_WIDTH              = 0,
-    parameter       ADDR_WIDTH              = 0,
+    parameter       WORD_WIDTH                  = 0,
+    parameter       ADDR_WIDTH                  = 0,
     // Instruction format
-    parameter       OPCODE_WIDTH            = 0,
-    parameter       D_OPERAND_WIDTH         = 0,
-    parameter       A_OPERAND_WIDTH         = 0,
-    parameter       B_OPERAND_WIDTH         = 0,
+    parameter       OPCODE_WIDTH                = 0,
+    parameter       D_OPERAND_WIDTH             = 0,
+    parameter       A_OPERAND_WIDTH             = 0,
+    parameter       B_OPERAND_WIDTH             = 0,
     // Instruction Memory (shared)
-    parameter       IM_WORD_WIDTH           = 0,
-    parameter       IM_ADDR_WIDTH           = 0,
-    parameter       IM_READ_NEW             = 0,
-    parameter       IM_DEPTH                = 0,
-    parameter       IM_RAMSTYLE             = "",
-    parameter       IM_INIT_FILE            = "",
-    // Opcode Decoder Memory (multithreaded)
-    parameter       OD_WORD_WIDTH           = 0,
-    parameter       OD_ADDR_WIDTH           = 0,
-    parameter       OD_READ_NEW             = 0,
-    parameter       OD_THREAD_DEPTH         = 0,
-    parameter       OD_RAMSTYLE             = "",
-    parameter       OD_INIT_FILE            = "",
-    parameter       OD_INITIAL_THREAD_READ  = 0,
-    parameter       OD_INITIAL_THREAD_WRITE = 0,
+    parameter       IM_WORD_WIDTH               = 0,
+    parameter       IM_ADDR_WIDTH               = 0,
+    parameter       IM_READ_NEW                 = 0,
+    parameter       IM_DEPTH                    = 0,
+    parameter       IM_RAMSTYLE                 = "",
+    parameter       IM_INIT_FILE                = "",
+    // Opcode Decoder Memory (multithreaded)    
+    parameter       OD_WORD_WIDTH               = 0,
+    parameter       OD_ADDR_WIDTH               = 0,
+    parameter       OD_READ_NEW                 = 0,
+    parameter       OD_THREAD_DEPTH             = 0,
+    parameter       OD_RAMSTYLE                 = "",
+    parameter       OD_INIT_FILE                = "",
+    parameter       OD_INITIAL_THREAD_READ      = 0,
+    parameter       OD_INITIAL_THREAD_WRITE     = 0,
     // Memory-mapping
-    parameter       DB_BASE_ADDR            = 0,
-    parameter       IM_BASE_ADDR_WRITE      = 0,
-    parameter       OD_BASE_ADDR_WRITE      = 0,
+    parameter       DB_BASE_ADDR                = 0,
+    parameter       IM_BASE_ADDR_WRITE          = 0,
+    parameter       OD_BASE_ADDR_WRITE          = 0,
     // Multithreading
-    parameter       THREAD_COUNT            = 0,
-    parameter       THREAD_COUNT_WIDTH      = 0
+    parameter       THREAD_COUNT                = 0,
+    parameter       THREAD_COUNT_WIDTH          = 0,
+    // Retiming
+    parameter       WRITE_ADDR_RETIME_STAGES    = 0
 )
 (
-    input   wire                            clock,
+    input   wire                                clock,
 
-    input   wire                            IOR_previous,
-    input   wire                            cancel_previous,
+    input   wire                                IOR_previous,
+    input   wire                                cancel_previous,
 
-    input   wire    [ADDR_WIDTH-1:0]        im_write_addr,
-    input   wire    [WORD_WIDTH-1:0]        im_write_data,
-    input   wire    [IM_ADDR_WIDTH-1:0]     im_read_addr,
+    input   wire    [ADDR_WIDTH-1:0]            write_addr,
+    input   wire    [WORD_WIDTH-1:0]            write_data,
+    input   wire    [IM_ADDR_WIDTH-1:0]         im_read_addr,
 
-    input   wire    [ADDR_WIDTH-1:0]        od_write_addr,
-    input   wire    [WORD_WIDTH-1:0]        od_write_data,
-
-    output  wire    [OD_WORD_WIDTH-1:0]     ALU_control,
-    output  wire    [D_OPERAND_WIDTH-1:0]   DA,
-    output  wire    [D_OPERAND_WIDTH-1:0]   DB,
-    output  wire    [A_OPERAND_WIDTH-1:0]   A,
-    output  wire    [B_OPERAND_WIDTH-1:0]   B
+    output  wire    [OD_WORD_WIDTH-1:0]         ALU_control,
+    output  wire    [D_OPERAND_WIDTH-1:0]       DA,
+    output  wire    [D_OPERAND_WIDTH-1:0]       DB,
+    output  wire    [A_OPERAND_WIDTH-1:0]       A,
+    output  wire    [B_OPERAND_WIDTH-1:0]       B
 );
 
 // --------------------------------------------------------------------
@@ -77,6 +76,22 @@ module Instruction_Fetch_Decode_Mapped
 
 // --------------------------------------------------------------------
 
+    wire [ADDR_WIDTH-1:0] write_addr_retimed;
+
+    Delay_Line 
+    #(
+        .DEPTH  (WRITE_ADDR_RETIME_STAGES), 
+        .WIDTH  (ADDR_WIDTH)
+    ) 
+    DL_retime
+    (
+        .clock  (clock),
+        .in     (write_addr),
+        .out    (write_addr_retimed)
+    );
+
+// --------------------------------------------------------------------
+
     localparam                  IM_BOUND_ADDR_WRITE = IM_BASE_ADDR_WRITE + IM_DEPTH - 1;
 
     wire                        im_wren;
@@ -95,7 +110,7 @@ module Instruction_Fetch_Decode_Mapped
     (
         .clock                  (1'b0),
         .enable                 (instruction_ok),
-        .addr                   (im_write_addr),
+        .addr                   (write_addr_retimed),
         .addr_translated_lsb    (im_write_addr_translated),
         .addr_valid             (im_wren)
     );
@@ -120,7 +135,7 @@ module Instruction_Fetch_Decode_Mapped
     (
         .clock                  (1'b0),
         .enable                 (instruction_ok),
-        .addr                   (od_write_addr),
+        .addr                   (write_addr_retimed),
         .addr_translated_lsb    (od_write_addr_translated),
         .addr_valid             (od_wren)
     );
@@ -157,13 +172,13 @@ IFD
 
     .im_wren                    (im_wren),
     .im_write_addr              (im_write_addr_translated),
-    .im_write_data              (im_write_data[IM_WORD_WIDTH-1:0]),
+    .im_write_data              (write_data[IM_WORD_WIDTH-1:0]),
     .im_rden                    (im_rden),
     .im_read_addr               (im_read_addr),
 
     .od_wren                    (od_wren),
     .od_write_addr              (od_write_addr_translated),
-    .od_write_data              (od_write_data[OD_WORD_WIDTH-1:0]),
+    .od_write_data              (write_data[OD_WORD_WIDTH-1:0]),
 
     .ALU_control                (ALU_control),
     .DA                         (DA),

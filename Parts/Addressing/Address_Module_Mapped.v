@@ -12,53 +12,55 @@
 module Address_Module_Mapped
 #(
     // Match to system word width and total address space
-    parameter       WRITE_WORD_WIDTH        = 0,
-    parameter       WRITE_ADDR_WIDTH        = 0,
+    parameter       WRITE_WORD_WIDTH            = 0,
+    parameter       WRITE_ADDR_WIDTH            = 0,
     // Offsets are the width of an address operand to enable full offset range
-    parameter       ADDR_WIDTH              = 0,
+    parameter       ADDR_WIDTH                  = 0,
     // Address ranges (base and bound inclusive)
-    parameter       SHARED_ADDR_BASE        = 0,
-    parameter       SHARED_ADDR_BOUND       = 0,
-    parameter       INDIRECT_ADDR_BASE      = 0,
-    parameter       PO_ADDR_BASE            = 0,
-    parameter       DO_ADDR                 = 0,
+    parameter       SHARED_ADDR_BASE            = 0,
+    parameter       SHARED_ADDR_BOUND           = 0,
+    parameter       INDIRECT_ADDR_BASE          = 0,
+    parameter       PO_ADDR_BASE                = 0,
+    parameter       DO_ADDR                     = 0,
     // Multiple Programmed Offset/Increment per Thread
-    parameter       PO_INCR_WIDTH           = 0,
-    parameter       PO_ENTRY_COUNT          = 0, // Sets indirect and PO addr bounds
-    parameter       PO_ADDR_WIDTH           = 0,
-    parameter       PO_INIT_FILE            = "",
-    parameter       PO_ENTRY_WIDTH          = ADDR_WIDTH + PO_INCR_WIDTH, // Don't set an instantiation.
+    parameter       PO_INCR_WIDTH               = 0,
+    parameter       PO_ENTRY_COUNT              = 0, // Sets indirect and PO addr bounds
+    parameter       PO_ADDR_WIDTH               = 0,
+    parameter       PO_INIT_FILE                = "",
+    parameter       PO_ENTRY_WIDTH              = ADDR_WIDTH + PO_INCR_WIDTH, // Don't set an instantiation.
     // One Default Offset per Thread
-    parameter       DO_INIT_FILE            = "",
+    parameter       DO_INIT_FILE                = "",
     // Common RAM parameters
-    parameter       RAMSTYLE                = "",
-    parameter       READ_NEW_DATA           = 0,
+    parameter       RAMSTYLE                    = "",
+    parameter       READ_NEW_DATA               = 0,
     // Multithreading
-    parameter       THREAD_COUNT            = 0,
-    parameter       THREAD_COUNT_WIDTH      = 0
+    parameter       THREAD_COUNT                = 0,
+    parameter       THREAD_COUNT_WIDTH          = 0,
+    // Retiming
+    parameter       WRITE_ADDR_RETIME_STAGES    = 0
 )
 (
-    input   wire                            clock,
+    input   wire                                clock,
 
     // Operand address
-    input   wire    [ADDR_WIDTH-1:0]        raw_addr,
+    input   wire    [ADDR_WIDTH-1:0]            raw_addr,
 
     // Don't let internal state self-update if the current instruction ends up
     // cancelled or annulled.
-    input   wire                            IO_Ready_current,
-    input   wire                            Cancel_current,
+    input   wire                                IO_Ready_current,
+    input   wire                                Cancel_current,
 
     // Disable any writes to PO/DO memories from previous instruction if it
     // was annulled or cancelled.
-    input   wire                            IO_Ready_previous,
-    input   wire                            Cancel_previous,
+    input   wire                                IO_Ready_previous,
+    input   wire                                Cancel_previous,
 
     // External write port for previous instruction to update Programmed or
     // Default Offset
-    input   wire    [WRITE_ADDR_WIDTH-1:0]  write_addr,
-    input   wire    [WRITE_WORD_WIDTH-1:0]  write_data,
+    input   wire    [WRITE_ADDR_WIDTH-1:0]      write_addr,
+    input   wire    [WRITE_WORD_WIDTH-1:0]      write_data,
 
-    output  wire    [ADDR_WIDTH-1:0]        offset_addr
+    output  wire    [ADDR_WIDTH-1:0]            offset_addr
 );
 
 // --------------------------------------------------------------------
@@ -104,6 +106,22 @@ module Address_Module_Mapped
 
 // --------------------------------------------------------------------
 
+    wire [WRITE_ADDR_WIDTH-1:0] write_addr_retimed;
+
+    Delay_Line 
+    #(
+        .DEPTH  (WRITE_ADDR_RETIME_STAGES), 
+        .WIDTH  (WRITE_ADDR_WIDTH)
+    ) 
+    DL_retime
+    (
+        .clock  (clock),
+        .in     (write_addr),
+        .out    (write_addr_retimed)
+    );
+
+// --------------------------------------------------------------------
+
     wire                        po_wren;
     wire [PO_ADDR_WIDTH-1:0]    write_addr_translated;
 
@@ -120,7 +138,7 @@ module Address_Module_Mapped
     (
         .clock                  (1'b0),
         .enable                 (1'b1),
-        .addr                   (write_addr),
+        .addr                   (write_addr_retimed),
         .addr_translated_lsb    (write_addr_translated),
         .addr_valid             (po_wren)
     );
@@ -138,7 +156,7 @@ module Address_Module_Mapped
     ARDS_DO_WREN
     (
         .enable     (1'b1),
-        .addr       (write_addr),
+        .addr       (write_addr_retimed),
         .hit        (do_wren)
     );
 
