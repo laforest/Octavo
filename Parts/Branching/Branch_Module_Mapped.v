@@ -24,7 +24,7 @@ module Branch_Module_Mapped
     // Physical memory base address
     parameter       CONFIG_ADDR_BASE            = 0,
     // Retiming
-    parameter       WRITE_ADDR_RETIME_STAGES    = 0
+    parameter       WRITE_RETIME_STAGES         = 0
 )
 (
     input   wire                                clock,
@@ -61,14 +61,20 @@ module Branch_Module_Mapped
 
 // --------------------------------------------------------------------
 
+    // Divide retimed registers into two groups, one before and one after
+    // the surrounded logic, with a special case for no retiming.
+    localparam RETIME_POST_STAGES       = 1;
+    localparam WRITE_RETIME_STAGES_POST = (WRITE_RETIME_STAGES > 0) ? RETIME_POST_STAGES : 0;
+    localparam WRITE_RETIME_STAGES_PRE  = WRITE_RETIME_STAGES - WRITE_RETIME_STAGES_POST;
+
     wire [ADDR_WIDTH-1:0] config_addr_retimed;
 
     Delay_Line 
     #(
-        .DEPTH  (WRITE_ADDR_RETIME_STAGES), 
+        .DEPTH  (WRITE_RETIME_STAGES_PRE), 
         .WIDTH  (ADDR_WIDTH)
     ) 
-    DL_retime
+    DL_retime_pre
     (
         .clock  (clock),
         .in     (config_addr),
@@ -171,6 +177,28 @@ module Branch_Module_Mapped
 
 // --------------------------------------------------------------------
 
+    // Now manually retime another set of registers here
+
+    wire config_addr_translated_retimed;
+    wire bs1_config_wren_retimed;
+    wire bs2_config_wren_retimed;
+    wire bc_config_wren_retimed;
+    wire bd_config_wren_retimed;
+
+    Delay_Line 
+    #(
+        .DEPTH  (WRITE_RETIME_STAGES_POST), 
+        .WIDTH  (1 + 1 + 1 + 1 + 1)
+    ) 
+    DL_retime_post
+    (
+        .clock  (clock),
+        .in     ({config_addr_translated,         bs1_config_wren,         bs2_config_wren,         bc_config_wren,         bd_config_wren}),
+        .out    ({config_addr_translated_retimed, bs1_config_wren_retimed, bs2_config_wren_retimed, bc_config_wren_retimed, bd_config_wren_retimed})
+    );
+
+// --------------------------------------------------------------------
+
     Branch_Module
     #(
         .WORD_WIDTH         (WORD_WIDTH),
@@ -195,11 +223,11 @@ module Branch_Module_Mapped
         .B_lessthan         (B_lessthan),
         .B_external         (B_external),
         .R_previous         (R_previous),
-        .bs1_config_wren    (bs1_config_wren),
-        .bs2_config_wren    (bs2_config_wren),
-        .bd_config_wren     (bd_config_wren),
-        .bc_config_wren     (bc_config_wren),
-        .config_addr        (config_addr_translated),
+        .bs1_config_wren    (bs1_config_wren_retimed),
+        .bs2_config_wren    (bs2_config_wren_retimed),
+        .bd_config_wren     (bd_config_wren_retimed),
+        .bc_config_wren     (bc_config_wren_retimed),
+        .config_addr        (config_addr_translated_retimed),
         .config_data        (config_data),
         .jump               (jump),
         .destination        (destination),

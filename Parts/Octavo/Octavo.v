@@ -93,7 +93,7 @@ module Octavo
     parameter   THREAD_COUNT                            = 0,
     parameter   THREAD_COUNT_WIDTH                      = 0,
     // Retiming
-    parameter   WRITE_ADDR_RETIME_STAGES                = 0
+    parameter   WRITE_RETIME_STAGES                     = 0
 )
 (
     input   wire                                        clock,
@@ -212,7 +212,7 @@ module Octavo
         .AD_READ_NEW_DATA           (AD_READ_NEW_DATA),
         .THREAD_COUNT               (THREAD_COUNT),
         .THREAD_COUNT_WIDTH         (THREAD_COUNT_WIDTH),
-        .WRITE_ADDR_RETIME_STAGES   (WRITE_ADDR_RETIME_STAGES)
+        .WRITE_RETIME_STAGES        (WRITE_RETIME_STAGES)
     )
     DP
     (
@@ -285,7 +285,7 @@ module Octavo
         .OD_BASE_ADDR_WRITE         (OD_BASE_ADDR_WRITE),
         .THREAD_COUNT               (THREAD_COUNT),
         .THREAD_COUNT_WIDTH         (THREAD_COUNT_WIDTH),
-        .WRITE_ADDR_RETIME_STAGES   (WRITE_ADDR_RETIME_STAGES)
+        .WRITE_RETIME_STAGES        (WRITE_RETIME_STAGES)
     )
     CP
     (

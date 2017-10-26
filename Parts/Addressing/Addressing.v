@@ -55,7 +55,7 @@ module Addressing
     parameter       THREAD_COUNT                = 0,
     parameter       THREAD_COUNT_WIDTH          = 0,
     // Retiming
-    parameter       WRITE_ADDR_RETIME_STAGES    = 0
+    parameter       WRITE_RETIME_STAGES         = 0
 )
 (
     input   wire                            clock,
@@ -108,24 +108,24 @@ module Addressing
         .READ_NEW_DATA              (READ_NEW_DATA),
         .THREAD_COUNT               (THREAD_COUNT),
         .THREAD_COUNT_WIDTH         (THREAD_COUNT_WIDTH),
-        .WRITE_ADDR_RETIME_STAGES   (WRITE_ADDR_RETIME_STAGES)
+        .WRITE_RETIME_STAGES        (WRITE_RETIME_STAGES)
     )
     AMM_A
     (
-        .clock              (clock),
+        .clock                      (clock),
 
-        .raw_addr           (A_raw_addr),
+        .raw_addr                   (A_raw_addr),
 
-        .IO_Ready_current   (IO_Ready_current),
-        .Cancel_current     (Cancel_current),
+        .IO_Ready_current           (IO_Ready_current),
+        .Cancel_current             (Cancel_current),
 
-        .IO_Ready_previous  (IO_Ready_previous),
-        .Cancel_previous    (Cancel_previous),
+        .IO_Ready_previous          (IO_Ready_previous),
+        .Cancel_previous            (Cancel_previous),
 
-        .write_addr         (write_addr),
-        .write_data         (write_data),
+        .write_addr                 (write_addr),
+        .write_data                 (write_data),
 
-        .offset_addr        (A_offset_addr)
+        .offset_addr                (A_offset_addr)
     );
 
 // --------------------------------------------------------------------
@@ -149,24 +149,24 @@ module Addressing
         .READ_NEW_DATA              (READ_NEW_DATA),
         .THREAD_COUNT               (THREAD_COUNT),
         .THREAD_COUNT_WIDTH         (THREAD_COUNT_WIDTH),
-        .WRITE_ADDR_RETIME_STAGES   (WRITE_ADDR_RETIME_STAGES)
+        .WRITE_RETIME_STAGES        (WRITE_RETIME_STAGES)
     )
     AMM_B
     (
-        .clock              (clock),
+        .clock                      (clock),
 
-        .raw_addr           (B_raw_addr),
+        .raw_addr                   (B_raw_addr),
 
-        .IO_Ready_current   (IO_Ready_current),
-        .Cancel_current     (Cancel_current),
+        .IO_Ready_current           (IO_Ready_current),
+        .Cancel_current             (Cancel_current),
 
-        .IO_Ready_previous  (IO_Ready_previous),
-        .Cancel_previous    (Cancel_previous),
+        .IO_Ready_previous          (IO_Ready_previous),
+        .Cancel_previous            (Cancel_previous),
 
-        .write_addr         (write_addr),
-        .write_data         (write_data),
+        .write_addr                 (write_addr),
+        .write_data                 (write_data),
 
-        .offset_addr        (B_offset_addr)
+        .offset_addr                (B_offset_addr)
     );
 
 // --------------------------------------------------------------------
@@ -190,24 +190,24 @@ module Addressing
         .READ_NEW_DATA              (READ_NEW_DATA),
         .THREAD_COUNT               (THREAD_COUNT),
         .THREAD_COUNT_WIDTH         (THREAD_COUNT_WIDTH),
-        .WRITE_ADDR_RETIME_STAGES   (WRITE_ADDR_RETIME_STAGES)
+        .WRITE_RETIME_STAGES        (WRITE_RETIME_STAGES)
     )
     AMM_DA
     (
-        .clock              (clock),
+        .clock                      (clock),
 
-        .raw_addr           (DA_raw_addr),
+        .raw_addr                   (DA_raw_addr),
 
-        .IO_Ready_current   (IO_Ready_current),
-        .Cancel_current     (Cancel_current),
+        .IO_Ready_current           (IO_Ready_current),
+        .Cancel_current             (Cancel_current),
 
-        .IO_Ready_previous  (IO_Ready_previous),
-        .Cancel_previous    (Cancel_previous),
+        .IO_Ready_previous          (IO_Ready_previous),
+        .Cancel_previous            (Cancel_previous),
 
-        .write_addr         (write_addr),
-        .write_data         (write_data),
+        .write_addr                 (write_addr),
+        .write_data                 (write_data),
 
-        .offset_addr        (DA_offset_addr)
+        .offset_addr                (DA_offset_addr)
     );
 
 // --------------------------------------------------------------------
@@ -231,24 +231,24 @@ module Addressing
         .READ_NEW_DATA              (READ_NEW_DATA),
         .THREAD_COUNT               (THREAD_COUNT),
         .THREAD_COUNT_WIDTH         (THREAD_COUNT_WIDTH),
-        .WRITE_ADDR_RETIME_STAGES   (WRITE_ADDR_RETIME_STAGES)
+        .WRITE_RETIME_STAGES        (WRITE_RETIME_STAGES)
     )
     AMM_DB
     (
-        .clock              (clock),
+        .clock                      (clock),
 
-        .raw_addr           (DB_raw_addr),
+        .raw_addr                   (DB_raw_addr),
 
-        .IO_Ready_current   (IO_Ready_current),
-        .Cancel_current     (Cancel_current),
+        .IO_Ready_current           (IO_Ready_current),
+        .Cancel_current             (Cancel_current),
 
-        .IO_Ready_previous  (IO_Ready_previous),
-        .Cancel_previous    (Cancel_previous),
+        .IO_Ready_previous          (IO_Ready_previous),
+        .Cancel_previous            (Cancel_previous),
 
-        .write_addr         (write_addr),
-        .write_data         (write_data),
+        .write_addr                 (write_addr),
+        .write_data                 (write_data),
 
-        .offset_addr        (DB_offset_addr)
+        .offset_addr                (DB_offset_addr)
     );
 
 endmodule

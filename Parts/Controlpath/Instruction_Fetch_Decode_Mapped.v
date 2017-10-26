@@ -36,7 +36,7 @@ module Instruction_Fetch_Decode_Mapped
     parameter       THREAD_COUNT                = 0,
     parameter       THREAD_COUNT_WIDTH          = 0,
     // Retiming
-    parameter       WRITE_ADDR_RETIME_STAGES    = 0
+    parameter       WRITE_RETIME_STAGES         = 0
 )
 (
     input   wire                                clock,
@@ -80,7 +80,7 @@ module Instruction_Fetch_Decode_Mapped
 
     Delay_Line 
     #(
-        .DEPTH  (WRITE_ADDR_RETIME_STAGES), 
+        .DEPTH  (WRITE_RETIME_STAGES), 
         .WIDTH  (ADDR_WIDTH)
     ) 
     DL_retime

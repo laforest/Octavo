@@ -35,7 +35,7 @@ module Datapath_Memory
     parameter   IO_PORT_COUNT                           = 0,
     parameter   IO_PORT_BASE_ADDR                       = 0,
     parameter   IO_PORT_ADDR_WIDTH                      = 0,
-    parameter   WRITE_ADDR_RETIME_STAGES                = 0
+    parameter   WRITE_RETIME_STAGES                     = 0
 )
 (
     input   wire                                        clock,
@@ -99,7 +99,7 @@ module Datapath_Memory
 
     Delay_Line 
     #(
-        .DEPTH  (WRITE_ADDR_RETIME_STAGES), 
+        .DEPTH  (WRITE_RETIME_STAGES), 
         .WIDTH  (WRITE_ADDR_WIDTH + WRITE_ADDR_WIDTH + 1 + 1)
     ) 
     DL_retime

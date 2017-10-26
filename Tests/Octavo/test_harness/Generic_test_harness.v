@@ -90,10 +90,11 @@ module Generic_test_harness
     parameter   IM_BASE_ADDR_WRITE                      = 2048,
     parameter   FC_BASE_ADDR_WRITE                      = 3100,
     parameter   OD_BASE_ADDR_WRITE                      = 3200,
-
     // Multithreading (common)
     parameter   THREAD_COUNT                            = `OCTAVO_THREAD_COUNT,
-    parameter   THREAD_COUNT_WIDTH                      = `OCTAVO_THREAD_COUNT_WIDTH
+    parameter   THREAD_COUNT_WIDTH                      = `OCTAVO_THREAD_COUNT_WIDTH,
+    // Retiming (write addresses of ALU results)
+    parameter   WRITE_RETIME_STAGES                     = 2
 )
 (
     input   wire    clock,
@@ -237,7 +238,8 @@ module Generic_test_harness
         .IM_BASE_ADDR_WRITE         (IM_BASE_ADDR_WRITE),
         .OD_BASE_ADDR_WRITE         (OD_BASE_ADDR_WRITE),
         .THREAD_COUNT               (THREAD_COUNT),
-        .THREAD_COUNT_WIDTH         (THREAD_COUNT_WIDTH)
+        .THREAD_COUNT_WIDTH         (THREAD_COUNT_WIDTH),
+        .WRITE_RETIME_STAGES        (WRITE_RETIME_STAGES)
     )
     CPU
     (

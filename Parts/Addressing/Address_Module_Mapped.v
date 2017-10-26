@@ -37,7 +37,7 @@ module Address_Module_Mapped
     parameter       THREAD_COUNT                = 0,
     parameter       THREAD_COUNT_WIDTH          = 0,
     // Retiming
-    parameter       WRITE_ADDR_RETIME_STAGES    = 0
+    parameter       WRITE_RETIME_STAGES         = 0
 )
 (
     input   wire                                clock,
@@ -110,7 +110,7 @@ module Address_Module_Mapped
 
     Delay_Line 
     #(
-        .DEPTH  (WRITE_ADDR_RETIME_STAGES), 
+        .DEPTH  (WRITE_RETIME_STAGES), 
         .WIDTH  (WRITE_ADDR_WIDTH)
     ) 
     DL_retime

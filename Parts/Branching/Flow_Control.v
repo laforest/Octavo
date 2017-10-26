@@ -27,7 +27,7 @@ module Flow_Control
     parameter       THREAD_COUNT                = 0,
     parameter       THREAD_COUNT_WIDTH          = 0,
     // Retiming
-    parameter       WRITE_ADDR_RETIME_STAGES    = 0
+    parameter       WRITE_RETIME_STAGES         = 0
 )
 (
     input   wire                                clock,
@@ -84,7 +84,7 @@ module Flow_Control
                 .THREAD_COUNT               (THREAD_COUNT),
                 .THREAD_COUNT_WIDTH         (THREAD_COUNT_WIDTH),
                 .CONFIG_ADDR_BASE           (base_addr),
-                .WRITE_ADDR_RETIME_STAGES   (WRITE_ADDR_RETIME_STAGES)
+                .WRITE_RETIME_STAGES        (WRITE_RETIME_STAGES)
             )
             FC_BMM
             (

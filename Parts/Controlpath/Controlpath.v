@@ -48,7 +48,7 @@ module Controlpath
     parameter       THREAD_COUNT                = 0,
     parameter       THREAD_COUNT_WIDTH          = 0,
     // Retiming
-    parameter       WRITE_ADDR_RETIME_STAGES    = 0
+    parameter       WRITE_RETIME_STAGES         = 0
 )
 (
     input   wire                                clock,
@@ -117,7 +117,7 @@ module Controlpath
         .PC_PREV_INIT_FILE          (PC_PREV_INIT_FILE),
         .THREAD_COUNT               (THREAD_COUNT),
         .THREAD_COUNT_WIDTH         (THREAD_COUNT_WIDTH),
-        .WRITE_ADDR_RETIME_STAGES   (WRITE_ADDR_RETIME_STAGES)
+        .WRITE_RETIME_STAGES        (WRITE_RETIME_STAGES)
     )
     FC
     (
@@ -166,7 +166,7 @@ module Controlpath
         .OD_BASE_ADDR_WRITE         (OD_BASE_ADDR_WRITE),
         .THREAD_COUNT               (THREAD_COUNT),
         .THREAD_COUNT_WIDTH         (THREAD_COUNT_WIDTH),
-        .WRITE_ADDR_RETIME_STAGES   (WRITE_ADDR_RETIME_STAGES)
+        .WRITE_RETIME_STAGES        (WRITE_RETIME_STAGES)
     )
     IFDM
     (

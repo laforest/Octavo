@@ -60,7 +60,7 @@ module Datapath
     parameter   THREAD_COUNT                            = 0,
     parameter   THREAD_COUNT_WIDTH                      = 0,
     // Retiming
-    parameter   WRITE_ADDR_RETIME_STAGES                = 0
+    parameter   WRITE_RETIME_STAGES                     = 0
 )
 (
     input   wire                                        clock,
@@ -232,7 +232,7 @@ module Datapath
         .READ_NEW_DATA              (AD_READ_NEW_DATA),
         .THREAD_COUNT               (THREAD_COUNT),
         .THREAD_COUNT_WIDTH         (THREAD_COUNT_WIDTH),
-        .WRITE_ADDR_RETIME_STAGES   (WRITE_ADDR_RETIME_STAGES)
+        .WRITE_RETIME_STAGES        (WRITE_RETIME_STAGES)
     )
     AD
     (
@@ -314,7 +314,7 @@ module Datapath
         .IO_PORT_COUNT              (IO_PORT_COUNT),
         .IO_PORT_BASE_ADDR          (IO_PORT_BASE_ADDR),
         .IO_PORT_ADDR_WIDTH         (IO_PORT_ADDR_WIDTH),
-        .WRITE_ADDR_RETIME_STAGES   (WRITE_ADDR_RETIME_STAGES) 
+        .WRITE_RETIME_STAGES        (WRITE_RETIME_STAGES) 
     )
     DM
     (
@@ -357,9 +357,10 @@ module Datapath
     // Pass signals alongside the ALU, to the Datapath output stage.
     // Subtract one or more stages, which get re-added/replicated at the
     // destinations. This is to eliminate address decoding as a critical path.
-    // Destination modules with retiming will also have the same parameter.
+    // Destination modules with retiming will also have the same parameter,
+    // and may arrange the retimed registers as they need (not all together).
 
-    localparam ALU_PIPE_DEPTH = 4 - WRITE_ADDR_RETIME_STAGES;
+    localparam ALU_PIPE_DEPTH = 4 - WRITE_RETIME_STAGES;
     localparam ALU_PIPE_WIDTH = 1 + 1 + WRITE_ADDR_WIDTH + WRITE_ADDR_WIDTH;
 
     Delay_Line 
@@ -388,7 +389,7 @@ module Datapath
         .S_READ_NEW_DATA            (S_READ_NEW_DATA),
         .THREAD_COUNT               (THREAD_COUNT),
         .THREAD_COUNT_WIDTH         (THREAD_COUNT_WIDTH),
-        .WRITE_ADDR_RETIME_STAGES   (WRITE_ADDR_RETIME_STAGES)
+        .WRITE_RETIME_STAGES        (WRITE_RETIME_STAGES)
     )
     ALU
     (
