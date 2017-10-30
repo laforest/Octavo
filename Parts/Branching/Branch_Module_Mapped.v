@@ -63,7 +63,7 @@ module Branch_Module_Mapped
 
     // Divide retimed registers into two groups, one before and one after
     // the surrounded logic, with a special case for no retiming.
-    localparam RETIME_POST_STAGES       = 1;
+    localparam RETIME_POST_STAGES       = 2;
     localparam WRITE_RETIME_STAGES_POST = (WRITE_RETIME_STAGES > 0) ? RETIME_POST_STAGES : 0;
     localparam WRITE_RETIME_STAGES_PRE  = WRITE_RETIME_STAGES - WRITE_RETIME_STAGES_POST;
 

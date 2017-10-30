@@ -94,7 +94,7 @@ module Generic_test_harness
     parameter   THREAD_COUNT                            = `OCTAVO_THREAD_COUNT,
     parameter   THREAD_COUNT_WIDTH                      = `OCTAVO_THREAD_COUNT_WIDTH,
     // Retiming (write addresses of ALU results)
-    parameter   WRITE_RETIME_STAGES                     = 2
+    parameter   WRITE_RETIME_STAGES                     = 3
 )
 (
     input   wire    clock,
