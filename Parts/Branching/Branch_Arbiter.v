@@ -24,9 +24,9 @@ module Branch_Arbiter
     input  wire [(PC_WIDTH*BRANCH_COUNT)-1:0]   jump_destinations,
 
     // The selected branch signals
-    output wire                                 cancel,  
+    output reg                                  cancel,  
     output reg                                  jump,  
-    output wire [PC_WIDTH-1:0]                  jump_destination
+    output reg  [PC_WIDTH-1:0]                  jump_destination
 );
 
 // ---------------------------------------------------------------------
@@ -34,6 +34,12 @@ module Branch_Arbiter
 // are selected, so we treat them as just another possible branch outcome.
 
     localparam BRANCH_COUNT_ALL = BRANCH_COUNT + 1;
+
+    initial begin
+        cancel              = 0;
+        jump                = 0;
+        jump_destination    = 0;
+    end
 
 // ---------------------------------------------------------------------
 // ---------------------------------------------------------------------
@@ -70,46 +76,34 @@ module Branch_Arbiter
     );
 
 // ---------------------------------------------------------------------
-// Register everything at end of Stage 0
 // Jump on any jump set, and use the arbitrated jump to select
-// a cancel bit and branch destination in Stage 1.
+// a cancel bit and branch destination.
 
-    reg [BRANCH_COUNT_ALL-1:0] jumps_granted_stage1 = 0;
+    reg [BRANCH_COUNT_ALL-1:0]  jumps_granted_stage1 = 0;
+    reg                         jump_raw = 0;
 
-    always @(posedge clock) begin
-        jump                    <= jumps_any;
+    always @(*) begin
+        jump_raw                <= jumps_any;
         jumps_granted_stage1    <= jumps_granted;
     end
 
 // ---------------------------------------------------------------------
 // Limit case: any jump many cancel an instruction if no jump selected.
 // Append that case at lowest priority.
-// Register at the end of Stage 0
 
     reg                         cancels_any         = 0;
     reg [BRANCH_COUNT_ALL-1:0]  cancels_all_stage1  = 0;
 
-    always @(posedge clock) begin
+    always @(*) begin
         cancels_any         = |cancels;
         cancels_all_stage1  = {cancels_any,cancels};
     end
 
 // ---------------------------------------------------------------------
-// Register Jump Destinations at end of Stage 0.
-// Nothing to do yet.
-
-    reg [(PC_WIDTH*BRANCH_COUNT)-1:0] jump_destinations_stage1 = 0;
-
-    always @(*) begin
-        jump_destinations_stage1 <= jump_destinations;
-    end
-
-// ---------------------------------------------------------------------
-// ---------------------------------------------------------------------
-// Stage 1 (not registered)
-
 // Select the cancel bit associated with the active jump else any jump may
 // cancel a concurrent instruction when no jump taken.
+
+    wire cancel_raw;
 
     One_Hot_Mux
     #(
@@ -120,7 +114,7 @@ module Branch_Arbiter
     (
         .selectors      (jumps_granted_stage1),
         .in             (cancels_all_stage1),
-        .out            (cancel)
+        .out            (cancel_raw)
     );
 
 // Select the Jump Destination of the selected branch, or select zero if no
@@ -128,6 +122,8 @@ module Branch_Arbiter
 // then no jump_destinations bit is selected, and so outputs zero.  This is an
 // optmization to shrink the One_Hot_Mux by one PC_WIDTH input, since if no
 // jump happens the value of the jump destination is never used.
+
+    wire [PC_WIDTH-1:0] jump_destination_raw;
 
     One_Hot_Mux
     #(
@@ -137,9 +133,19 @@ module Branch_Arbiter
     DESTINATION_SELECTOR
     (
         .selectors      (jumps_granted_stage1[BRANCH_COUNT-1:0]),
-        .in             (jump_destinations_stage1),
-        .out            (jump_destination)
+        .in             (jump_destinations),
+        .out            (jump_destination_raw)
     );
+
+// ---------------------------------------------------------------------
+
+    // Now register everything at the end of Stage 0
+
+    always @(posedge clock) begin
+        cancel              <= cancel_raw;
+        jump                <= jump_raw;
+        jump_destination    <= jump_destination_raw;
+    end
 
 endmodule
 
