@@ -47,8 +47,14 @@ module Datapath_IO_Predication
     output  wire                            read_addr_is_IO_B,
     output  wire                            write_addr_is_IO_A,
     output  wire                            write_addr_is_IO_B,
-    output  wire                            IO_ready
+    output  reg                             IO_ready
 );
+
+// --------------------------------------------------------------------
+
+    initial begin
+        IO_ready = 0;
+    end
 
 // --------------------------------------------------------------------
 
@@ -223,6 +229,8 @@ module Datapath_IO_Predication
     // And if any of the read/write I/O ports accessed by the current
     // instruction are not ready, drop IO_ready.
 
+    wire IO_ready_internal;
+
     IO_All_Ready
     #(
         .READ_PORT_COUNT    (`READ_PORT_COUNT),
@@ -232,8 +240,14 @@ module Datapath_IO_Predication
     (
         .read_EF            ({read_EF_masked_B, read_EF_masked_A}),
         .write_EF           ({write_EF_masked_B,write_EF_masked_A}),
-        .IO_ready           (IO_ready)
+        .IO_ready           (IO_ready_internal)
     );
+
+// --------------------------------------------------------------------
+
+    always @(posedge clock) begin
+        IO_ready <= IO_ready_internal;
+    end
 
 endmodule
 
