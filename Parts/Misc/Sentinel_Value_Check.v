@@ -8,6 +8,9 @@
 // And an all-zero mask will cause a comparison to be exact.
 // (which will be the default behaviour at start)
 
+// The sentinel masking logic was pulled up to the enclosing logic
+// to allow for retiming.
+
 `default_nettype none
 
 module Sentinel_Value_Check
@@ -16,7 +19,7 @@ module Sentinel_Value_Check
 )
 (
     input   wire    [WORD_WIDTH-1:0]    data_in,
-    input   wire    [WORD_WIDTH-1:0]    sentinel, 
+    input   wire    [WORD_WIDTH-1:0]    sentinel_masked, 
     input   wire    [WORD_WIDTH-1:0]    mask,
     output  reg                         match
 );
@@ -25,13 +28,11 @@ module Sentinel_Value_Check
         match = 0;
     end
 
-    reg [WORD_WIDTH-1:0] masked_in          = 0;
-    reg [WORD_WIDTH-1:0] masked_sentinel    = 0;
+    reg [WORD_WIDTH-1:0] data_in_masked = 0;
 
     always @(*) begin
-        masked_in       = data_in  & ~mask;
-        masked_sentinel = sentinel & ~mask;
-        match           = (masked_in == masked_sentinel);
+        data_in_masked  = data_in & ~mask;
+        match           = (data_in_masked == sentinel_masked);
     end
 
 endmodule

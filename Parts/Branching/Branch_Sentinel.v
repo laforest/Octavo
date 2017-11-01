@@ -113,18 +113,48 @@ module Branch_Sentinel
 
 // ---------------------------------------------------------------------
 // ---------------------------------------------------------------------
-// Stage 1 (unregistered)
+// Stage 1
+
+    // This logic pulled out of Sentinel_Value_Check for timing.
+    // Mask is inverted so the default of 0 masks nothing (exact match).
+
+    reg [WORD_WIDTH-1:0] sentinel_masked = 0;
+
+    always @(*) begin
+        sentinel_masked <= sentinel & ~mask;
+    end
+
+// ---------------------------------------------------------------------
+
+    wire [WORD_WIDTH-1:0] sentinel_masked_sync;
+    wire [WORD_WIDTH-1:0] mask_sync;
+
+    Delay_Line 
+    #(
+        .DEPTH  (1), 
+        .WIDTH  (WORD_WIDTH + WORD_WIDTH)
+    ) 
+    DL_BS
+    (
+        .clock  (clock),
+        .in     ({sentinel_masked,      mask}),
+        .out    ({sentinel_masked_sync, mask_sync})
+    );
+
+// ---------------------------------------------------------------------
+// ---------------------------------------------------------------------
+// Stage 2 (unregistered)
 
     Sentinel_Value_Check
     #(
-        .WORD_WIDTH (WORD_WIDTH)
+        .WORD_WIDTH         (WORD_WIDTH)
     )
     BS_SVC
     (
-        .data_in    (R),
-        .sentinel   (sentinel),
-        .mask       (mask),
-        .match      (match)
+        .data_in            (R),
+        .sentinel_masked    (sentinel_masked_sync),
+        .mask               (mask_sync),
+        .match              (match)
     );
 
 endmodule
