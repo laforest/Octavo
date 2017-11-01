@@ -188,23 +188,42 @@ module Branch_Counter
     );
 
 // --------------------------------------------------------------------
+// Delay running flag to synchronize it with the decremented count value
+// This is split into two to isolate the OR-reducer logic
+
+    wire [WORD_WIDTH-1:0] count_internal;
+
+    Delay_Line 
+    #(
+        .DEPTH  (DECREMENT_PIPE_DEPTH-1), 
+        .WIDTH  (WORD_WIDTH)
+    ) 
+    BC_RUNNING_PRE
+    (
+        .clock  (clock),
+        .in     (count),
+        .out    (count_internal)
+    );
+
+// --------------------------------------------------------------------
 // OR-Reduce count as the "running" flag: stops running at zero
 
     reg running_internal = 0;
 
     always @(*) begin
-        running_internal <= |count;
+        running_internal <= |count_internal;
     end
 
 // --------------------------------------------------------------------
 // Delay running flag to synchronize it with the decremented count value
+// This is split into two to isolate the OR-reducer logic
 
     Delay_Line 
     #(
-        .DEPTH  (DECREMENT_PIPE_DEPTH), 
+        .DEPTH  (DECREMENT_PIPE_DEPTH-1), 
         .WIDTH  (1)
     ) 
-    BC_RUNNING
+    BC_RUNNING_POST
     (
         .clock  (clock),
         .in     (running_internal),
