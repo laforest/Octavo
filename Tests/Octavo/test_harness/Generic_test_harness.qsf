@@ -5,14 +5,8 @@ set_global_assignment -name LAST_QUARTUS_VERSION "17.0.2 Lite Edition"
 set_global_assignment -name FLOW_DISABLE_ASSEMBLER ON
 set_global_assignment -name NUM_PARALLEL_PROCESSORS ALL
 set_global_assignment -name SDC_FILE /home/laforest/Octavo/Octavo/Parts/SimSynth/timing_constraints_Altera.sdc
-#set_global_assignment -name VERILOG_FILE Global_Defines.vh
 set_global_assignment -name VERILOG_FILE harness_input_register.v
 set_global_assignment -name VERILOG_FILE harness_output_register.v
-#set_global_assignment -name VERILOG_FILE Accumulator.v
-#set_global_assignment -name VERILOG_FILE Add_Reducer.v
-#set_global_assignment -name VERILOG_FILE Array_Reverse_IO.v
-#set_global_assignment -name VERILOG_FILE Sliding_Window.v
-#set_global_assignment -name VERILOG_FILE Address_Range_Decoder_Arithmetic_Structural.v
 set_global_assignment -name VERILOG_FILE Address_Range_Decoder_Arithmetic.v
 set_global_assignment -name VERILOG_FILE Address_Range_Decoder_Static.v
 set_global_assignment -name VERILOG_FILE Address_Range_Translator.v
@@ -23,22 +17,15 @@ set_global_assignment -name VERILOG_FILE Addressing.v
 set_global_assignment -name VERILOG_FILE Address_Module_Mapped.v
 set_global_assignment -name VERILOG_FILE Address_Module_PO_Memory.v
 set_global_assignment -name VERILOG_FILE Address_Module.v
-#set_global_assignment -name VERILOG_FILE AddSub_Carry_Select_2stages.v
 set_global_assignment -name VERILOG_FILE AddSub_Ripple_Carry_2stages.v
 set_global_assignment -name VERILOG_FILE AddSub_Ripple_Carry_NoCarry.v
 set_global_assignment -name VERILOG_FILE AddSub_Ripple_Carry.v
-#set_global_assignment -name VERILOG_FILE AddSub_Structural.v
 set_global_assignment -name VERILOG_FILE Carryin_Calculator.v
-#set_global_assignment -name VERILOG_FILE Dyadic_Boolean_Operations.vh
 set_global_assignment -name VERILOG_FILE Dyadic_Boolean_Operator.v
-#set_global_assignment -name VERILOG_FILE Full_Adder.v
-#set_global_assignment -name VERILOG_FILE Half_Adder.v
 set_global_assignment -name VERILOG_FILE R_Flags.v
 set_global_assignment -name VERILOG_FILE Triadic_ALU_Feedback_Path.v
 set_global_assignment -name VERILOG_FILE Triadic_ALU_Forward_Path.v
-#set_global_assignment -name VERILOG_FILE Triadic_ALU_Operations.vh
 set_global_assignment -name VERILOG_FILE Triadic_ALU.v
-#set_global_assignment -name VERILOG_FILE Priority_Arbiter_Structural.v
 set_global_assignment -name VERILOG_FILE Priority_Arbiter.v
 set_global_assignment -name VERILOG_FILE Priority_Selector.v
 set_global_assignment -name VERILOG_FILE Round_Robin_Arbiter.v
@@ -49,7 +36,6 @@ set_global_assignment -name VERILOG_FILE Branch_Detector.v
 set_global_assignment -name VERILOG_FILE Branch_Module_Mapped.v
 set_global_assignment -name VERILOG_FILE Branch_Module.v
 set_global_assignment -name VERILOG_FILE Branch_Sentinel.v
-#set_global_assignment -name VERILOG_FILE Condition_Predicate_Operations.vh
 set_global_assignment -name VERILOG_FILE Condition_Predicate.v
 set_global_assignment -name VERILOG_FILE Controller.v
 set_global_assignment -name VERILOG_FILE Flow_Control.v
@@ -68,11 +54,9 @@ set_global_assignment -name VERILOG_FILE IO_Check.v
 set_global_assignment -name VERILOG_FILE IO_Read_Predication.v
 set_global_assignment -name VERILOG_FILE IO_Write_Predication.v
 set_global_assignment -name VERILOG_FILE Data_Memory.v
-#set_global_assignment -name VERILOG_FILE RAM_SDP_Composite.v
 set_global_assignment -name VERILOG_FILE RAM_SDP_Multithreaded.v
 set_global_assignment -name VERILOG_FILE RAM_SDP.v
 set_global_assignment -name VERILOG_FILE Annuller.v
-#set_global_assignment -name VERILOG_FILE clog2_function.vh
 set_global_assignment -name VERILOG_FILE Instruction_Field_Extractor.v
 set_global_assignment -name VERILOG_FILE Inverter.v
 set_global_assignment -name VERILOG_FILE Register_Array.v
@@ -88,8 +72,6 @@ set_global_assignment -name VERILOG_FILE Thread_Number.v
 set_global_assignment -name VERILOG_FILE Octavo.v
 set_global_assignment -name VERILOG_FILE Generic_test_harness.v
 set_global_assignment -name FLOW_ENABLE_RTL_VIEWER ON
-set_global_assignment -name ADD_PASS_THROUGH_LOGIC_TO_INFERRED_RAMS OFF
-set_global_assignment -name HDL_MESSAGE_LEVEL LEVEL3
 
 # Classic Timing Assignments
 # ==========================
@@ -101,9 +83,12 @@ set_global_assignment -name TIMEQUEST_DO_REPORT_TIMING ON
 # Compiler Assignments
 # ====================
 set_global_assignment -name OPTIMIZATION_MODE "AGGRESSIVE PERFORMANCE"
+set_global_assignment -name ALLOW_REGISTER_MERGING ON
 
 # Analysis & Synthesis Assignments
 # ================================
+set_global_assignment -name ADD_PASS_THROUGH_LOGIC_TO_INFERRED_RAMS OFF
+set_global_assignment -name HDL_MESSAGE_LEVEL LEVEL3
 set_global_assignment -name SEARCH_PATH /home/laforest/Octavo/Octavo/Parts/Accelerators
 set_global_assignment -name SEARCH_PATH /home/laforest/Octavo/Octavo/Parts/Address_Decode
 set_global_assignment -name SEARCH_PATH /home/laforest/Octavo/Octavo/Parts/Addressing
@@ -137,7 +122,7 @@ set_global_assignment -name AUTO_RAM_TO_LCELL_CONVERSION OFF
 set_global_assignment -name SYNTH_TIMING_DRIVEN_SYNTHESIS ON
 set_global_assignment -name USE_LOGICLOCK_CONSTRAINTS_IN_BALANCING ON
 set_global_assignment -name SAVE_DISK_SPACE OFF
-set_global_assignment -name REMOVE_DUPLICATE_REGISTERS ON
+set_global_assignment -name REMOVE_DUPLICATE_REGISTERS OFF
 set_global_assignment -name AUTO_RESOURCE_SHARING OFF
 set_global_assignment -name SYNCHRONIZATION_REGISTER_CHAIN_LENGTH 3
 set_global_assignment -name SYNTH_PROTECT_SDC_CONSTRAINT OFF
@@ -145,6 +130,8 @@ set_global_assignment -name SYNTHESIS_EFFORT AUTO
 set_global_assignment -name PRE_MAPPING_RESYNTHESIS ON
 set_global_assignment -name AUTO_PARALLEL_SYNTHESIS ON
 set_global_assignment -name SYNTH_MESSAGE_LEVEL HIGH
+set_global_assignment -name DISABLE_REGISTER_MERGING_ACROSS_HIERARCHIES AUTO
+set_global_assignment -name ALLOW_SHIFT_REGISTER_MERGING_ACROSS_HIERARCHIES OFF
 
 # Fitter Assignments
 # ==================
@@ -158,28 +145,29 @@ set_global_assignment -name PHYSICAL_SYNTHESIS_EFFORT EXTRA
 set_global_assignment -name ROUTER_LCELL_INSERTION_AND_LOGIC_DUPLICATION ON
 set_global_assignment -name ROUTER_TIMING_OPTIMIZATION_LEVEL MAXIMUM
 set_global_assignment -name PHYSICAL_SYNTHESIS_COMBO_LOGIC_FOR_AREA OFF
-set_global_assignment -name QII_AUTO_PACKED_REGISTERS NORMAL
+set_global_assignment -name QII_AUTO_PACKED_REGISTERS "SPARSE AUTO"
 set_global_assignment -name ROUTER_CLOCKING_TOPOLOGY_ANALYSIS ON
 set_global_assignment -name PHYSICAL_SYNTHESIS_MAP_LOGIC_TO_MEMORY_FOR_AREA OFF
 set_global_assignment -name BLOCK_RAM_TO_MLAB_CELL_CONVERSION OFF
-set_global_assignment -name SEED 1
-set_global_assignment -name PLACEMENT_EFFORT_MULTIPLIER 4
-set_global_assignment -name ROUTER_EFFORT_MULTIPLIER 4
+set_global_assignment -name PLACEMENT_EFFORT_MULTIPLIER 8
+set_global_assignment -name ROUTER_EFFORT_MULTIPLIER 8
 set_global_assignment -name AUTO_DELAY_CHAINS OFF
-set_global_assignment -name OPTIMIZE_HOLD_TIMING "ALL PATHS"
+set_global_assignment -name OPTIMIZE_HOLD_TIMING OFF
 set_global_assignment -name OPTIMIZE_MULTI_CORNER_TIMING ON
 set_global_assignment -name BLOCK_RAM_AND_MLAB_EQUIVALENT_POWER_UP_CONDITIONS AUTO
-set_global_assignment -name BLOCK_RAM_AND_MLAB_EQUIVALENT_PAUSED_READ_CAPABILITIES CARE
+set_global_assignment -name BLOCK_RAM_AND_MLAB_EQUIVALENT_PAUSED_READ_CAPABILITIES "DONT CARE"
 set_global_assignment -name OPTIMIZE_TIMING "NORMAL COMPILATION"
 set_global_assignment -name FINAL_PLACEMENT_OPTIMIZATION ALWAYS
-set_global_assignment -name FITTER_AGGRESSIVE_ROUTABILITY_OPTIMIZATION AUTOMATICALLY
+set_global_assignment -name FITTER_AGGRESSIVE_ROUTABILITY_OPTIMIZATION NEVER
 set_global_assignment -name PERIPHERY_TO_CORE_PLACEMENT_AND_ROUTING_OPTIMIZATION OFF
 set_global_assignment -name IO_PLACEMENT_OPTIMIZATION ON
-set_global_assignment -name ROUTER_REGISTER_DUPLICATION AUTO
+set_global_assignment -name ROUTER_REGISTER_DUPLICATION ON
 set_global_assignment -name OPTIMIZE_FOR_METASTABILITY ON
 set_global_assignment -name FORCE_FITTER_TO_AVOID_PERIPHERY_PLACEMENT_WARNINGS OFF
 set_global_assignment -name CLAMPING_DIODE OFF
 set_global_assignment -name ADVANCED_PHYSICAL_OPTIMIZATION ON
+set_global_assignment -name SEED 1
+set_global_assignment -name OPTIMIZE_POWER_DURING_FITTING OFF
 
 # Design Assistant Assignments
 # ============================
@@ -196,7 +184,7 @@ set_global_assignment -name POWER_USE_DEVICE_CHARACTERISTICS MAXIMUM
 # ==========================
 set_global_assignment -name RTLV_GROUP_COMB_LOGIC_IN_CLOUD_TMV OFF
 
-# --------------------------------------------------
+# ----------------------------------
 # start ENTITY(Generic_test_harness)
 
 	# start DESIGN_PARTITION(Top)
@@ -204,16 +192,15 @@ set_global_assignment -name RTLV_GROUP_COMB_LOGIC_IN_CLOUD_TMV OFF
 
 		# Incremental Compilation Assignments
 		# ===================================
-set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
-set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
-set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
+		set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
+		set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
+		set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
+		set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
 
 	# end DESIGN_PARTITION(Top)
 	# -------------------------
 
 # end ENTITY(Generic_test_harness)
-# ------------------------------------------------
+# --------------------------------
 
 
-
-set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
