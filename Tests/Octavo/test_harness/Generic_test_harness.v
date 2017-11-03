@@ -25,7 +25,7 @@ module Generic_test_harness
     parameter   MEM_WRITE_BOUND_ADDR_B                  = 2047,
     // S register in ALU
     parameter   S_WRITE_ADDR                            = 3072,
-    parameter   S_RAMSTYLE                              = "logic, no_rw_check",
+    parameter   S_RAMSTYLE                              = "MLAB, no_rw_check",
     parameter   S_READ_NEW_DATA                         = 0,
     // Same count and address for both A and B
     parameter   IO_PORT_COUNT                           = 8,
