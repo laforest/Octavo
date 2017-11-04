@@ -42,47 +42,42 @@ module Triadic_ALU_Feedback_Path
     localparam OUTPUT_SYNC_WIDTH = 1 + 1 + WORD_WIDTH + WORD_WIDTH;
 
 // --------------------------------------------------------------------
-// Stage 3 and 2 (going backwards)
+// Stage 3 (going backwards)
 
-    // Synchronize inputs to Stage 1
+    // Synchronize inputs to Stage 2
 
-    wire                    IO_Ready_stage1;
-    wire                    Cancel_stage1;
-    wire [ADDR_WIDTH-1:0]   DB_stage1;
-    wire [WORD_WIDTH-1:0]   Ra_stage1;
-    wire [WORD_WIDTH-1:0]   Rb_stage1;
+    wire                    IO_Ready_stage2;
+    wire                    Cancel_stage2;
+    wire [ADDR_WIDTH-1:0]   DB_stage2;
+    wire [WORD_WIDTH-1:0]   Ra_stage2;
+    wire [WORD_WIDTH-1:0]   Rb_stage2;
 
     Delay_Line 
     #(
-        .DEPTH  (INPUT_SYNC_DEPTH), 
+        .DEPTH  (INPUT_SYNC_DEPTH-1), 
         .WIDTH  (INPUT_SYNC_WIDTH)
     ) 
-    Input_Sync
+    Input_Sync_Stage3
     (
         .clock  (clock),
         .in     ({IO_Ready,          Cancel,         DB,         Ra,         Rb}),
-        .out    ({IO_Ready_stage1,   Cancel_stage1,  DB_stage1,  Ra_stage1,  Rb_stage1})
+        .out    ({IO_Ready_stage2,   Cancel_stage2,  DB_stage2,  Ra_stage2,  Rb_stage2})
     );
 
 // --------------------------------------------------------------------
-// Stage 1
+// Stage 2 (going backwards)
 
     // Store Rb into S if DB matches S_WRITE_ADDR and not a NOP
 
     reg not_nop = 0;
 
     always @(*) begin
-        not_nop <= (IO_Ready_stage1 == 1'b1) & (Cancel_stage1 == 1'b0);
+        not_nop <= (IO_Ready_stage2 == 1'b1) & (Cancel_stage2 == 1'b0);
     end
 
 // --------------------------------------------------------------------
 
-    // S Register, once instance per thread. 
-    // Like R, but memory-addressed and persistent.
-    // For now, S is only a single register
-    // Expressing it this way leaves the door open to expansion
-
-    wire S_wren;
+    wire S_wren_stage2;
 
     Address_Range_Decoder_Static
     #(
@@ -93,9 +88,40 @@ module Triadic_ALU_Feedback_Path
     S_ADDR_MATCH
     (
         .enable         (not_nop),
-        .addr           (DB_stage1),
-        .hit            (S_wren)   
+        .addr           (DB_stage2),
+        .hit            (S_wren_stage2)   
     );
+
+// --------------------------------------------------------------------
+
+    // Synchronize inputs to Stage 1
+    // Drop DB address and replace with write enable derived from it.
+
+    wire                    IO_Ready_stage1;
+    wire                    Cancel_stage1;
+    wire                    S_wren_stage1;
+    wire [WORD_WIDTH-1:0]   Ra_stage1;
+    wire [WORD_WIDTH-1:0]   Rb_stage1;
+
+    Delay_Line 
+    #(
+        .DEPTH  (1), 
+        .WIDTH  (INPUT_SYNC_WIDTH-ADDR_WIDTH+1)
+    ) 
+    Input_Sync_Stage2
+    (
+        .clock  (clock),
+        .in     ({IO_Ready_stage2,   Cancel_stage2, S_wren_stage2,  Ra_stage2,  Rb_stage2}),
+        .out    ({IO_Ready_stage1,   Cancel_stage1, S_wren_stage1,  Ra_stage1,  Rb_stage1})
+    );
+
+// --------------------------------------------------------------------
+// Stage 1
+
+    // S Register, once instance per thread. 
+    // Like R, but memory-addressed and persistent.
+    // For now, S is only a single register
+    // Expressing it this way leaves the door open to expansion
 
     wire [THREAD_COUNT_WIDTH-1:0] S_thread_write;
     wire [THREAD_COUNT_WIDTH-1:0] S_thread_read;
@@ -131,7 +157,7 @@ module Triadic_ALU_Feedback_Path
     S_Register
     (
         .clock          (clock),
-        .wren           (S_wren),
+        .wren           (S_wren_stage1),
         .write_addr     (S_thread_write),
         .write_data     (Rb_stage1),
         .rden           (1'b1),
