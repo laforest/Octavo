@@ -3,6 +3,8 @@
 
 `default_nettype none
 
+`include "Triadic_ALU_Operations.vh"
+
 module Octavo
 #(
     // Data Path
