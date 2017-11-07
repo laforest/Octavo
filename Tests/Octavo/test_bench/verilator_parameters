@@ -1,0 +1,25 @@
+
+// Global options to Verilator.
+// Leave -Wall in to have new warnings show up.
+// Place ignored warnings in suppresed_warnings
+
+-Wall
+--default-language 1364-2001
+-y /home/laforest/Octavo/Octavo/Parts/Accelerators
+-y /home/laforest/Octavo/Octavo/Parts/Address_Decode
+-y /home/laforest/Octavo/Octavo/Parts/Addressing
+-y /home/laforest/Octavo/Octavo/Parts/ALU
+-y /home/laforest/Octavo/Octavo/Parts/Arbiters
+-y /home/laforest/Octavo/Octavo/Parts/Branching
+-y /home/laforest/Octavo/Octavo/Parts/Controlpath
+-y /home/laforest/Octavo/Octavo/Parts/Counters
+-y /home/laforest/Octavo/Octavo/Parts/Datapath
+-y /home/laforest/Octavo/Octavo/Parts/IO_Predication
+-y /home/laforest/Octavo/Octavo/Parts/Misc
+-y /home/laforest/Octavo/Octavo/Parts/Memory
+-y /home/laforest/Octavo/Octavo/Parts/Multiplexers
+-y /home/laforest/Octavo/Octavo/Parts/Multithreading
+-y /home/laforest/Octavo/Octavo/Parts/Octavo
+-y /home/laforest/Octavo/Octavo/Parts/SimSynth
+-y /home/laforest/Octavo/Octavo/Parts/TestHarness
+

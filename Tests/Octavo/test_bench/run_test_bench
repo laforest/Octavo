@@ -1,0 +1,22 @@
+#! /bin/bash
+
+TOPLEVEL="DUT"
+
+LOGS=${PWD}/LOGS
+
+# Clean up
+rm -rf obj_dir
+rm -rf ${LOGS}
+mkdir ${LOGS}
+
+# Check the code. A different number of warnings is a flag to check things.
+verilator -F verilator_parameters --lint-only            -cc ${TOPLEVEL}.v &> ${LOGS}/LOG.lint
+
+# Verilate the design. Logfile should be empty!
+verilator -F verilator_parameters -F suppressed_warnings -cc ${TOPLEVEL}.v 2>&1 | tee ${LOGS}/LOG.verilate
+
+# Compile into a library for the test bench
+pushd obj_dir
+    make -f V${TOPLEVEL}.mk 2>&1 | tee ${LOGS}/LOG.compile
+popd
+
