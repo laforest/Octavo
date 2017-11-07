@@ -160,9 +160,7 @@ module Octavo
     wire [WRITE_ADDR_WIDTH-1:0]         DB;
     wire [READ_ADDR_WIDTH-1:0]          A;
     wire [READ_ADDR_WIDTH-1:0]          B;
-    wire [WORD_WIDTH-1:0]               Ra;
     wire [WORD_WIDTH-1:0]               Rb;
-    wire [WRITE_ADDR_WIDTH-1:0]         write_addr_Ra;
     wire [WRITE_ADDR_WIDTH-1:0]         write_addr_Rb;
 
     Datapath
@@ -238,9 +236,9 @@ module Octavo
         .io_rden_B                  (io_rden_B),
         .io_wren_A                  (io_wren_A),
         .io_wren_B                  (io_wren_B),
-        .Ra                         (Ra),
+        .Ra                         (),
         .Rb                         (Rb),
-        .write_addr_Ra              (write_addr_Ra),
+        .write_addr_Ra              (),
         .write_addr_Rb              (write_addr_Rb),
         .Rcarry_out                 (carryout),
         .Roverflow                  (overflow),

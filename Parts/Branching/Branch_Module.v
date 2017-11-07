@@ -44,9 +44,6 @@ module Branch_Module
 
 // --------------------------------------------------------------------
 
-    wire                        bs1_wren;
-    wire                        bs1_addr;
-    wire    [WORD_WIDTH-1:0]    bs1_config;
     wire                        bs1_match;
 
     Branch_Sentinel
@@ -69,9 +66,6 @@ module Branch_Module
 
 // --------------------------------------------------------------------
 
-    wire                        bs2_wren;
-    wire                        bs2_addr;
-    wire    [WORD_WIDTH-1:0]    bs2_config;
     wire                        bs2_match;
 
     Branch_Sentinel

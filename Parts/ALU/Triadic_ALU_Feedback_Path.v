@@ -97,8 +97,6 @@ module Triadic_ALU_Feedback_Path
     // Synchronize inputs to Stage 1
     // Drop DB address and replace with write enable derived from it.
 
-    wire                    IO_Ready_stage1;
-    wire                    Cancel_stage1;
     wire                    S_wren_stage1;
     wire [WORD_WIDTH-1:0]   Ra_stage1;
     wire [WORD_WIDTH-1:0]   Rb_stage1;
@@ -106,13 +104,13 @@ module Triadic_ALU_Feedback_Path
     Delay_Line 
     #(
         .DEPTH  (1), 
-        .WIDTH  (INPUT_SYNC_WIDTH-ADDR_WIDTH+1)
+        .WIDTH  (WORD_WIDTH + WORD_WIDTH + 1)
     ) 
     Input_Sync_Stage2
     (
         .clock  (clock),
-        .in     ({IO_Ready_stage2,   Cancel_stage2, S_wren_stage2,  Ra_stage2,  Rb_stage2}),
-        .out    ({IO_Ready_stage1,   Cancel_stage1, S_wren_stage1,  Ra_stage1,  Rb_stage1})
+        .in     ({S_wren_stage2,  Ra_stage2,  Rb_stage2}),
+        .out    ({S_wren_stage1,  Ra_stage1,  Rb_stage1})
     );
 
 // --------------------------------------------------------------------

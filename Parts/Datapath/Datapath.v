@@ -377,9 +377,6 @@ module Datapath
 
 // --------------------------------------------------------------------
 
-    wire                        R_zero;
-    wire                        R_negative;
-
     Triadic_ALU
     #(
         .WORD_WIDTH                 (WORD_WIDTH), 
