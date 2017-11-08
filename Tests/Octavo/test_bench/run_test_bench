@@ -14,7 +14,7 @@ mkdir   ${LOGS}
 mkdir   ${RUNS}
 
 # Check the code. A different number of warnings is a flag to check things.
-verilator -F verilator_parameters --lint-only            -cc ${TOP}.v &> ${LOGS}/LOG.lint
+verilator -F verilator_parameters --lint-only -cc ${TOP}.v &> ${LOGS}/LOG.lint
 
 # Verilate the design and compile design library. Logfile should be empty!
 verilator -F verilator_parameters -F suppressed_warnings -cc ${TOP}.v --exe test_bench.cpp 2>&1 | tee ${LOGS}/LOG.verilate
