@@ -3,6 +3,7 @@
 // Leave -Wall in to have new warnings show up.
 // Place ignored warnings in suppresed_warnings
 
+-trace
 -Wall
 --default-language 1364-2001
 -y /home/laforest/Octavo/Octavo/Parts/Accelerators
