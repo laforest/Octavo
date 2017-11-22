@@ -1,6 +1,6 @@
 
-This is the old pseudo-assembler for Octavo.
-*Don't use it, it's no longer valid.*
-Kept here for now since it contains all the past benchmarks and other useful data.
-These will get re-implemented when a new, real assembler is made.
+First draft of new assembler for Octavo.
+Just a simple one for initial hardware testing and benchmarking.
+*Not ready yet. Work in progress*
+
 

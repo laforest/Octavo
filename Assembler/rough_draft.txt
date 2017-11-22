@@ -1,0 +1,88 @@
+
+Rough draft of assembler syntax for Octavo
+
+// Architectural limits/config
+// Sizes of A and B special areas.
+// Must fit in first 64 addresses, with address 0 being a zero-register.
+configuration.lit_pool = 16
+configuration.io_ports = 4
+configuration.pointers = 4
+// These  are write-only, and in the H memory
+configuration.branches = 4
+
+// Create memories
+
+A = Memory(36, 1024, 0)
+B = Memory(36, 1024, 1024)
+I = Memory(36, 1024, 2048)
+H = Memory(36, 1024, 3072, write_only)
+
+// Compilation classes
+
+Instruction = InstructionClass(A,B,I)
+Branch = BranchClass(A,B,I,H)
+
+// Define variables, optional address, else automatically assigned
+
+A.count         = 0
+B.incr          = 0
+I.next_instr    = 0
+
+// Special config locations are named in the same way
+
+branch0 = Branch.config_addr(3300)
+branch1 = Branch.config_addr(3301)
+branch2 = Branch.config_addr(3302)
+branch3 = Branch.config_addr(3303)
+
+H.opcode0 = 3400
+...
+H.opcode15 = 3415
+
+H.addr0 = 3500
+...
+H.addr3 = 3503
+
+// Define instruction mnemonics and function
+// These create constants in A/B memory to be loaded into instruction decode memory
+
+nop  = Instruction(r, zero, zero, single, a_plus_b, zero, none, common)
+add  = Instruction(r, zero, zero, single, a_plus_b, b,    none, common)
+dmov = Instruction(s, a,    b,    dual,   a_plus_b, a,    none, split)
+
+// Define branch mnemonics and conditions
+// These create constants in A/B memory to be loaded into branch entries
+
+jmp  = Branch(negative,     lessthan, one)
+bze  = Branch(Sentinel(0,0),lessthan, a)
+bnz  = Branch(Sentinel(0,0),lessthan, not_a)
+bcnz = Branch(negative,     counter,  b)
+bovr = Branch(negative,     lessthan, a_xor_b)
+
+// These define addressing offsets
+// These create constants in A/B memory to be loaded into indirect memory config entries
+// Increments are dropped when loading into Default Offset
+
+default    = Offset(200,  0)
+backwards  = Offset(100, -1)
+forwards   = Offset(100,  1)
+
+// Load a value and decrement until zero, catch overflows
+// Literals are parsed "as usual" for radix, placed in pool and replaced with address
+// Special treatment for zero
+// Check that VARs are in the right source operand
+
+I.start()
+I.label("setup")
+bovr.load(branch0, anywhere)
+bnz.load(branch1)
+bze.load(branch2)
+I.load(dmov(H.opcode0))
+I.load(nop(H.opcode1))
+I.load(add(H.opcode2))
+I.label("begin")
+add(A.count,42,0)
+I.label("loop")   
+add(A.count,A.count,-1))
+add(A.count,42,0) ; bnz(I.loop, not_taken) ;  bze(I.loop, taken) 
+
