@@ -20,9 +20,9 @@
     `define SELECT_S                2'd3
 
     `define SHIFT_NONE              2'd0
-    `define SHIFT_LEFT              2'd1
-    `define SHIFT_LEFT_SIGNED       2'd2
-    `define SHIFT_RIGHT             2'd3
+    `define SHIFT_RIGHT             2'd1
+    `define SHIFT_RIGHT_SIGNED      2'd2
+    `define SHIFT_LEFT              2'd3
 
     `define SPLIT_YES               1'd1
     `define SPLIT_NO                1'd0
