@@ -14,23 +14,6 @@ I_Memory    = blank_memory(1024)
 OD_Memory   = blank_memory(16 * thread_count) 
 DO_Memory   = blank_memory(1  * thread_count) 
 PO_Memory   = blank_memory(branch_entry_count  * thread_count) 
-AD_Memory   = blank_memory(address_entry_count * thread_count) 
-
-# ---------------------------------------------------------------------
-
-opcode_width    = 4
-D_width         = 12
-DA_width        = 6
-DB_width        = 6
-A_width         = 10
-B_width         = 10
-
-opcode_shift    = D_width + A_width + B_width
-D_shift         = A_width + B_width
-DA_shift        = A_width + B_width + DB_width
-DB_shift        = A_width + B_width
-A_shift         = B_width
-B_shift         = 0
 
 def width_mask(width):
     return (1 << width) - 1
@@ -54,10 +37,26 @@ def mem_dump(memory, width, file_name):
             output = format_string.format(entry)
             f.write(output + "\n")
 
-def assemble_simple_instruction(op, D, A, B):
+# ---------------------------------------------------------------------
+
+opcode_width    = 4
+D_width         = 12
+DA_width        = 6
+DB_width        = 6
+A_width         = 10
+B_width         = 10
+
+opcode_shift    = D_width + A_width + B_width
+D_shift         = A_width + B_width
+DA_shift        = A_width + B_width + DB_width
+DB_shift        = A_width + B_width
+A_shift         = B_width
+B_shift         = 0
+
+def create_simple_instruction(op, D, A, B):
     return (op << opcode_shift) | (D << D_shift) | (A << A_shift) | (B << B_shift)
 
-def assemble_split_instruction(op, DA, DB, A, B):
+def create_split_instruction(op, DA, DB, A, B):
     return (op << opcode_shift) | (DA << DA_shift) | (DB << DB_shift) | (A << A_shift) | (B << B_shift)
 
 # ---------------------------------------------------------------------
@@ -118,10 +117,66 @@ dyadic2_shift   = dyadic1_width + select_width
 dyadic1_shift   = select_width
 select_shift    = 0
 
-def configure_opcode(split, shift, dyadic3, addsub, dual, dyadic2, dyadic1, select):
+def define_opcode(split, shift, dyadic3, addsub, dual, dyadic2, dyadic1, select):
     return (split << split_shift) | (shift << shift_shift) | (dyadic3 << dyadic3_shift) | (addsub << addsub_shift) | (dual << dual_shift) | (dyadic2 << dyadic2_shift) | (dyadic1 << dyadic1_shift) | (select << select_shift)
 
 # ---------------------------------------------------------------------
+
+branch_origin_width         = 10
+branch_origin_enable_width  = 1
+branch_destination_width    = 10
+branch_predict_taken_width  = 1
+branch_predict_enable_width = 1
+branch_condition_width      = 8
+
+branch_origin_shift         = branch_origin_enable_width + branch_destination_width + branch_predict_enable_width + branch_predict_taken_width + branch_predict_enable_width + branch_condition_width
+branch_origin_enable_shift  = branch_destination_width + branch_predict_enable_width + branch_predict_taken_width + branch_predict_enable_width + branch_condition_width
+branch_destination_shift    = branch_predict_enable_width + branch_predict_taken_width + branch_predict_enable_width + branch_condition_width
+branch_predict_enable_shift = branch_predict_taken_width + branch_predict_enable_width + branch_condition_width
+branch_predict_taken_shift  = branch_predict_enable_width + branch_condition_width
+branch_predict_enable_shift = branch_condition_width
+branch_condition_shift      = 0
+
+A_flag_width    = 2
+B_flag_width    = 2
+
+A_FLAG_NEGATIVE = 0
+A_FLAG_CARRYOUT = 1
+A_FLAG_SENTINEL = 2
+A_FLAG_EXTERNAL = 3
+
+B_FLAG_LESSTHAN = 0
+B_FLAG_COUNTER  = 1
+B_FLAG_SENTINEL = 2
+B_FLAG_EXTERNAL = 3
+
+A_flag_shift        = B_flag_width + dyadic_op_width
+B_flag_shift        = dyadic_op_width
+AB_operator_shift   = 0
+
+def define_branch_condition(A_flag, B_flag, AB_operator):
+    return (A_flag << A_flag_shift) | (B_flag << B_flag_shift) | (AB_operator << AB_operator_shift)
+
+def define_branch(branch_origin, branch_origin_enable, branch_destination, branch_predict_taken, branch_predict_enable, branch_condition):
+    return (branch_origin << branch_origin_shift) | (branch_origin_enable << branch_origin_enable_shift) | (branch_destination << branch_destination_shift) | (branch_predict_taken << branch_predict_taken_shift) | (branch_predict_enable << branch_predict_enable_shift) | (branch_condition << branch_condition_shift)
+
+# ---------------------------------------------------------------------
+
+# Signed-magnitude increment: -8 to +8 inclusive
+po_incr_width       = 4
+
+# Offset is either D_width or A/B_width
+def define_programmed_offset(increment, offset, width):
+    incr_shift   = width
+    offset_shift = 0
+    return (increment << incr_shift) | (offset << offset_shift)
+
+def define_default_offset(offset):
+    return offset
+
+# ---------------------------------------------------------------------
+
+
 
 # ---------------------------------------------------------------------
 
