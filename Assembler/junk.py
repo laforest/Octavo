@@ -4,6 +4,10 @@
 thread_count        = 8
 branch_entry_count  = 4
 address_entry_count = 4   
+io_port_count       = 8
+shared_addr_count   = 12
+indirect_addr_base  = 13
+indirect_addr_count = address_entry_count
 
 def blank_memory(depth):
     return [0 for i in range(depth)]
@@ -36,6 +40,38 @@ def mem_dump(memory, width, file_name):
         for entry in memory:
             output = format_string.format(entry)
             f.write(output + "\n")
+
+# ---------------------------------------------------------------------
+
+# Address 0 is a zero-register. Map nothing to it.
+IO_PORT_ADDR    = range(1,1+io_port_count)
+SHARED_ADDR     = range(1,1+shared_addr_count)
+INDIRECT_ADDR   = range(indirect_addr_base, indirect_addr_base+indirect_addr_count)
+A_READ_BASE     = 0
+A_WRITE_BASE    = 0
+B_READ_BASE     = 0
+B_WRITE_BASE    = 1024
+I_WRITE_BASE    = 2048
+H_WRITE_BASE    = 3072
+
+# H Mem addresses for reconfiguration
+S_ADDR          = 3072
+A_PO_ADDR       = range(3076, 3076+address_entry_count)
+B_PO_ADDR       = range(3080, 3080+address_entry_count)
+DA_PO_ADDR      = range(3084, 3084+address_entry_count)
+DB_PO_ADDR      = range(3088, 3088+address_entry_count)
+DO_ADDR         = 3092
+FC_ADDR         = range(3100, 3100+branch_entry_count)
+OD_ADDR         = range(3200, 3200+16)
+
+# ---------------------------------------------------------------------
+
+
+
+A_variables = {}
+B_variables = {}
+
+def create_variable(storage_dict, name, addr = 0):
 
 # ---------------------------------------------------------------------
 
@@ -177,8 +213,6 @@ def define_default_offset(offset):
 # ---------------------------------------------------------------------
 
 
-
-# ---------------------------------------------------------------------
 
 if __name__ == "__main__":
     print "Done!"
