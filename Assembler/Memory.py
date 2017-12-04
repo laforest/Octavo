@@ -30,7 +30,7 @@ class Memory:
     def align(self, addr):
         """Continue assembling at new address. Assumes pre-incrementing 'here'"""
         self.here = addr - 1
-        assert self.here >= 0 and self.here <= self.depth-1, "ERROR: Out of bounds align in {0}".format(self.__class__.__name__)
+        assert self.here >= (0-1) and self.here <= (self.depth-1-1), "ERROR: Out of bounds align in {0}".format(self.__class__.__name__)
 
     def lit(self, number):
         """Place a literal number 'here'"""
