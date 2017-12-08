@@ -8,6 +8,37 @@ class Instruction_Memory(Memory):
        Requires a reference to the memories addressed by the operands,
        to resolve read/write addresses."""
 
+    def __init__(self, file_name, A_mem, B_mem, other_mem = [], depth = 0, width = 0, op_width = 0, dest_width = 0, src_width = 0, write_offset = 0):
+
+        assert dest_width % 2 == 0, "ERROR: Destination bit width must be even. Was given {0} in {1}".format(dest_width, self.__class__.__name__)
+        assert dest_width - src_width == 2, "ERROR: Destination bit width ({0}) must be 2 bits more than source bit width ({1}) in ({2})".format(dest_width, src_width, self.__class__.__name__)
+
+        Memory.__init__(self, file_name, depth = depth, width = width, write_offset = write_offset)
+        self.op_width           = op_width
+        self.dest_width         = dest_width
+        self.half_dest_width    = dest_width/2
+        self.src_width          = src_width
+        self.instr_width        = op_width + dest_width + src_width + src_width
+
+        assert self.instr_width <= self.width, "ERROR: Instruction width {0} greater than Memory word width {1} in {2}".format(self.instr_width, self.width, self.__class__.__name__)
+
+        self.src2_shift     = 0
+        self.src1_shift     = self.src_width
+        self.dest_shift     = self.src1_shift  + self.src_width
+        self.dest2_shift    = self.dest_shift
+        self.dest1_shift    = self.dest2_shift + self.half_dest_width
+        self.op_shift       = self.dest_shift  + self.dest_width
+
+        self.op_mask        = self.width_mask(op_width)
+        self.dest_mask      = self.width_mask(dest_width)
+        self.half_dest_mask = self.width_mask(half_dest_width)
+        self.src_mask       = self.width_mask(src_width)
+
+        # List of all other memories addressed in instructions (includes this one)
+        self.A_mem          = A_mem
+        self.B_mem          = B_mem
+        self.other_mem      = other_mem + [self]
+
     def lookup_write(self, name, mem_list):
         """Lookup the write address of a name across all memories."""
         addresses = []
@@ -52,35 +83,4 @@ class Instruction_Memory(Memory):
         instr |= ((A  & self.src_mask)       << self.src1_shift)
         instr |= ((B  & self.src_mask)       << self.src2_shift)
         self.lit(instr)
-
-    def __init__(self, file_name, A_mem, B_mem, other_mem = [], depth = 0, width = 0, op_width = 0, dest_width = 0, src_width = 0, write_offset = 0):
-
-        assert dest_width % 2 == 0, "ERROR: Destination bit width must be even. Was given {0} in {1}".format(dest_width, self.__class__.__name__)
-        assert dest_width - src_width == 2, "ERROR: Destination bit width ({0}) must be 2 bits more than source bit width ({1}) in ({2})".format(dest_width, src_width, self.__class__.__name__)
-
-        Memory.__init__(self, file_name, depth = depth, width = width, write_offset = write_offset)
-        self.op_width           = op_width
-        self.dest_width         = dest_width
-        self.half_dest_width    = dest_width/2
-        self.src_width          = src_width
-        self.instr_width        = op_width + dest_width + src_width + src_width
-
-        assert self.instr_width <= self.width, "ERROR: Instruction width {0} greater than Memory word width {1} in {2}".format(self.instr_width, self.width, self.__class__.__name__)
-
-        self.src2_shift     = 0
-        self.src1_shift     = self.src_width
-        self.dest_shift     = self.src1_shift  + self.src_width
-        self.dest2_shift    = self.dest_shift
-        self.dest1_shift    = self.dest2_shift + self.half_dest_width
-        self.op_shift       = self.dest_shift  + self.dest_width
-
-        self.op_mask        = self.width_mask(op_width)
-        self.dest_mask      = self.width_mask(dest_width)
-        self.half_dest_mask = self.width_mask(half_dest_width)
-        self.src_mask       = self.width_mask(src_width)
-
-        # List of all other memories addressed in instructions (includes this one)
-        self.A_mem          = A_mem
-        self.B_mem          = B_mem
-        self.other_mem      = other_mem + [self]
 

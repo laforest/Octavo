@@ -6,6 +6,21 @@ class Memory:
     def width_mask(self, width):
         return (1 << width) - 1
 
+    def __init__(self, file_name, depth = 0, width = 0, write_offset = 0):
+        self.file_name    = file_name
+        self.depth        = depth
+        self.width        = width
+        self.write_offset = write_offset
+        self.mask         = self.width_mask(self.width)
+        self.data         = [(0 & self.mask)] * self.depth
+        self.read_names   = {}
+        # Write names must be globaly unique, across all memories. Check in higher level class.
+        self.write_names  = {}
+        # Pre-increment before storing at 'here'.
+        self.here         = -1
+        # Lifted from Modelsim's output of $writememh
+        self.file_header  = """// format=hex addressradix=h dataradix=h version=1.0 wordsperline=1 noaddress"""
+
     def dump_format(self):
         """Numbers must be represented as zero-padded whole hex numbers"""
         characters = self.width // 4
@@ -73,19 +88,7 @@ class Memory:
         """Lookup local names into its WRITE address."""
         return self.write_names.get(name, None)
 
-    def __init__(self, file_name, depth = 0, width = 0, write_offset = 0):
-        self.file_name    = file_name
-        self.depth        = depth
-        self.width        = width
-        self.write_offset = write_offset
-        self.mask         = self.width_mask(self.width)
-        self.data         = [(0 & self.mask)] * self.depth
-        self.read_names   = {}
-        # Write names must be globaly unique, across all memories. Check in higher level class.
-        self.write_names  = {}
-        # Pre-increment before storing at 'here'.
-        self.here         = -1
-        # Lifted from Modelsim's output of $writememh
-        self.file_header  = """// format=hex addressradix=h dataradix=h version=1.0 wordsperline=1 noaddress"""
-
-
+    def forget(self, name):
+        """Remove a name associated with read and/or write addresses."""
+        self.read_names.pop(name, None)
+        self.write_names.pop(name, None)
