@@ -1,6 +1,9 @@
 
+import Dyadic_Operations as Dyadic
+
 """Control bit fields for the Triadic ALU"""
 
+# From Verilog code
 total_op_width          = 20
 
 select_r                = 0b00
@@ -20,12 +23,14 @@ shift_left              = 0b11
 split_no                = 0b0
 split_yes               = 0b1
 
-select_width            = 1
-dyadic1_width           = 2
-dyadic2_width           = 2
+select_width            = 2
+dyadic1_width           = Dyadic.op_width
+dyadic2_width           = Dyadic.op_width
 dual_width              = 1
 addsub_width            = 2
-dyadic3_width           = 2
+dyadic3_width           = Dyadic.op_width
 shift_width             = 2
 split_width             = 1
+
+assert (select_width + dyadic1_width + dyadic2_width + dual_width + addsub_width + dyadic3_width + shift_width + split_width) == total_op_width, "ERROR: ALU control word width and sum of control bits widths do not agree"
 
