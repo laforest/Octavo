@@ -16,8 +16,10 @@ class Memory:
         self.read_names   = {}
         # Write names must be globaly unique, across all memories. Check in higher level class.
         self.write_names  = {}
-        # Pre-increment before storing at 'here'.
+        # Pre-increment before storing numbers at 'here'.
         self.here         = -1
+        # Keep track of first free sequential location
+        self.last         = here + 1
         # Lifted from Modelsim's output of $writememh
         self.file_header  = """// format=hex addressradix=h dataradix=h version=1.0 wordsperline=1 noaddress"""
 
@@ -31,6 +33,8 @@ class Memory:
 
     def file_dump(self, begin = 0, end = 0, file_name = ""):
         """Dump to Verilog loadable format. Allows dumping a slice of memory."""
+        assert begin >= 0, "ERROR: Out of bounds range begin {0} in {1}".format(begin, self.__class__.__name__)
+        assert end <= self.depth, "ERROR: Out of bounds range end {0} in {1}".format(end, self.__class__.__name__)
         if end == 0:
             end = self.depth
         if file_name == "":
@@ -44,13 +48,21 @@ class Memory:
 
     def align(self, addr):
         """Continue assembling at new address. Assumes pre-incrementing 'here'"""
+        assert addr >= 0 and addr <= (self.depth-1), "ERROR: Out of bounds align ({0}) in {1}".format(self.here, self.__class__.__name__)
+        if addr > self.last:
+            self.last = addr
         self.here = addr - 1
-        assert self.here >= (0-1) and self.here <= (self.depth-1-1), "ERROR: Out of bounds align in {0}".format(self.__class__.__name__)
+
+    def resume(self):
+        """Resume assembling at first free sequential location after an align()."""
+        self.here = self.last - 1
 
     def lit(self, number):
         """Place a literal number 'here'"""
         self.here += 1
-        assert self.here >= 0 and self.here <= self.depth-1, "ERROR: Out of bounds lit in {0}".format(self.__class__.__name__)
+        assert self.here >= 0 and self.here <= self.depth-1, "ERROR: Out of bounds lit ({0}) in {1}".format(self.here, self.__class__.__name__)
+        if self.here >= self.last:
+            self.last = self.here + 1
         self.data[self.here] = number & self.mask
 
     def loc(self, name, read_addr = None, write_addr = None):
@@ -58,7 +70,7 @@ class Memory:
            If neither addresses are given, then name the current location, 
            after 'here' was incremented by another operation."""
         if read_addr is not None:
-            assert read_addr >= 0 and read_addr <= self.depth-1, "ERROR: Out of bounds loc read address assignment in {0}".format(self.__class__.__name__)
+            assert read_addr >= 0 and read_addr <= self.depth-1, "ERROR: Out of bounds loc read address ({0}) assignment in {1}".format(read_addr, self.__class__.__name__)
             self.read_names.update({name:read_addr})
         if write_addr is None and read_addr is not None:
             # No assert here as write address can be over a different range, depending on where Memory is mapped.
@@ -66,8 +78,8 @@ class Memory:
         if write_addr is not None:
             self.write_names.update({name:write_addr})
         if write_addr is None and read_addr is None:
-            assert self.here >= 0 and self.here <= self.depth-1, "ERROR: Out of bounds loc in {0}".format(self.__class__.__name__)
-            self.loc(name, self.here, write_addr)
+            assert self.here >= 0 and self.here <= self.depth-1, "ERROR: Out of bounds loc ({0}) in {1}".format(self.here, self.__class__.__name__)
+            self.loc(name, self.here)
 
     def data(self, entries, name = None):
         """Place a list of numbers into consecutive locations.
@@ -92,3 +104,4 @@ class Memory:
         """Remove a name associated with read and/or write addresses."""
         self.read_names.pop(name, None)
         self.write_names.pop(name, None)
+
