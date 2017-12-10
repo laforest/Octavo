@@ -29,8 +29,7 @@ class Opcode_Decoder_Memory(Memory):
         self.split_mask     = self.width_mask(ALU.split_width)
 
     def opcode(self, name, split, shift, dyadic3, addsub, dual, dyadic2, dyadic1, select):
-        """Assembles the control bits into a write-only memory. Names the opcode.
-           Write address is not offset, and acts as the opcode number."""
+        """Assembles the control bits of an opcode. Names the opcode."""
         control_bits  = ((split   & self.split_mask)   << split_shift) 
         control_bits |= ((shift   & self.shift_mask)   << shift_shift)
         control_bits |= ((dyadic3 & self.dyadic3_mask) << dyadic3_shift)
@@ -40,5 +39,6 @@ class Opcode_Decoder_Memory(Memory):
         control_bits |= ((dyadic1 & self.dyadic1_mask) << dyadic1_shift)
         control_bits |= ((select  & self.select_mask)  << select_shift)
         self.lit(control_bits)
-        self.loc(name, write_addr = self.here)
+        self.loc(name)
+
 
