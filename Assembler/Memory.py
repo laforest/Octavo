@@ -105,3 +105,8 @@ class Memory:
         self.read_names.pop(name, None)
         self.write_names.pop(name, None)
 
+    def lookup(self, name):
+        """Get the data refered by a read address, assumed to have been 'here'."""
+        addr = self.read_addr(name)
+        return self.data[addr]
+
