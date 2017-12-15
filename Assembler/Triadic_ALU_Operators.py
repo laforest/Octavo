@@ -1,7 +1,7 @@
 
-import Dyadic_Operations as Dyadic
-
 """Control bit fields for the Triadic ALU"""
+
+import Dyadic_Operations as Dyadic
 
 # From Verilog code
 total_op_width          = 20
