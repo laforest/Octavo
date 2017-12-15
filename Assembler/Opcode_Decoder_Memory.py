@@ -1,7 +1,7 @@
 #! /usr/bin/python
 
 from Memory import Memory
-import Triadic_ALU_Operations as ALU
+import Triadic_ALU_Operators as ALU
 
 class Opcode_Decoder_Memory(Memory):
     """Extends Memory to assemble the control bits of each opcode."""
@@ -30,14 +30,14 @@ class Opcode_Decoder_Memory(Memory):
 
     def opcode(self, name, split, shift, dyadic3, addsub, dual, dyadic2, dyadic1, select):
         """Assembles the control bits of an opcode. Names the opcode."""
-        control_bits  = ((split   & self.split_mask)   << split_shift) 
-        control_bits |= ((shift   & self.shift_mask)   << shift_shift)
-        control_bits |= ((dyadic3 & self.dyadic3_mask) << dyadic3_shift)
-        control_bits |= ((addsub  & self.addsub_mask)  << addsub_shift)
-        control_bits |= ((dual    & self.dual_mask)    << dual_shift)
-        control_bits |= ((dyadic2 & self.dyadic2_mask) << dyadic2_shift)
-        control_bits |= ((dyadic1 & self.dyadic1_mask) << dyadic1_shift)
-        control_bits |= ((select  & self.select_mask)  << select_shift)
+        control_bits  = (split   & self.split_mask)   << split_shift 
+        control_bits |= (shift   & self.shift_mask)   << shift_shift
+        control_bits |= (dyadic3 & self.dyadic3_mask) << dyadic3_shift
+        control_bits |= (addsub  & self.addsub_mask)  << addsub_shift
+        control_bits |= (dual    & self.dual_mask)    << dual_shift
+        control_bits |= (dyadic2 & self.dyadic2_mask) << dyadic2_shift
+        control_bits |= (dyadic1 & self.dyadic1_mask) << dyadic1_shift
+        control_bits |= (select  & self.select_mask)  << select_shift
         self.lit(control_bits)
         self.loc(name)
 
