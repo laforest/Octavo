@@ -1,25 +1,23 @@
-#! /usr/bin/python
+#! /usr/bin/python3
+
+from bitstring import BitArray
 
 class Memory:
     """A basic Memory capable of assembling literals, naming locations, and dumping its contents into a format Verilog $readmemh can use."""
-
-    def width_mask(self, width):
-        return (1 << width) - 1
 
     def __init__(self, file_name, depth = 0, width = 0, write_offset = 0):
         self.file_name    = file_name
         self.depth        = depth
         self.width        = width
         self.write_offset = write_offset
-        self.mask         = self.width_mask(self.width)
-        self.data         = [(0 & self.mask)] * self.depth
+        self.mem          = BitArray(self.width * self.depth)
         self.read_names   = {}
         # Write names must be globaly unique, across all memories. Check in higher level class.
         self.write_names  = {}
         # Pre-increment before storing numbers at 'here'.
         self.here         = -1
         # Keep track of first free sequential location
-        self.last         = here + 1
+        self.last         = self.here + 1
         # Lifted from Modelsim's output of $writememh
         self.file_header  = """// format=hex addressradix=h dataradix=h version=1.0 wordsperline=1 noaddress"""
 
@@ -32,18 +30,21 @@ class Memory:
         return format_string
 
     def file_dump(self, begin = 0, end = 0, file_name = ""):
-        """Dump to Verilog loadable format. Allows dumping a slice of memory."""
+        """Dump to Verilog loadable format. Allows dumping a width-slice of memory."""
         assert begin >= 0, "ERROR: Out of bounds range begin {0} in {1}".format(begin, self.__class__.__name__)
         assert end <= self.depth, "ERROR: Out of bounds range end {0} in {1}".format(end, self.__class__.__name__)
         if end == 0:
-            end = self.depth
+            end = self.depth - 1
         if file_name == "":
             file_name = self.file_name
+        # Convert from word index to bit index
+        begin = self.width * begin
+        end   = (self.width * end) + self.width
         with open(file_name, 'w') as f:
             f.write(self.file_header + "\n")
             format_string = self.dump_format()
-            for entry in self.data[begin:end]:
-                output = format_string.format(entry)
+            for entry in self.mem.cut(self.width, begin, end):
+                output = format_string.format(entry.uint)
                 f.write(output + "\n")
 
     def align(self, addr):
@@ -63,7 +64,9 @@ class Memory:
         assert self.here >= 0 and self.here <= self.depth-1, "ERROR: Out of bounds lit ({0}) in {1}".format(self.here, self.__class__.__name__)
         if self.here >= self.last:
             self.last = self.here + 1
-        self.data[self.here] = number & self.mask
+        number = BitArray(int=number, length=self.width)
+        pos = self.here * self.width
+        self.mem.overwrite(number, pos)
 
     def loc(self, name, read_addr = None, write_addr = None):
         """Name a given location. May have only a read or write address, or both.
@@ -105,8 +108,30 @@ class Memory:
         self.read_names.pop(name, None)
         self.write_names.pop(name, None)
 
-    def lookup(self, name):
-        """Get the data refered by a read address, assumed to have been 'here'."""
-        addr = self.read_addr(name)
-        return self.data[addr]
+    def lookup(self, name, offset = 0):
+        """Get the word refered by a read address, assumed to have been 'here'."""
+        addr  = self.read_addr(name)
+        addr  += offset
+        start = addr * self.width
+        end   = start + self.width
+        val   = self.mem[start:end]
+        return val.uint
+
+
+if __name__ == "__main__":
+    test = Memory("foobar.mem", depth = 1024, width = 36, write_offset = 512)
+    test.align(321)
+    numbers = [1,2,3,5,8,13,21]
+    test.data(numbers,"fib")
+    read_addr = test.read_addr("fib")
+    print("read addr: {0}".format(read_addr));
+    write_addr = test.write_addr("fib")
+    print("write addr: {0}".format(write_addr));
+    for offset in range(0,len(numbers)+1):
+        print(test.lookup("fib", offset))
+    # Check the line numbers: 321 to 327, account for header
+    # cat foobar.mem | nl -v -1 | less
+    test.file_dump() 
+
+    
 
