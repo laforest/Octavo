@@ -38,8 +38,8 @@ class Instruction_Memory(Memory):
             address = mem.write_addr(name)
             if address is not None:
                 addresses.append(address)
-        assert len(addresses) > 0,   "ERROR: Cannot resolve undefined write name: {0}".format(name)   
-        assert len(addresses) == 1,  "ERROR: Cannot resolve multiple identical write names: {0}".format(name)   
+        assert len(addresses) > 0,   "ERROR: Cannot resolve undefined write name: {0}".format(name)
+        assert len(addresses) == 1,  "ERROR: Cannot resolve multiple identical write names: {0}".format(name)
         return addresses[0]
 
     def lookup_read(self, name, mem):
