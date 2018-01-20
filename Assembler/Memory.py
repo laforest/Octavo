@@ -109,13 +109,13 @@ class Memory:
         self.write_names.pop(name, None)
 
     def lookup(self, name, offset = 0):
-        """Get the word refered by a read address, assumed to have been 'here'."""
+        """Get the binary word refered by a read address, assumed to have been 'here'."""
         addr  = self.read_addr(name)
         addr  += offset
         start = addr * self.width
         end   = start + self.width
         val   = self.mem[start:end]
-        return val.uint
+        return val
 
 
 if __name__ == "__main__":
@@ -128,7 +128,7 @@ if __name__ == "__main__":
     write_addr = test.write_addr("fib")
     print("write addr: {0}".format(write_addr));
     for offset in range(0,len(numbers)+1):
-        print(test.lookup("fib", offset))
+        print(test.lookup("fib", offset).uint)
     # Check the line numbers: 321 to 327, account for header
     # cat foobar.mem | nl -v -1 | less
     test.file_dump() 

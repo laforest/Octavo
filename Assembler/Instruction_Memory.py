@@ -84,5 +84,5 @@ if __name__ == "__main__":
     op_add = 8
     I_mem.simple(op_add, "blep", "foo", "bar")
     I_mem.loc("testinstr")
-    print(BitArray(uint=I_mem.lookup("testinstr"), length=I_mem.instr_width).unpack(I_mem.simple_instr_format))
+    print(I_mem.lookup("testinstr").unpack(I_mem.simple_instr_format))
 
