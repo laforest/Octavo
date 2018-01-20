@@ -1,7 +1,8 @@
 #! /usr/bin/python
 
-from Memory import Memory
-from math   import ceil, log
+from bitstring import pack,BitArray
+from Memory    import Memory
+from math      import ceil, log
 
 class Instruction_Memory(Memory):
     """Extends Memory to assemble instructions.
@@ -22,17 +23,8 @@ class Instruction_Memory(Memory):
 
         assert self.instr_width <= self.width, "ERROR: Instruction width {0} greater than Memory word width {1} in {2}".format(self.instr_width, self.width, self.__class__.__name__)
 
-        self.src2_shift     = 0
-        self.src1_shift     = self.src_width
-        self.dest_shift     = self.src1_shift  + self.src_width
-        self.dest2_shift    = self.dest_shift
-        self.dest1_shift    = self.dest2_shift + self.half_dest_width
-        self.op_shift       = self.dest_shift  + self.dest_width
-
-        self.op_mask        = self.width_mask(op_width)
-        self.dest_mask      = self.width_mask(dest_width)
-        self.half_dest_mask = self.width_mask(half_dest_width)
-        self.src_mask       = self.width_mask(src_width)
+        self.simple_instr_format   = 'uint:{0},uint:{1},uint:{2},uint:{3}'.format(self.op_width, self.dest_width, self.src_width, self.src_width)
+        self.dual_instr_format     = 'uint:{0},uint:{1},uint:{2},uint:{3},uint:{4}'.format(self.op_width, self.half_dest_width, self.half_dest_width, self.src_width, self.src_width)
 
         # List of all other memories addressed in instructions (includes this one)
         self.A_mem          = A_mem
@@ -46,8 +38,8 @@ class Instruction_Memory(Memory):
             address = mem.write_addr(name)
             if address is not None:
                 addresses.append(address)
-        assert len(addresses) > 0, "ERROR: Cannot resolve undefined write name: {0}".format(name)   
-        assert len(addresses) == 1, "ERROR: Cannot resolve multiple identical write names: {0}".format(name)   
+        assert len(addresses) > 0,   "ERROR: Cannot resolve undefined write name: {0}".format(name)   
+        assert len(addresses) == 1,  "ERROR: Cannot resolve multiple identical write names: {0}".format(name)   
         return addresses[0]
 
     def lookup_read(self, name, mem):
@@ -61,11 +53,9 @@ class Instruction_Memory(Memory):
         D = self.lookup_write(dest, mem_list)
         A = self.lookup_read(src1, self.A_mem)
         B = self.lookup_read(src2, self.B_mem)
-        instr  = ((op & self.op_mask)   << self.op_shift)
-        instr |= ((D  & self.dest_mask) << self.dest_shift)
-        instr |= ((A  & self.src_mask)  << self.src1_shift)
-        instr |= ((B  & self.src_mask)  << self.src2_shift)
-        self.lit(instr)
+        instr = BitArray()
+        instr  = pack(self.simple_instr_format, op, D, A, B)
+        self.lit(instr.uint)
 
     def dual(self, op, dest1, dest2, src1, src2):
         """Assemble a dual instruction (split addressing mode)"""
@@ -77,10 +67,22 @@ class Instruction_Memory(Memory):
         assert int(ceil(log((DB - self.B_mem.write_offset),2))) <= self.half_dest_width, "ERROR: DB value {0} out of range in {1}".format(DB, self.__class__.__name__)
         A = self.lookup_read(src1, self.A_mem)
         B = self.lookup_read(src2, self.B_mem)
-        instr  = ((op & self.op_mask)        << self.op_shift)
-        instr |= ((DA & self.half_dest_mask) << self.dest1_shift)
-        instr |= ((DB & self.half_dest_mask) << self.dest2_shift)
-        instr |= ((A  & self.src_mask)       << self.src1_shift)
-        instr |= ((B  & self.src_mask)       << self.src2_shift)
-        self.lit(instr)
+        instr  = pack(self.dual_instr_format, op, DA, DB, A, B)
+        self.lit(instr.uint)
+
+if __name__ == "__main__":
+    A_mem = Memory("foobar_A.mem", depth = 1024, width = 36, write_offset = 0)
+    B_mem = Memory("foobar_B.mem", depth = 1024, width = 36, write_offset = 1024)
+    H_mem = Memory("foobar_H.mem", depth = 1024, width = 36, write_offset = 3072)
+    I_mem = Instruction_Memory("foobar.mem", A_mem = A_mem, B_mem = B_mem, other_mem = [H_mem], depth = 1024, width = 36, op_width = 4, dest_width = 12, src_width = 10, write_offset = 10)
+    A_mem.align(123)
+    A_mem.data([55],"foo")
+    B_mem.align(456)
+    B_mem.data([77],"bar")
+    H_mem.align(789)
+    H_mem.data([99],"blep")
+    op_add = 8
+    I_mem.simple(op_add, "blep", "foo", "bar")
+    I_mem.loc("testinstr")
+    print(BitArray(uint=I_mem.lookup("testinstr"), length=I_mem.instr_width).unpack(I_mem.simple_instr_format))
 
