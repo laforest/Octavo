@@ -21,6 +21,9 @@ class Memory:
         # Lifted from Modelsim's output of $writememh
         self.file_header  = """// format=hex addressradix=h dataradix=h version=1.0 wordsperline=1 noaddress"""
 
+# ---------------------------------------------------------------------
+# File dump format
+
     def dump_format(self):
         """Numbers must be represented as zero-padded whole hex numbers"""
         characters = self.width // 4
@@ -47,26 +50,8 @@ class Memory:
                 output = format_string.format(entry.uint)
                 f.write(output + "\n")
 
-    def align(self, addr):
-        """Continue assembling at new address. Assumes pre-incrementing 'here'"""
-        assert addr >= 0 and addr <= (self.depth-1), "ERROR: Out of bounds align ({0}) in {1}".format(self.here, self.__class__.__name__)
-        if addr > self.last:
-            self.last = addr
-        self.here = addr - 1
-
-    def resume(self):
-        """Resume assembling at first free sequential location after an align()."""
-        self.here = self.last - 1
-
-    def lit(self, number):
-        """Place a literal number 'here'"""
-        self.here += 1
-        assert self.here >= 0 and self.here <= self.depth-1, "ERROR: Out of bounds lit ({0}) in {1}".format(self.here, self.__class__.__name__)
-        if self.here >= self.last:
-            self.last = self.here + 1
-        number = BitArray(uint=number, length=self.width)
-        pos = self.here * self.width
-        self.mem.overwrite(number, pos)
+# ---------------------------------------------------------------------
+# Location naming and lookup
 
     def loc(self, name, read_addr = None, write_addr = None):
         """Name a given location. May have only a read or write address, or both.
@@ -83,17 +68,6 @@ class Memory:
         if write_addr is None and read_addr is None:
             assert self.here >= 0 and self.here <= self.depth-1, "ERROR: Out of bounds loc ({0}) in {1}".format(self.here, self.__class__.__name__)
             self.loc(name, self.here)
-
-    def data(self, entries, name = None):
-        """Place a list of numbers into consecutive locations.
-           Optionally name the head of the list."""
-        assert len(entries) > 0, "ERROR: Empty data list in {0}".format(self.__class__.__name__)   
-        if name is not None:
-            head = entries.pop(0)
-            self.lit(head)
-            self.loc(name)
-        for entry in entries:
-            self.lit(entry)
 
     def read_addr(self, name):
         """Lookup name into its READ address."""
@@ -119,6 +93,43 @@ class Memory:
         end   = start + self.width
         val   = self.mem[start:end]
         return val
+
+# ---------------------------------------------------------------------
+# Compile literals at locations (basic assembler mechanism and state)
+
+    def align(self, addr):
+        """Continue assembling at new address. Assumes pre-incrementing 'here'"""
+        if type(addr) == str:
+            addr = self.read_addr(addr)
+        assert addr >= 0 and addr <= (self.depth-1), "ERROR: Out of bounds align ({0}) in {1}".format(self.here, self.__class__.__name__)
+        if addr > self.last:
+            self.last = addr
+        self.here = addr - 1
+
+    def resume(self):
+        """Resume assembling at first free sequential location after an align()."""
+        self.here = self.last - 1
+
+    def lit(self, number):
+        """Place a literal number 'here'"""
+        self.here += 1
+        assert self.here >= 0 and self.here <= self.depth-1, "ERROR: Out of bounds lit ({0}) in {1}".format(self.here, self.__class__.__name__)
+        if self.here >= self.last:
+            self.last = self.here + 1
+        number = BitArray(uint=number, length=self.width)
+        pos = self.here * self.width
+        self.mem.overwrite(number, pos)
+
+    def data(self, entries, name = None):
+        """Place a list of numbers into consecutive locations.
+           Optionally name the head of the list."""
+        assert len(entries) > 0, "ERROR: Empty data list in {0}".format(self.__class__.__name__)   
+        if name is not None:
+            head = entries.pop(0)
+            self.lit(head)
+            self.loc(name)
+        for entry in entries:
+            self.lit(entry)
 
 
 if __name__ == "__main__":
