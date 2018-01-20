@@ -64,7 +64,7 @@ class Memory:
         assert self.here >= 0 and self.here <= self.depth-1, "ERROR: Out of bounds lit ({0}) in {1}".format(self.here, self.__class__.__name__)
         if self.here >= self.last:
             self.last = self.here + 1
-        number = BitArray(int=number, length=self.width)
+        number = BitArray(uint=number, length=self.width)
         pos = self.here * self.width
         self.mem.overwrite(number, pos)
 
