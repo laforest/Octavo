@@ -110,7 +110,10 @@ class Memory:
 
     def lookup(self, name, offset = 0):
         """Get the binary word refered by a read address, assumed to have been 'here'."""
-        addr  = self.read_addr(name)
+        if type(name) == str:
+            addr = self.read_addr(name)
+        else:
+            addr = name
         addr  += offset
         start = addr * self.width
         end   = start + self.width

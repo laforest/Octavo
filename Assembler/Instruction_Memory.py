@@ -85,4 +85,5 @@ if __name__ == "__main__":
     I_mem.simple(op_add, "blep", "foo", "bar")
     I_mem.loc("testinstr")
     print(I_mem.lookup("testinstr").unpack(I_mem.simple_instr_format))
+    print(I_mem.lookup(0).unpack(I_mem.simple_instr_format))
 
