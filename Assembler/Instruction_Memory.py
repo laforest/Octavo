@@ -17,7 +17,7 @@ class Instruction_Memory(Memory):
         Memory.__init__(self, file_name, depth = depth, width = width, write_offset = write_offset)
         self.op_width           = op_width
         self.dest_width         = dest_width
-        self.half_dest_width    = dest_width/2
+        self.half_dest_width    = dest_width // 2
         self.src_width          = src_width
         self.instr_width        = op_width + dest_width + src_width + src_width
 
@@ -34,6 +34,8 @@ class Instruction_Memory(Memory):
     def lookup_write(self, name, mem_list):
         """Lookup the write address of a name across all memories."""
         addresses = []
+        if type(mem_list) != list:
+            mem_list = [mem_list]
         for mem in mem_list:
             address = mem.write_addr(name)
             if address is not None:
@@ -59,12 +61,10 @@ class Instruction_Memory(Memory):
 
     def dual(self, op, dest1, dest2, src1, src2):
         """Assemble a dual instruction (split addressing mode)"""
-        DA = self.lookup_write(dest1, self.A_mem)
-        DB = self.lookup_write(dest2, self.B_mem)
-        # Do the write addresses, re-based to 0, fit in half the destination address bit width?
         # The CPU re-adds the correct write offset after it decodes the instruction
-        assert int(ceil(log((DA - self.A_mem.write_offset),2))) <= self.half_dest_width, "ERROR: DA value {0} out of range in {1}".format(DA, self.__class__.__name__)
-        assert int(ceil(log((DB - self.B_mem.write_offset),2))) <= self.half_dest_width, "ERROR: DB value {0} out of range in {1}".format(DB, self.__class__.__name__)
+        # It's a power-of-2 alignment, so it just prepends the right value
+        DA = self.lookup_write(dest1, self.A_mem) - self.A_mem.write_offset
+        DB = self.lookup_write(dest2, self.B_mem) - self.B_mem.write_offset
         A = self.lookup_read(src1, self.A_mem)
         B = self.lookup_read(src2, self.B_mem)
         instr  = pack(self.dual_instr_format, op, DA, DB, A, B)
@@ -75,15 +75,19 @@ if __name__ == "__main__":
     B_mem = Memory("foobar_B.mem", depth = 1024, width = 36, write_offset = 1024)
     H_mem = Memory("foobar_H.mem", depth = 1024, width = 36, write_offset = 3072)
     I_mem = Instruction_Memory("foobar.mem", A_mem = A_mem, B_mem = B_mem, other_mem = [H_mem], depth = 1024, width = 36, op_width = 4, dest_width = 12, src_width = 10, write_offset = 10)
-    A_mem.align(123)
+    A_mem.align(23)
     A_mem.data([55],"foo")
-    B_mem.align(456)
+    B_mem.align(56)
     B_mem.data([77],"bar")
-    H_mem.align(789)
+    H_mem.align(89)
     H_mem.data([99],"blep")
     op_add = 8
     I_mem.simple(op_add, "blep", "foo", "bar")
     I_mem.loc("testinstr")
     print(I_mem.lookup("testinstr").unpack(I_mem.simple_instr_format))
     print(I_mem.lookup(0).unpack(I_mem.simple_instr_format))
+    I_mem.align("testinstr")
+    I_mem.dual(op_add, "foo", "bar", "foo", "bar")
+    print(I_mem.lookup("testinstr").unpack(I_mem.dual_instr_format))
+
 
