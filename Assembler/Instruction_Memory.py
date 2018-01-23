@@ -55,8 +55,7 @@ class Instruction_Memory(Memory):
         D = self.lookup_write(dest, mem_list)
         A = self.lookup_read(src1, self.A_mem)
         B = self.lookup_read(src2, self.B_mem)
-        instr = BitArray()
-        instr  = pack(self.simple_instr_format, op, D, A, B)
+        instr = pack(self.simple_instr_format, op, D, A, B)
         self.lit(instr.uint)
 
     def dual(self, op, dest1, dest2, src1, src2):
@@ -67,7 +66,7 @@ class Instruction_Memory(Memory):
         DB = self.lookup_write(dest2, self.B_mem) - self.B_mem.write_offset
         A = self.lookup_read(src1, self.A_mem)
         B = self.lookup_read(src2, self.B_mem)
-        instr  = pack(self.dual_instr_format, op, DA, DB, A, B)
+        instr = pack(self.dual_instr_format, op, DA, DB, A, B)
         self.lit(instr.uint)
 
 if __name__ == "__main__":
