@@ -1,7 +1,8 @@
-#! /usr/bin/python
+#! /usr/bin/python3
 
 from Memory import Memory
-import Branch_Detector_Operators as BD
+import Branch_Detector_Operators as Branch
+from bitstring import pack,BitArray
 from sys import exit
 
 class Branch_Detector_Memory(Memory):
@@ -11,49 +12,46 @@ class Branch_Detector_Memory(Memory):
        to a higher assembler."""
 
     def __init__(self, file_name, depth = 0, width = 0, write_offset = 0):
-        assert width >= BD.total_op_width, "ERROR: memory too narrow ({0} bits) to hold Branch Detector control bits in {1}".format(width, self.__class__.__name__)
+        assert width >= Branch.total_op_width, "ERROR: memory too narrow ({0} bits) to hold Branch Detector control bits in {1}".format(width, self.__class__.__name__)
         Memory.__init__(self, file_name, depth = depth, width = width, write_offset = write_offset)
 
-        self.AB_operator_shift      = 0
-        self.B_flag_shift           = self.AB_operator_shift    + BD.AB_operator_width
-        self.A_flag_shift           = self.B_flag_shift         + BD.B_flag_width
-        self.condition_shift        = 0
-        self.predict_enable_shift   = self.condition_shift      + BD.condition_width
-        self.predict_taken_shift    = self.predict_enable_shift + BD.predict_enable_width
-        self.destination_shift      = self.predict_taken_shift  + BD.predict_taken_width
-        self.origin_enable_shift    = self.destination_shift    + BD.destination_width
-        self.origin_shift           = self.origin_enable_shift  + BD.origin_enable_width
-
-        self.AB_operator_mask       = self.width_mask(BD.AB_operator_width)
-        self.B_flag_mask            = self.width_mask(BD.B_flag_width)
-        self.A_flag_mask            = self.width_mask(BD.A_flag_width)
-        self.condition_mask         = self.width_mask(BD.condition_width)
-        self.predict_enable_mask    = self.width_mask(BD.predict_enable_width)
-        self.predict_taken_mask     = self.width_mask(BD.predict_taken_width)
-        self.destination_mask       = self.width_mask(BD.destination_width)
-        self.origin_enable_mask     = self.width_mask(BD.origin_enable_width)
-        self.origin_mask            = self.width_mask(BD.origin_width)
+        self.condition_format = 'uint:{0},uint:{1},uint:{2}'.format(Branch.A_flag_width, Branch.B_flag_width, Branch.AB_operator_width)
+        self.branch_format = 'uint:{0},uint:{1},uint:{2},uint:{3},uint:{4},uint:{5}'.format(Branch.origin_width, Branch.origin_enable_width, Branch.destination_width, Branch.predict_taken_width, Branch.predict_enable_width, Branch.condition_width)
 
     def branch_condition(self, name, A_flag, B_flag, AB_operator):
-        condition  = (AB_operator & self.AB_operator_mask) << AB_operator_shift
-        condition |= (B_flag      & self.B_flag_mask)      << B_flag_shift
-        condition |= (A_flag      & self.A_flag_mask)      << A_flag_shift 
-        self.lit(condition)
+        """Note we pack a smaller word in a bigger one. Slice it when reading back."""
+        condition = BitArray()
+        for entry in [A_flag, B_flag, AB_operator]:
+            condition.append(entry)
+        self.lit(condition.uint)
         self.loc(name)
 
     def branch(self, name, origin, origin_enable, destination, predict_taken, predict_enable, condition_name):
         condition = self.lookup(condition_name)
-        config  = (condition      & self.condition_mask)      << self.condition_shift
-        config |= (predict_enable & self.predict_enable_mask) << self.predict_enable_shift 
-        config |= (predict_taken  & self.predict_taken_mask)  << self.predict_taken_shift
-        config |= (destination    & self.destination_mask)    << self.destination_shift
-        config |= (origin_enable  & self.origin_enable_mask)  << self.origin_enable_shift
-        config |= (origin         & self.origin_mask)         << self.origin_shift
-        self.lit(config)
+        # Slice out the extra bits
+        extra_bits = self.width - Branch.condition_width
+        condition = condition[extra_bits:]
+        origin_bits = BitArray(uint=origin, length=Branch.origin_width)
+        destination_bits = BitArray(uint=destination, length=Branch.destination_width)
+        config = BitArray()
+        for entry in [origin_bits, origin_enable, destination_bits, predict_taken, predict_enable, condition]:
+            config.append(entry)
+        self.lit(config.uint)
         self.loc(name)
 
     def file_dump(self, begin = 0, end = 0, file_name = ""):
         """Override class method to disable memory dumps."""
-        print "ERROR: {0} cannot be used to create a memory dump.".format(self.__class__.__name__)
+        print("ERROR: {0} cannot be used to create a memory dump.".format(self.__class__.__name__))
         exit()
+
+if __name__ == "__main__":
+    BDM = Branch_Detector_Memory("foobar.mem", depth = 4, width = Branch.total_op_width, write_offset = 300)
+    BDM.branch_condition("LTE", Branch.A_flag_sentinel, Branch.B_flag_lessthan, Branch.Dyadic.a_or_b)
+    BDM.branch("infinite", 123, Branch.origin_enabled, 456, Branch.predict_not_taken, Branch.predict_enabled, "LTE")
+    print(BDM.condition_format)
+    print(BDM.branch_format)
+    print(BDM.lookup("LTE").bin)
+    print(BDM.lookup("LTE").unpack(BDM.condition_format))
+    print(BDM.lookup("infinite").bin)
+    print(BDM.lookup("infinite").unpack(BDM.branch_format))
 
