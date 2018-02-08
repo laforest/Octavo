@@ -244,14 +244,37 @@ class PC_prev:
     pass
 
 PC.mem      = create_memory(thread_count, pc_width)
+PC.filename = "PC.mem"
 
-PC_prev.mem = create_memory(thread_count, pc_width)
+PC_prev.mem         = create_memory(thread_count, pc_width)
+PC_prev.filename    = "PC_prev.mem"
 
 pc_format = 'uint:{0}'.format(pc_width)
 
 def set_pc(mem_obj, thread, pc_value):
     pc_value = BitArray(uint=pc_value, length=mem_obj.mem[0].length)
     mem_obj.mem[thread] = pc_value;
+
+# ---------------------------------------------------------------------
+# Default Offset Memory
+
+# This should be 10 for A/B memories, but it's not set up in the Verilog.
+# That will cause readmemh() warnings, which we'll have to fix later.
+do_width = 12 
+
+class DO:
+    pass
+
+DO.mem      = create_memory(thread_count, do_width)
+DO.filename = "DO.mem"
+
+def set_do(mem_obj, thread, offset):
+    offset = BitArray(uint=offset, length=mem_obj.mem[0].length)
+    mem_obj.mem[thread] = offset;
+
+# ---------------------------------------------------------------------
+# Programmed Offset Memory
+
 
 
 # ---------------------------------------------------------------------
