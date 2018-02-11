@@ -179,7 +179,7 @@ def dual(mem_obj, op, dest1, dest2, src1, src2, mem_list = mem_list, instr_forma
 # ---------------------------------------------------------------------
 # Opcode Decoder Memory: translate opcode into ALU control bits
 
-class O:
+class OD:
     pass
 
 thread_count = 8
@@ -187,8 +187,9 @@ opcode_count = 16
 
 alu_control_format = 'uint:{0},uint:{1},uint:{2},uint:{3},uint:{4},uint:{5},uint:{6},uint:{7}'.format(ALU.split_width, ALU.shift_width, ALU.dyadic3_width, ALU.addsub_width, ALU.dual_width, ALU.dyadic2_width, ALU.dyadic1_width, ALU.select_width)
 
-O.mem       = create_memory(opcode_count*thread_count, ALU.total_op_width)
-O.opcodes   = {} # {name:bits}
+OD.mem       = create_memory(opcode_count*thread_count, ALU.total_op_width)
+OD.opcodes   = {} # {name:bits}
+OD.filename  = "OD.mem"
 
 def define_opcode(mem_obj, name, split, shift, dyadic3, addsub, dual, dyadic2, dyadic1, select):
     """Assembles and names the control bits of an opcode."""
@@ -289,7 +290,7 @@ PO.filename = "PO.mem"
 
 def set_po(mem_obj, thread, entry, sign, increment, offset, po_increment_sign_bits = po_increment_sign_bits, po_increment_bits = po_increment_bits, po_offset_bits = po_offset_bits, po_entries = po_entries, po_width = po_width):
     if entry < 0 or entry > po_entries-1:
-        print("Out of bounds PO entry: {0}".format(entry)
+        print("Out of bounds PO entry: {0}".format(entry))
         sys.exit(1)
     sign        = BitArray(uint=sign,      length=po_increment_sign_bits)
     increment   = BitArray(uint=increment, length=po_increment_bits)
@@ -303,12 +304,53 @@ def set_po(mem_obj, thread, entry, sign, increment, offset, po_increment_sign_bi
     mem_obj.mem[thread*entry] = po;
 
 # ---------------------------------------------------------------------
+# Memory map
+
+class MEMMAP:
+    # These are for A/B
+    zero        = 0
+    shared      = [1,2,3,4,5,6,7,8,9,10,11,12]
+    io          = [1,2,3,4,5,6,7,8]
+    indirect    = [13,14,15,16]
+    # Memory base addresses
+    a           = 0
+    b           = 1024
+    i           = 2048
+    h           = 3072
+    # Config registers in H memory
+    s           = 3072
+    a_po        = [3076,3077,3078,3079]
+    b_po        = [3080,3081,3082,3083]
+    da_po       = [3084,3085,3086,3087]
+    db_po       = [3088,3089,3090,3091]
+    do          = 3092
+    fc          = [3100,3101,3102,3103]
+    od          = [3200,3201,3202,3203,3204,3205,3206,3207,3208,3209,3210,3211,3212,3213,3214,3215]
+
+# ---------------------------------------------------------------------
 # ---------------------------------------------------------------------
 # Quick test
 
+initializable_memories = [A,B,I,OD,DO,PO,PC,PC_prev]
+
 def dump_all(mem_obj_list):
+    for mem in mem_obj_list:
+        file_dump(mem)
+
+# Thread 0 must start its code at 1, as first PC is always 0 (register set at config)
+# Start all threads at 1. Avoids sticking at zero due to null Branch Detector entry.
+def init_PC(PC = PC, PC_prev = PC_prev):
+    for thread in range(thread_count):
+        set_pc(PC,      thread, 1)
+        set_pc(PC_prev, thread, 1)
+
+def init_ISA(OD = OD, MEMMAP = MEMMAP):
     pass
+    
+
+# ---------------------------------------------------------------------
 
 if __name__ == "__main__":
-    pass
+    init_PC()
+    dump_all(initializable_memories)
 
