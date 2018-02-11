@@ -275,15 +275,40 @@ def set_do(mem_obj, thread, offset):
 # ---------------------------------------------------------------------
 # Programmed Offset Memory
 
+po_entries              = 4
+po_increment_bits       = 4
+po_increment_sign_bits  = 1
+po_offset_bits          = 12
+po_width                = po_increment_sign_bits + po_increment_bits + po_offset_bits
 
+class PO:
+    pass
+
+PO.mem      = create_memory(thread_count*po_entries, po_width)
+PO.filename = "PO.mem"
+
+def set_po(mem_obj, thread, entry, sign, increment, offset, po_increment_sign_bits = po_increment_sign_bits, po_increment_bits = po_increment_bits, po_offset_bits = po_offset_bits, po_entries = po_entries, po_width = po_width):
+    if entry < 0 or entry > po_entries-1:
+        print("Out of bounds PO entry: {0}".format(entry)
+        sys.exit(1)
+    sign        = BitArray(uint=sign,      length=po_increment_sign_bits)
+    increment   = BitArray(uint=increment, length=po_increment_bits)
+    offset      = BitArray(uint=offset,    length=po_offset_bits)
+    po          = BitArray()
+    for field in [sign, increment, offset]:
+        po.append(field)
+    if po.length != po_width:
+        print("PO length error! Got {0}, expected {1}".format(po.length, po_width))
+        sys.exit(1)
+    mem_obj.mem[thread*entry] = po;
 
 # ---------------------------------------------------------------------
+# ---------------------------------------------------------------------
+# Quick test
+
+def dump_all(mem_obj_list):
+    pass
 
 if __name__ == "__main__":
-    pprint(len(A.mem))
-    loc(A, "foobar", 5)
-    pprint(A.read_names["foobar"])
-    pprint(A.write_names["foobar"])
-    data(A, [1,3,5,7,9], "numnums")
-    file_dump(A)    
+    pass
 
