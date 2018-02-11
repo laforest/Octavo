@@ -126,6 +126,44 @@ B.write_offset  = 1024
 B.filename      = "B.mem"
 
 # ---------------------------------------------------------------------
+# Opcode Decoder Memory: translate opcode into ALU control bits
+
+class OD:
+    pass
+
+thread_count = 8
+opcode_count = 16
+
+alu_control_format = 'uint:{0},uint:{1},uint:{2},uint:{3},uint:{4},uint:{5},uint:{6},uint:{7}'.format(ALU.split_width, ALU.shift_width, ALU.dyadic3_width, ALU.addsub_width, ALU.dual_width, ALU.dyadic2_width, ALU.dyadic1_width, ALU.select_width)
+
+OD.mem       = create_memory(opcode_count*thread_count, ALU.total_op_width)
+OD.opcodes   = {} # {name:bits}
+OD.filename  = "OD.mem"
+
+def define_opcode(mem_obj, name, split, shift, dyadic3, addsub, dual, dyadic2, dyadic1, select):
+    """Assembles and names the control bits of an opcode."""
+    control_bits = BitArray()
+    for entry in [split, shift, dyadic3, addsub, dual, dyadic2, dyadic1, select]:
+        control_bits.append(entry)
+    mem_obj.opcodes.update({name:control_bits})
+
+def load_opcode(mem_obj, thread, name, opcode):
+    """The opcode indexes into the opcode decoder memory, separately for each thread."""
+    address = (thread * opcode_count) + opcode
+    mem_obj.mem[address] = mem_obj.opcodes[name]
+
+def lookup_opcode(mem_obj, thread, name):
+    """Finds the bit pattern for the named opcode, searches for address of those bits."""
+    control_bits = mem_obj.opcodes[name]
+    op_zero = (thread * opcode_count)
+    for opcode in range(op_zero, op_zero + opcode_count):
+        if mem_obj.mem[opcode] == control_bits:
+            return opcode
+    print("Could not find opcode named {0} in thread {1}".format(name, thread))
+    sys.exit(1)
+    
+
+# ---------------------------------------------------------------------
 # Create the Instruction Memory
 
 class I:
@@ -157,51 +195,26 @@ def lookup_write(name, mem_list):
         sys.exit(1)
     return addresses[0]
 
-def simple(mem_obj, op, dest, src1, src2, mem_list = mem_list, instr_format = simple_instr_format):
+def simple(mem_obj, thread, op_name, dest, src1, src2, mem_list = mem_list, instr_format = simple_instr_format, OD = OD):
     """Assemble a simple instruction"""
+    op = lookup_opcode(OD, thread, op_name)
     D = lookup_write(dest, mem_list)
     A = A.read_names[src1]
     B = B.read_names[src2]
     instr = pack(instr_format, op, D, A, B)
     lit(mem_obj, instr.uint)
 
-def dual(mem_obj, op, dest1, dest2, src1, src2, mem_list = mem_list, instr_format = dual_instr_format):
+def dual(mem_obj, thread, op_name, dest1, dest2, src1, src2, mem_list = mem_list, instr_format = dual_instr_format, OD = OD):
     """Assemble a dual instruction (split addressing mode)"""
     # The CPU re-adds the correct write offset after it decodes the instruction
     # It's a power-of-2 alignment, so it just prepends the right value
+    op = lookup_opcode(OD, thread, op_name)
     DA = A.write_names[dest1] - A.write_offset
     DB = B.write_names[dest2] - B.write_offset
     A = A.read_names[src1]
     B = B.read_names[src2]
     instr = pack(instr_format, op, DA, DB, A, B)
     lit(mem_obj, instr.uint)
-
-# ---------------------------------------------------------------------
-# Opcode Decoder Memory: translate opcode into ALU control bits
-
-class OD:
-    pass
-
-thread_count = 8
-opcode_count = 16
-
-alu_control_format = 'uint:{0},uint:{1},uint:{2},uint:{3},uint:{4},uint:{5},uint:{6},uint:{7}'.format(ALU.split_width, ALU.shift_width, ALU.dyadic3_width, ALU.addsub_width, ALU.dual_width, ALU.dyadic2_width, ALU.dyadic1_width, ALU.select_width)
-
-OD.mem       = create_memory(opcode_count*thread_count, ALU.total_op_width)
-OD.opcodes   = {} # {name:bits}
-OD.filename  = "OD.mem"
-
-def define_opcode(mem_obj, name, split, shift, dyadic3, addsub, dual, dyadic2, dyadic1, select):
-    """Assembles and names the control bits of an opcode."""
-    control_bits = BitArray()
-    for entry in [split, shift, dyadic3, addsub, dual, dyadic2, dyadic1, select]:
-        control_bits.append(entry)
-    mem_obj.opcodes.update({name:control_bits})
-
-def load_opcode(mem_obj, thread, name, opcode):
-    """The opcode indexes into the opcode decoder memory, separately for each thread."""
-    address = thread * opcode
-    mem_obj.mem[address] = mem_obj.opcodes[name]
 
 # ---------------------------------------------------------------------
 # Branch Detector
@@ -345,12 +358,22 @@ def init_PC(PC = PC, PC_prev = PC_prev):
         set_pc(PC_prev, thread, 1)
 
 def init_ISA(OD = OD, MEMMAP = MEMMAP):
-    pass
-    
+    define_opcode(OD, "NOP", ALU.split_no, ALU.shift_none, Dyadic.always_zero, ALU.addsub_a_plus_b, ALU.simple, Dyadic.always_zero, Dyadic.always_zero, ALU.select_r)
+    define_opcode(OD, "ADD", ALU.split_no, ALU.shift_none, Dyadic.b, ALU.addsub_a_plus_b, ALU.simple, Dyadic.always_zero, Dyadic.always_zero, ALU.select_r)
+    define_opcode(OD, "SUB", ALU.split_no, ALU.shift_none, Dyadic.b, ALU.addsub_a_minus_b, ALU.simple, Dyadic.always_zero, Dyadic.always_zero, ALU.select_r)
+    define_opcode(OD, "ADD*2", ALU.split_no, ALU.shift_left, Dyadic.b, ALU.addsub_a_minus_b, ALU.simple, Dyadic.always_zero, Dyadic.always_zero, ALU.select_r)
+    define_opcode(OD, "ADD/2", ALU.split_no, ALU.shift_right_signed, Dyadic.b, ALU.addsub_a_minus_b, ALU.simple, Dyadic.always_zero, Dyadic.always_zero, ALU.select_r)
+    for thread in range(thread_count):
+        load_opcode(OD, thread, "NOP",   0)
+        load_opcode(OD, thread, "ADD",   1)
+        load_opcode(OD, thread, "SUB",   2)
+        load_opcode(OD, thread, "ADD*2", 3)
+        load_opcode(OD, thread, "ADD/2", 4)
 
 # ---------------------------------------------------------------------
 
 if __name__ == "__main__":
     init_PC()
+    init_ISA()
     dump_all(initializable_memories)
 
