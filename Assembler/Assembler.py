@@ -235,7 +235,7 @@ def condition(mem_obj, name, A_flag, B_flag, AB_operator):
     condition = BitArray()
     for entry in [A_flag, B_flag, AB_operator]:
         condition.append(entry)
-    mem_obj.conditions.update({name, condition}) 
+    mem_obj.conditions.update({name:condition}) 
 
 def branch(mem_obj, name, origin, origin_enable, destination, predict_taken, predict_enable, condition_name):
     condition           = mem_obj.conditions[condition_name]
@@ -323,8 +323,10 @@ class MEMMAP:
     # These are for A/B
     zero        = 0
     shared      = [1,2,3,4,5,6,7,8,9,10,11,12]
+    pool        = [9,10,11,12]
     io          = [1,2,3,4,5,6,7,8]
     indirect    = [13,14,15,16]
+    normal      = 17
     # Memory base addresses
     a           = 0
     b           = 1024
@@ -370,10 +372,43 @@ def init_ISA(OD = OD, MEMMAP = MEMMAP):
         load_opcode(OD, thread, "ADD*2", 3)
         load_opcode(OD, thread, "ADD/2", 4)
 
+def init_branches(BD = BD):
+    condition(BD, "JMP", Branch.A_flag_negative, Branch.B_flag_lessthan, Dyadic.always_one)
+    for thread in range(thread_count):
+        start = (thread * 100)+1
+        end   = start + 10
+        name  = "loop_thread_{0}".format(thread)
+        branch(BD, name, end, Branch.origin_enabled, start, Branch.predict_taken, Branch.predict_enabled, "JMP")
+
+def init_A(A = A, MEMMAP = MEMMAP):
+    align(A, 0)
+    lit(A, 0), loc(A, "zero")
+    #align(A, MEMMAP.pool[0])
+    align(A, MEMMAP.normal)
+    lit(A, 1), loc(A, "thread_0_val")
+    lit(A, 1), loc(A, "thread_1_val")
+    lit(A, 1), loc(A, "thread_2_val")
+    lit(A, 1), loc(A, "thread_3_val")
+    lit(A, 1), loc(A, "thread_4_val")
+    lit(A, 1), loc(A, "thread_5_val")
+    lit(A, 1), loc(A, "thread_6_val")
+    lit(A, 1), loc(A, "thread_7_val")
+
+def init_B(B = B, MEMMAP = MEMMAP):
+    align(B, 0)
+    lit(B, 0), loc(B, "zero")
+    align(A, MEMMAP.pool[0])
+    lit(B, 1), loc(B, "one")
+    lit(B, 2), loc(B, "two")
+    #align(A, MEMMAP.normal)
+
 # ---------------------------------------------------------------------
 
 if __name__ == "__main__":
     init_PC()
     init_ISA()
+    init_branches()
+    init_A()
+    init_B()
     dump_all(initializable_memories)
 
