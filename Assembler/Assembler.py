@@ -403,7 +403,7 @@ def init_A(A = A, MEMMAP = MEMMAP):
 def init_B(B = B, MEMMAP = MEMMAP):
     align(B, 0)
     lit(B, 0), loc(B, "zero_B")
-    align(A, MEMMAP.pool[0])
+    align(B, MEMMAP.pool[0])
     lit(B, 1), loc(B, "one")
     lit(B, 2), loc(B, "two")
     #align(A, MEMMAP.normal)
