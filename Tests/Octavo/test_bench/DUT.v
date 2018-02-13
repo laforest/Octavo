@@ -15,8 +15,8 @@ module DUT
     // Data Memories (A/B)
     parameter   MEM_RAMSTYLE                            = "M10K, no_rw_check",
     parameter   MEM_READ_NEW_DATA                       = 0,
-    parameter   MEM_INIT_FILE_A                         = "init_data_A.mem",
-    parameter   MEM_INIT_FILE_B                         = "init_data_B.mem",
+    parameter   MEM_INIT_FILE_A                         = "A.mem",
+    parameter   MEM_INIT_FILE_B                         = "B.mem",
     parameter   MEM_READ_BASE_ADDR_A                    = 0,
     parameter   MEM_READ_BOUND_ADDR_A                   = 1023,
     parameter   MEM_WRITE_BASE_ADDR_A                   = 0,
@@ -54,8 +54,8 @@ module DUT
     parameter   PO_INCR_WIDTH                           = 4,
     parameter   PO_ENTRY_COUNT                          = 4,
     parameter   PO_ADDR_WIDTH                           = 2,
-    parameter   PO_INIT_FILE                            = "init_po.mem",
-    parameter   DO_INIT_FILE                            = "init_do.mem",
+    parameter   PO_INIT_FILE                            = "PO.mem",
+    parameter   DO_INIT_FILE                            = "DO.mem",
     parameter   AD_RAMSTYLE                             = "MLAB, no_rw_check",
     parameter   AD_READ_NEW_DATA                        = 0,
     // Control Path
@@ -65,8 +65,8 @@ module DUT
     parameter   FC_RAMSTYLE                             = "MLAB, no_rw_check",
     parameter   FC_READ_NEW_DATA                        = 0,
     // Controller: initial PC values
-    parameter   PC_INIT_FILE                            = "init_pc.mem",
-    parameter   PC_PREV_INIT_FILE                       = "init_pc_prev.mem",
+    parameter   PC_INIT_FILE                            = "PC.mem",
+    parameter   PC_PREV_INIT_FILE                       = "PC_prev.mem",
     // Instruction format
     parameter   OPCODE_WIDTH                            = `OPCODE_WIDTH,
     parameter   D_OPERAND_WIDTH                         = 12,
@@ -78,14 +78,14 @@ module DUT
     parameter   IM_READ_NEW                             = 0,
     parameter   IM_DEPTH                                = 1024,
     parameter   IM_RAMSTYLE                             = "M10K, no_rw_check",
-    parameter   IM_INIT_FILE                            = "init_instr.mem",
+    parameter   IM_INIT_FILE                            = "I.mem",
     // Opcode Decoder Memory (multithreaded)
     parameter   OD_WORD_WIDTH                           = `TRIADIC_ALU_CTRL_WIDTH,
     parameter   OD_ADDR_WIDTH                           = 4,
     parameter   OD_READ_NEW                             = 0,
     parameter   OD_THREAD_DEPTH                         = `OPCODE_COUNT,
     parameter   OD_RAMSTYLE                             = "MLAB, no_rw_check",
-    parameter   OD_INIT_FILE                            = "init_decode.mem",
+    parameter   OD_INIT_FILE                            = "OD.mem",
     parameter   OD_INITIAL_THREAD_READ                  = 0,
     parameter   OD_INITIAL_THREAD_WRITE                 = 0,
     // Memory-mapping

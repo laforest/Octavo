@@ -1,5 +1,7 @@
 #! /bin/bash
 
+set -x
+
 TOP=DUT
 EXEC=V${TOP}
 LOGS=${PWD}/LOG
