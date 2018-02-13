@@ -114,7 +114,7 @@ A.here          = -1
 A.last          = 0
 A.read_names    = {}
 A.write_names   = {}
-A.write_offset  = 10
+A.write_offset  = 0
 A.filename      = "A.mem"
 
 B.mem           = create_memory(1024, 36)
@@ -185,8 +185,9 @@ def lookup_write(name, mem_list):
     """Lookup the write address of a name across the listed memories."""
     addresses = []
     for entry in mem_list:
-        address = entry.write_addr[name]
-        addresses.append(address)
+        address = entry.write_names.get(name, None)
+        if address is not None:
+            addresses.append(address)
     if len(addresses) == 0:
         print("ERROR: Cannot resolve undefined write name: {0}".format(name))
         sys.exit(1)
@@ -195,7 +196,7 @@ def lookup_write(name, mem_list):
         sys.exit(1)
     return addresses[0]
 
-def simple(mem_obj, thread, op_name, dest, src1, src2, mem_list = mem_list, instr_format = simple_instr_format, OD = OD):
+def simple(mem_obj, thread, op_name, dest, src1, src2, mem_list = mem_list, instr_format = simple_instr_format, OD = OD, A = A, B = B):
     """Assemble a simple instruction"""
     op = lookup_opcode(OD, thread, op_name)
     D = lookup_write(dest, mem_list)
@@ -258,16 +259,19 @@ class PC_prev:
     pass
 
 PC.mem      = create_memory(thread_count, pc_width)
+PC.names    = {} # {name:address}
 PC.filename = "PC.mem"
 
 PC_prev.mem         = create_memory(thread_count, pc_width)
+PC_prev.names       = {} # {name:address}
 PC_prev.filename    = "PC_prev.mem"
 
 pc_format = 'uint:{0}'.format(pc_width)
 
-def set_pc(mem_obj, thread, pc_value):
+def set_pc(mem_obj, thread, pc_value, name):
     pc_value = BitArray(uint=pc_value, length=mem_obj.mem[0].length)
     mem_obj.mem[thread] = pc_value;
+    mem_obj.names.update({name:pc_value.uint})
 
 # ---------------------------------------------------------------------
 # Default Offset Memory
@@ -356,8 +360,10 @@ def dump_all(mem_obj_list):
 # Start all threads at 1. Avoids sticking at zero due to null Branch Detector entry.
 def init_PC(PC = PC, PC_prev = PC_prev):
     for thread in range(thread_count):
-        set_pc(PC,      thread, 1)
-        set_pc(PC_prev, thread, 1)
+        start = (thread * 100)+1
+        name  = "start_thread_{0}".format(thread)
+        set_pc(PC,      thread, start, name)
+        set_pc(PC_prev, thread, start, name)
 
 def init_ISA(OD = OD, MEMMAP = MEMMAP):
     define_opcode(OD, "NOP", ALU.split_no, ALU.shift_none, Dyadic.always_zero, ALU.addsub_a_plus_b, ALU.simple, Dyadic.always_zero, Dyadic.always_zero, ALU.select_r)
@@ -382,7 +388,7 @@ def init_branches(BD = BD):
 
 def init_A(A = A, MEMMAP = MEMMAP):
     align(A, 0)
-    lit(A, 0), loc(A, "zero")
+    lit(A, 0), loc(A, "zero_A")
     #align(A, MEMMAP.pool[0])
     align(A, MEMMAP.normal)
     lit(A, 1), loc(A, "thread_0_val")
@@ -396,11 +402,23 @@ def init_A(A = A, MEMMAP = MEMMAP):
 
 def init_B(B = B, MEMMAP = MEMMAP):
     align(B, 0)
-    lit(B, 0), loc(B, "zero")
+    lit(B, 0), loc(B, "zero_B")
     align(A, MEMMAP.pool[0])
     lit(B, 1), loc(B, "one")
     lit(B, 2), loc(B, "two")
     #align(A, MEMMAP.normal)
+
+def init_I(I = I, PC = PC):
+    align(I, 0)
+    simple(I, 0, "NOP", "zero_A", "zero_A", "zero_B")
+    align(I, PC.names["start_thread_0"])
+    simple(I, 0, "ADD", "thread_0_val", "thread_0_val", "one")
+    align(I, PC.names["start_thread_1"])
+    simple(I, 0, "SUB", "thread_1_val", "thread_1_val", "one")
+    align(I, PC.names["start_thread_2"])
+    simple(I, 0, "ADD", "thread_2_val", "thread_2_val", "two")
+    align(I, PC.names["start_thread_3"])
+    simple(I, 0, "ADD*2", "thread_3_val", "thread_3_val", "one")
 
 # ---------------------------------------------------------------------
 
@@ -410,5 +428,6 @@ if __name__ == "__main__":
     init_branches()
     init_A()
     init_B()
+    init_I()
     dump_all(initializable_memories)
 
