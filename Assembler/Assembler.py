@@ -435,7 +435,7 @@ def init_I(I = I, PC = PC):
     simple(I, 0, "NOP", "zero_A", "zero_A", "zero_B")
 
     align(I, Thread.start[0])
-    simple(I, 0, "ADD", MEMMAP.fc[0], "zero_A", "branch_0")
+    simple(I, 0, "ADD", MEMMAP.fc[0]+5, "zero_A", "branch_0")
 
 #    align(I, Thread.start[1])
 #    simple(I, 0, "ADD", MEMMAP.fc[0], "zero_A", "branch_1")
