@@ -131,7 +131,7 @@ B.filename      = "B.mem"
 class Thread:
     count = 8
     start = [0,100,200,300,400,500,600,700]
-    end   = [5,105,205,305,405,505,605,705]
+    end   = [2,102,202,302,402,502,602,702]
 
 # ---------------------------------------------------------------------
 # Opcode Decoder Memory: translate opcode into ALU control bits
