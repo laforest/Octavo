@@ -126,17 +126,24 @@ B.write_offset  = 1024
 B.filename      = "B.mem"
 
 # ---------------------------------------------------------------------
+# Thread information
+
+class Thread:
+    count = 8
+    start = [1,50,50,50,50,50,50,50]
+    end   = [5,50,50,50,50,50,50,50]
+
+# ---------------------------------------------------------------------
 # Opcode Decoder Memory: translate opcode into ALU control bits
 
 class OD:
     pass
 
-thread_count = 8
 opcode_count = 16
 
 alu_control_format = 'uint:{0},uint:{1},uint:{2},uint:{3},uint:{4},uint:{5},uint:{6},uint:{7}'.format(ALU.split_width, ALU.shift_width, ALU.dyadic3_width, ALU.addsub_width, ALU.dual_width, ALU.dyadic2_width, ALU.dyadic1_width, ALU.select_width)
 
-OD.mem       = create_memory(opcode_count*thread_count, ALU.total_op_width)
+OD.mem       = create_memory(opcode_count*Thread.count, ALU.total_op_width)
 OD.opcodes   = {} # {name:bits}
 OD.filename  = "OD.mem"
 
@@ -183,6 +190,8 @@ mem_list = [A,B,I]
 
 def lookup_write(name, mem_list):
     """Lookup the write address of a name across the listed memories."""
+    if type(name) == type(int()):
+        return name
     addresses = []
     for entry in mem_list:
         address = entry.write_names.get(name, None)
@@ -196,12 +205,18 @@ def lookup_write(name, mem_list):
         sys.exit(1)
     return addresses[0]
 
+def lookup_read(name, mem):
+    if type(name) == type(int()):
+        return name
+    address = mem.read_names[name]
+    return address
+
 def simple(mem_obj, thread, op_name, dest, src1, src2, mem_list = mem_list, instr_format = simple_instr_format, OD = OD, A = A, B = B):
     """Assemble a simple instruction"""
     op = lookup_opcode(OD, thread, op_name)
     D = lookup_write(dest, mem_list)
-    A = A.read_names[src1]
-    B = B.read_names[src2]
+    A = lookup_read(src1, A)
+    B = lookup_read(src2, B)
     instr = pack(instr_format, op, D, A, B)
     lit(mem_obj, instr.uint)
 
@@ -258,20 +273,18 @@ class PC:
 class PC_prev:
     pass
 
-PC.mem      = create_memory(thread_count, pc_width)
+PC.mem      = create_memory(Thread.count, pc_width)
 PC.names    = {} # {name:address}
 PC.filename = "PC.mem"
 
-PC_prev.mem         = create_memory(thread_count, pc_width)
-PC_prev.names       = {} # {name:address}
+PC_prev.mem         = create_memory(Thread.count, pc_width)
 PC_prev.filename    = "PC_prev.mem"
 
 pc_format = 'uint:{0}'.format(pc_width)
 
-def set_pc(mem_obj, thread, pc_value, name):
+def set_pc(mem_obj, thread, pc_value):
     pc_value = BitArray(uint=pc_value, length=mem_obj.mem[0].length)
     mem_obj.mem[thread] = pc_value;
-    mem_obj.names.update({name:pc_value.uint})
 
 # ---------------------------------------------------------------------
 # Default Offset Memory
@@ -283,7 +296,7 @@ do_width = 12
 class DO:
     pass
 
-DO.mem      = create_memory(thread_count, do_width)
+DO.mem      = create_memory(Thread.count, do_width)
 DO.filename = "DO.mem"
 
 def set_do(mem_obj, thread, offset):
@@ -302,7 +315,7 @@ po_width                = po_increment_sign_bits + po_increment_bits + po_offset
 class PO:
     pass
 
-PO.mem      = create_memory(thread_count*po_entries, po_width)
+PO.mem      = create_memory(Thread.count*po_entries, po_width)
 PO.filename = "PO.mem"
 
 def set_po(mem_obj, thread, entry, sign, increment, offset, po_increment_sign_bits = po_increment_sign_bits, po_increment_bits = po_increment_bits, po_offset_bits = po_offset_bits, po_entries = po_entries, po_width = po_width):
@@ -343,7 +356,7 @@ class MEMMAP:
     da_po       = [3084,3085,3086,3087]
     db_po       = [3088,3089,3090,3091]
     do          = 3092
-    fc          = [3100,3101,3102,3103]
+    fc          = [3100,3106,3112,3118]
     od          = [3200,3201,3202,3203,3204,3205,3206,3207,3208,3209,3210,3211,3212,3213,3214,3215]
 
 # ---------------------------------------------------------------------
@@ -359,11 +372,10 @@ def dump_all(mem_obj_list):
 # Thread 0 must start its code at 1, as first PC is always 0 (register set at config)
 # Start all threads at 1. Avoids sticking at zero due to null Branch Detector entry.
 def init_PC(PC = PC, PC_prev = PC_prev):
-    for thread in range(thread_count):
-        start = (thread * 100)+1
-        name  = "start_thread_{0}".format(thread)
-        set_pc(PC,      thread, start, name)
-        set_pc(PC_prev, thread, start, name)
+    for thread in range(Thread.count):
+        start = Thread.start[thread]
+        set_pc(PC,      thread, start)
+        set_pc(PC_prev, thread, start)
 
 def init_ISA(OD = OD, MEMMAP = MEMMAP):
     define_opcode(OD, "NOP", ALU.split_no, ALU.shift_none, Dyadic.always_zero, ALU.addsub_a_plus_b, ALU.simple, Dyadic.always_zero, Dyadic.always_zero, ALU.select_r)
@@ -371,7 +383,7 @@ def init_ISA(OD = OD, MEMMAP = MEMMAP):
     define_opcode(OD, "SUB", ALU.split_no, ALU.shift_none, Dyadic.b, ALU.addsub_a_minus_b, ALU.simple, Dyadic.always_zero, Dyadic.always_zero, ALU.select_r)
     define_opcode(OD, "ADD*2", ALU.split_no, ALU.shift_left, Dyadic.b, ALU.addsub_a_minus_b, ALU.simple, Dyadic.always_zero, Dyadic.always_zero, ALU.select_r)
     define_opcode(OD, "ADD/2", ALU.split_no, ALU.shift_right_signed, Dyadic.b, ALU.addsub_a_minus_b, ALU.simple, Dyadic.always_zero, Dyadic.always_zero, ALU.select_r)
-    for thread in range(thread_count):
+    for thread in range(Thread.count):
         load_opcode(OD, thread, "NOP",   0)
         load_opcode(OD, thread, "ADD",   1)
         load_opcode(OD, thread, "SUB",   2)
@@ -380,9 +392,10 @@ def init_ISA(OD = OD, MEMMAP = MEMMAP):
 
 def init_branches(BD = BD):
     condition(BD, "JMP", Branch.A_flag_negative, Branch.B_flag_lessthan, Dyadic.always_one)
-    for thread in range(thread_count):
-        start = (thread * 100)+1
-        end   = start + 10
+    for thread in range(Thread.count):
+        # Only load the branch entry once
+        start = Thread.start[thread] + 1
+        end   = Thread.end[thread]
         name  = "loop_thread_{0}".format(thread)
         branch(BD, name, end, Branch.origin_enabled, start, Branch.predict_taken, Branch.predict_enabled, "JMP")
 
@@ -392,13 +405,13 @@ def init_A(A = A, MEMMAP = MEMMAP):
     #align(A, MEMMAP.pool[0])
     align(A, MEMMAP.normal)
     lit(A, 1), loc(A, "thread_0_val")
-    lit(A, 1), loc(A, "thread_1_val")
-    lit(A, 1), loc(A, "thread_2_val")
-    lit(A, 1), loc(A, "thread_3_val")
-    lit(A, 1), loc(A, "thread_4_val")
-    lit(A, 1), loc(A, "thread_5_val")
-    lit(A, 1), loc(A, "thread_6_val")
-    lit(A, 1), loc(A, "thread_7_val")
+    lit(A, 2), loc(A, "thread_1_val")
+    lit(A, 3), loc(A, "thread_2_val")
+    lit(A, 4), loc(A, "thread_3_val")
+    lit(A, 5), loc(A, "thread_4_val")
+    lit(A, 6), loc(A, "thread_5_val")
+    lit(A, 7), loc(A, "thread_6_val")
+    lit(A, 8), loc(A, "thread_7_val")
 
 def init_B(B = B, MEMMAP = MEMMAP):
     align(B, 0)
@@ -406,19 +419,58 @@ def init_B(B = B, MEMMAP = MEMMAP):
     align(B, MEMMAP.pool[0])
     lit(B, 1), loc(B, "one")
     lit(B, 2), loc(B, "two")
-    #align(A, MEMMAP.normal)
+    align(B, MEMMAP.normal)
+    lit(B, BD.branches["loop_thread_0"].uint), loc(B, "branch_0")
+    lit(B, BD.branches["loop_thread_1"].uint), loc(B, "branch_1")
+    lit(B, BD.branches["loop_thread_2"].uint), loc(B, "branch_2")
+    lit(B, BD.branches["loop_thread_3"].uint), loc(B, "branch_3")
+    lit(B, BD.branches["loop_thread_4"].uint), loc(B, "branch_4")
+    lit(B, BD.branches["loop_thread_5"].uint), loc(B, "branch_5")
+    lit(B, BD.branches["loop_thread_6"].uint), loc(B, "branch_6")
+    lit(B, BD.branches["loop_thread_7"].uint), loc(B, "branch_7")
+    
 
 def init_I(I = I, PC = PC):
     align(I, 0)
     simple(I, 0, "NOP", "zero_A", "zero_A", "zero_B")
-    align(I, PC.names["start_thread_0"])
-    simple(I, 0, "ADD", "thread_0_val", "thread_0_val", "one")
-    align(I, PC.names["start_thread_1"])
-    simple(I, 0, "SUB", "thread_1_val", "thread_1_val", "one")
-    align(I, PC.names["start_thread_2"])
-    simple(I, 0, "ADD", "thread_2_val", "thread_2_val", "two")
-    align(I, PC.names["start_thread_3"])
-    simple(I, 0, "ADD*2", "thread_3_val", "thread_3_val", "one")
+
+    align(I, Thread.start[0])
+    simple(I, 0, "ADD", MEMMAP.fc[0], "zero_A", "branch_0")
+
+#    align(I, Thread.start[1])
+#    simple(I, 0, "ADD", MEMMAP.fc[0], "zero_A", "branch_1")
+#    simple(I, 0, "ADD", "thread_1_val", "thread_1_val", "one")
+#    simple(I, 0, "ADD", MEMMAP.io[0],   "thread_1_val", "zero_B")
+#
+#    align(I, Thread.start[2])
+#    simple(I, 0, "ADD", MEMMAP.fc[0], "zero_A", "branch_2")
+#    simple(I, 0, "ADD", "thread_2_val", "thread_2_val", "one")
+#    simple(I, 0, "ADD", MEMMAP.io[0],   "thread_2_val", "zero_B")
+#
+#    align(I, Thread.start[3])
+#    simple(I, 0, "ADD", MEMMAP.fc[0], "zero_A", "branch_3")
+#    simple(I, 0, "ADD", "thread_3_val", "thread_3_val", "one")
+#    simple(I, 0, "ADD", MEMMAP.io[0],   "thread_3_val", "zero_B")
+#
+#    align(I, Thread.start[4])
+#    simple(I, 0, "ADD", MEMMAP.fc[0], "zero_A", "branch_4")
+#    simple(I, 0, "ADD", "thread_4_val", "thread_4_val", "one")
+#    simple(I, 0, "ADD", MEMMAP.io[0],   "thread_4_val", "zero_B")
+#
+#    align(I, Thread.start[5])
+#    simple(I, 0, "ADD", MEMMAP.fc[0], "zero_A", "branch_5")
+#    simple(I, 0, "ADD", "thread_5_val", "thread_5_val", "one")
+#    simple(I, 0, "ADD", MEMMAP.io[0],   "thread_5_val", "zero_B")
+#
+#    align(I, Thread.start[6])
+#    simple(I, 0, "ADD", MEMMAP.fc[0], "zero_A", "branch_6")
+#    simple(I, 0, "ADD", "thread_6_val", "thread_6_val", "one")
+#    simple(I, 0, "ADD", MEMMAP.io[0],   "thread_6_val", "zero_B")
+#
+#    align(I, Thread.start[7])
+#    simple(I, 0, "ADD", MEMMAP.fc[0], "zero_A", "branch_7")
+#    simple(I, 0, "ADD", "thread_7_val", "thread_7_val", "one")
+#    simple(I, 0, "ADD", MEMMAP.io[0],   "thread_7_val", "zero_B")
 
 # ---------------------------------------------------------------------
 
