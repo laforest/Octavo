@@ -73,6 +73,24 @@ module Controller
     );
 
 // ---------------------------------------------------------------------
+// Delay writes to memories to avoid corrupting current and previous PCs
+// of "previous" threads with initial zero PC value.
+
+    wire wren;
+
+    Delay_Line
+    #(
+        .DEPTH  (STAGE_COUNT),
+        .WIDTH  (1)
+    )
+    DL_AD_CTL
+    (
+        .clock  (clock),
+        .in     (1'b1),
+        .out    (wren)
+    );
+
+// ---------------------------------------------------------------------
 // Program Counters, current and previous values
 
     reg  [PC_WIDTH-1:0] pc_next     = 0;
@@ -92,7 +110,7 @@ module Controller
     PC_MEM
     (
         .clock          (clock),
-        .wren           (1'b1),
+        .wren           (wren),
         .write_addr     (write_thread),
         .write_data     (pc_next),
         .rden           (1'b1),
@@ -113,7 +131,7 @@ module Controller
     PC_PREV_MEM
     (
         .clock          (clock),
-        .wren           (1'b1),
+        .wren           (wren),
         .write_addr     (write_thread),
         .write_data     (pc),
         .rden           (1'b1),
