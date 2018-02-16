@@ -62,7 +62,28 @@ module Instruction_Fetch_Decode_Mapped
     // consecutive threads, which would happen in SIMD code, and save power
     // by holding the instruction and decode memories output steady.
 
-    reg im_rden = 1'b1;
+    // Disable IM and OD memory reads for the first two, bogus PCs issued
+    // initially: the first is the initial 0, the second is it's reissue,
+    // the third is the real first PC of Thread 0.
+
+    // This forces IM and OD to output all 0 for those two cycles, which
+    // by design is a NOP. (control bits do nothing, and all addresses
+    // are zero, which do nothing.)
+
+    wire im_rden;
+
+    Delay_Line
+    #(
+        .DEPTH  (2),
+        .WIDTH  (1)
+    )
+    DL_IM_OD_RDEN
+    (
+        .clock  (clock),
+        .in     (1'b1),
+        .out    (im_rden)
+    );
+
 
 // --------------------------------------------------------------------
 
