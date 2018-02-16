@@ -83,7 +83,7 @@ module Controller
         .DEPTH  (STAGE_COUNT),
         .WIDTH  (1)
     )
-    DL_AD_CTL
+    DL_PC_WREN
     (
         .clock  (clock),
         .in     (1'b1),
