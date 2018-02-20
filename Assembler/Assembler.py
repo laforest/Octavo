@@ -130,8 +130,8 @@ B.filename      = "B.mem"
 
 class Thread:
     count = 8
-    start = [0,100,200,300,400,500,600,700]
-    end   = [2,102,202,302,402,502,602,702]
+    start = range(0,1024,128)
+    end   = range(127,1024,128)
 
 # ---------------------------------------------------------------------
 # Opcode Decoder Memory: translate opcode into ALU control bits
@@ -400,7 +400,7 @@ def init_branches(BD = BD):
     for thread in range(Thread.count):
         # Only load the branch entry once
         start = Thread.start[thread] + 1
-        end   = Thread.end[thread]
+        end   = Thread.start[thread] + 2
         name  = "loop_thread_{0}".format(thread)
         branch(BD, name, end, Branch.origin_enabled, start, Branch.predict_taken, Branch.predict_enabled, "JMP")
 
