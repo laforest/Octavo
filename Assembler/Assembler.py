@@ -7,6 +7,7 @@ import Triadic_ALU_Operators as ALU
 import Branch_Detector_Operators as Branch
 from bitstring import pack,BitArray
 import sys
+from math import ceil
 from pprint import pprint
 
 
@@ -408,14 +409,22 @@ def init_A(A = A, MEMMAP = MEMMAP):
     align(A, 0)
     lit(A, 0), loc(A, "zero_A")
     #align(A, MEMMAP.pool[0])
-    align(A, MEMMAP.normal)
+    offset = 128 - ceil(17 / Thread.count)
+    align(A, MEMMAP.normal + offset*0)
     lit(A, 10), loc(A, "thread_0_val")
+    align(A, offset*1)
     lit(A, 20), loc(A, "thread_1_val")
+    align(A, offset*2)
     lit(A, 30), loc(A, "thread_2_val")
+    align(A, offset*3)
     lit(A, 40), loc(A, "thread_3_val")
+    align(A, offset*4)
     lit(A, 50), loc(A, "thread_4_val")
+    align(A, offset*5)
     lit(A, 60), loc(A, "thread_5_val")
+    align(A, offset*6)
     lit(A, 70), loc(A, "thread_6_val")
+    align(A, offset*7)
     lit(A, 80), loc(A, "thread_7_val")
 
 def init_B(B = B, MEMMAP = MEMMAP):
@@ -424,14 +433,22 @@ def init_B(B = B, MEMMAP = MEMMAP):
     align(B, MEMMAP.pool[0])
     lit(B, 1), loc(B, "one")
     lit(B, 2), loc(B, "two")
-    align(B, MEMMAP.normal)
+    offset = 128 - ceil(17 / Thread.count)
+    align(B, MEMMAP.normal + offset*0)
     lit(B, BD.branches["loop_thread_0"].uint), loc(B, "branch_0")
+    align(B, offset*1)
     lit(B, BD.branches["loop_thread_1"].uint), loc(B, "branch_1")
+    align(B, offset*2)
     lit(B, BD.branches["loop_thread_2"].uint), loc(B, "branch_2")
+    align(B, offset*3)
     lit(B, BD.branches["loop_thread_3"].uint), loc(B, "branch_3")
+    align(B, offset*4)
     lit(B, BD.branches["loop_thread_4"].uint), loc(B, "branch_4")
+    align(B, offset*5)
     lit(B, BD.branches["loop_thread_5"].uint), loc(B, "branch_5")
+    align(B, offset*6)
     lit(B, BD.branches["loop_thread_6"].uint), loc(B, "branch_6")
+    align(B, offset*7)
     lit(B, BD.branches["loop_thread_7"].uint), loc(B, "branch_7")
     
 
