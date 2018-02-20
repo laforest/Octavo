@@ -124,7 +124,7 @@ module Address_Module
 
     Thread_Number
     #(
-        .INITIAL_THREAD     (0),
+        .INITIAL_THREAD     (2),
         .THREAD_COUNT       (THREAD_COUNT),
         .THREAD_COUNT_WIDTH (THREAD_COUNT_WIDTH)
     )
@@ -148,7 +148,7 @@ module Address_Module
 
     Thread_Number
     #(
-        .INITIAL_THREAD     (THREAD_COUNT - MODULE_PIPE_DEPTH),
+        .INITIAL_THREAD     (2 - MODULE_PIPE_DEPTH),
         .THREAD_COUNT       (THREAD_COUNT),
         .THREAD_COUNT_WIDTH (THREAD_COUNT_WIDTH)
     )
