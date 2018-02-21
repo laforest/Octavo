@@ -340,7 +340,7 @@ def set_po(mem_obj, thread, entry, sign, increment, offset, po_increment_sign_bi
 class MEMMAP:
     # These are for A/B
     zero        = 0
-    shared      = [1,2,3,4,5,6,7,8,9,10,11,12]
+    shared      = [0,1,2,3,4,5,6,7,8,9,10,11,12]
     pool        = [9,10,11,12]
     io          = [1,2,3,4,5,6,7,8]
     indirect    = [13,14,15,16]
