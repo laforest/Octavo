@@ -131,8 +131,10 @@ B.filename      = "B.mem"
 
 class Thread:
     count = 8
-    start = range(0,1024,128)
-    end   = range(127,1024,128)
+    #start = range(0,1024,128)
+    #end   = range(127,1024,128)
+    start = [0]    * count
+    end   = [1023] * count
 
 # ---------------------------------------------------------------------
 # Opcode Decoder Memory: translate opcode into ALU control bits
@@ -476,57 +478,57 @@ def init_I(I = I, PC = PC):
 #    simple(I, 0, "ADD", MEMMAP.bd[0], "zero_A", "branch_1")
 #    simple(I, 0, "ADD", "thread_1_val", "thread_1_val", "one")
 #    simple(I, 0, "ADD", MEMMAP.io[0],   "thread_1_val", "zero_B")
-    simple(I, 0, "ADD", MEMMAP.bd[0], "zero_A", "branch_0")
-    simple(I, 0, "ADD", "thread_0_val", "thread_0_val", "one")
-    simple(I, 0, "ADD", MEMMAP.io[0],   "thread_0_val", "zero_B")
+#    simple(I, 0, "ADD", MEMMAP.bd[0], "zero_A", "branch_0")
+#    simple(I, 0, "ADD", "thread_0_val", "thread_0_val", "one")
+#    simple(I, 0, "ADD", MEMMAP.io[0],   "thread_0_val", "zero_B")
 
     align(I, Thread.start[2])
 #    simple(I, 0, "ADD", MEMMAP.bd[0], "zero_A", "branch_2")
 #    simple(I, 0, "ADD", "thread_2_val", "thread_2_val", "one")
 #    simple(I, 0, "ADD", MEMMAP.io[0],   "thread_2_val", "zero_B")
-    simple(I, 0, "ADD", MEMMAP.bd[0], "zero_A", "branch_0")
-    simple(I, 0, "ADD", "thread_0_val", "thread_0_val", "one")
-    simple(I, 0, "ADD", MEMMAP.io[0],   "thread_0_val", "zero_B")
+#    simple(I, 0, "ADD", MEMMAP.bd[0], "zero_A", "branch_0")
+#    simple(I, 0, "ADD", "thread_0_val", "thread_0_val", "one")
+#    simple(I, 0, "ADD", MEMMAP.io[0],   "thread_0_val", "zero_B")
 
     align(I, Thread.start[3])
 #    simple(I, 0, "ADD", MEMMAP.bd[0], "zero_A", "branch_3")
 #    simple(I, 0, "ADD", "thread_3_val", "thread_3_val", "one")
 #    simple(I, 0, "ADD", MEMMAP.io[0],   "thread_3_val", "zero_B")
-    simple(I, 0, "ADD", MEMMAP.bd[0], "zero_A", "branch_0")
-    simple(I, 0, "ADD", "thread_0_val", "thread_0_val", "one")
-    simple(I, 0, "ADD", MEMMAP.io[0],   "thread_0_val", "zero_B")
+#    simple(I, 0, "ADD", MEMMAP.bd[0], "zero_A", "branch_0")
+#    simple(I, 0, "ADD", "thread_0_val", "thread_0_val", "one")
+#    simple(I, 0, "ADD", MEMMAP.io[0],   "thread_0_val", "zero_B")
 
     align(I, Thread.start[4])
 #    simple(I, 0, "ADD", MEMMAP.bd[0], "zero_A", "branch_4")
 #    simple(I, 0, "ADD", "thread_4_val", "thread_4_val", "one")
 #    simple(I, 0, "ADD", MEMMAP.io[0],   "thread_4_val", "zero_B")
-    simple(I, 0, "ADD", MEMMAP.bd[0], "zero_A", "branch_0")
-    simple(I, 0, "ADD", "thread_0_val", "thread_0_val", "one")
-    simple(I, 0, "ADD", MEMMAP.io[0],   "thread_0_val", "zero_B")
+#    simple(I, 0, "ADD", MEMMAP.bd[0], "zero_A", "branch_0")
+#    simple(I, 0, "ADD", "thread_0_val", "thread_0_val", "one")
+#    simple(I, 0, "ADD", MEMMAP.io[0],   "thread_0_val", "zero_B")
 
     align(I, Thread.start[5])
 #    simple(I, 0, "ADD", MEMMAP.bd[0], "zero_A", "branch_5")
 #    simple(I, 0, "ADD", "thread_5_val", "thread_5_val", "one")
 #    simple(I, 0, "ADD", MEMMAP.io[0],   "thread_5_val", "zero_B")
-    simple(I, 0, "ADD", MEMMAP.bd[0], "zero_A", "branch_0")
-    simple(I, 0, "ADD", "thread_0_val", "thread_0_val", "one")
-    simple(I, 0, "ADD", MEMMAP.io[0],   "thread_0_val", "zero_B")
+#    simple(I, 0, "ADD", MEMMAP.bd[0], "zero_A", "branch_0")
+#    simple(I, 0, "ADD", "thread_0_val", "thread_0_val", "one")
+#    simple(I, 0, "ADD", MEMMAP.io[0],   "thread_0_val", "zero_B")
 
     align(I, Thread.start[6])
 #    simple(I, 0, "ADD", MEMMAP.bd[0], "zero_A", "branch_6")
 #    simple(I, 0, "ADD", "thread_6_val", "thread_6_val", "one")
 #    simple(I, 0, "ADD", MEMMAP.io[0],   "thread_6_val", "zero_B")
-    simple(I, 0, "ADD", MEMMAP.bd[0], "zero_A", "branch_0")
-    simple(I, 0, "ADD", "thread_0_val", "thread_0_val", "one")
-    simple(I, 0, "ADD", MEMMAP.io[0],   "thread_0_val", "zero_B")
+#    simple(I, 0, "ADD", MEMMAP.bd[0], "zero_A", "branch_0")
+#    simple(I, 0, "ADD", "thread_0_val", "thread_0_val", "one")
+#    simple(I, 0, "ADD", MEMMAP.io[0],   "thread_0_val", "zero_B")
 
     align(I, Thread.start[7])
 #    simple(I, 0, "ADD", MEMMAP.bd[0], "zero_A", "branch_7")
 #    simple(I, 0, "ADD", "thread_7_val", "thread_7_val", "one")
 #    simple(I, 0, "ADD", MEMMAP.io[0],   "thread_7_val", "zero_B")
-    simple(I, 0, "ADD", MEMMAP.bd[0], "zero_A", "branch_0")
-    simple(I, 0, "ADD", "thread_0_val", "thread_0_val", "one")
-    simple(I, 0, "ADD", MEMMAP.io[0],   "thread_0_val", "zero_B")
+#    simple(I, 0, "ADD", MEMMAP.bd[0], "zero_A", "branch_0")
+#    simple(I, 0, "ADD", "thread_0_val", "thread_0_val", "one")
+#    simple(I, 0, "ADD", MEMMAP.io[0],   "thread_0_val", "zero_B")
 
 # ---------------------------------------------------------------------
 
