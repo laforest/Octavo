@@ -17,8 +17,10 @@ module Address_Module_Mapped
     // Offsets are the width of an address operand to enable full offset range
     parameter       ADDR_WIDTH                  = 0,
     // Address ranges (base and bound inclusive)
-    parameter       SHARED_ADDR_BASE            = 0,
-    parameter       SHARED_ADDR_BOUND           = 0,
+    parameter       FIRST_SHARED_ADDR_BASE      = 0,
+    parameter       FIRST_SHARED_ADDR_BOUND     = 0,
+    parameter       SECOND_SHARED_ADDR_BASE     = 0,
+    parameter       SECOND_SHARED_ADDR_BOUND    = 0,
     parameter       INDIRECT_ADDR_BASE          = 0,
     parameter       PO_ADDR_BASE                = 0,
     parameter       DO_ADDR                     = 0,
@@ -72,20 +74,41 @@ module Address_Module_Mapped
 
 // --------------------------------------------------------------------
 
-    wire shared;
+    wire first_shared;
 
     Address_Range_Decoder_Static
     #(
         .ADDR_WIDTH (ADDR_WIDTH),
-        .ADDR_BASE  (SHARED_ADDR_BASE),
-        .ADDR_BOUND (SHARED_ADDR_BOUND)
+        .ADDR_BASE  (FIRST_SHARED_ADDR_BASE),
+        .ADDR_BOUND (FIRST_SHARED_ADDR_BOUND)
     )
-    ARDS_SHARED
+    ARDS_FIRST_SHARED
     (
         .enable     (1'b1),
         .addr       (raw_addr),
-        .hit        (shared)
+        .hit        (first_shared)
     );
+
+    wire second_shared;
+
+    Address_Range_Decoder_Static
+    #(
+        .ADDR_WIDTH (ADDR_WIDTH),
+        .ADDR_BASE  (SECOND_SHARED_ADDR_BASE),
+        .ADDR_BOUND (SECOND_SHARED_ADDR_BOUND)
+    )
+    ARDS_SECOND_SHARED
+    (
+        .enable     (1'b1),
+        .addr       (raw_addr),
+        .hit        (second_shared)
+    );
+
+    reg shared = 0;
+
+    always @(*) begin
+        shared <= (first_shared == 1'b1) | (second_shared == 1'b1);
+    end
 
 // --------------------------------------------------------------------
 

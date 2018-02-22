@@ -2,9 +2,10 @@
 // Addressing: translates all the instruction address operands as required.
 // One Address_Module_Mapped for each of the A/B/DA/DB operands.
 
-// DA/DB write operands share same indirect/shared ranges as A/B read
-// operands, but have their own PO entries. Thus reading and writing an
-// indirect memory location can lead to different actual locations.
+// DA/DB write operands share same indirect/shared ranges as A/B read operands
+// (plus a shared range for the write-only I and H memories), but have their
+// own PO entries. Thus reading and writing an indirect memory location can
+// lead to different actual locations.
 
 // All operands have the same number of indirect memory locations.  This
 // acknowledges that we can do Double-Moves, so some operations do two writes
@@ -31,6 +32,8 @@ module Addressing
     parameter       B_SHARED_READ_ADDR_BOUND    = 0,
     parameter       B_SHARED_WRITE_ADDR_BASE    = 0,
     parameter       B_SHARED_WRITE_ADDR_BOUND   = 0,
+    parameter       IH_SHARED_WRITE_ADDR_BASE   = 0,
+    parameter       IH_SHARED_WRITE_ADDR_BOUND  = 0,
     parameter       A_INDIRECT_READ_ADDR_BASE   = 0,
     parameter       A_INDIRECT_WRITE_ADDR_BASE  = 0,
     parameter       B_INDIRECT_READ_ADDR_BASE   = 0,
@@ -94,8 +97,10 @@ module Addressing
         .WRITE_WORD_WIDTH           (WRITE_WORD_WIDTH),
         .WRITE_ADDR_WIDTH           (WRITE_ADDR_WIDTH),
         .ADDR_WIDTH                 (A_ADDR_WIDTH),
-        .SHARED_ADDR_BASE           (A_SHARED_READ_ADDR_BASE),
-        .SHARED_ADDR_BOUND          (A_SHARED_READ_ADDR_BOUND),
+        .FIRST_SHARED_ADDR_BASE     (A_SHARED_READ_ADDR_BASE),
+        .FIRST_SHARED_ADDR_BOUND    (A_SHARED_READ_ADDR_BOUND),
+        .SECOND_SHARED_ADDR_BASE    (0),
+        .SECOND_SHARED_ADDR_BOUND   (0),
         .INDIRECT_ADDR_BASE         (A_INDIRECT_READ_ADDR_BASE),
         .PO_ADDR_BASE               (A_PO_ADDR_BASE),
         .DO_ADDR                    (DO_ADDR),
@@ -135,8 +140,10 @@ module Addressing
         .WRITE_WORD_WIDTH           (WRITE_WORD_WIDTH),
         .WRITE_ADDR_WIDTH           (WRITE_ADDR_WIDTH),
         .ADDR_WIDTH                 (B_ADDR_WIDTH),
-        .SHARED_ADDR_BASE           (B_SHARED_READ_ADDR_BASE),
-        .SHARED_ADDR_BOUND          (B_SHARED_READ_ADDR_BOUND),
+        .FIRST_SHARED_ADDR_BASE     (B_SHARED_READ_ADDR_BASE),
+        .FIRST_SHARED_ADDR_BOUND    (B_SHARED_READ_ADDR_BOUND),
+        .SECOND_SHARED_ADDR_BASE    (0),
+        .SECOND_SHARED_ADDR_BOUND   (0),
         .INDIRECT_ADDR_BASE         (B_INDIRECT_READ_ADDR_BASE),
         .PO_ADDR_BASE               (B_PO_ADDR_BASE),
         .DO_ADDR                    (DO_ADDR),
@@ -176,8 +183,10 @@ module Addressing
         .WRITE_WORD_WIDTH           (WRITE_WORD_WIDTH),
         .WRITE_ADDR_WIDTH           (WRITE_ADDR_WIDTH),
         .ADDR_WIDTH                 (D_ADDR_WIDTH),
-        .SHARED_ADDR_BASE           (A_SHARED_WRITE_ADDR_BASE),
-        .SHARED_ADDR_BOUND          (A_SHARED_WRITE_ADDR_BOUND),
+        .FIRST_SHARED_ADDR_BASE     (A_SHARED_WRITE_ADDR_BASE),
+        .FIRST_SHARED_ADDR_BOUND    (A_SHARED_WRITE_ADDR_BOUND),
+        .SECOND_SHARED_ADDR_BASE    (IH_SHARED_WRITE_ADDR_BASE),
+        .SECOND_SHARED_ADDR_BOUND   (IH_SHARED_WRITE_ADDR_BOUND),
         .INDIRECT_ADDR_BASE         (A_INDIRECT_WRITE_ADDR_BASE),
         .PO_ADDR_BASE               (DA_PO_ADDR_BASE),
         .DO_ADDR                    (DO_ADDR),
@@ -217,8 +226,10 @@ module Addressing
         .WRITE_WORD_WIDTH           (WRITE_WORD_WIDTH),
         .WRITE_ADDR_WIDTH           (WRITE_ADDR_WIDTH),
         .ADDR_WIDTH                 (D_ADDR_WIDTH),
-        .SHARED_ADDR_BASE           (B_SHARED_WRITE_ADDR_BASE),
-        .SHARED_ADDR_BOUND          (B_SHARED_WRITE_ADDR_BOUND),
+        .FIRST_SHARED_ADDR_BASE     (B_SHARED_WRITE_ADDR_BASE),
+        .FIRST_SHARED_ADDR_BOUND    (B_SHARED_WRITE_ADDR_BOUND),
+        .SECOND_SHARED_ADDR_BASE    (IH_SHARED_WRITE_ADDR_BASE),
+        .SECOND_SHARED_ADDR_BOUND   (IH_SHARED_WRITE_ADDR_BOUND),
         .INDIRECT_ADDR_BASE         (B_INDIRECT_WRITE_ADDR_BASE),
         .PO_ADDR_BASE               (DB_PO_ADDR_BASE),
         .DO_ADDR                    (DO_ADDR),
