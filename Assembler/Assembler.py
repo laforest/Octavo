@@ -417,22 +417,30 @@ def init_A(A = A, MEMMAP = MEMMAP):
     align(A, 0)
     lit(A, 0), loc(A, "zero_A")
     #align(A, MEMMAP.pool[0])
+
     align(A, Thread.normal_mem_start[0])
-    lit(A, 10), loc(A, "thread_0_val")
+    lit(A, 10), loc(A, "accumulator")
+
     align(A, Thread.normal_mem_start[1])
-    lit(A, 20), loc(A, "thread_1_val")
+    lit(A, 20)
+
     align(A, Thread.normal_mem_start[2])
-    lit(A, 30), loc(A, "thread_2_val")
+    lit(A, 30)
+
     align(A, Thread.normal_mem_start[3])
-    lit(A, 40), loc(A, "thread_3_val")
+    lit(A, 40)
+
     align(A, Thread.normal_mem_start[4])
-    lit(A, 50), loc(A, "thread_4_val")
+    lit(A, 50)
+
     align(A, Thread.normal_mem_start[5])
-    lit(A, 60), loc(A, "thread_5_val")
+    lit(A, 60)
+
     align(A, Thread.normal_mem_start[6])
-    lit(A, 70), loc(A, "thread_6_val")
+    lit(A, 70)
+
     align(A, Thread.normal_mem_start[7])
-    lit(A, 80), loc(A, "thread_7_val")
+    lit(A, 80)
 
 def init_B(B = B, MEMMAP = MEMMAP):
     align(B, 0)
@@ -440,22 +448,30 @@ def init_B(B = B, MEMMAP = MEMMAP):
     align(B, MEMMAP.pool[0])
     lit(B, 1), loc(B, "one")
     lit(B, 2), loc(B, "two")
+
     align(B, Thread.normal_mem_start[0])
-    lit(B, BD.branches["loop_thread_0"].uint), loc(B, "branch_0")
+    lit(B, BD.branches["loop_thread_0"].uint), loc(B, "loop")
+
     align(B, Thread.normal_mem_start[1])
-    lit(B, BD.branches["loop_thread_1"].uint), loc(B, "branch_1")
+    lit(B, BD.branches["loop_thread_1"].uint)
+
     align(B, Thread.normal_mem_start[2])
-    lit(B, BD.branches["loop_thread_2"].uint), loc(B, "branch_2")
+    lit(B, BD.branches["loop_thread_2"].uint)
+
     align(B, Thread.normal_mem_start[3])
-    lit(B, BD.branches["loop_thread_3"].uint), loc(B, "branch_3")
+    lit(B, BD.branches["loop_thread_3"].uint)
+
     align(B, Thread.normal_mem_start[4])
-    lit(B, BD.branches["loop_thread_4"].uint), loc(B, "branch_4")
+    lit(B, BD.branches["loop_thread_4"].uint)
+
     align(B, Thread.normal_mem_start[5])
-    lit(B, BD.branches["loop_thread_5"].uint), loc(B, "branch_5")
+    lit(B, BD.branches["loop_thread_5"].uint)
+
     align(B, Thread.normal_mem_start[6])
-    lit(B, BD.branches["loop_thread_6"].uint), loc(B, "branch_6")
+    lit(B, BD.branches["loop_thread_6"].uint)
+
     align(B, Thread.normal_mem_start[7])
-    lit(B, BD.branches["loop_thread_7"].uint), loc(B, "branch_7")
+    lit(B, BD.branches["loop_thread_7"].uint)
     
 
 def init_I(I = I, PC = PC):
@@ -463,9 +479,9 @@ def init_I(I = I, PC = PC):
     simple(I, 0, "NOP", "zero_A", "zero_A", "zero_B")
 
     align(I, Thread.start[0])
-    simple(I, 0, "ADD", MEMMAP.bd[0], "zero_A", "branch_0")
-    simple(I, 0, "ADD", "thread_0_val", "thread_0_val", "one")
-    simple(I, 0, "ADD", MEMMAP.io[0],   "thread_0_val", "zero_B")
+    simple(I, 0, "ADD", MEMMAP.bd[0], "zero_A", "loop")
+    simple(I, 0, "ADD", "accumulator", "accumulator", "one")
+    simple(I, 0, "ADD", MEMMAP.io[0],   "accumulator", "zero_B")
 
     align(I, Thread.start[1])
 
