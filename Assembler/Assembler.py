@@ -519,9 +519,6 @@ def init_B(B = B, MEMMAP = MEMMAP):
     
 
 def init_I(I = I, PC = PC):
-    align(I, 0)
-    simple(I, 0, "NOP", "zero_A", "zero_A", "zero_B")
-
     align(I, Thread.start[0])
     simple(I, 0, "ADD", MEMMAP.bd[0], "zero_A", "loop")
     simple(I, 0, "ADD", "accumulator", "accumulator", "one"),       bt("again")
