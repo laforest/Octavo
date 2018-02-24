@@ -244,7 +244,7 @@ def lookup_write(name, mem_list):
 def lookup_read(name, mem):
     if type(name) == type(int()):
         return name
-    address = mem.read_names[name]
+    address = mem.read_names.get(name, None)
     return address
 
 def simple(mem_obj, thread, op_name, dest, src1, src2, mem_list = mem_list, instr_format = simple_instr_format, OD = OD, A = A, B = B):
@@ -289,14 +289,57 @@ def condition(mem_obj, name, A_flag, B_flag, AB_operator):
         condition.append(entry)
     mem_obj.conditions.update({name:condition}) 
 
-def branch(mem_obj, name, origin, origin_enable, destination, predict_taken, predict_enable, condition_name):
-    condition           = mem_obj.conditions[condition_name]
+def branch(origin, origin_enable, destination, predict_taken, predict_enable, condition_name):
+    condition           = BD.conditions[condition_name]
     origin_bits         = BitArray(uint=origin, length=Branch.origin_width)
     destination_bits    = BitArray(uint=destination, length=Branch.destination_width)
     config = BitArray()
     for entry in [origin_bits, origin_enable, destination_bits, predict_taken, predict_enable, condition]:
         config.append(entry)
-    mem_obj.branches.update({name:config})
+    return config
+
+def bt(destination):
+    loc(I, destination, write_addr = I.here)
+
+def br(condition, destination, predict, storage, origin_enable = True):
+    destination = lookup_write(destination, [I])
+    if predict == True:
+        predict         = Branch.predict_taken
+        predict_enable  = Branch.predict_enabled
+    elif predict == False:
+        predict         = Branch.predict_not_taken
+        predict_enable  = Branch.predict_enabled
+    elif predict == None:
+        predict         = Branch.predict_not_taken
+        predict_enable  = Branch.predict_disabled
+    else:
+        printf("Invalid branch prediction setting on branch {0}.".format(storage))
+        sys.exit(1)
+    origin      = I.here
+    if origin_enable == True:
+        origin_enable = Branch.origin_enabled
+    elif origin_enabled == False:
+        origin_enable = Branch.origin_disabled
+    else:
+        printf("Invalid branch origin enabled setting on branch {0}.".format(storage))
+        sys.exit(1)
+    branch_config = branch(origin, origin_enable, destination, predict, predict_enable, condition)
+    # Works because a loc() usually sets both read/write addresses
+    # and the read address is the local, absolute location in memory
+    # (write address is offset to the global memory map)
+    if (storage in A.write_names):
+        address = A.read_names[storage]
+        for thread in range(Thread.count):
+            offset = Thread.default_offset[thread]
+            A.mem[address+offset] = branch_config
+    elif (storage in B.write_names):
+        address = B.read_names[storage]
+        for thread in range(Thread.count):
+            offset = Thread.default_offset[thread]
+            B.mem[address+offset] = branch_config
+    else:
+        printf("Invalid storage location on branch {0}.".format(storage))
+        sys.exit(1)
 
 # ---------------------------------------------------------------------
 # Program Counter
@@ -407,7 +450,7 @@ def init_branches(BD = BD):
         start = Thread.start[thread] + 1
         end   = Thread.start[thread] + 2
         name  = "loop_thread_{0}".format(thread)
-        branch(BD, name, end, Branch.origin_enabled, start, Branch.predict_taken, Branch.predict_enabled, "JMP")
+        #branch(BD, name, end, Branch.origin_enabled, start, Branch.predict_taken, Branch.predict_enabled, "JMP")
 
 def init_DO(DO = DO):
     for thread in range(Thread.count):
@@ -450,28 +493,28 @@ def init_B(B = B, MEMMAP = MEMMAP):
     lit(B, 2), loc(B, "two")
 
     align(B, Thread.normal_mem_start[0])
-    lit(B, BD.branches["loop_thread_0"].uint), loc(B, "loop")
+    lit(B, 0), loc(B, "loop")
 
     align(B, Thread.normal_mem_start[1])
-    lit(B, BD.branches["loop_thread_1"].uint)
+    lit(B, 0)
 
     align(B, Thread.normal_mem_start[2])
-    lit(B, BD.branches["loop_thread_2"].uint)
+    lit(B, 0)
 
     align(B, Thread.normal_mem_start[3])
-    lit(B, BD.branches["loop_thread_3"].uint)
+    lit(B, 0)
 
     align(B, Thread.normal_mem_start[4])
-    lit(B, BD.branches["loop_thread_4"].uint)
+    lit(B, 0)
 
     align(B, Thread.normal_mem_start[5])
-    lit(B, BD.branches["loop_thread_5"].uint)
+    lit(B, 0)
 
     align(B, Thread.normal_mem_start[6])
-    lit(B, BD.branches["loop_thread_6"].uint)
+    lit(B, 0)
 
     align(B, Thread.normal_mem_start[7])
-    lit(B, BD.branches["loop_thread_7"].uint)
+    lit(B, 0)
     
 
 def init_I(I = I, PC = PC):
@@ -480,8 +523,8 @@ def init_I(I = I, PC = PC):
 
     align(I, Thread.start[0])
     simple(I, 0, "ADD", MEMMAP.bd[0], "zero_A", "loop")
-    simple(I, 0, "ADD", "accumulator", "accumulator", "one")
-    simple(I, 0, "ADD", MEMMAP.io[0],   "accumulator", "zero_B")
+    simple(I, 0, "ADD", "accumulator", "accumulator", "one"),       bt("again")
+    simple(I, 0, "ADD", MEMMAP.io[0],   "accumulator", "zero_B"),   br("JMP", "again", True, "loop")
 
     align(I, Thread.start[1])
 
