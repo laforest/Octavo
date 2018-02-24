@@ -210,14 +210,12 @@ def lookup_opcode(mem_obj, thread, name):
 # Create the Instruction Memory
 
 class I:
-    pass
-
-I.mem           = create_memory(1024, 36)
-I.here          = -1
-I.last          = 0
-I.write_names   = {}
-I.write_offset  = 3072
-I.filename      = "I.mem"
+    mem           = create_memory(1024, 36)
+    here          = -1
+    last          = 0
+    write_names   = {}
+    write_offset  = 3072
+    filename      = "I.mem"
 
 simple_instr_format = 'uint:4,uint:12,uint:10,uint:10'
 dual_instr_format   = 'uint:4,uint:6,uint:6,uint:10,uint:10'
@@ -233,12 +231,11 @@ def lookup_write(name, mem_list):
         address = entry.write_names.get(name, None)
         if address is not None:
             addresses.append(address)
-    if len(addresses) == 0:
-        print("ERROR: Cannot resolve undefined write name: {0}".format(name))
-        sys.exit(1)
     if len(addresses) > 1:
         print("ERROR: Cannot resolve multiple identical write names: {0}".format(name))
         sys.exit(1)
+    if len(addresses) == 0:
+        return None
     return addresses[0]
 
 def lookup_read(name, mem):
@@ -274,14 +271,10 @@ def dual(mem_obj, thread, op_name, dest1, dest2, src1, src2, mem_list = mem_list
 branch_count = 4
 
 class BD:
-    pass
-
-condition_format = 'uint:{0},uint:{1},uint:{2}'.format(Branch.A_flag_width, Branch.B_flag_width, Branch.AB_operator_width)
-
-branch_format = 'uint:{0},uint:{1},uint:{2},uint:{3},uint:{4},uint:{5}'.format(Branch.origin_width, Branch.origin_enable_width, Branch.destination_width, Branch.predict_taken_width, Branch.predict_enable_width, Branch.condition_width)
-
-BD.conditions   = {} # {name:bits}
-BD.branches     = {} # {name:bits}
+    condition_format    = 'uint:{0},uint:{1},uint:{2}'.format(Branch.A_flag_width, Branch.B_flag_width, Branch.AB_operator_width)
+    branch_format       = 'uint:{0},uint:{1},uint:{2},uint:{3},uint:{4},uint:{5}'.format(Branch.origin_width, Branch.origin_enable_width, Branch.destination_width, Branch.predict_taken_width, Branch.predict_enable_width, Branch.condition_width)
+    conditions          = {} # {name:bits}
+    unresolved_branches = [] # list of parameters to br()
 
 def condition(mem_obj, name, A_flag, B_flag, AB_operator):
     condition = BitArray()
@@ -301,29 +294,33 @@ def branch(origin, origin_enable, destination, predict_taken, predict_enable, co
 def bt(destination):
     loc(I, destination, write_addr = I.here)
 
-def br(condition, destination, predict, storage, origin_enable = True):
-    destination = lookup_write(destination, [I])
-    if predict == True:
+def br(condition, destination, predict, storage, origin_enable = True, origin = None):
+    if origin is None:
+        origin      = I.here
+    dest_addr = lookup_write(destination, [I])
+    if dest_addr is None:
+        BD.unresolved_branches.append([condition, destination, predict, storage, origin_enable, origin])    
+        return
+    if predict is True:
         predict         = Branch.predict_taken
         predict_enable  = Branch.predict_enabled
-    elif predict == False:
+    elif predict is False:
         predict         = Branch.predict_not_taken
         predict_enable  = Branch.predict_enabled
-    elif predict == None:
+    elif predict is None:
         predict         = Branch.predict_not_taken
         predict_enable  = Branch.predict_disabled
     else:
         printf("Invalid branch prediction setting on branch {0}.".format(storage))
         sys.exit(1)
-    origin      = I.here
-    if origin_enable == True:
+    if origin_enable is True:
         origin_enable = Branch.origin_enabled
-    elif origin_enabled == False:
+    elif origin_enabled is False:
         origin_enable = Branch.origin_disabled
     else:
         printf("Invalid branch origin enabled setting on branch {0}.".format(storage))
         sys.exit(1)
-    branch_config = branch(origin, origin_enable, destination, predict, predict_enable, condition)
+    branch_config = branch(origin, origin_enable, dest_addr, predict, predict_enable, condition)
     # Works because a loc() usually sets both read/write addresses
     # and the read address is the local, absolute location in memory
     # (write address is offset to the global memory map)
@@ -340,6 +337,10 @@ def br(condition, destination, predict, storage, origin_enable = True):
     else:
         printf("Invalid storage location on branch {0}.".format(storage))
         sys.exit(1)
+
+def resolve_forward_branches():
+    for entry in BD.unresolved_branches:
+        br(*entry)
 
 # ---------------------------------------------------------------------
 # Program Counter
@@ -539,6 +540,8 @@ def init_I(I = I, PC = PC):
     align(I, Thread.start[6])
 
     align(I, Thread.start[7])
+
+    resolve_forward_branches()
 
 # ---------------------------------------------------------------------
 
