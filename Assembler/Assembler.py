@@ -446,12 +446,7 @@ def init_ISA(OD = OD, MEMMAP = MEMMAP):
 
 def init_branches(BD = BD):
     condition(BD, "JMP", Branch.A_flag_negative, Branch.B_flag_lessthan, Dyadic.always_one)
-    for thread in range(Thread.count):
-        # Only load the branch entry once
-        start = Thread.start[thread] + 1
-        end   = Thread.start[thread] + 2
-        name  = "loop_thread_{0}".format(thread)
-        #branch(BD, name, end, Branch.origin_enabled, start, Branch.predict_taken, Branch.predict_enabled, "JMP")
+    condition(BD, "ODD", Branch.A_flag_sentinel, Branch.B_flag_lessthan, Dyadic.a)
 
 def init_DO(DO = DO):
     for thread in range(Thread.count):
@@ -492,37 +487,49 @@ def init_B(B = B, MEMMAP = MEMMAP):
     align(B, MEMMAP.pool[0])
     lit(B, 1), loc(B, "one")
     lit(B, 2), loc(B, "two")
+    lit(B, 0xFFFFFFFFE), loc(B, "mask_not_lsb")
 
     align(B, Thread.normal_mem_start[0])
     lit(B, 0), loc(B, "loop")
+    lit(B, 0), loc(B, "skip")
 
     align(B, Thread.normal_mem_start[1])
+    lit(B, 0)
     lit(B, 0)
 
     align(B, Thread.normal_mem_start[2])
     lit(B, 0)
+    lit(B, 0)
 
     align(B, Thread.normal_mem_start[3])
+    lit(B, 0)
     lit(B, 0)
 
     align(B, Thread.normal_mem_start[4])
     lit(B, 0)
+    lit(B, 0)
 
     align(B, Thread.normal_mem_start[5])
+    lit(B, 0)
     lit(B, 0)
 
     align(B, Thread.normal_mem_start[6])
     lit(B, 0)
+    lit(B, 0)
 
     align(B, Thread.normal_mem_start[7])
+    lit(B, 0)
     lit(B, 0)
     
 
 def init_I(I = I, PC = PC):
     align(I, Thread.start[0])
-    simple(I, 0, "ADD", MEMMAP.bd[0], "zero_A", "loop")
-    simple(I, 0, "ADD", "accumulator", "accumulator", "one"),       bt("again")
-    simple(I, 0, "ADD", MEMMAP.io[0],   "accumulator", "zero_B"),   br("JMP", "again", True, "loop")
+    simple(I, 0, "ADD", MEMMAP.bd[0],           "zero_A",       "skip")
+    simple(I, 0, "ADD", MEMMAP.bs1_mask[0],     "zero_A",       "mask_not_lsb")
+    simple(I, 0, "ADD", MEMMAP.bs1_sentinel[0], "zero_A",       "one")
+    simple(I, 0, "ADD", MEMMAP.bd[1],           "zero_A",       "loop")
+    simple(I, 0, "ADD", "accumulator",          "accumulator",  "one"),     bt("again")
+    simple(I, 0, "ADD", MEMMAP.io[0],           "accumulator",  "zero_B"),  br("ODD", "again", False, "skip"), br("JMP", "again", True, "loop")
 
     align(I, Thread.start[1])
 
