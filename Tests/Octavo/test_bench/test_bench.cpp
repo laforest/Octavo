@@ -58,6 +58,17 @@ main
         
         cycles_executed++;
 
+        // Test I/O write handshake, just on the zeroth port on Memory A
+        if ((cycles_executed > 100) && (cycles_executed < 300))
+        {
+            DUT->io_write_EF_A = 1;
+        } 
+        else
+        {
+            DUT->io_write_EF_A = 0;
+        }
+        
+
 	    if ( (cycles_executed == cycles_to_run) || (Verilated::gotFinish() == true) )
         {
             printf("Simulation terminated normally at cycle %u\n", cycles_executed);
