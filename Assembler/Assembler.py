@@ -449,6 +449,8 @@ def init_branches(BD = BD):
     condition(BD, "JMP", Branch.A_flag_negative, Branch.B_flag_lessthan, Dyadic.always_one)
     # Jump on Branch Sentinel A match
     condition(BD, "BSA", Branch.A_flag_sentinel, Branch.B_flag_lessthan, Dyadic.a)
+    # Jump on Counter reaching Zero (not running)
+    condition(BD, "CTZ", Branch.A_flag_negative, Branch.B_flag_counter, Dyadic.not_b)
 
 def init_DO(DO = DO):
     for thread in range(Thread.count):
@@ -490,7 +492,7 @@ def init_B(B = B, MEMMAP = MEMMAP):
     lit(B, 1), loc(B, "one")
     lit(B, 2), loc(B, "two")
     lit(B, 0xFFFFFFFFE), loc(B, "mask_not_lsb")
-    lit(B, 78), loc(B, "78")
+    lit(B, 12), loc(B, "twelve")
 
     align(B, Thread.normal_mem_start[0])
     lit(B, 0), loc(B, "loop")
@@ -540,13 +542,12 @@ def init_I(I = I, PC = PC):
     simple(I, 0, "ADD", MEMMAP.bs1_sentinel[0], "zero_A",       "one")
 
     simple(I, 0, "ADD", MEMMAP.bd[1],           "zero_A",       "fall_out")
-    simple(I, 0, "ADD", MEMMAP.bs1_mask[1],     "zero_A",       "zero_B")
-    simple(I, 0, "ADD", MEMMAP.bs1_sentinel[1], "zero_A",       "78")
+    simple(I, 0, "ADD", MEMMAP.bc[1],           "zero_A",       "twelve")
 
     simple(I, 0, "ADD", MEMMAP.bd[2],           "zero_A",       "loop")
 
     simple(I, 0, "ADD", "accumulator",          "accumulator",  "one"),     bt("again")
-    simple(I, 0, "ADD", MEMMAP.io[0],           "accumulator",  "zero_B"),  br("BSA", "again", False, "skip_odd"), br("BSA", "out", False, "fall_out"), br("JMP", "again", True, "loop")
+    simple(I, 0, "ADD", MEMMAP.io[0],           "accumulator",  "zero_B"),  br("BSA", "again", False, "skip_odd"), br("CTZ", "out", False, "fall_out"), br("JMP", "again", True, "loop")
     simple(I, 0, "NOP", "zero_A",               "zero_A",       "zero_B")
     simple(I, 0, "NOP", "zero_A",               "zero_A",       "zero_B"),  bt("out")
 
