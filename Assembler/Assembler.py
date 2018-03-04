@@ -389,35 +389,46 @@ def set_do(mem_obj, thread, offset):
 po_entries              = 4
 po_increment_bits       = 4
 po_increment_sign_bits  = 1
-po_offset_bits          = 12
-po_width                = po_increment_sign_bits + po_increment_bits + po_offset_bits
+po_offset_bits_A        = 10
+po_offset_bits_B        = 10
+po_offset_bits_DA       = 12
+po_offset_bits_DB       = 12
 
 class PO:
-    pass
 
-PO.mem      = create_memory(Thread.count*po_entries, po_width)
-PO.filename = "PO.mem"
+    def __init__(self, filename, offset_width):
+        self.offset_width   = offset_width
+        self.total_width    = po_increment_sign_bits + po_increment_bits + offset_width
+        self.mem            = create_memory(Thread.count*po_entries, self.total_width)
+        self.filename       = filename
 
-def set_po(mem_obj, thread, entry, sign, increment, offset, po_increment_sign_bits = po_increment_sign_bits, po_increment_bits = po_increment_bits, po_offset_bits = po_offset_bits, po_entries = po_entries, po_width = po_width):
-    if entry < 0 or entry > po_entries-1:
-        print("Out of bounds PO entry: {0}".format(entry))
-        sys.exit(1)
-    sign        = BitArray(uint=sign,      length=po_increment_sign_bits)
-    increment   = BitArray(uint=increment, length=po_increment_bits)
-    offset      = BitArray(uint=offset,    length=po_offset_bits)
-    po          = BitArray()
-    for field in [sign, increment, offset]:
-        po.append(field)
-    if po.length != po_width:
-        print("PO length error! Got {0}, expected {1}".format(po.length, po_width))
-        sys.exit(1)
-    mem_obj.mem[thread*entry] = po;
+    def set_po(self, thread, entry, sign, increment, offset):
+        if entry < 0 or entry > po_entries-1:
+            print("Out of bounds PO entry: {0}".format(entry))
+            sys.exit(1)
+        sign        = BitArray(uint=sign,      length=po_increment_sign_bits)
+        increment   = BitArray(uint=increment, length=po_increment_bits)
+        offset      = BitArray(uint=offset,    length=self.offset_width)
+        po          = BitArray()
+        for field in [sign, increment, offset]:
+            po.append(field)
+        if po.length != self.total_width:
+            print("PO length error! Got {0}, expected {1}".format(po.length, po_width))
+            sys.exit(1)
+        address = entry + (thread*po_entries)
+        print(address, po)
+        self.mem[address] = po;
+
+PO_A  = PO("PO_A.mem", po_offset_bits_A)
+PO_B  = PO("PO_B.mem", po_offset_bits_B)
+PO_DA = PO("PO_DA.mem", po_offset_bits_DA)
+PO_DB = PO("PO_DB.mem", po_offset_bits_DB)
 
 # ---------------------------------------------------------------------
 # ---------------------------------------------------------------------
 # Quick test
 
-initializable_memories = [A,B,I,OD,DO,PO,PC,PC_prev]
+initializable_memories = [A,B,I,OD,DO,PO_A,PO_B,PO_DA,PO_DB,PC,PC_prev]
 
 def dump_all(mem_obj_list):
     for mem in mem_obj_list:
@@ -435,6 +446,7 @@ def init_ISA(OD = OD, MEMMAP = MEMMAP):
     define_opcode(OD, "NOP", ALU.split_no, ALU.shift_none, Dyadic.always_zero, ALU.addsub_a_plus_b, ALU.simple, Dyadic.always_zero, Dyadic.always_zero, ALU.select_r)
     define_opcode(OD, "ADD", ALU.split_no, ALU.shift_none, Dyadic.b, ALU.addsub_a_plus_b, ALU.simple, Dyadic.always_zero, Dyadic.always_zero, ALU.select_r)
     define_opcode(OD, "SUB", ALU.split_no, ALU.shift_none, Dyadic.b, ALU.addsub_a_minus_b, ALU.simple, Dyadic.always_zero, Dyadic.always_zero, ALU.select_r)
+    define_opcode(OD, "PSR", ALU.split_no, ALU.shift_none, Dyadic.a, ALU.addsub_a_plus_b, ALU.simple, Dyadic.always_one, Dyadic.always_zero, ALU.select_r)
     define_opcode(OD, "ADD*2", ALU.split_no, ALU.shift_left, Dyadic.b, ALU.addsub_a_minus_b, ALU.simple, Dyadic.always_zero, Dyadic.always_zero, ALU.select_r)
     define_opcode(OD, "ADD/2", ALU.split_no, ALU.shift_right_signed, Dyadic.b, ALU.addsub_a_minus_b, ALU.simple, Dyadic.always_zero, Dyadic.always_zero, ALU.select_r)
     for thread in range(Thread.count):
@@ -443,6 +455,7 @@ def init_ISA(OD = OD, MEMMAP = MEMMAP):
         load_opcode(OD, thread, "SUB",   2)
         load_opcode(OD, thread, "ADD*2", 3)
         load_opcode(OD, thread, "ADD/2", 4)
+        load_opcode(OD, thread, "PSR",   5)
 
 def init_branches(BD = BD):
     # Jump always
@@ -452,104 +465,98 @@ def init_branches(BD = BD):
     # Jump on Counter reaching Zero (not running)
     condition(BD, "CTZ", Branch.A_flag_negative, Branch.B_flag_counter, Dyadic.not_b)
 
-def init_DO(DO = DO):
-    for thread in range(Thread.count):
-        set_do(DO, thread, Thread.default_offset[thread])
-
 def init_A(A = A, MEMMAP = MEMMAP):
     align(A, 0)
     lit(A, 0), loc(A, "zero_A")
     #align(A, MEMMAP.pool[0])
 
+    align(A, MEMMAP.indirect[0])
+    lit(A, 0), loc(A, "accumulators_pointer")
+
     align(A, Thread.normal_mem_start[0])
-    lit(A, 10), loc(A, "accumulator")
+    data(A, [a*1 for a in range(6)], "accumulators")
 
     align(A, Thread.normal_mem_start[1])
-    lit(A, 20)
+    data(A, [a*2 for a in range(6)])
 
     align(A, Thread.normal_mem_start[2])
-    lit(A, 30)
+    data(A, [a*3 for a in range(6)])
 
     align(A, Thread.normal_mem_start[3])
-    lit(A, 40)
+    data(A, [a*4 for a in range(6)])
 
     align(A, Thread.normal_mem_start[4])
-    lit(A, 50)
+    data(A, [a*5 for a in range(6)])
 
     align(A, Thread.normal_mem_start[5])
-    lit(A, 60)
+    data(A, [a*6 for a in range(6)])
 
     align(A, Thread.normal_mem_start[6])
-    lit(A, 70)
+    data(A, [a*7 for a in range(6)])
 
     align(A, Thread.normal_mem_start[7])
-    lit(A, 80)
+    data(A, [a*8 for a in range(6)])
 
 def init_B(B = B, MEMMAP = MEMMAP):
     align(B, 0)
     lit(B, 0), loc(B, "zero_B")
+
     align(B, MEMMAP.pool[0])
     lit(B, 1), loc(B, "one")
     lit(B, 2), loc(B, "two")
-    lit(B, 0xFFFFFFFFE), loc(B, "mask_not_lsb")
-    lit(B, 12), loc(B, "twelve")
+    lit(B, 6), loc(B, "six")
 
     align(B, Thread.normal_mem_start[0])
-    lit(B, 0), loc(B, "loop")
-    lit(B, 0), loc(B, "skip_odd")
-    lit(B, 0), loc(B, "fall_out")
+    lit(B, 0), loc(B, "inner")
+    lit(B, 0), loc(B, "outer")
 
     align(B, Thread.normal_mem_start[1])
-    lit(B, 0)
     lit(B, 0)
     lit(B, 0)
 
     align(B, Thread.normal_mem_start[2])
     lit(B, 0)
     lit(B, 0)
-    lit(B, 0)
 
     align(B, Thread.normal_mem_start[3])
-    lit(B, 0)
     lit(B, 0)
     lit(B, 0)
 
     align(B, Thread.normal_mem_start[4])
     lit(B, 0)
     lit(B, 0)
-    lit(B, 0)
 
     align(B, Thread.normal_mem_start[5])
-    lit(B, 0)
     lit(B, 0)
     lit(B, 0)
 
     align(B, Thread.normal_mem_start[6])
     lit(B, 0)
     lit(B, 0)
-    lit(B, 0)
 
     align(B, Thread.normal_mem_start[7])
     lit(B, 0)
     lit(B, 0)
-    lit(B, 0)
-    
+
+def init_DO(DO = DO):
+    for thread in range(Thread.count):
+        set_do(DO, thread, Thread.default_offset[thread])
+
+def init_PO():
+    for thread in range(Thread.count):
+        offset = lookup_read("accumulators", A) + Thread.default_offset[thread] - MEMMAP.indirect[0]
+        PO_A.set_po(thread, 0, 0, 1, offset)
+        PO_DA.set_po(thread, 0, 0, 1, offset)
 
 def init_I(I = I, PC = PC):
     align(I, Thread.start[0])
-    simple(I, 0, "ADD", MEMMAP.bd[0],           "zero_A",       "skip_odd")
-    simple(I, 0, "ADD", MEMMAP.bs1_mask[0],     "zero_A",       "mask_not_lsb")
-    simple(I, 0, "ADD", MEMMAP.bs1_sentinel[0], "zero_A",       "one")
 
-    simple(I, 0, "ADD", MEMMAP.bd[1],           "zero_A",       "fall_out")
-    simple(I, 0, "ADD", MEMMAP.bc[1],           "zero_A",       "twelve")
+    simple(I, 0, "ADD", MEMMAP.bd[0],           "zero_A",       "outer")
+    simple(I, 0, "ADD", MEMMAP.bc[0],           "zero_A",       "six"),           bt("restart")
+    simple(I, 0, "ADD", MEMMAP.bd[1],           "zero_A",       "inner"),
 
-    simple(I, 0, "ADD", MEMMAP.bd[2],           "zero_A",       "loop")
-
-    simple(I, 0, "ADD", "accumulator",          "accumulator",  "one"),     bt("again")
-    simple(I, 0, "ADD", MEMMAP.io[0],           "accumulator",  "zero_B"),  br("BSA", "again", False, "skip_odd"), br("CTZ", "out", False, "fall_out"), br("JMP", "again", True, "loop")
-    simple(I, 0, "NOP", "zero_A",               "zero_A",       "zero_B")
-    simple(I, 0, "NOP", "zero_A",               "zero_A",       "zero_B"),  bt("out")
+    simple(I, 0, "ADD", "accumulators_pointer", "accumulators_pointer", "one"),     bt("again")
+    simple(I, 0, "PSR", MEMMAP.io[0],           "zero_A", "zero_B"),                br("CTZ", "restart", False, "outer"), br("JMP", "again", True, "inner")
 
     align(I, Thread.start[1])
 
@@ -573,9 +580,10 @@ if __name__ == "__main__":
     init_PC()
     init_ISA()
     init_branches()
-    init_DO()
     init_A()
     init_B()
+    init_DO()
+    init_PO()
     init_I()
     dump_all(initializable_memories)
 
