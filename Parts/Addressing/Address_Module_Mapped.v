@@ -29,7 +29,7 @@ module Address_Module_Mapped
     parameter       PO_ENTRY_COUNT              = 0, // Sets indirect and PO addr bounds
     parameter       PO_ADDR_WIDTH               = 0,
     parameter       PO_INIT_FILE                = "",
-    parameter       PO_ENTRY_WIDTH              = ADDR_WIDTH + PO_INCR_WIDTH, // Don't set an instantiation.
+    parameter       PO_ENTRY_WIDTH              = ADDR_WIDTH + PO_INCR_WIDTH + 1, // Don't set an instantiation.
     // One Default Offset per Thread
     parameter       DO_INIT_FILE                = "",
     // Common RAM parameters
@@ -193,6 +193,7 @@ module Address_Module_Mapped
         .PO_ENTRY_COUNT         (PO_ENTRY_COUNT),
         .PO_ENTRY_WIDTH         (PO_ENTRY_WIDTH),
         .PO_INIT_FILE           (PO_INIT_FILE),
+        .INDIRECT_ADDR_BASE     (INDIRECT_ADDR_BASE),
         .DO_INIT_FILE           (DO_INIT_FILE),
         .RAMSTYLE               (RAMSTYLE),
         .READ_NEW_DATA          (READ_NEW_DATA),

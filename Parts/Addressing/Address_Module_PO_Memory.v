@@ -16,6 +16,7 @@ module Address_Module_PO_Memory
     parameter       PO_ENTRY_COUNT              = 0,
     parameter       PO_ENTRY_WIDTH              = 0,
     parameter       PO_INIT_FILE                = "",
+    parameter       INDIRECT_ADDR_BASE          = 0,
     // Common RAM parameters
     parameter       RAMSTYLE                    = "",
     parameter       READ_NEW_DATA               = 0,
@@ -58,13 +59,27 @@ module Address_Module_PO_Memory
 // Stage 0
 
 // ---------------------------------------------------------------------
-// Read PO/PI entry based on raw address LSBs and read thread.
+// Read PO/PI entry based on raw address LSBs (translated to 0-based index) and read thread.
 
-    reg [PO_ADDR_WIDTH-1:0]     po_mem_read_addr_base   = 0;
-    reg [PO_MEM_ADDR_WIDTH-1:0] po_mem_read_addr        = 0;
+    wire [PO_ADDR_WIDTH-1:0] po_mem_read_addr_base;
+
+    Address_Range_Translator
+    #(
+        .ADDR_COUNT         (PO_ENTRY_COUNT),
+        .ADDR_BASE          (INDIRECT_ADDR_BASE),
+        .ADDR_WIDTH         (PO_ADDR_WIDTH),
+        .REGISTERED         (1'b0)
+    )
+    ART_POMRAB
+    (
+        .clock              (1'b0),
+        .raw_address        (raw_addr[PO_ADDR_WIDTH-1:0]),
+        .translated_address (po_mem_read_addr_base)
+    );
+
+    reg [PO_MEM_ADDR_WIDTH-1:0] po_mem_read_addr = 0;
 
     always @(*) begin
-        po_mem_read_addr_base   = raw_addr[PO_ADDR_WIDTH-1:0];
         po_mem_read_addr        = {read_thread, po_mem_read_addr_base};
     end
 
@@ -228,7 +243,7 @@ module Address_Module_PO_Memory
     reg [ADDR_WIDTH-1:0]        po_raw          = 0;
     reg [ADDR_WIDTH-1:0]        po_post_inc     = 0;
     reg                         pi_sign         = 0;
-    reg [PO_INCR_WIDTH-2:0]     pi              = 0;
+    reg [PO_INCR_WIDTH-1:0]     pi              = 0;
 
     always @(*) begin
         {pi_sign, pi, po_raw}   = po_mem_read_data;
@@ -236,7 +251,7 @@ module Address_Module_PO_Memory
         new_po_entry            = {pi_sign, pi, po_post_inc};
     end
 
-    always @(posedge clock) begin
+    always @(*) begin
         programmed_offset <= po_raw;
     end
 
