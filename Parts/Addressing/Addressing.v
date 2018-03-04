@@ -48,7 +48,11 @@ module Addressing
     parameter       PO_ENTRY_COUNT              = 0, // Sets indirect and PO addr bounds
     parameter       PO_ADDR_WIDTH               = 0,
     // Common initial PO entries for all threads
-    parameter       PO_INIT_FILE                = "",
+    // One PO for each instruction operand
+    parameter       A_PO_INIT_FILE              = "",
+    parameter       B_PO_INIT_FILE              = "",
+    parameter       DA_PO_INIT_FILE             = "",
+    parameter       DB_PO_INIT_FILE             = "",
     // One Default Offset per Thread
     parameter       DO_INIT_FILE                = "",
     // Common RAM parameters
@@ -107,7 +111,7 @@ module Addressing
         .PO_INCR_WIDTH              (PO_INCR_WIDTH),
         .PO_ENTRY_COUNT             (PO_ENTRY_COUNT),
         .PO_ADDR_WIDTH              (PO_ADDR_WIDTH),
-        .PO_INIT_FILE               (PO_INIT_FILE),
+        .PO_INIT_FILE               (A_PO_INIT_FILE),
         .DO_INIT_FILE               (DO_INIT_FILE),
         .RAMSTYLE                   (RAMSTYLE),
         .READ_NEW_DATA              (READ_NEW_DATA),
@@ -150,7 +154,7 @@ module Addressing
         .PO_INCR_WIDTH              (PO_INCR_WIDTH),
         .PO_ENTRY_COUNT             (PO_ENTRY_COUNT),
         .PO_ADDR_WIDTH              (PO_ADDR_WIDTH),
-        .PO_INIT_FILE               (PO_INIT_FILE),
+        .PO_INIT_FILE               (B_PO_INIT_FILE),
         .DO_INIT_FILE               (DO_INIT_FILE),
         .RAMSTYLE                   (RAMSTYLE),
         .READ_NEW_DATA              (READ_NEW_DATA),
@@ -193,7 +197,7 @@ module Addressing
         .PO_INCR_WIDTH              (PO_INCR_WIDTH),
         .PO_ENTRY_COUNT             (PO_ENTRY_COUNT),
         .PO_ADDR_WIDTH              (PO_ADDR_WIDTH),
-        .PO_INIT_FILE               (PO_INIT_FILE),
+        .PO_INIT_FILE               (DA_PO_INIT_FILE),
         .DO_INIT_FILE               (DO_INIT_FILE),
         .RAMSTYLE                   (RAMSTYLE),
         .READ_NEW_DATA              (READ_NEW_DATA),
@@ -236,7 +240,7 @@ module Addressing
         .PO_INCR_WIDTH              (PO_INCR_WIDTH),
         .PO_ENTRY_COUNT             (PO_ENTRY_COUNT),
         .PO_ADDR_WIDTH              (PO_ADDR_WIDTH),
-        .PO_INIT_FILE               (PO_INIT_FILE),
+        .PO_INIT_FILE               (DB_PO_INIT_FILE),
         .DO_INIT_FILE               (DO_INIT_FILE),
         .RAMSTYLE                   (RAMSTYLE),
         .READ_NEW_DATA              (READ_NEW_DATA),
