@@ -386,9 +386,6 @@ def set_do(mem_obj, thread, offset):
 # ---------------------------------------------------------------------
 # Programmed Offset Memory
 
-po_entries              = 4
-po_increment_bits       = 4
-po_increment_sign_bits  = 1
 po_offset_bits_A        = 10
 po_offset_bits_B        = 10
 po_offset_bits_DA       = 12
@@ -396,18 +393,22 @@ po_offset_bits_DB       = 12
 
 class PO:
 
+    po_entries              = 4
+    po_increment_bits       = 4
+    po_increment_sign_bits  = 1
+
     def __init__(self, filename, offset_width):
         self.offset_width   = offset_width
-        self.total_width    = po_increment_sign_bits + po_increment_bits + offset_width
-        self.mem            = create_memory(Thread.count*po_entries, self.total_width)
+        self.total_width    = self.po_increment_sign_bits + self.po_increment_bits + offset_width
+        self.mem            = create_memory(Thread.count*self.po_entries, self.total_width)
         self.filename       = filename
 
     def set_po(self, thread, entry, sign, increment, offset):
-        if entry < 0 or entry > po_entries-1:
+        if entry < 0 or entry > self.po_entries-1:
             print("Out of bounds PO entry: {0}".format(entry))
             sys.exit(1)
-        sign        = BitArray(uint=sign,      length=po_increment_sign_bits)
-        increment   = BitArray(uint=increment, length=po_increment_bits)
+        sign        = BitArray(uint=sign,      length=self.po_increment_sign_bits)
+        increment   = BitArray(uint=increment, length=self.po_increment_bits)
         offset      = BitArray(uint=offset,    length=self.offset_width)
         po          = BitArray()
         for field in [sign, increment, offset]:
@@ -415,7 +416,7 @@ class PO:
         if po.length != self.total_width:
             print("PO length error! Got {0}, expected {1}".format(po.length, po_width))
             sys.exit(1)
-        address = entry + (thread*po_entries)
+        address = entry + (thread*self.po_entries)
         print(address, po)
         self.mem[address] = po;
 
