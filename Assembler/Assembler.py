@@ -397,33 +397,39 @@ class PO:
     po_increment_bits       = 4
     po_increment_sign_bits  = 1
 
-    def __init__(self, filename, offset_width):
+    def __init__(self, filename, target_mem_obj, offset_width):
+        self.target_mem_obj = target_mem_obj
         self.offset_width   = offset_width
         self.total_width    = self.po_increment_sign_bits + self.po_increment_bits + offset_width
         self.mem            = create_memory(Thread.count*self.po_entries, self.total_width)
         self.filename       = filename
 
-    def set_po(self, thread, entry, sign, increment, offset):
-        if entry < 0 or entry > self.po_entries-1:
-            print("Out of bounds PO entry: {0}".format(entry))
-            sys.exit(1)
+    def gen_read_po(self, thread, po_entry, target_name, increment):
+        offset = lookup_read(target_name, self.target_mem_obj) + Thread.default_offset[thread] - MEMMAP.indirect[po_entry]
+        if increment >= 0:
+            sign = 0
+        else:
+            sign = 1
         sign        = BitArray(uint=sign,      length=self.po_increment_sign_bits)
         increment   = BitArray(uint=increment, length=self.po_increment_bits)
         offset      = BitArray(uint=offset,    length=self.offset_width)
         po          = BitArray()
         for field in [sign, increment, offset]:
             po.append(field)
-        if po.length != self.total_width:
-            print("PO length error! Got {0}, expected {1}".format(po.length, po_width))
+        return po
+
+    def set_po(self, thread, entry, po):
+        if entry < 0 or entry > self.po_entries-1:
+            print("Out of bounds PO entry: {0}".format(entry))
             sys.exit(1)
         address = entry + (thread*self.po_entries)
         print(address, po)
         self.mem[address] = po;
 
-PO_A  = PO("PO_A.mem", po_offset_bits_A)
-PO_B  = PO("PO_B.mem", po_offset_bits_B)
-PO_DA = PO("PO_DA.mem", po_offset_bits_DA)
-PO_DB = PO("PO_DB.mem", po_offset_bits_DB)
+PO_A  = PO("PO_A.mem", A, po_offset_bits_A)
+PO_B  = PO("PO_B.mem", B, po_offset_bits_B)
+PO_DA = PO("PO_DA.mem", A, po_offset_bits_DA)
+PO_DB = PO("PO_DB.mem", B, po_offset_bits_DB)
 
 # ---------------------------------------------------------------------
 # ---------------------------------------------------------------------
@@ -545,9 +551,10 @@ def init_DO(DO = DO):
 
 def init_PO():
     for thread in range(Thread.count):
-        offset = lookup_read("accumulators", A) + Thread.default_offset[thread] - MEMMAP.indirect[0]
-        PO_A.set_po(thread, 0, 0, 1, offset)
-        PO_DA.set_po(thread, 0, 0, 1, offset)
+        po = PO_A.gen_read_po(thread, 0, "accumulators", 1)
+        PO_A.set_po(thread, 0, po)
+        po = PO_DA.gen_read_po(thread, 0, "accumulators", 1)
+        PO_DA.set_po(thread, 0, po)
 
 def init_I(I = I, PC = PC):
     align(I, Thread.start[0])
