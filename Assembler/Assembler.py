@@ -81,7 +81,15 @@ def lit(mem_obj, number):
         print("ERROR: Out of bounds lit ({0}) in {1}".format(mem_obj.here, mem_obj.__class__.__name__))
     if mem_obj.here >= mem_obj.last:
         mem_obj.last = mem_obj.here + 1
-    mem_obj.mem[mem_obj.here] = BitArray(uint=number, length=mem_obj.mem[mem_obj.here].length)
+    word_length = mem_obj.mem[mem_obj.here].length
+    if type(number) == type(int()):
+        mem_obj.mem[mem_obj.here] = BitArray(uint=number, length=word_length)
+    elif type(number) == type(BitArray()):
+        # Oh, this is ugly. BitArray's LSB is our MSB...
+        mem_obj.mem[mem_obj.here].overwrite(number,(word_length-number.length))
+    else:
+        printf("Incompatible literal type: {0}".format(number))
+        sys.exit(1)
 
 def data(mem_obj, entries, name = None):
     """Place a list of numbers into consecutive locations.
@@ -416,6 +424,7 @@ class PO:
         po          = BitArray()
         for field in [sign, increment, offset]:
             po.append(field)
+        pprint(po.bin)
         return po
 
     def set_po(self, thread, entry, po):
@@ -481,28 +490,28 @@ def init_A(A = A, MEMMAP = MEMMAP):
     lit(A, 0), loc(A, "accumulators_pointer")
 
     align(A, Thread.normal_mem_start[0])
-    data(A, [a*1 for a in range(6)], "accumulators")
+    data(A, [1 for a in range(6)], "accumulators")
 
     align(A, Thread.normal_mem_start[1])
-    data(A, [a*2 for a in range(6)])
+    data(A, [2 for a in range(6)])
 
     align(A, Thread.normal_mem_start[2])
-    data(A, [a*3 for a in range(6)])
+    data(A, [3 for a in range(6)])
 
     align(A, Thread.normal_mem_start[3])
-    data(A, [a*4 for a in range(6)])
+    data(A, [4 for a in range(6)])
 
     align(A, Thread.normal_mem_start[4])
-    data(A, [a*5 for a in range(6)])
+    data(A, [5 for a in range(6)])
 
     align(A, Thread.normal_mem_start[5])
-    data(A, [a*6 for a in range(6)])
+    data(A, [6 for a in range(6)])
 
     align(A, Thread.normal_mem_start[6])
-    data(A, [a*7 for a in range(6)])
+    data(A, [7 for a in range(6)])
 
     align(A, Thread.normal_mem_start[7])
-    data(A, [a*8 for a in range(6)])
+    data(A, [8 for a in range(6)])
 
 def init_B(B = B, MEMMAP = MEMMAP):
     align(B, 0)
@@ -516,52 +525,71 @@ def init_B(B = B, MEMMAP = MEMMAP):
     align(B, Thread.normal_mem_start[0])
     lit(B, 0), loc(B, "inner")
     lit(B, 0), loc(B, "outer")
+    lit(B, PO_A.gen_read_po(0, 0, "accumulators", 1)), loc(B, "read_accumulators_init")
+    lit(B, PO_DA.gen_read_po(0, 0, "accumulators", 1)), loc(B, "write_accumulators_init")
 
     align(B, Thread.normal_mem_start[1])
     lit(B, 0)
     lit(B, 0)
+    lit(B, PO_A.gen_read_po(1, 0, "accumulators", 1))
+    lit(B, PO_DA.gen_read_po(1, 0, "accumulators", 1))
 
     align(B, Thread.normal_mem_start[2])
     lit(B, 0)
     lit(B, 0)
+    lit(B, PO_A.gen_read_po(2, 0, "accumulators", 1))
+    lit(B, PO_DA.gen_read_po(2, 0, "accumulators", 1))
 
     align(B, Thread.normal_mem_start[3])
     lit(B, 0)
     lit(B, 0)
+    lit(B, PO_A.gen_read_po(3, 0, "accumulators", 1))
+    lit(B, PO_DA.gen_read_po(3, 0, "accumulators", 1))
 
     align(B, Thread.normal_mem_start[4])
     lit(B, 0)
     lit(B, 0)
+    lit(B, PO_A.gen_read_po(4, 0, "accumulators", 1))
+    lit(B, PO_DA.gen_read_po(4, 0, "accumulators", 1))
 
     align(B, Thread.normal_mem_start[5])
     lit(B, 0)
     lit(B, 0)
+    lit(B, PO_A.gen_read_po(5, 0, "accumulators", 1))
+    lit(B, PO_DA.gen_read_po(5, 0, "accumulators", 1))
 
     align(B, Thread.normal_mem_start[6])
     lit(B, 0)
     lit(B, 0)
+    lit(B, PO_A.gen_read_po(6, 0, "accumulators", 1))
+    lit(B, PO_DA.gen_read_po(6, 0, "accumulators", 1))
 
     align(B, Thread.normal_mem_start[7])
     lit(B, 0)
     lit(B, 0)
+    lit(B, PO_A.gen_read_po(7, 0, "accumulators", 1))
+    lit(B, PO_DA.gen_read_po(7, 0, "accumulators", 1))
 
 def init_DO(DO = DO):
     for thread in range(Thread.count):
         set_do(DO, thread, Thread.default_offset[thread])
 
-def init_PO():
-    for thread in range(Thread.count):
-        po = PO_A.gen_read_po(thread, 0, "accumulators", 1)
-        PO_A.set_po(thread, 0, po)
-        po = PO_DA.gen_read_po(thread, 0, "accumulators", 1)
-        PO_DA.set_po(thread, 0, po)
+# def init_PO():
+#     for thread in range(Thread.count):
+#         po = PO_A.gen_read_po(thread, 0, "accumulators", 1)
+#         PO_A.set_po(thread, 0, po)
+#         po = PO_DA.gen_read_po(thread, 0, "accumulators", 1)
+#         PO_DA.set_po(thread, 0, po)
 
 def init_I(I = I, PC = PC):
     align(I, Thread.start[0])
 
-    simple(I, 0, "ADD", MEMMAP.bd[0],           "zero_A",       "outer")
-    simple(I, 0, "ADD", MEMMAP.bc[0],           "zero_A",       "six"),           bt("restart")
     simple(I, 0, "ADD", MEMMAP.bd[1],           "zero_A",       "inner"),
+    simple(I, 0, "ADD", MEMMAP.bd[0],           "zero_A",       "outer")
+    simple(I, 0, "ADD", MEMMAP.a_po[0],         "zero_A",       "read_accumulators_init"), bt("restart")
+    simple(I, 0, "ADD", MEMMAP.da_po[0],        "zero_A",       "write_accumulators_init"),
+    simple(I, 0, "ADD", MEMMAP.bc[0],           "zero_A",       "six")
+    simple(I, 0, "NOP", "zero_A",               "zero_A",       "zero_B")
 
     simple(I, 0, "ADD", "accumulators_pointer", "accumulators_pointer", "one"),     bt("again")
     simple(I, 0, "PSR", MEMMAP.io[0],           "zero_A", "zero_B"),                br("CTZ", "restart", False, "outer"), br("JMP", "again", True, "inner")
@@ -591,7 +619,7 @@ if __name__ == "__main__":
     init_A()
     init_B()
     init_DO()
-    init_PO()
+#    init_PO()
     init_I()
     dump_all(initializable_memories)
 
