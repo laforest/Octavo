@@ -31,7 +31,7 @@ cp ${MEMS}/* ${RUNS}/
 cp obj_dir/${EXEC} ${RUNS}/
 
 pushd ${RUNS}
-    ./${EXEC} 
+    time ./${EXEC} 
 popd
 
 
