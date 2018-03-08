@@ -588,21 +588,21 @@ def init_I(I = I, PC = PC):
 
     simple(I, 0, "ADD", MEMMAP.bd[0],           "zeroA",        "restart_test"), bt("restart")
     simple(I, 0, "ADD", MEMMAP.bc[0],           "zeroA",        "sixB")
-    simple(I, 0, "ADD", MEMMAP.bd[1],           "zeroA",        "next_test"),
     simple(I, 0, "ADD", MEMMAP.bd[2],           "zeroA",        "even_test"),
     simple(I, 0, "ADD", MEMMAP.bs1_sentinel[2], "zeroA",        "zeroB"),
     simple(I, 0, "ADD", MEMMAP.bs1_mask[2],     "zeroA",        "all_but_LSB_mask"),
     simple(I, 0, "ADD", MEMMAP.bd[3],           "zeroA",        "output_test"),
     simple(I, 0, "ADD", MEMMAP.a_po[0],         "zeroA",        "seed_ptrA_init_read")
     simple(I, 0, "ADD", MEMMAP.da_po[0],        "zeroA",        "seed_ptrA_init_write"),
+    simple(I, 0, "ADD", MEMMAP.bd[1],           "zeroA",        "next_test"),
 
-    simple(I, 0, "NOP", "zeroA",                "zeroA",        "zeroB")
+    #simple(I, 0, "NOP", "zeroA",                "zeroA",        "zeroB")
 
     # Load x
     simple(I, 0, "ADD",     "seedA",        "seed_ptrA",     "zeroB"),      bt("next_seed")
 
     # Odd case y = (3x+1)/2
-    simple(I, 0, "ADD*2",   "nextseedB",    "seedA",        "zeroB"),       br("BSA", "even_case", False, "even_test")   # y = (x+0)*2
+    simple(I, 0, "ADD*2",   "nextseedB",    "seedA",        "zeroB"),       br("BSA", "even_case", False, "even_test")  # y = (x+0)*2
     simple(I, 0, "ADD",     "nextseedB",    "seedA",        "nextseedB"),                                               # y = (x+y)
     simple(I, 0, "ADD/2U",  "nextseedB",    "oneA",         "nextseedB"),   br("JMP", "output", True, "output_test")    # y = (1+y)/2
 
