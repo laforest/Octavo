@@ -19,7 +19,7 @@ main
 )
 {
     int cycles_executed = 0;
-    int cycles_to_run   = 1000; 
+    int cycles_to_run   = 5000; 
 
     // Current simulation time (64-bit unsigned)
     vluint64_t main_time = 0;
