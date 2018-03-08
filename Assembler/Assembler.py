@@ -139,8 +139,8 @@ class B:
 
 class MEMMAP:
     # These are for A/B
-    shared      = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31]
     zero        = 0
+    shared      = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31]
     pool        = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23]
     indirect    = [24,25,26,27]
     io          = [28,29,30,31]
@@ -424,7 +424,6 @@ class PO:
         po          = BitArray()
         for field in [sign, increment, offset]:
             po.append(field)
-        pprint(po.bin)
         return po
 
     def set_po(self, thread, entry, po):
@@ -450,6 +449,12 @@ def dump_all(mem_obj_list):
     for mem in mem_obj_list:
         file_dump(mem)
 
+# Set these in init memory so we don't have to do a tedious once-run
+# init sequence for the Default Offsets. These normally never change at runtime.
+def init_DO(DO = DO):
+    for thread in range(Thread.count):
+        set_do(DO, thread, Thread.default_offset[thread])
+
 # Thread 0 must start its code at 1, as first PC is always 0 (register set at config)
 # Start all threads at 1. Avoids sticking at zero due to null Branch Detector entry.
 def init_PC(PC = PC, PC_prev = PC_prev):
@@ -464,16 +469,18 @@ def init_ISA(OD = OD, MEMMAP = MEMMAP):
     define_opcode(OD, "SUB", ALU.split_no, ALU.shift_none, Dyadic.b, ALU.addsub_a_minus_b, ALU.simple, Dyadic.always_zero, Dyadic.always_zero, ALU.select_r)
     define_opcode(OD, "PSR", ALU.split_no, ALU.shift_none, Dyadic.a, ALU.addsub_a_plus_b, ALU.simple, Dyadic.always_one, Dyadic.always_zero, ALU.select_r)
     define_opcode(OD, "ADD*2", ALU.split_no, ALU.shift_left, Dyadic.b, ALU.addsub_a_minus_b, ALU.simple, Dyadic.always_zero, Dyadic.always_zero, ALU.select_r)
-    define_opcode(OD, "ADD/2", ALU.split_no, ALU.shift_right_signed, Dyadic.b, ALU.addsub_a_minus_b, ALU.simple, Dyadic.always_zero, Dyadic.always_zero, ALU.select_r)
+    define_opcode(OD, "ADD/2", ALU.split_no, ALU.shift_right_signed, Dyadic.b, ALU.addsub_a_plus_b, ALU.simple, Dyadic.always_zero, Dyadic.always_zero, ALU.select_r)
+    define_opcode(OD, "ADD/2U", ALU.split_no, ALU.shift_right, Dyadic.b, ALU.addsub_a_plus_b, ALU.simple, Dyadic.always_zero, Dyadic.always_zero, ALU.select_r)
     for thread in range(Thread.count):
-        load_opcode(OD, thread, "NOP",   0)
-        load_opcode(OD, thread, "ADD",   1)
-        load_opcode(OD, thread, "SUB",   2)
-        load_opcode(OD, thread, "ADD*2", 3)
-        load_opcode(OD, thread, "ADD/2", 4)
-        load_opcode(OD, thread, "PSR",   5)
+        load_opcode(OD, thread, "NOP",    0)
+        load_opcode(OD, thread, "ADD",    1)
+        load_opcode(OD, thread, "SUB",    2)
+        load_opcode(OD, thread, "ADD*2",  3)
+        load_opcode(OD, thread, "ADD/2",  4)
+        load_opcode(OD, thread, "ADD/2U", 5)
+        load_opcode(OD, thread, "PSR",    6)
 
-def init_branches(BD = BD):
+def init_BD(BD = BD):
     # Jump always
     condition(BD, "JMP", Branch.A_flag_negative, Branch.B_flag_lessthan, Dyadic.always_one)
     # Jump on Branch Sentinel A match
@@ -483,116 +490,129 @@ def init_branches(BD = BD):
 
 def init_A(A = A, MEMMAP = MEMMAP):
     align(A, 0)
-    lit(A, 0), loc(A, "zero_A")
-    #align(A, MEMMAP.pool[0])
+    lit(A, 0), loc(A, "zeroA")
+
+    align(A, MEMMAP.pool[0])
+    lit(A, 1), loc(A, "oneA")
 
     align(A, MEMMAP.indirect[0])
-    lit(A, 0), loc(A, "accumulators_pointer")
+    lit(A, 0), loc(A, "seed_ptrA")
 
     align(A, Thread.normal_mem_start[0])
-    data(A, [1 for a in range(6)], "accumulators")
+    lit(A, 0), loc(A, "seedA")
+    data(A, [11]*6, "seeds")
 
     align(A, Thread.normal_mem_start[1])
-    data(A, [2 for a in range(6)])
+    lit(A, 0)
+    data(A, [11]*6)
 
     align(A, Thread.normal_mem_start[2])
-    data(A, [3 for a in range(6)])
+    lit(A, 0)
+    data(A, [11]*6)
 
     align(A, Thread.normal_mem_start[3])
-    data(A, [4 for a in range(6)])
+    lit(A, 0)
+    data(A, [11]*6)
 
     align(A, Thread.normal_mem_start[4])
-    data(A, [5 for a in range(6)])
+    lit(A, 0)
+    data(A, [11]*6)
 
     align(A, Thread.normal_mem_start[5])
-    data(A, [6 for a in range(6)])
+    lit(A, 0)
+    data(A, [11]*6)
 
     align(A, Thread.normal_mem_start[6])
-    data(A, [7 for a in range(6)])
+    lit(A, 0)
+    data(A, [11]*6)
 
     align(A, Thread.normal_mem_start[7])
-    data(A, [8 for a in range(6)])
+    lit(A, 0)
+    data(A, [11]*6)
 
 def init_B(B = B, MEMMAP = MEMMAP):
     align(B, 0)
-    lit(B, 0), loc(B, "zero_B")
+    lit(B, 0), loc(B, "zeroB")
 
     align(B, MEMMAP.pool[0])
-    lit(B, 1), loc(B, "one")
-    lit(B, 2), loc(B, "two")
-    lit(B, 6), loc(B, "six")
+    lit(B, 1), loc(B, "oneB")
+    lit(B, 6), loc(B, "sixB")
+    lit(B, 0xFFFFFFFFE), loc(B, "all_but_LSB_mask")
+    lit(B, 0), loc(B, "restart_test")
+    lit(B, 0), loc(B, "next_test")
+    lit(B, 0), loc(B, "even_test")
+    lit(B, 0), loc(B, "output_test")
 
     align(B, Thread.normal_mem_start[0])
-    lit(B, 0), loc(B, "inner")
-    lit(B, 0), loc(B, "outer")
-    lit(B, PO_A.gen_read_po(0, 0, "accumulators", 1)), loc(B, "read_accumulators_init")
-    lit(B, PO_DA.gen_read_po(0, 0, "accumulators", 1)), loc(B, "write_accumulators_init")
+    lit(B, 0), loc(B, "nextseedB")
+    lit(B, PO_A.gen_read_po(0, 0, "seeds", 1)), loc(B, "seed_ptrA_init_read")
+    lit(B, PO_DA.gen_read_po(0, 0, "seeds", 1)), loc(B, "seed_ptrA_init_write")
 
     align(B, Thread.normal_mem_start[1])
     lit(B, 0)
-    lit(B, 0)
-    lit(B, PO_A.gen_read_po(1, 0, "accumulators", 1))
-    lit(B, PO_DA.gen_read_po(1, 0, "accumulators", 1))
+    lit(B, PO_A.gen_read_po(1, 0, "seeds", 1))
+    lit(B, PO_DA.gen_read_po(1, 0, "seeds", 1))
 
     align(B, Thread.normal_mem_start[2])
     lit(B, 0)
-    lit(B, 0)
-    lit(B, PO_A.gen_read_po(2, 0, "accumulators", 1))
-    lit(B, PO_DA.gen_read_po(2, 0, "accumulators", 1))
+    lit(B, PO_A.gen_read_po(2, 0, "seeds", 1))
+    lit(B, PO_DA.gen_read_po(2, 0, "seeds", 1))
 
     align(B, Thread.normal_mem_start[3])
     lit(B, 0)
-    lit(B, 0)
-    lit(B, PO_A.gen_read_po(3, 0, "accumulators", 1))
-    lit(B, PO_DA.gen_read_po(3, 0, "accumulators", 1))
+    lit(B, PO_A.gen_read_po(3, 0, "seeds", 1))
+    lit(B, PO_DA.gen_read_po(3, 0, "seeds", 1))
 
     align(B, Thread.normal_mem_start[4])
     lit(B, 0)
-    lit(B, 0)
-    lit(B, PO_A.gen_read_po(4, 0, "accumulators", 1))
-    lit(B, PO_DA.gen_read_po(4, 0, "accumulators", 1))
+    lit(B, PO_A.gen_read_po(4, 0, "seeds", 1))
+    lit(B, PO_DA.gen_read_po(4, 0, "seeds", 1))
 
     align(B, Thread.normal_mem_start[5])
     lit(B, 0)
-    lit(B, 0)
-    lit(B, PO_A.gen_read_po(5, 0, "accumulators", 1))
-    lit(B, PO_DA.gen_read_po(5, 0, "accumulators", 1))
+    lit(B, PO_A.gen_read_po(5, 0, "seeds", 1))
+    lit(B, PO_DA.gen_read_po(5, 0, "seeds", 1))
 
     align(B, Thread.normal_mem_start[6])
     lit(B, 0)
-    lit(B, 0)
-    lit(B, PO_A.gen_read_po(6, 0, "accumulators", 1))
-    lit(B, PO_DA.gen_read_po(6, 0, "accumulators", 1))
+    lit(B, PO_A.gen_read_po(6, 0, "seeds", 1))
+    lit(B, PO_DA.gen_read_po(6, 0, "seeds", 1))
 
     align(B, Thread.normal_mem_start[7])
     lit(B, 0)
-    lit(B, 0)
-    lit(B, PO_A.gen_read_po(7, 0, "accumulators", 1))
-    lit(B, PO_DA.gen_read_po(7, 0, "accumulators", 1))
-
-def init_DO(DO = DO):
-    for thread in range(Thread.count):
-        set_do(DO, thread, Thread.default_offset[thread])
-
-# def init_PO():
-#     for thread in range(Thread.count):
-#         po = PO_A.gen_read_po(thread, 0, "accumulators", 1)
-#         PO_A.set_po(thread, 0, po)
-#         po = PO_DA.gen_read_po(thread, 0, "accumulators", 1)
-#         PO_DA.set_po(thread, 0, po)
+    lit(B, PO_A.gen_read_po(7, 0, "seeds", 1))
+    lit(B, PO_DA.gen_read_po(7, 0, "seeds", 1))
 
 def init_I(I = I, PC = PC):
     align(I, Thread.start[0])
 
-    simple(I, 0, "ADD", MEMMAP.bd[1],           "zero_A",       "inner"),
-    simple(I, 0, "ADD", MEMMAP.bd[0],           "zero_A",       "outer")
-    simple(I, 0, "ADD", MEMMAP.a_po[0],         "zero_A",       "read_accumulators_init"), bt("restart")
-    simple(I, 0, "ADD", MEMMAP.da_po[0],        "zero_A",       "write_accumulators_init"),
-    simple(I, 0, "ADD", MEMMAP.bc[0],           "zero_A",       "six")
-    simple(I, 0, "NOP", "zero_A",               "zero_A",       "zero_B")
+    simple(I, 0, "ADD", MEMMAP.bd[0],           "zeroA",        "restart_test"), bt("restart")
+    simple(I, 0, "ADD", MEMMAP.bc[0],           "zeroA",        "sixB")
+    simple(I, 0, "ADD", MEMMAP.bd[1],           "zeroA",        "next_test"),
+    simple(I, 0, "ADD", MEMMAP.bd[2],           "zeroA",        "even_test"),
+    simple(I, 0, "ADD", MEMMAP.bs1_sentinel[2], "zeroA",        "zeroB"),
+    simple(I, 0, "ADD", MEMMAP.bs1_mask[2],     "zeroA",        "all_but_LSB_mask"),
+    simple(I, 0, "ADD", MEMMAP.bd[3],           "zeroA",        "output_test"),
+    simple(I, 0, "ADD", MEMMAP.a_po[0],         "zeroA",        "seed_ptrA_init_read")
+    simple(I, 0, "ADD", MEMMAP.da_po[0],        "zeroA",        "seed_ptrA_init_write"),
 
-    simple(I, 0, "ADD", "accumulators_pointer", "accumulators_pointer", "one"),     bt("again")
-    simple(I, 0, "PSR", MEMMAP.io[0],           "zero_A", "zero_B"),                br("CTZ", "restart", False, "outer"), br("JMP", "again", True, "inner")
+    simple(I, 0, "NOP", "zeroA",                "zeroA",        "zeroB")
+
+    # Load x
+    simple(I, 0, "ADD",     "seedA",        "seed_ptrA",     "zeroB"),      bt("next_seed")
+
+    # Odd case y = (3x+1)/2
+    simple(I, 0, "ADD*2",   "nextseedB",    "seedA",        "zeroB"),       br("BSA", "even_case", False, "even_test")   # y = (x+0)*2
+    simple(I, 0, "ADD",     "nextseedB",    "seedA",        "nextseedB"),                                               # y = (x+y)
+    simple(I, 0, "ADD/2U",  "nextseedB",    "oneA",         "nextseedB"),   br("JMP", "output", True, "output_test")    # y = (1+y)/2
+
+    # Even case y = x/2
+    simple(I, 0, "ADD/2U",  "nextseedB",    "seedA",        "zeroB"),       bt("even_case")                             # y = (x+0)/2
+    simple(I, 0, "NOP",     "zeroA",        "zeroA",        "zeroB")
+    simple(I, 0, "NOP",     "zeroA",        "zeroA",        "zeroB")
+
+    # Store y (replace x)
+    simple(I, 0, "ADD",     "seed_ptrA",    "zeroA",        "nextseedB"),   bt("output"), br("CTZ", "restart", None, "restart_test"), br("JMP", "next_seed", None, "next_test")
 
     align(I, Thread.start[1])
 
@@ -613,13 +633,12 @@ def init_I(I = I, PC = PC):
 # ---------------------------------------------------------------------
 
 if __name__ == "__main__":
+    init_DO()
     init_PC()
     init_ISA()
-    init_branches()
+    init_BD()
     init_A()
     init_B()
-    init_DO()
-#    init_PO()
     init_I()
     dump_all(initializable_memories)
 
