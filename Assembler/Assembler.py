@@ -455,8 +455,6 @@ def init_DO(DO = DO):
     for thread in range(Thread.count):
         set_do(DO, thread, Thread.default_offset[thread])
 
-# Thread 0 must start its code at 1, as first PC is always 0 (register set at config)
-# Start all threads at 1. Avoids sticking at zero due to null Branch Detector entry.
 def init_PC(PC = PC, PC_prev = PC_prev):
     for thread in range(Thread.count):
         start = Thread.start[thread]
