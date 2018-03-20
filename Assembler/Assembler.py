@@ -10,130 +10,6 @@ import sys
 from math import ceil
 from pprint import pprint
 
-
-# ---------------------------------------------------------------------
-# Dumping memory data to file
-
-def dump_format(width):
-    """Numbers must be represented as zero-padded whole hex numbers"""
-    characters = width // 4
-    remainder = width % 4
-    characters += min(1, remainder)
-    format_string = "{:0" + str(characters) + "x}"
-    return format_string
-
-def file_dump(mem_obj):
-    """Dump to Verilog loadable format for readmemh()."""
-    file_header  = """// format=hex addressradix=h dataradix=h version=1.0 wordsperline=1 noaddress"""
-    mem         = mem_obj.mem
-    filename    = mem_obj.filename
-    with open(filename, 'w') as f:
-        f.write(file_header + "\n")
-        # We assume all memory values are the same width
-        format_string = dump_format(mem[0].length)
-        for entry in mem:
-            output = format_string.format(entry.uint)
-            f.write(output + "\n")
-
-# ---------------------------------------------------------------------
-# Location naming and lookup
-
-def loc(mem_obj, name, read_addr = None, write_addr = None):
-    """Name a given location. May have only a read or write address, or both.
-       If neither addresses are given, then name the current location, 
-       after 'here' was incremented by another operation."""
-    if read_addr is not None:
-        if read_addr < 0 or read_addr > len(mem_obj.mem)-1:
-            print("ERROR: Out of bounds name read address ({0}) assignment in {1}".format(read_addr, mem_obj.__name__))
-            sys.exit(1)
-        mem_obj.read_names.update({name:read_addr})
-    if write_addr is None and read_addr is not None:
-        # No bounds check here as write address can be over a different range, depending on where Memory is mapped.
-        write_addr = read_addr + mem_obj.write_offset
-    if write_addr is not None:
-        mem_obj.write_names.update({name:write_addr})
-    if write_addr is None and read_addr is None:
-        if mem_obj.here < 0 or mem_obj.here > len(mem_obj.mem)-1:
-            print("ERROR: Out of bounds name ({0}) in {1}".format(mem_obj.here, mem_obj.__name__))
-        loc(mem_obj, name, mem_obj.here)
-
-# ---------------------------------------------------------------------
-# Compile literals at locations (basic assembler mechanism and state)
-
-def align(mem_obj, addr):
-    """Continue assembling at new address. Assumes pre-incrementing 'here'"""
-    if type(addr) == str:
-        addr = mem_obj.read_addr[addr]
-    if addr < 0 or addr > len(mem_obj.mem)-1:
-        print("ERROR: Out of bounds align ({0}) in {1}".format(mem_obj.here, mem_obj.__name__))
-    if addr > mem_obj.last:
-        mem_obj.last = addr
-    mem_obj.here = addr - 1
-
-def resume(mem_obj):
-    """Resume assembling at first free sequential location after an align()."""
-    mem_obj.here = mem_obj.last - 1
-
-def lit(mem_obj, number):
-    """Place a literal number 'here'"""
-    mem_obj.here += 1
-    if mem_obj.here < 0 or mem_obj.here > len(mem_obj.mem)-1:
-        print("ERROR: Out of bounds lit ({0}) in {1}".format(mem_obj.here, mem_obj.__class__.__name__))
-    if mem_obj.here >= mem_obj.last:
-        mem_obj.last = mem_obj.here + 1
-    word_length = mem_obj.mem[mem_obj.here].length
-    if type(number) == type(int()):
-        mem_obj.mem[mem_obj.here] = BitArray(uint=number, length=word_length)
-    elif type(number) == type(BitArray()):
-        # Oh, this is ugly. BitArray's LSB is our MSB...
-        mem_obj.mem[mem_obj.here].overwrite(number,(word_length-number.length))
-    else:
-        printf("Incompatible literal type: {0}".format(number))
-        sys.exit(1)
-
-def data(mem_obj, entries, name = None):
-    """Place a list of numbers into consecutive locations.
-       Optionally name the head of the list."""
-    if len(entries) == 0:
-        print("ERROR: Empty data list for {0}".format(mem_obj.__name__))
-    if name is not None:
-        head = entries.pop(0)
-        lit(mem_obj, head)
-        loc(mem_obj, name)
-    for entry in entries:
-        lit(mem_obj, entry)
-
-# ---------------------------------------------------------------------
-# Create the Data Memories
-
-def create_memory(depth, width):
-    mem = []
-    for entry in range(depth):
-        mem.append(BitArray(width))
-    return mem
-
-class A:
-    depth           = 1024
-    width           = 36
-    mem             = create_memory(depth, width)
-    here            = -1
-    last            = 0
-    read_names      = {}
-    write_names     = {}
-    write_offset    = 0
-    filename        = "A.mem"
-
-class B:
-    depth           = 1024
-    width           = 36
-    mem             = create_memory(depth, width)
-    here            = -1
-    last            = 0
-    read_names      = {}
-    write_names     = {}
-    write_offset    = 1024
-    filename        = "B.mem"
-
 # ---------------------------------------------------------------------
 # Memory map
 
@@ -166,240 +42,372 @@ class MEMMAP:
     od          = [3200,3201,3202,3203,3204,3205,3206,3207,3208,3209,3210,3211,3212,3213,3214,3215]
 
 # ---------------------------------------------------------------------
+
+class Base_Memory:
+
+    def create_memory(self, depth, width):
+        self.mem = []
+        for entry in range(depth):
+            self.mem.append(BitArray(width))
+
+    def __init__(self, depth, width, filename):
+        self.create_memory(depth, width)
+        self.filename   = filename
+        
+    def dump_format(self, width):
+        """Numbers must be represented as zero-padded whole hex numbers"""
+        characters = width // 4
+        remainder = width % 4
+        characters += min(1, remainder)
+        format_string = "{:0" + str(characters) + "x}"
+        return format_string
+
+    def file_dump(self):
+        """Dump to Verilog loadable format for readmemh()."""
+        file_header  = """// format=hex addressradix=h dataradix=h version=1.0 wordsperline=1 noaddress"""
+        with open(self.filename, 'w') as f:
+            f.write(file_header + "\n")
+            # We assume all memory values are the same width
+            format_string = self.dump_format(self.mem[0].length)
+            for entry in self.mem:
+                output = format_string.format(entry.uint)
+                f.write(output + "\n")
+
+
+class Data_Memory(Base_Memory):
+
+    def __init__(self, depth, width, filename, write_offset):
+        Base_Memory.__init__(self, depth, width, filename)
+        self.here           = -1
+        self.last           = 0
+        self.read_names     = {}
+        self.write_names    = {}
+        self.write_offset   = write_offset
+
+    # ---------------------------------------------------------------------
+    # Location naming and lookup
+
+    def loc(self, name, read_addr = None, write_addr = None):
+        """Name a given location. May have only a read or write address, or both.
+           If neither addresses are given, then name the current location, 
+           after 'here' was incremented by another operation."""
+        if read_addr is not None:
+            if read_addr < 0 or read_addr > len(self.mem)-1:
+                print("ERROR: Out of bounds name read address ({0}) assignment in {1}".format(read_addr, self.__name__))
+                sys.exit(1)
+            self.read_names.update({name:read_addr})
+        if write_addr is None and read_addr is not None:
+            # No bounds check here as write address can be over a different range, depending on where Memory is mapped.
+            write_addr = read_addr + self.write_offset
+        if write_addr is not None:
+            self.write_names.update({name:write_addr})
+        if write_addr is None and read_addr is None:
+            if self.here < 0 or self.here > len(self.mem)-1:
+                print("ERROR: Out of bounds name ({0}) in {1}".format(self.here, self.__name__))
+            self.loc(name, read_addr = self.here)
+
+    def lookup_read(self, name):
+        if type(name) == type(int()):
+            return name
+        address = self.read_names.get(name, None)
+        return address
+
+    def lookup_write(self, name):
+        if type(name) == type(int()):
+            return name
+        address = self.write_names.get(name, None)
+        return address
+
+    # ---------------------------------------------------------------------
+    # Compile literals at locations (basic assembler mechanism and state)
+
+    def align(self, addr):
+        """Continue assembling at new address. Assumes pre-incrementing 'here'"""
+        if type(addr) == str:
+            addr = self.read_addr[addr]
+        if addr < 0 or addr > len(self.mem)-1:
+            print("ERROR: Out of bounds align ({0}) in {1}".format(self.here, self.__name__))
+        if addr > self.last:
+            self.last = addr
+        self.here = addr - 1
+
+    def resume(self):
+        """Resume assembling at first free sequential location after an align()."""
+        self.here = self.last - 1
+
+    def lit(self, number):
+        """Place a literal number 'here'"""
+        self.here += 1
+        if self.here < 0 or self.here > len(self.mem)-1:
+            print("ERROR: Out of bounds lit ({0}) in {1}".format(self.here, self.__class__.__name__))
+        if self.here >= self.last:
+            self.last = self.here + 1
+        word_length = self.mem[self.here].length
+        if type(number) == type(int()):
+            self.mem[self.here] = BitArray(uint=number, length=word_length)
+        elif type(number) == type(BitArray()):
+            # Oh, this is ugly. BitArray's LSB is our MSB...
+            self.mem[self.here].overwrite(number,(word_length-number.length))
+        else:
+            printf("Incompatible literal type: {0}".format(number))
+            sys.exit(1)
+
+    def data(self, entries, name = None):
+        """Place a list of numbers into consecutive locations.
+           Optionally name the head of the list."""
+        if len(entries) == 0:
+            print("ERROR: Empty data list for {0}".format(self.__name__))
+        if name is not None:
+            head = entries.pop(0)
+            self.lit(head)
+            self.loc(name)
+        for entry in entries:
+            self.lit(entry)
+
+# ---------------------------------------------------------------------
+# Create the Data Memories
+
+A = Data_Memory(1024, 36, "A.mem", MEMMAP.a)
+B = Data_Memory(1024, 36, "B.mem", MEMMAP.b)
+
+# ---------------------------------------------------------------------
 # Thread information
 
 class Thread:
-    count = 8
-    start = [0]    * count
-    end   = [1023] * count
-    base_offset = int(1024 / count) - ceil(MEMMAP.normal / count)
 
-Thread.default_offset = [(Thread.base_offset * thread) for thread in range(Thread.count)]
-Thread.normal_mem_start = [(MEMMAP.normal + Thread.default_offset[thread]) for thread in range(Thread.count)]
+    def __init__(self, thread_count, data_mem_depth, start_of_private_data):
+        self.count = thread_count
+        self.start = [0] * self.count
+        self.base_offset = int(data_mem_depth / self.count) - ceil(start_of_private_data / self.count)
+        self.default_offset = [(self.base_offset * thread) for thread in range(self.count)]
+        self.normal_mem_start = [(start_of_private_data + self.default_offset[thread]) for thread in range(self.count)]
+
+T = Thread(8, 1024, MEMMAP.normal)
 
 # ---------------------------------------------------------------------
 # Opcode Decoder Memory: translate opcode into ALU control bits
 
-class OD:
-    pass
+class Opcode_Decoder(Base_Memory):
 
-opcode_count = 16
+    opcode_count        = 16
+    alu_control_format  = 'uint:{0},uint:{1},uint:{2},uint:{3},uint:{4},uint:{5},uint:{6},uint:{7}'.format(ALU.split_width, ALU.shift_width, ALU.dyadic3_width, ALU.addsub_width, ALU.dual_width, ALU.dyadic2_width, ALU.dyadic1_width, ALU.select_width)
 
-alu_control_format = 'uint:{0},uint:{1},uint:{2},uint:{3},uint:{4},uint:{5},uint:{6},uint:{7}'.format(ALU.split_width, ALU.shift_width, ALU.dyadic3_width, ALU.addsub_width, ALU.dual_width, ALU.dyadic2_width, ALU.dyadic1_width, ALU.select_width)
+    def __init__(self, filename):
+        depth = self.opcode_count * T.count
+        width = ALU.total_op_width
+        Base_Memory.__init__(self, depth, width, filename)
+        self.opcodes   = {} # {name:bits}
 
-OD.mem       = create_memory(opcode_count*Thread.count, ALU.total_op_width)
-OD.opcodes   = {} # {name:bits}
-OD.filename  = "OD.mem"
+    def define_opcode(self, name, split, shift, dyadic3, addsub, dual, dyadic2, dyadic1, select):
+        """Assembles and names the control bits of an opcode."""
+        control_bits = BitArray()
+        for entry in [split, shift, dyadic3, addsub, dual, dyadic2, dyadic1, select]:
+            control_bits.append(entry)
+        self.opcodes.update({name:control_bits})
 
-def define_opcode(mem_obj, name, split, shift, dyadic3, addsub, dual, dyadic2, dyadic1, select):
-    """Assembles and names the control bits of an opcode."""
-    control_bits = BitArray()
-    for entry in [split, shift, dyadic3, addsub, dual, dyadic2, dyadic1, select]:
-        control_bits.append(entry)
-    mem_obj.opcodes.update({name:control_bits})
+    def load_opcode(self, thread, name, opcode):
+        """The opcode indexes into the opcode decoder memory, separately for each thread."""
+        address = (thread * self.opcode_count) + opcode
+        self.mem[address] = self.opcodes[name]
 
-def load_opcode(mem_obj, thread, name, opcode):
-    """The opcode indexes into the opcode decoder memory, separately for each thread."""
-    address = (thread * opcode_count) + opcode
-    mem_obj.mem[address] = mem_obj.opcodes[name]
-
-def lookup_opcode(mem_obj, thread, name):
-    """Finds the bit pattern for the named opcode, searches for address of those bits."""
-    control_bits = mem_obj.opcodes[name]
-    op_zero = (thread * opcode_count)
-    for opcode in range(op_zero, op_zero + opcode_count):
-        if mem_obj.mem[opcode] == control_bits:
-            return opcode
-    print("Could not find opcode named {0} in thread {1}".format(name, thread))
-    sys.exit(1)
+    def lookup_opcode(self, thread, name):
+        """Finds the bit pattern for the named opcode, searches for address of those bits."""
+        control_bits = self.opcodes[name]
+        op_zero = (thread * self.opcode_count)
+        for opcode in range(op_zero, op_zero + self.opcode_count):
+            if self.mem[opcode] == control_bits:
+                return opcode
+        print("Could not find opcode named {0} in thread {1}".format(name, thread))
+        sys.exit(1)
     
+OD = Opcode_Decoder("OD.mem")
 
 # ---------------------------------------------------------------------
 # Create the Instruction Memory
 
-class I:
-    mem           = create_memory(1024, 36)
-    here          = -1
-    last          = 0
-    write_names   = {}
-    write_offset  = 3072
-    filename      = "I.mem"
+class Instruction_Memory(Data_Memory):
 
-simple_instr_format = 'uint:4,uint:12,uint:10,uint:10'
-dual_instr_format   = 'uint:4,uint:6,uint:6,uint:10,uint:10'
+    simple_instr_format = 'uint:4,uint:12,uint:10,uint:10'
+    dual_instr_format   = 'uint:4,uint:6,uint:6,uint:10,uint:10'
 
-mem_list = [A,B,I]
+    def __init__(self, depth, width, filename, write_offset, write_mem_list):
+        Data_Memory.__init__(self, depth, width, filename, write_offset)
+        self.write_mem_list = write_mem_list
 
-def lookup_write(name, mem_list):
-    """Lookup the write address of a name across the listed memories."""
-    if type(name) == type(int()):
-        return name
-    addresses = []
-    for entry in mem_list:
-        address = entry.write_names.get(name, None)
-        if address is not None:
-            addresses.append(address)
-    if len(addresses) > 1:
-        print("ERROR: Cannot resolve multiple identical write names: {0}".format(name))
-        sys.exit(1)
-    if len(addresses) == 0:
-        return None
-    return addresses[0]
+    def lookup_writable(self, name):
+        """Lookup the write address of a name across the listed writable memories."""
+        if type(name) == type(int()):
+            return name
+        addresses = []
+        for entry in self.write_mem_list:
+            address = entry.write_names.get(name, None)
+            if address is not None:
+                addresses.append(address)
+        if len(addresses) > 1:
+            print("ERROR: Cannot resolve multiple identical write names: {0}".format(name))
+            sys.exit(1)
+        if len(addresses) == 0:
+            return None
+        return addresses[0]
 
-def lookup_read(name, mem):
-    if type(name) == type(int()):
-        return name
-    address = mem.read_names.get(name, None)
-    return address
+    def simple(self, thread, op_name, dest, src1, src2):
+        """Assemble a simple instruction"""
+        op = OD.lookup_opcode(thread, op_name)
+        D_operand = self.lookup_writable(dest)
+        A_operand = A.lookup_read(src1)
+        B_operand = B.lookup_read(src2)
+        instr = pack(self.simple_instr_format, op, D_operand, A_operand, B_operand)
+        self.lit(instr.uint)
 
-def simple(mem_obj, thread, op_name, dest, src1, src2, mem_list = mem_list, instr_format = simple_instr_format, OD = OD, A = A, B = B):
-    """Assemble a simple instruction"""
-    op = lookup_opcode(OD, thread, op_name)
-    D = lookup_write(dest, mem_list)
-    A = lookup_read(src1, A)
-    B = lookup_read(src2, B)
-    instr = pack(instr_format, op, D, A, B)
-    lit(mem_obj, instr.uint)
+    def dual(self, thread, op_name, dest1, dest2, src1, src2):
+        """Assemble a dual instruction (split addressing mode)"""
+        # The CPU re-adds the correct write offset after it decodes the instruction
+        # It's a power-of-2 alignment, so it just prepends the right value
+        op = OD.lookup_opcode(thread, op_name)
+        DA_operand = A.lookup_write(dest1) - A.write_offset
+        DB_operand = B.lookup_write(dest2) - B.write_offset
+        A_operand  = A.lookup_read(src1)
+        B_operand  = B.lookup_read(src2)
+        instr = pack(self.dual_instr_format, op, DA_operand, DB_operand, A_operand, B_operand)
+        self.lit(instr.uint)
 
-def dual(mem_obj, thread, op_name, dest1, dest2, src1, src2, mem_list = mem_list, instr_format = dual_instr_format, OD = OD):
-    """Assemble a dual instruction (split addressing mode)"""
-    # The CPU re-adds the correct write offset after it decodes the instruction
-    # It's a power-of-2 alignment, so it just prepends the right value
-    op = lookup_opcode(OD, thread, op_name)
-    DA = A.write_names[dest1] - A.write_offset
-    DB = B.write_names[dest2] - B.write_offset
-    A = A.read_names[src1]
-    B = B.read_names[src2]
-    instr = pack(instr_format, op, DA, DB, A, B)
-    lit(mem_obj, instr.uint)
+I = Instruction_Memory(1024, 36, "I.mem", MEMMAP.i, [A,B])
+I.write_mem_list.append(I)
 
 # ---------------------------------------------------------------------
 # Branch Detector
 
-branch_count = 4
 
-class BD:
+class Branch_Detector:
+
+    branch_count        = 4
     condition_format    = 'uint:{0},uint:{1},uint:{2}'.format(Branch.A_flag_width, Branch.B_flag_width, Branch.AB_operator_width)
     branch_format       = 'uint:{0},uint:{1},uint:{2},uint:{3},uint:{4},uint:{5}'.format(Branch.origin_width, Branch.origin_enable_width, Branch.destination_width, Branch.predict_taken_width, Branch.predict_enable_width, Branch.condition_width)
-    conditions          = {} # {name:bits}
-    unresolved_branches = [] # list of parameters to br()
 
-def condition(mem_obj, name, A_flag, B_flag, AB_operator):
-    condition = BitArray()
-    for entry in [A_flag, B_flag, AB_operator]:
-        condition.append(entry)
-    mem_obj.conditions.update({name:condition}) 
+    def __init__(self):
+        self.conditions          = {} # {name:bits}
+        self.unresolved_branches = [] # list of parameters to br()
 
-def branch(origin, origin_enable, destination, predict_taken, predict_enable, condition_name):
-    condition           = BD.conditions[condition_name]
-    origin_bits         = BitArray(uint=origin, length=Branch.origin_width)
-    destination_bits    = BitArray(uint=destination, length=Branch.destination_width)
-    config = BitArray()
-    for entry in [origin_bits, origin_enable, destination_bits, predict_taken, predict_enable, condition]:
-        config.append(entry)
-    return config
+    def condition(self, name, A_flag, B_flag, AB_operator):
+        condition_bits = BitArray()
+        for entry in [A_flag, B_flag, AB_operator]:
+            condition_bits.append(entry)
+        self.conditions.update({name:condition_bits}) 
 
-def bt(destination):
-    loc(I, destination, write_addr = I.here)
+    def branch(self, origin, origin_enable, destination, predict_taken, predict_enable, condition_name):
+        condition_bits      = self.conditions[condition_name]
+        origin_bits         = BitArray(uint=origin, length=Branch.origin_width)
+        destination_bits    = BitArray(uint=destination, length=Branch.destination_width)
+        config = BitArray()
+        for entry in [origin_bits, origin_enable, destination_bits, predict_taken, predict_enable, condition_bits]:
+            config.append(entry)
+        return config
 
-def br(condition, destination, predict, storage, origin_enable = True, origin = None):
-    if origin is None:
-        origin      = I.here
-    dest_addr = lookup_write(destination, [I])
-    if dest_addr is None:
-        BD.unresolved_branches.append([condition, destination, predict, storage, origin_enable, origin])    
-        return
-    if predict is True:
-        predict         = Branch.predict_taken
-        predict_enable  = Branch.predict_enabled
-    elif predict is False:
-        predict         = Branch.predict_not_taken
-        predict_enable  = Branch.predict_enabled
-    elif predict is None:
-        predict         = Branch.predict_not_taken
-        predict_enable  = Branch.predict_disabled
-    else:
-        printf("Invalid branch prediction setting on branch {0}.".format(storage))
-        sys.exit(1)
-    if origin_enable is True:
-        origin_enable = Branch.origin_enabled
-    elif origin_enabled is False:
-        origin_enable = Branch.origin_disabled
-    else:
-        printf("Invalid branch origin enabled setting on branch {0}.".format(storage))
-        sys.exit(1)
-    branch_config = branch(origin, origin_enable, dest_addr, predict, predict_enable, condition)
-    # Works because a loc() usually sets both read/write addresses
-    # and the read address is the local, absolute location in memory
-    # (write address is offset to the global memory map)
-    if (storage in A.write_names):
-        address = A.read_names[storage]
-        for thread in range(Thread.count):
-            offset = Thread.default_offset[thread]
-            A.mem[address+offset] = branch_config
-    elif (storage in B.write_names):
-        address = B.read_names[storage]
-        for thread in range(Thread.count):
-            offset = Thread.default_offset[thread]
-            B.mem[address+offset] = branch_config
-    else:
-        printf("Invalid storage location on branch {0}.".format(storage))
-        sys.exit(1)
+    def bt(self, destination):
+        I.loc(destination, write_addr = I.here)
 
-def resolve_forward_branches():
-    for entry in BD.unresolved_branches:
-        br(*entry)
+    def br(self, condition_bits, destination, predict, storage, origin_enable = True, origin = None):
+        if origin is None:
+            origin      = I.here
+        dest_addr = I.lookup_write(destination)
+        if dest_addr is None:
+            self.unresolved_branches.append([condition_bits, destination, predict, storage, origin_enable, origin])    
+            return
+        if predict is True:
+            predict         = Branch.predict_taken
+            predict_enable  = Branch.predict_enabled
+        elif predict is False:
+            predict         = Branch.predict_not_taken
+            predict_enable  = Branch.predict_enabled
+        elif predict is None:
+            predict         = Branch.predict_not_taken
+            predict_enable  = Branch.predict_disabled
+        else:
+            printf("Invalid branch prediction setting on branch {0}.".format(storage))
+            sys.exit(1)
+        if origin_enable is True:
+            origin_enable = Branch.origin_enabled
+        elif origin_enabled is False:
+            origin_enable = Branch.origin_disabled
+        else:
+            printf("Invalid branch origin enabled setting on branch {0}.".format(storage))
+            sys.exit(1)
+        branch_config = self.branch(origin, origin_enable, dest_addr, predict, predict_enable, condition_bits)
+        # Works because a loc() usually sets both read/write addresses
+        # and the read address is the local, absolute location in memory
+        # (write address is offset to the global memory map)
+        if (storage in A.write_names):
+            address = A.read_names[storage]
+            for thread in range(T.count):
+                offset = T.default_offset[thread]
+                A.mem[address+offset] = branch_config
+        elif (storage in B.write_names):
+            address = B.read_names[storage]
+            for thread in range(T.count):
+                offset = T.default_offset[thread]
+                B.mem[address+offset] = branch_config
+        else:
+            printf("Invalid storage location on branch {0}.".format(storage))
+            sys.exit(1)
+
+    def resolve_forward_branches(self):
+        for entry in self.unresolved_branches:
+            self.br(*entry)
+
+BD = Branch_Detector()
 
 # ---------------------------------------------------------------------
-# Program Counter
+# Program Counter, current and previous
 
-pc_width = 10
+class Program_Counter(Base_Memory):
 
-class PC:
-    pass
+    pc_width = 10
+    pc_format = 'uint:{0}'.format(pc_width)
 
-class PC_prev:
-    pass
+    def __init__(self, filename):
+        depth = T.count
+        width = self.pc_width
+        Base_Memory.__init__(self, depth, width, filename)
 
-PC.mem      = create_memory(Thread.count, pc_width)
-PC.names    = {} # {name:address}
-PC.filename = "PC.mem"
+    def set_pc(self, thread, pc_value):
+        pc_value = BitArray(uint=pc_value, length=self.mem[0].length)
+        self.mem[thread] = pc_value;
 
-PC_prev.mem         = create_memory(Thread.count, pc_width)
-PC_prev.filename    = "PC_prev.mem"
-
-pc_format = 'uint:{0}'.format(pc_width)
-
-def set_pc(mem_obj, thread, pc_value):
-    pc_value = BitArray(uint=pc_value, length=mem_obj.mem[0].length)
-    mem_obj.mem[thread] = pc_value;
+PC      = Program_Counter("PC.mem")
+PC_prev = Program_Counter("PC_prev.mem")
 
 # ---------------------------------------------------------------------
 # Default Offset Memory
 
-# This should be 10 for A/B memories, but readmemh() expects an
-# integral hex number, so 10 or 12 bits represents the same.
-do_width = 12 
 
-class DO:
-    pass
+class Default_Offset(Base_Memory):
 
-DO.mem      = create_memory(Thread.count, do_width)
-DO.filename = "DO.mem"
+    # This should be 10 for A/B memories, and 12 for DA/DB, but readmemh()
+    # expects an integral hex number, so 10 or 12 bits represents the same.
+    do_width = 12 
 
-def set_do(mem_obj, thread, offset):
-    offset = BitArray(uint=offset, length=mem_obj.mem[0].length)
-    mem_obj.mem[thread] = offset;
+    def __init__(self, filename):
+        depth = T.count
+        width = self.do_width
+        Base_Memory.__init__(self, depth, width, filename)
+
+    def set_do(self, thread, offset):
+        offset = BitArray(uint=offset, length=self.mem[0].length)
+        self.mem[thread] = offset;
+
+DO = Default_Offset("DO.mem")
 
 # ---------------------------------------------------------------------
 # Programmed Offset Memory
 
-po_offset_bits_A        = 10
-po_offset_bits_B        = 10
-po_offset_bits_DA       = 12
-po_offset_bits_DB       = 12
+class Programmed_Offset(Base_Memory):
 
-class PO:
+    # Contrary to DO, the offset length matters here, since other
+    # data follows it in the upper bits.
+    po_offset_bits_A        = 10
+    po_offset_bits_B        = 10
+    po_offset_bits_DA       = 12
+    po_offset_bits_DB       = 12
 
     po_entries              = 4
     po_increment_bits       = 4
@@ -408,12 +416,12 @@ class PO:
     def __init__(self, filename, target_mem_obj, offset_width):
         self.target_mem_obj = target_mem_obj
         self.offset_width   = offset_width
-        self.total_width    = self.po_increment_sign_bits + self.po_increment_bits + offset_width
-        self.mem            = create_memory(Thread.count*self.po_entries, self.total_width)
-        self.filename       = filename
+        self.total_width    = self.po_increment_sign_bits + self.po_increment_bits + self.offset_width
+        depth               = T.count * self.po_entries
+        Base_Memory.__init__(self, depth, self.total_width, filename)
 
     def gen_read_po(self, thread, po_entry, target_name, increment):
-        offset = lookup_read(target_name, self.target_mem_obj) + Thread.default_offset[thread] - MEMMAP.indirect[po_entry]
+        offset = self.target_mem_obj.lookup_read(target_name) + T.default_offset[thread] - MEMMAP.indirect[po_entry]
         if increment >= 0:
             sign = 0
         else:
@@ -430,14 +438,14 @@ class PO:
         if entry < 0 or entry > self.po_entries-1:
             print("Out of bounds PO entry: {0}".format(entry))
             sys.exit(1)
-        address = entry + (thread*self.po_entries)
+        address = entry + (thread * po_entries)
         print(address, po)
         self.mem[address] = po;
 
-PO_A  = PO("PO_A.mem", A, po_offset_bits_A)
-PO_B  = PO("PO_B.mem", B, po_offset_bits_B)
-PO_DA = PO("PO_DA.mem", A, po_offset_bits_DA)
-PO_DB = PO("PO_DB.mem", B, po_offset_bits_DB)
+PO_A  = Programmed_Offset("PO_A.mem",  A, Programmed_Offset.po_offset_bits_A)
+PO_B  = Programmed_Offset("PO_B.mem",  B, Programmed_Offset.po_offset_bits_B)
+PO_DA = Programmed_Offset("PO_DA.mem", A, Programmed_Offset.po_offset_bits_DA)
+PO_DB = Programmed_Offset("PO_DB.mem", B, Programmed_Offset.po_offset_bits_DB)
 
 # ---------------------------------------------------------------------
 # ---------------------------------------------------------------------
@@ -447,186 +455,188 @@ initializable_memories = [A,B,I,OD,DO,PO_A,PO_B,PO_DA,PO_DB,PC,PC_prev]
 
 def dump_all(mem_obj_list):
     for mem in mem_obj_list:
-        file_dump(mem)
+        mem.file_dump()
 
 # Set these in init memory so we don't have to do a tedious once-run
 # init sequence for the Default Offsets. These normally never change at runtime.
-def init_DO(DO = DO):
-    for thread in range(Thread.count):
-        set_do(DO, thread, Thread.default_offset[thread])
+def init_DO():
+    for thread in range(T.count):
+        DO.set_do(thread, T.default_offset[thread])
 
-def init_PC(PC = PC, PC_prev = PC_prev):
-    for thread in range(Thread.count):
-        start = Thread.start[thread]
-        set_pc(PC,      thread, start)
-        set_pc(PC_prev, thread, start)
+def init_PC():
+    for thread in range(T.count):
+        start = T.start[thread]
+        PC.set_pc(thread, start)
+        PC_prev.set_pc(thread, start)
 
-def init_ISA(OD = OD, MEMMAP = MEMMAP):
-    define_opcode(OD, "NOP", ALU.split_no, ALU.shift_none, Dyadic.always_zero, ALU.addsub_a_plus_b, ALU.simple, Dyadic.always_zero, Dyadic.always_zero, ALU.select_r)
-    define_opcode(OD, "ADD", ALU.split_no, ALU.shift_none, Dyadic.b, ALU.addsub_a_plus_b, ALU.simple, Dyadic.always_zero, Dyadic.always_zero, ALU.select_r)
-    define_opcode(OD, "SUB", ALU.split_no, ALU.shift_none, Dyadic.b, ALU.addsub_a_minus_b, ALU.simple, Dyadic.always_zero, Dyadic.always_zero, ALU.select_r)
-    define_opcode(OD, "PSR", ALU.split_no, ALU.shift_none, Dyadic.a, ALU.addsub_a_plus_b, ALU.simple, Dyadic.always_one, Dyadic.always_zero, ALU.select_r)
-    define_opcode(OD, "ADD*2", ALU.split_no, ALU.shift_left, Dyadic.b, ALU.addsub_a_minus_b, ALU.simple, Dyadic.always_zero, Dyadic.always_zero, ALU.select_r)
-    define_opcode(OD, "ADD/2", ALU.split_no, ALU.shift_right_signed, Dyadic.b, ALU.addsub_a_plus_b, ALU.simple, Dyadic.always_zero, Dyadic.always_zero, ALU.select_r)
-    define_opcode(OD, "ADD/2U", ALU.split_no, ALU.shift_right, Dyadic.b, ALU.addsub_a_plus_b, ALU.simple, Dyadic.always_zero, Dyadic.always_zero, ALU.select_r)
-    for thread in range(Thread.count):
-        load_opcode(OD, thread, "NOP",    0)
-        load_opcode(OD, thread, "ADD",    1)
-        load_opcode(OD, thread, "SUB",    2)
-        load_opcode(OD, thread, "ADD*2",  3)
-        load_opcode(OD, thread, "ADD/2",  4)
-        load_opcode(OD, thread, "ADD/2U", 5)
-        load_opcode(OD, thread, "PSR",    6)
+def init_ISA():
+    OD.define_opcode("NOP",     ALU.split_no, ALU.shift_none,           Dyadic.always_zero, ALU.addsub_a_plus_b,    ALU.simple, Dyadic.always_zero, Dyadic.always_zero, ALU.select_r)
+    OD.define_opcode("ADD",     ALU.split_no, ALU.shift_none,           Dyadic.b,           ALU.addsub_a_plus_b,    ALU.simple, Dyadic.always_zero, Dyadic.always_zero, ALU.select_r)
+    OD.define_opcode("SUB",     ALU.split_no, ALU.shift_none,           Dyadic.b,           ALU.addsub_a_minus_b,   ALU.simple, Dyadic.always_zero, Dyadic.always_zero, ALU.select_r)
+    OD.define_opcode("PSR",     ALU.split_no, ALU.shift_none,           Dyadic.a,           ALU.addsub_a_plus_b,    ALU.simple, Dyadic.always_one,  Dyadic.always_zero, ALU.select_r)
+    OD.define_opcode("ADD*2",   ALU.split_no, ALU.shift_left,           Dyadic.b,           ALU.addsub_a_minus_b,   ALU.simple, Dyadic.always_zero, Dyadic.always_zero, ALU.select_r)
+    OD.define_opcode("ADD/2",   ALU.split_no, ALU.shift_right_signed,   Dyadic.b,           ALU.addsub_a_plus_b,    ALU.simple, Dyadic.always_zero, Dyadic.always_zero, ALU.select_r)
+    OD.define_opcode("ADD/2U",  ALU.split_no, ALU.shift_right,          Dyadic.b,           ALU.addsub_a_plus_b,    ALU.simple, Dyadic.always_zero, Dyadic.always_zero, ALU.select_r)
+    for thread in range(T.count):
+        OD.load_opcode(thread, "NOP",    0)
+        OD.load_opcode(thread, "ADD",    1)
+        OD.load_opcode(thread, "SUB",    2)
+        OD.load_opcode(thread, "ADD*2",  3)
+        OD.load_opcode(thread, "ADD/2",  4)
+        OD.load_opcode(thread, "ADD/2U", 5)
+        OD.load_opcode(thread, "PSR",    6)
 
-def init_BD(BD = BD):
+def init_BD():
     # Jump always
-    condition(BD, "JMP", Branch.A_flag_negative, Branch.B_flag_lessthan, Dyadic.always_one)
+    BD.condition("JMP", Branch.A_flag_negative, Branch.B_flag_lessthan, Dyadic.always_one)
     # Jump on Branch Sentinel A match
-    condition(BD, "BSA", Branch.A_flag_sentinel, Branch.B_flag_lessthan, Dyadic.a)
+    BD.condition("BSA", Branch.A_flag_sentinel, Branch.B_flag_lessthan, Dyadic.a)
     # Jump on Counter reaching Zero (not running)
-    condition(BD, "CTZ", Branch.A_flag_negative, Branch.B_flag_counter, Dyadic.not_b)
+    BD.condition("CTZ", Branch.A_flag_negative, Branch.B_flag_counter, Dyadic.not_b)
 
-def init_A(A = A, MEMMAP = MEMMAP):
-    align(A, 0)
-    lit(A, 0), loc(A, "zeroA")
+def init_A():
+    A.align(0)
+    A.lit(0), A.loc("zeroA")
 
-    align(A, MEMMAP.pool[0])
-    lit(A, 1), loc(A, "oneA")
+    A.align(MEMMAP.pool[0])
+    A.lit(1), A.loc("oneA")
 
-    align(A, MEMMAP.indirect[0])
-    lit(A, 0), loc(A, "seed_ptrA")
+    A.align(MEMMAP.indirect[0])
+    A.lit(0), A.loc("seed_ptrA")
 
-    align(A, Thread.normal_mem_start[0])
-    lit(A, 0), loc(A, "seedA")
-    data(A, [11]*6, "seeds")
+    A.align(T.normal_mem_start[0])
+    A.lit(0), A.loc("seedA")
+    A.data([11]*6, "seeds")
 
-    align(A, Thread.normal_mem_start[1])
-    lit(A, 0)
-    data(A, [11]*6)
+    A.align(T.normal_mem_start[1])
+    A.lit(0)
+    A.data([11]*6)
 
-    align(A, Thread.normal_mem_start[2])
-    lit(A, 0)
-    data(A, [11]*6)
+    A.align(T.normal_mem_start[2])
+    A.lit(0)
+    A.data([11]*6)
 
-    align(A, Thread.normal_mem_start[3])
-    lit(A, 0)
-    data(A, [11]*6)
+    A.align(T.normal_mem_start[3])
+    A.lit(0)
+    A.data([11]*6)
 
-    align(A, Thread.normal_mem_start[4])
-    lit(A, 0)
-    data(A, [11]*6)
+    A.align(T.normal_mem_start[4])
+    A.lit(0)
+    A.data([11]*6)
 
-    align(A, Thread.normal_mem_start[5])
-    lit(A, 0)
-    data(A, [11]*6)
+    A.align(T.normal_mem_start[5])
+    A.lit(0)
+    A.data([11]*6)
 
-    align(A, Thread.normal_mem_start[6])
-    lit(A, 0)
-    data(A, [11]*6)
+    A.align(T.normal_mem_start[6])
+    A.lit(0)
+    A.data([11]*6)
 
-    align(A, Thread.normal_mem_start[7])
-    lit(A, 0)
-    data(A, [11]*6)
+    A.align(T.normal_mem_start[7])
+    A.lit(0)
+    A.data([11]*6)
 
-def init_B(B = B, MEMMAP = MEMMAP):
-    align(B, 0)
-    lit(B, 0), loc(B, "zeroB")
 
-    align(B, MEMMAP.pool[0])
-    lit(B, 1), loc(B, "oneB")
-    lit(B, 6), loc(B, "sixB")
-    lit(B, 0xFFFFFFFFE), loc(B, "all_but_LSB_mask")
-    lit(B, 0), loc(B, "restart_test")
-    lit(B, 0), loc(B, "next_test")
-    lit(B, 0), loc(B, "even_test")
-    lit(B, 0), loc(B, "output_test")
+def init_B():
+    B.align(0)
+    B.lit(0), B.loc("zeroB")
 
-    align(B, Thread.normal_mem_start[0])
-    lit(B, 0), loc(B, "nextseedB")
-    lit(B, PO_A.gen_read_po(0, 0, "seeds", 1)), loc(B, "seed_ptrA_init_read")
-    lit(B, PO_DA.gen_read_po(0, 0, "seeds", 1)), loc(B, "seed_ptrA_init_write")
+    B.align(MEMMAP.pool[0])
+    B.lit(1),           B.loc("oneB")
+    B.lit(6),           B.loc("sixB")
+    B.lit(0xFFFFFFFFE), B.loc("all_but_LSB_mask")
+    B.lit(0),           B.loc("restart_test")
+    B.lit(0),           B.loc("next_test")
+    B.lit(0),           B.loc("even_test")
+    B.lit(0),           B.loc("output_test")
 
-    align(B, Thread.normal_mem_start[1])
-    lit(B, 0)
-    lit(B, PO_A.gen_read_po(1, 0, "seeds", 1))
-    lit(B, PO_DA.gen_read_po(1, 0, "seeds", 1))
+    B.align(T.normal_mem_start[0])
+    B.lit(0),                                   B.loc("nextseedB")
+    B.lit(PO_A.gen_read_po(0, 0, "seeds", 1)),  B.loc("seed_ptrA_init_read")
+    B.lit(PO_DA.gen_read_po(0, 0, "seeds", 1)), B.loc("seed_ptrA_init_write")
 
-    align(B, Thread.normal_mem_start[2])
-    lit(B, 0)
-    lit(B, PO_A.gen_read_po(2, 0, "seeds", 1))
-    lit(B, PO_DA.gen_read_po(2, 0, "seeds", 1))
+    B.align(T.normal_mem_start[1])
+    B.lit(0)
+    B.lit(PO_A.gen_read_po(1, 0, "seeds", 1))
+    B.lit(PO_DA.gen_read_po(1, 0, "seeds", 1))
 
-    align(B, Thread.normal_mem_start[3])
-    lit(B, 0)
-    lit(B, PO_A.gen_read_po(3, 0, "seeds", 1))
-    lit(B, PO_DA.gen_read_po(3, 0, "seeds", 1))
+    B.align(T.normal_mem_start[2])
+    B.lit(0)
+    B.lit(PO_A.gen_read_po(2, 0, "seeds", 1))
+    B.lit(PO_DA.gen_read_po(2, 0, "seeds", 1))
 
-    align(B, Thread.normal_mem_start[4])
-    lit(B, 0)
-    lit(B, PO_A.gen_read_po(4, 0, "seeds", 1))
-    lit(B, PO_DA.gen_read_po(4, 0, "seeds", 1))
+    B.align(T.normal_mem_start[3])
+    B.lit(0)
+    B.lit(PO_A.gen_read_po(3, 0, "seeds", 1))
+    B.lit(PO_DA.gen_read_po(3, 0, "seeds", 1))
 
-    align(B, Thread.normal_mem_start[5])
-    lit(B, 0)
-    lit(B, PO_A.gen_read_po(5, 0, "seeds", 1))
-    lit(B, PO_DA.gen_read_po(5, 0, "seeds", 1))
+    B.align(T.normal_mem_start[4])
+    B.lit(0)
+    B.lit(PO_A.gen_read_po(4, 0, "seeds", 1))
+    B.lit(PO_DA.gen_read_po(4, 0, "seeds", 1))
 
-    align(B, Thread.normal_mem_start[6])
-    lit(B, 0)
-    lit(B, PO_A.gen_read_po(6, 0, "seeds", 1))
-    lit(B, PO_DA.gen_read_po(6, 0, "seeds", 1))
+    B.align(T.normal_mem_start[5])
+    B.lit(0)
+    B.lit(PO_A.gen_read_po(5, 0, "seeds", 1))
+    B.lit(PO_DA.gen_read_po(5, 0, "seeds", 1))
 
-    align(B, Thread.normal_mem_start[7])
-    lit(B, 0)
-    lit(B, PO_A.gen_read_po(7, 0, "seeds", 1))
-    lit(B, PO_DA.gen_read_po(7, 0, "seeds", 1))
+    B.align(T.normal_mem_start[6])
+    B.lit(0)
+    B.lit(PO_A.gen_read_po(6, 0, "seeds", 1))
+    B.lit(PO_DA.gen_read_po(6, 0, "seeds", 1))
 
-def init_I(I = I, PC = PC):
-    align(I, Thread.start[0])
+    B.align(T.normal_mem_start[7])
+    B.lit(0)
+    B.lit(PO_A.gen_read_po(7, 0, "seeds", 1))
+    B.lit(PO_DA.gen_read_po(7, 0, "seeds", 1))
 
-    simple(I, 0, "ADD", MEMMAP.bd[0],           "zeroA",        "restart_test"), bt("restart")
-    simple(I, 0, "ADD", MEMMAP.bc[0],           "zeroA",        "sixB")
-    simple(I, 0, "ADD", MEMMAP.bd[2],           "zeroA",        "even_test"),
-    simple(I, 0, "ADD", MEMMAP.bs1_sentinel[2], "zeroA",        "zeroB"),
-    simple(I, 0, "ADD", MEMMAP.bs1_mask[2],     "zeroA",        "all_but_LSB_mask"),
-    simple(I, 0, "ADD", MEMMAP.bd[3],           "zeroA",        "output_test"),
-    simple(I, 0, "ADD", MEMMAP.a_po[0],         "zeroA",        "seed_ptrA_init_read")
-    simple(I, 0, "ADD", MEMMAP.da_po[0],        "zeroA",        "seed_ptrA_init_write"),
-    simple(I, 0, "ADD", MEMMAP.bd[1],           "zeroA",        "next_test"),
 
-    #simple(I, 0, "NOP", "zeroA",                "zeroA",        "zeroB")
+def init_I():
+    I.align(T.start[0])
+
+    I.simple(0, "ADD", MEMMAP.bd[0],           "zeroA",        "restart_test"), BD.bt("restart")
+    I.simple(0, "ADD", MEMMAP.bc[0],           "zeroA",        "sixB")
+    I.simple(0, "ADD", MEMMAP.bd[2],           "zeroA",        "even_test"),
+    I.simple(0, "ADD", MEMMAP.bs1_sentinel[2], "zeroA",        "zeroB"),
+    I.simple(0, "ADD", MEMMAP.bs1_mask[2],     "zeroA",        "all_but_LSB_mask"),
+    I.simple(0, "ADD", MEMMAP.bd[3],           "zeroA",        "output_test"),
+    I.simple(0, "ADD", MEMMAP.a_po[0],         "zeroA",        "seed_ptrA_init_read")
+    I.simple(0, "ADD", MEMMAP.da_po[0],        "zeroA",        "seed_ptrA_init_write"),
+    I.simple(0, "ADD", MEMMAP.bd[1],           "zeroA",        "next_test"),
+
+    #I.simple(0, "NOP", "zeroA",                "zeroA",        "zeroB")
 
     # Load x
-    simple(I, 0, "ADD",     "seedA",        "seed_ptrA",     "zeroB"),      bt("next_seed")
+    I.simple(0, "ADD",     "seedA",        "seed_ptrA",     "zeroB"),      BD.bt("next_seed")
 
     # Odd case y = (3x+1)/2
-    simple(I, 0, "ADD*2",   "nextseedB",    "seedA",        "zeroB"),       br("BSA", "even_case", False, "even_test")  # y = (x+0)*2
-    simple(I, 0, "ADD",     "nextseedB",    "seedA",        "nextseedB"),                                               # y = (x+y)
-    simple(I, 0, "ADD/2U",  "nextseedB",    "oneA",         "nextseedB"),   br("JMP", "output", True, "output_test")    # y = (1+y)/2
+    I.simple(0, "ADD*2",   "nextseedB",    "seedA",        "zeroB"),       BD.br("BSA", "even_case", False, "even_test")    # y = (x+0)*2
+    I.simple(0, "ADD",     "nextseedB",    "seedA",        "nextseedB"),                                                    # y = (x+y)
+    I.simple(0, "ADD/2U",  "nextseedB",    "oneA",         "nextseedB"),   BD.br("JMP", "output", True, "output_test")      # y = (1+y)/2
 
     # Even case y = x/2
-    simple(I, 0, "ADD/2U",  "nextseedB",    "seedA",        "zeroB"),       bt("even_case")                             # y = (x+0)/2
-    simple(I, 0, "NOP",     "zeroA",        "zeroA",        "zeroB")
-    simple(I, 0, "NOP",     "zeroA",        "zeroA",        "zeroB")
+    I.simple(0, "ADD/2U",  "nextseedB",    "seedA",        "zeroB"),       BD.bt("even_case")                               # y = (x+0)/2
+    I.simple(0, "NOP",     "zeroA",        "zeroA",        "zeroB")
+    I.simple(0, "NOP",     "zeroA",        "zeroA",        "zeroB")
 
     # Store y (replace x)
-    simple(I, 0, "ADD",     "seed_ptrA",    "zeroA",        "nextseedB"),   bt("output"), br("CTZ", "restart", None, "restart_test"), br("JMP", "next_seed", None, "next_test")
+    I.simple(0, "ADD",     "seed_ptrA",    "zeroA",        "nextseedB"),   BD.bt("output"), BD.br("CTZ", "restart", None, "restart_test"), BD.br("JMP", "next_seed", None, "next_test")
 
-    align(I, Thread.start[1])
+    I.align(T.start[1])
 
-    align(I, Thread.start[2])
+    I.align(T.start[2])
 
-    align(I, Thread.start[3])
+    I.align(T.start[3])
 
-    align(I, Thread.start[4])
+    I.align(T.start[4])
 
-    align(I, Thread.start[5])
+    I.align(T.start[5])
 
-    align(I, Thread.start[6])
+    I.align(T.start[6])
 
-    align(I, Thread.start[7])
+    I.align(T.start[7])
 
-    resolve_forward_branches()
+    BD.resolve_forward_branches()
 
 # ---------------------------------------------------------------------
 
