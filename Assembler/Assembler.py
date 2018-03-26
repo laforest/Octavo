@@ -167,7 +167,7 @@ class Data_Memory(Base_Memory):
 # ---------------------------------------------------------------------
 # Thread information
 
-class Thread:
+class Threads:
 
     def __init__(self, thread_count, data_mem_depth, start_of_private_data):
         self.count = thread_count
@@ -175,6 +175,13 @@ class Thread:
         self.base_offset = int(data_mem_depth / self.count) - ceil(start_of_private_data / self.count)
         self.default_offset = [(self.base_offset * thread) for thread in range(self.count)]
         self.normal_mem_start = [(start_of_private_data + self.default_offset[thread]) for thread in range(self.count)]
+        self.all_threads = range(self.count)
+        self.current_threads = []
+
+    def set_threads(self, threads):
+        if type(threads) == type(int()):
+            threads == [threads]
+        self.current_threads = threads 
 
 # ---------------------------------------------------------------------
 # Opcode Decoder Memory: translate opcode into ALU control bits
@@ -185,24 +192,26 @@ class Opcode_Decoder(Base_Memory):
     alu_control_format  = 'uint:{0},uint:{1},uint:{2},uint:{3},uint:{4},uint:{5},uint:{6},uint:{7}'.format(ALU.split_width, ALU.shift_width, ALU.dyadic3_width, ALU.addsub_width, ALU.dual_width, ALU.dyadic2_width, ALU.dyadic1_width, ALU.select_width)
 
     def __init__(self, filename, thread_obj):
-        depth = self.opcode_count * thread_obj.count
+        self.thread_obj = thread_obj
+        depth = self.opcode_count * self.thread_obj.count
         width = ALU.total_op_width
         Base_Memory.__init__(self, depth, width, filename)
         self.opcodes   = {} # {name:bits}
 
-    def define_opcode(self, name, split, shift, dyadic3, addsub, dual, dyadic2, dyadic1, select):
+    def define (self, name, split, shift, dyadic3, addsub, dual, dyadic2, dyadic1, select):
         """Assembles and names the control bits of an opcode."""
         control_bits = BitArray()
         for entry in [split, shift, dyadic3, addsub, dual, dyadic2, dyadic1, select]:
             control_bits.append(entry)
         self.opcodes.update({name:control_bits})
 
-    def load_opcode(self, thread, name, opcode):
+    def load (self, name, opcode):
         """The opcode indexes into the opcode decoder memory, separately for each thread."""
-        address = (thread * self.opcode_count) + opcode
-        self.mem[address] = self.opcodes[name]
+        for thread in self.thread_obj.current_threads:
+            address = (thread * self.opcode_count) + opcode
+            self.mem[address] = self.opcodes[name]
 
-    def lookup_opcode(self, thread, name):
+    def lookup (self, thread, name):
         """Finds the bit pattern for the named opcode, searches for address of those bits."""
         control_bits = self.opcodes[name]
         op_zero = (thread * self.opcode_count)
@@ -245,7 +254,7 @@ class Instruction_Memory(Data_Memory):
 
     def simple(self, thread, op_name, dest, src1, src2):
         """Assemble a simple instruction"""
-        op = self.opcode_obj.lookup_opcode(thread, op_name)
+        op = self.opcode_obj.lookup(thread, op_name)
         D_operand = self.lookup_writable(dest)
         A_operand = self.A_mem_obj.lookup_read(src1)
         B_operand = self.B_mem_obj.lookup_read(src2)
@@ -256,7 +265,7 @@ class Instruction_Memory(Data_Memory):
         """Assemble a dual instruction (split addressing mode)"""
         # The CPU re-adds the correct write offset after it decodes the instruction
         # It's a power-of-2 alignment, so it just prepends the right value
-        op = self.opcode_obj.lookup_opcode(thread, op_name)
+        op = self.opcode_obj.lookup(thread, op_name)
         DA_operand = self.A_mem_obj.lookup_write(dest1) - self.A_mem_obj.write_offset
         DB_operand = self.B_mem_obj.lookup_write(dest2) - self.B_mem_obj.write_offset
         A_operand  = self.A_mem_obj.lookup_read(src1)

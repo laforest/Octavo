@@ -7,7 +7,7 @@ from Assembler import *
 A = Data_Memory(1024, 36, "A.mem", MEMMAP.a)
 B = Data_Memory(1024, 36, "B.mem", MEMMAP.b)
 
-T = Thread(8, 1024, MEMMAP.normal)
+T = Threads(8, 1024, MEMMAP.normal)
 
 OD = Opcode_Decoder("OD.mem", T)
 
@@ -48,21 +48,21 @@ def init_PC():
         PC_prev.set_pc(thread, start)
 
 def init_ISA():
-    OD.define_opcode("NOP",     ALU.split_no, ALU.shift_none,           Dyadic.always_zero, ALU.addsub_a_plus_b,    ALU.simple, Dyadic.always_zero, Dyadic.always_zero, ALU.select_r)
-    OD.define_opcode("ADD",     ALU.split_no, ALU.shift_none,           Dyadic.b,           ALU.addsub_a_plus_b,    ALU.simple, Dyadic.always_zero, Dyadic.always_zero, ALU.select_r)
-    OD.define_opcode("SUB",     ALU.split_no, ALU.shift_none,           Dyadic.b,           ALU.addsub_a_minus_b,   ALU.simple, Dyadic.always_zero, Dyadic.always_zero, ALU.select_r)
-    OD.define_opcode("PSR",     ALU.split_no, ALU.shift_none,           Dyadic.a,           ALU.addsub_a_plus_b,    ALU.simple, Dyadic.always_one,  Dyadic.always_zero, ALU.select_r)
-    OD.define_opcode("ADD*2",   ALU.split_no, ALU.shift_left,           Dyadic.b,           ALU.addsub_a_minus_b,   ALU.simple, Dyadic.always_zero, Dyadic.always_zero, ALU.select_r)
-    OD.define_opcode("ADD/2",   ALU.split_no, ALU.shift_right_signed,   Dyadic.b,           ALU.addsub_a_plus_b,    ALU.simple, Dyadic.always_zero, Dyadic.always_zero, ALU.select_r)
-    OD.define_opcode("ADD/2U",  ALU.split_no, ALU.shift_right,          Dyadic.b,           ALU.addsub_a_plus_b,    ALU.simple, Dyadic.always_zero, Dyadic.always_zero, ALU.select_r)
-    for thread in range(T.count):
-        OD.load_opcode(thread, "NOP",    0)
-        OD.load_opcode(thread, "ADD",    1)
-        OD.load_opcode(thread, "SUB",    2)
-        OD.load_opcode(thread, "ADD*2",  3)
-        OD.load_opcode(thread, "ADD/2",  4)
-        OD.load_opcode(thread, "ADD/2U", 5)
-        OD.load_opcode(thread, "PSR",    6)
+    OD.define("NOP",     ALU.split_no, ALU.shift_none,           Dyadic.always_zero, ALU.addsub_a_plus_b,    ALU.simple, Dyadic.always_zero, Dyadic.always_zero, ALU.select_r)
+    OD.define("ADD",     ALU.split_no, ALU.shift_none,           Dyadic.b,           ALU.addsub_a_plus_b,    ALU.simple, Dyadic.always_zero, Dyadic.always_zero, ALU.select_r)
+    OD.define("SUB",     ALU.split_no, ALU.shift_none,           Dyadic.b,           ALU.addsub_a_minus_b,   ALU.simple, Dyadic.always_zero, Dyadic.always_zero, ALU.select_r)
+    OD.define("PSR",     ALU.split_no, ALU.shift_none,           Dyadic.a,           ALU.addsub_a_plus_b,    ALU.simple, Dyadic.always_one,  Dyadic.always_zero, ALU.select_r)
+    OD.define("ADD*2",   ALU.split_no, ALU.shift_left,           Dyadic.b,           ALU.addsub_a_minus_b,   ALU.simple, Dyadic.always_zero, Dyadic.always_zero, ALU.select_r)
+    OD.define("ADD/2",   ALU.split_no, ALU.shift_right_signed,   Dyadic.b,           ALU.addsub_a_plus_b,    ALU.simple, Dyadic.always_zero, Dyadic.always_zero, ALU.select_r)
+    OD.define("ADD/2U",  ALU.split_no, ALU.shift_right,          Dyadic.b,           ALU.addsub_a_plus_b,    ALU.simple, Dyadic.always_zero, Dyadic.always_zero, ALU.select_r)
+    T.set_threads(T.all_threads)
+    OD.load("NOP",    0)
+    OD.load("ADD",    1)
+    OD.load("SUB",    2)
+    OD.load("ADD*2",  3)
+    OD.load("ADD/2",  4)
+    OD.load("ADD/2U", 5)
+    OD.load("PSR",    6)
 
 def init_BD():
     # Jump always
