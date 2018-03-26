@@ -35,12 +35,6 @@ def dump_all(mem_obj_list):
     for mem in mem_obj_list:
         mem.file_dump()
 
-# Set these in init memory so we don't have to do a tedious once-run
-# init sequence for the Default Offsets. These normally never change at runtime.
-def init_DO():
-    for thread in range(T.count):
-        DO.set_do(thread, T.default_offset[thread])
-
 def init_PC():
     T.set_threads(T.all_threads)
     PC.set(0)
@@ -218,7 +212,6 @@ def init_I():
 # ---------------------------------------------------------------------
 
 if __name__ == "__main__":
-    init_DO()
     init_PC()
     init_ISA()
     init_BD()

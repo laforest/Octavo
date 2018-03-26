@@ -378,7 +378,6 @@ class Program_Counter(Base_Memory):
 # ---------------------------------------------------------------------
 # Default Offset Memory
 
-
 class Default_Offset(Base_Memory):
 
     # This should be 10 for A/B memories, and 12 for DA/DB, but readmemh()
@@ -386,13 +385,16 @@ class Default_Offset(Base_Memory):
     do_width = 12 
 
     def __init__(self, filename, thread_obj):
-        depth = thread_obj.count
-        width = self.do_width
+        self.thread_obj = thread_obj
+        depth           = thread_obj.count
+        width           = self.do_width
         Base_Memory.__init__(self, depth, width, filename)
-
-    def set_do(self, thread, offset):
-        offset = BitArray(uint=offset, length=self.mem[0].length)
-        self.mem[thread] = offset;
+        # Set these in memory init file so we don't have to do a tedious init
+        # code sequence. These offsets normally never change at runtime.
+        for thread in self.thread_obj.all_threads:
+            offset = self.thread_obj.default_offset[thread]
+            offset = BitArray(uint=offset, length=self.mem[0].length)
+            self.mem[thread] = offset;
 
 # ---------------------------------------------------------------------
 # Programmed Offset Memory
