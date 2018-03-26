@@ -171,7 +171,6 @@ class Threads:
 
     def __init__(self, thread_count, data_mem_depth, start_of_private_data):
         self.count = thread_count
-        self.start = [0] * self.count
         self.base_offset = int(data_mem_depth / self.count) - ceil(start_of_private_data / self.count)
         self.default_offset = [(self.base_offset * thread) for thread in range(self.count)]
         self.normal_mem_start = [(start_of_private_data + self.default_offset[thread]) for thread in range(self.count)]
@@ -365,13 +364,16 @@ class Program_Counter(Base_Memory):
     pc_format = 'uint:{0}'.format(pc_width)
 
     def __init__(self, filename, thread_obj):
-        depth = thread_obj.count
-        width = self.pc_width
+        self.thread_obj = thread_obj
+        depth           = self.thread_obj.count
+        width           = self.pc_width
         Base_Memory.__init__(self, depth, width, filename)
+        self.start      = [None] * self.thread_obj.count
 
-    def set_pc(self, thread, pc_value):
-        pc_value = BitArray(uint=pc_value, length=self.mem[0].length)
-        self.mem[thread] = pc_value;
+    def set (self, pc_value):
+        for thread in self.thread_obj.current_threads:
+            self.start[thread]  = pc_value
+            self.mem[thread]    = BitArray(uint=self.start[thread], length=self.mem[0].length);
 
 # ---------------------------------------------------------------------
 # Default Offset Memory

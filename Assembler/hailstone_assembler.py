@@ -42,10 +42,9 @@ def init_DO():
         DO.set_do(thread, T.default_offset[thread])
 
 def init_PC():
-    for thread in range(T.count):
-        start = T.start[thread]
-        PC.set_pc(thread, start)
-        PC_prev.set_pc(thread, start)
+    T.set_threads(T.all_threads)
+    PC.set(0)
+    PC_prev.set(0)
 
 def init_ISA():
     OD.define("NOP",     ALU.split_no, ALU.shift_none,           Dyadic.always_zero, ALU.addsub_a_plus_b,    ALU.simple, Dyadic.always_zero, Dyadic.always_zero, ALU.select_r)
@@ -170,7 +169,7 @@ def init_B():
 
 
 def init_I():
-    I.align(T.start[0])
+    I.align(PC.start[0])
 
     I.simple(0, "ADD", MEMMAP.bd[0],           "zeroA",        "restart_test"), BD.bt("restart")
     I.simple(0, "ADD", MEMMAP.bc[0],           "zeroA",        "sixB")
@@ -200,19 +199,19 @@ def init_I():
     # Store y (replace x)
     I.simple(0, "ADD",     "seed_ptrA",    "zeroA",        "nextseedB"),   BD.bt("output"), BD.br("CTZ", "restart", None, "restart_test"), BD.br("JMP", "next_seed", None, "next_test")
 
-    I.align(T.start[1])
+    I.align(PC.start[1])
 
-    I.align(T.start[2])
+    I.align(PC.start[2])
 
-    I.align(T.start[3])
+    I.align(PC.start[3])
 
-    I.align(T.start[4])
+    I.align(PC.start[4])
 
-    I.align(T.start[5])
+    I.align(PC.start[5])
 
-    I.align(T.start[6])
+    I.align(PC.start[6])
 
-    I.align(T.start[7])
+    I.align(PC.start[7])
 
     BD.resolve_forward_branches()
 
