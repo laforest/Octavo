@@ -42,6 +42,28 @@ class MEMMAP:
     od          = [3200,3201,3202,3203,3204,3205,3206,3207,3208,3209,3210,3211,3212,3213,3214,3215]
 
 # ---------------------------------------------------------------------
+# Thread information
+
+class Threads:
+
+    def __init__(self, thread_count, data_mem_depth, start_of_private_data):
+        self.count = thread_count
+        self.base_offset = int(data_mem_depth / self.count) - ceil(start_of_private_data / self.count)
+        self.default_offset = [(self.base_offset * thread) for thread in range(self.count)]
+        #self.normal_mem_start = [(start_of_private_data + self.default_offset[thread]) for thread in range(self.count)]
+        self.all = range(self.count)
+        self.current = None
+
+    def offset (self, address, thread):
+        return address + self.default_offset[thread]
+
+    def set (self, thread):
+        if type(thread) != int:
+            print("Current thread must be a single number. Use outer loop for multiple threads.")
+            sys.exit(1)
+        self.current = thread 
+
+# ---------------------------------------------------------------------
 
 class Base_Memory:
 
@@ -76,12 +98,13 @@ class Base_Memory:
 
 class Data_Memory(Base_Memory):
 
-    def __init__(self, depth, width, filename, write_offset):
+    def __init__(self, depth, width, filename, write_offset, thread_obj):
         Base_Memory.__init__(self, depth, width, filename)
-        self.here           = -1
-        self.last           = 0
-        self.read_names     = {}
-        self.write_names    = {}
+        self.thread_obj     = thread_obj
+        self.here           = [-1 for i in range(self.thread_obj.count)]
+        self.last           = [ 0 for i in range(self.thread_obj.count)]
+        self.read_names     = [{} for i in range(self.thread_obj.count)]
+        self.write_names    = [{} for i in range(self.thread_obj.count)]
         self.write_offset   = write_offset
 
     # ---------------------------------------------------------------------
@@ -91,31 +114,34 @@ class Data_Memory(Base_Memory):
         """Name a given location. May have only a read or write address, or both.
            If neither addresses are given, then name the current location, 
            after 'here' was incremented by another operation."""
+        thread = self.thread_obj.current
         if read_addr is not None:
             if read_addr < 0 or read_addr > len(self.mem)-1:
                 print("ERROR: Out of bounds name read address ({0}) assignment in {1}".format(read_addr, self.__name__))
                 sys.exit(1)
-            self.read_names.update({name:read_addr})
+            self.read_names[thread].update({name:read_addr})
         if write_addr is None and read_addr is not None:
             # No bounds check here as write address can be over a different range, depending on where Memory is mapped.
             write_addr = read_addr + self.write_offset
         if write_addr is not None:
-            self.write_names.update({name:write_addr})
+            self.write_names[thread].update({name:write_addr})
         if write_addr is None and read_addr is None:
-            if self.here < 0 or self.here > len(self.mem)-1:
+            if self.here[thread] < 0 or self.here[thread] > len(self.mem)-1:
                 print("ERROR: Out of bounds name ({0}) in {1}".format(self.here, self.__name__))
-            self.loc(name, read_addr = self.here)
+            self.loc(name, read_addr = self.here[thread])
 
     def lookup_read(self, name):
+        thread = self.thread_obj.current
         if type(name) == type(int()):
             return name
-        address = self.read_names.get(name, None)
+        address = self.read_names[thread].get(name, None)
         return address
 
     def lookup_write(self, name):
+        thread = self.thread_obj.current
         if type(name) == type(int()):
             return name
-        address = self.write_names.get(name, None)
+        address = self.write_names[thread].get(name, None)
         return address
 
     # ---------------------------------------------------------------------
@@ -123,31 +149,36 @@ class Data_Memory(Base_Memory):
 
     def align(self, addr):
         """Continue assembling at new address. Assumes pre-incrementing 'here'"""
+        thread = self.thread_obj.current
         if type(addr) == str:
-            addr = self.read_addr[addr]
+            addr = self.read_addr[thread][addr]
+        if addr >= MEMMAP.normal:
+            addr = self.thread_obj.offset(addr, thread)
         if addr < 0 or addr > len(self.mem)-1:
             print("ERROR: Out of bounds align ({0}) in {1}".format(self.here, self.__name__))
-        if addr > self.last:
-            self.last = addr
-        self.here = addr - 1
+        if addr > self.last[thread]:
+            self.last[thread] = addr
+        self.here[thread] = addr - 1
 
     def resume(self):
         """Resume assembling at first free sequential location after an align()."""
-        self.here = self.last - 1
+        thread = self.thread_obj.current
+        self.here[thread] = self.last[thread] - 1
 
     def lit(self, number):
         """Place a literal number 'here'"""
-        self.here += 1
-        if self.here < 0 or self.here > len(self.mem)-1:
-            print("ERROR: Out of bounds lit ({0}) in {1}".format(self.here, self.__class__.__name__))
-        if self.here >= self.last:
-            self.last = self.here + 1
-        word_length = self.mem[self.here].length
+        thread = self.thread_obj.current
+        self.here[thread] += 1
+        if self.here[thread] < 0 or self.here[thread] > len(self.mem)-1:
+            print("ERROR: Out of bounds lit ({0}) in {1}".format(self.here[thread], self.__class__.__name__))
+        if self.here[thread] >= self.last[thread]:
+            self.last[thread] = self.here[thread] + 1
+        word_length = self.mem[self.here[thread]].length
         if type(number) == type(int()):
-            self.mem[self.here] = BitArray(uint=number, length=word_length)
+            self.mem[self.here[thread]] = BitArray(uint=number, length=word_length)
         elif type(number) == type(BitArray()):
             # Oh, this is ugly. BitArray's LSB is our MSB...
-            self.mem[self.here].overwrite(number,(word_length-number.length))
+            self.mem[self.here[thread]].overwrite(number,(word_length-number.length))
         else:
             printf("Incompatible literal type: {0}".format(number))
             sys.exit(1)
@@ -163,24 +194,6 @@ class Data_Memory(Base_Memory):
             self.loc(name)
         for entry in entries:
             self.lit(entry)
-
-# ---------------------------------------------------------------------
-# Thread information
-
-class Threads:
-
-    def __init__(self, thread_count, data_mem_depth, start_of_private_data):
-        self.count = thread_count
-        self.base_offset = int(data_mem_depth / self.count) - ceil(start_of_private_data / self.count)
-        self.default_offset = [(self.base_offset * thread) for thread in range(self.count)]
-        self.normal_mem_start = [(start_of_private_data + self.default_offset[thread]) for thread in range(self.count)]
-        self.all_threads = range(self.count)
-        self.current_threads = []
-
-    def set_threads(self, threads):
-        if type(threads) == type(int()):
-            threads == [threads]
-        self.current_threads = threads 
 
 # ---------------------------------------------------------------------
 # Opcode Decoder Memory: translate opcode into ALU control bits
@@ -206,17 +219,18 @@ class Opcode_Decoder(Base_Memory):
 
     def load (self, name, opcode):
         """The opcode indexes into the opcode decoder memory, separately for each thread."""
-        for thread in self.thread_obj.current_threads:
-            address = (thread * self.opcode_count) + opcode
-            self.mem[address] = self.opcodes[name]
+        thread = self.thread_obj.current
+        address = (thread * self.opcode_count) + opcode
+        self.mem[address] = self.opcodes[name]
 
-    def lookup (self, thread, name):
-        """Finds the bit pattern for the named opcode, searches for address of those bits."""
+    def lookup (self, name):
+        """Finds the control bit pattern for the named opcode, searches for per-thread address of those control bits."""
+        thread = self.thread_obj.current
         control_bits = self.opcodes[name]
         op_zero = (thread * self.opcode_count)
         for opcode in range(op_zero, op_zero + self.opcode_count):
             if self.mem[opcode] == control_bits:
-                return opcode
+                return opcode - op_zero
         print("Could not find opcode named {0} in thread {1}".format(name, thread))
         sys.exit(1)
     
@@ -228,8 +242,8 @@ class Instruction_Memory(Data_Memory):
     simple_instr_format = 'uint:4,uint:12,uint:10,uint:10'
     dual_instr_format   = 'uint:4,uint:6,uint:6,uint:10,uint:10'
 
-    def __init__(self, depth, width, filename, write_offset, A_mem_obj, B_mem_obj, opcode_obj):
-        Data_Memory.__init__(self, depth, width, filename, write_offset)
+    def __init__(self, depth, width, filename, write_offset, A_mem_obj, B_mem_obj, opcode_obj, thread_obj):
+        Data_Memory.__init__(self, depth, width, filename, write_offset, thread_obj)
         self.A_mem_obj      = A_mem_obj
         self.B_mem_obj      = B_mem_obj
         self.opcode_obj     = opcode_obj
@@ -240,8 +254,9 @@ class Instruction_Memory(Data_Memory):
         if type(name) == type(int()):
             return name
         addresses = []
+        thread = self.thread_obj.current
         for entry in self.write_mem_list:
-            address = entry.write_names.get(name, None)
+            address = entry.write_names[thread].get(name, None)
             if address is not None:
                 addresses.append(address)
         if len(addresses) > 1:
@@ -251,24 +266,29 @@ class Instruction_Memory(Data_Memory):
             return None
         return addresses[0]
 
-    def simple(self, thread, op_name, dest, src1, src2):
+    def simple(self, op_name, dest, src1, src2):
         """Assemble a simple instruction"""
-        op = self.opcode_obj.lookup(thread, op_name)
-        D_operand = self.lookup_writable(dest)
-        A_operand = self.A_mem_obj.lookup_read(src1)
-        B_operand = self.B_mem_obj.lookup_read(src2)
+        thread = self.thread_obj.current
+        offset = self.thread_obj.default_offset[thread]
+        op = self.opcode_obj.lookup(op_name)
+        D_operand = self.lookup_writable(dest)       - offset
+        A_operand = self.A_mem_obj.lookup_read(src1) - offset
+        B_operand = self.B_mem_obj.lookup_read(src2) - offset
+        print([op, D_operand, A_operand, B_operand])
         instr = pack(self.simple_instr_format, op, D_operand, A_operand, B_operand)
         self.lit(instr.uint)
 
-    def dual(self, thread, op_name, dest1, dest2, src1, src2):
-        """Assemble a dual instruction (split addressing mode)"""
-        # The CPU re-adds the correct write offset after it decodes the instruction
-        # It's a power-of-2 alignment, so it just prepends the right value
-        op = self.opcode_obj.lookup(thread, op_name)
-        DA_operand = self.A_mem_obj.lookup_write(dest1) - self.A_mem_obj.write_offset
-        DB_operand = self.B_mem_obj.lookup_write(dest2) - self.B_mem_obj.write_offset
-        A_operand  = self.A_mem_obj.lookup_read(src1)
-        B_operand  = self.B_mem_obj.lookup_read(src2)
+    def dual(self, op_name, dest1, dest2, src1, src2):
+        """Assemble a dual instruction (split addressing mode)
+           The CPU re-adds the correct write offset after it decodes the instruction
+           It's a power-of-2 alignment, so it just prepends the right value"""
+        thread = self.thread_obj.current
+        offset = self.thread_obj.default_offset[thread]
+        op = self.opcode_obj.lookup(op_name)
+        DA_operand = self.A_mem_obj.lookup_write(dest1) - offset - self.A_mem_obj.write_offset
+        DB_operand = self.B_mem_obj.lookup_write(dest2) - offset - self.B_mem_obj.write_offset
+        A_operand  = self.A_mem_obj.lookup_read(src1) - offset
+        B_operand  = self.B_mem_obj.lookup_read(src2) - offset
         instr = pack(self.dual_instr_format, op, DA_operand, DB_operand, A_operand, B_operand)
         self.lit(instr.uint)
 
@@ -305,11 +325,13 @@ class Branch_Detector:
         return config
 
     def bt(self, destination):
-        self.instr_mem_obj.loc(destination, write_addr = self.instr_mem_obj.here)
+        thread = self.thread_obj.current
+        self.instr_mem_obj.loc(destination, write_addr = self.instr_mem_obj.here[thread])
 
     def br(self, condition_bits, destination, predict, storage, origin_enable = True, origin = None):
+        thread = self.thread_obj.current
         if origin is None:
-            origin = self.instr_mem_obj.here
+            origin = self.instr_mem_obj.here[thread]
         dest_addr = self.instr_mem_obj.lookup_write(destination)
         if dest_addr is None:
             self.unresolved_branches.append([condition_bits, destination, predict, storage, origin_enable, origin])    
@@ -324,31 +346,31 @@ class Branch_Detector:
             predict         = Branch.predict_not_taken
             predict_enable  = Branch.predict_disabled
         else:
-            printf("Invalid branch prediction setting on branch {0}.".format(storage))
+            print("Invalid branch prediction setting on branch {0}.".format(storage))
             sys.exit(1)
         if origin_enable is True:
             origin_enable = Branch.origin_enabled
         elif origin_enabled is False:
             origin_enable = Branch.origin_disabled
         else:
-            printf("Invalid branch origin enabled setting on branch {0}.".format(storage))
+            print("Invalid branch origin enabled setting on branch {0}.".format(storage))
             sys.exit(1)
         branch_config = self.branch(origin, origin_enable, dest_addr, predict, predict_enable, condition_bits)
         # Works because a loc() usually sets both read/write addresses
         # and the read address is the local, absolute location in memory
         # (write address is offset to the global memory map)
-        if (storage in self.A_mem_obj.write_names):
-            address = self.A_mem_obj.read_names[storage]
+        if (storage in self.A_mem_obj.write_names[thread]):
+            address = self.A_mem_obj.read_names[thread][storage]
             for thread in range(self.thread_obj.count):
                 offset = self.thread_obj.default_offset[thread]
                 self.A_mem_obj.mem[address+offset] = branch_config
-        elif (storage in self.B_mem_obj.write_names):
-            address = self.B_mem_obj.read_names[storage]
+        elif (storage in self.B_mem_obj.write_names[thread]):
+            address = self.B_mem_obj.read_names[thread][storage]
             for thread in range(self.thread_obj.count):
                 offset = self.thread_obj.default_offset[thread]
                 self.B_mem_obj.mem[address+offset] = branch_config
         else:
-            printf("Invalid storage location on branch {0}.".format(storage))
+            print("Invalid storage location on branch: {0}.".format(storage))
             sys.exit(1)
 
     def resolve_forward_branches(self):
@@ -368,12 +390,12 @@ class Program_Counter(Base_Memory):
         depth           = self.thread_obj.count
         width           = self.pc_width
         Base_Memory.__init__(self, depth, width, filename)
-        self.start      = [None] * self.thread_obj.count
+        self.start      = [None for i in range(self.thread_obj.count)]
 
     def set (self, pc_value):
-        for thread in self.thread_obj.current_threads:
-            self.start[thread]  = pc_value
-            self.mem[thread]    = BitArray(uint=self.start[thread], length=self.mem[0].length);
+        thread = self.thread_obj.current
+        self.start[thread]  = pc_value
+        self.mem[thread]    = BitArray(uint=self.start[thread], length=self.mem[0].length);
 
 # ---------------------------------------------------------------------
 # Default Offset Memory
@@ -391,7 +413,7 @@ class Default_Offset(Base_Memory):
         Base_Memory.__init__(self, depth, width, filename)
         # Set these in memory init file so we don't have to do a tedious init
         # code sequence. These offsets normally never change at runtime.
-        for thread in self.thread_obj.all_threads:
+        for thread in self.thread_obj.all:
             offset = self.thread_obj.default_offset[thread]
             offset = BitArray(uint=offset, length=self.mem[0].length)
             self.mem[thread] = offset;
@@ -420,8 +442,10 @@ class Programmed_Offset(Base_Memory):
         depth               = self.thread_obj.count * self.po_entries
         Base_Memory.__init__(self, depth, self.total_width, filename)
 
-    def gen_read_po(self, thread, po_entry, target_name, increment):
-        offset = self.target_mem_obj.lookup_read(target_name) + self.thread_obj.default_offset[thread] - MEMMAP.indirect[po_entry]
+    def gen_read_po(self, po_entry, target_name, increment):
+        address  = self.target_mem_obj.lookup_read(target_name)
+        po_entry = MEMMAP.indirect[po_entry]
+        offset   = address - po_entry
         if increment >= 0:
             sign = 0
         else:
@@ -434,11 +458,11 @@ class Programmed_Offset(Base_Memory):
             po.append(field)
         return po
 
-    def set_po(self, thread, entry, po):
+    def set_po(self, entry, po):
+        thread = self.thread_obj.current
         if entry < 0 or entry > self.po_entries-1:
             print("Out of bounds PO entry: {0}".format(entry))
             sys.exit(1)
         address = entry + (thread * po_entries)
-        print(address, po)
         self.mem[address] = po;
 
