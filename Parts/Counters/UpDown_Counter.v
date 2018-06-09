@@ -36,7 +36,7 @@ module UpDown_Counter
     end
 
     always @(posedge clock) begin
-        count <= (run == 1'b1) ? next_count : count;
+        count <= ((run == 1'b1) || (wren == 1'b1)) ? next_count : count;
     end
 
 endmodule
