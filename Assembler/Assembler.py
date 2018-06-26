@@ -168,12 +168,12 @@ class Programmed_Offset(Base_Memory):
         # A programmed offset is only correct in a given PO entry
         return (po_entry, po)
 
-    def gen_read_po(self, thread, po_entry, target_name, increment):
-        target_address  = self.target_mem_obj.lookup_read(thread, target_name)
+    def gen_read_po(self, po_entry, target_name, increment):
+        target_address  = self.target_mem_obj.lookup_read(target_name)
         return self.gen_po(po_entry, target_address, increment)
 
-    def gen_write_po(self, thread po_entry, target_name, increment):
-        target_address  = self.target_mem_obj.lookup_write(thread, target_name)
+    def gen_write_po(self, po_entry, target_name, increment):
+        target_address  = self.target_mem_obj.lookup_write(target_name)
         return self.gen_po(po_entry, target_address, increment)
 
     def load (self, thread, po_entry, po):
@@ -195,7 +195,7 @@ class Data_Memory(Base_Memory):
         self.pool_here      = -1
         self.local_here     = [-1 for thread in thread_obj.all]
         # We name locations to later refer to them by name, not address.
-        self.names          = [{} for thread in thread_obj.all]
+        self.names          = {}
         # Add this offset to get the write address of a location.
         self.write_base     = memmap_obj.write_bases[write_base_name]
         self.memmap_obj     = memmap_obj
@@ -203,27 +203,34 @@ class Data_Memory(Base_Memory):
     # ---------------------------------------------------------------------
     # Location naming and lookup
 
-    def name_mem(self, thread, name, addr):
-        """Name a given memory location.""" 
-        self.names[thread].update({name:addr})
+    def name_mem(self, name, addr):
+        """Name a given memory location. All threads share names.
+           (so multiple threads can run the same code)
+           Multiple names for one address is OK.
+           Multiple addresses per name are not possible.
+           Repeated identical allocations are idempotent."""
+        if name in self.names and self.names[name] != addr:
+            print("ERROR: The name {0} is already in use for address {1}. Cannot assign new address {2}".format(name, self.names[name], addr))
+            sys.exit(1)
+        self.names.update({name:addr})
 
-    def lookup_read(self, thread, name):
+    def lookup_read(self, name):
         if type(name) == type(int):
             return name
-        address = self.names[thread].get(name, None)
+        address = self.names[name]
         return address
 
-    def lookup_write(self, thread, name):
+    def lookup_write(self, name):
         if type(name) == type(int):
             return name
-        read_address  = self.lookup_read(thread, name)
+        read_address  = self.lookup_read(name)
         write_address = read_address + self.write_base
         return write_address
 
     # ---------------------------------------------------------------------
     # Compile literals at locations (basic assembler mechanism and state)
 
-    def literal_pool(self, thread, number, name):
+    def literal_pool(self, number, name):
         """Place and name a literal number in the next literal pool location.
            If the number already exists in the literal pool, have the name refer to that one instead."""
         # Convert to BitArray if integer
@@ -244,9 +251,10 @@ class Data_Memory(Base_Memory):
         if address not in self.memmap_obj.pool:
             print("ERROR: Out of bounds literal pool memory address ({0}) assignment in {1}".format(address, self.__name__))
             sys.exit(1)
-        # Name and (re)assemble number, allow explicitly unnamed numbers
-        if name is not None:
-            self.name_mem(thread, name, address)
+        if name is None:
+            print("ERROR: You cannot give a None name to a literal pool entry, in {0}".format(self.__name__))
+            sys.exit(1)
+        self.name_mem(name, address)
         # Oh, this is ugly. BitArray's LSB is our MSB...
         self.mem[address].overwrite(number,(self.width-number.length))
 
@@ -259,7 +267,10 @@ class Data_Memory(Base_Memory):
             print("ERROR: Out of bounds indirect pointer entry ({0}) assignment in {1}".format(entry, self.__name__))
             sys.exit(1)
         address = self.memmap_obj.indirect[entry]
-        self.name_mem(thread, name, address)
+        if name is None:
+            print("ERROR: You cannot give a None name to an indirect pointer entry, in {0}".format(self.__name__))
+            sys.exit(1)
+        self.name_mem(name, address)
         # That location is never really accessed. Zero it out.
         self.mem[address] = BitArray()
 
@@ -272,13 +283,16 @@ class Data_Memory(Base_Memory):
             print("ERROR: Out of bounds I/O port entry ({0}) assignment in {1}".format(entry, self.__name__))
             sys.exit(1)
         address = self.memmap_obj.io[entry]
-        self.name_mem(thread, name, address)
+        if name is None:
+            print("ERROR: You cannot give a None name to an I/O port entry, in {0}".format(self.__name__))
+            sys.exit(1)
+        self.name_mem(name, address)
         # That location is never really accessed. Zero it out.
         self.mem[address] = BitArray()
 
-    def literal_local(self, thread, number, name, address = None):
-        """Place and name a literal number in the specified or next local memory location."""
-        # Convert to BitArray if integer
+    def literal_local(self, thread, number, name = None, address = None):
+        """Place and name a literal number in the specified or next thread local memory location."""
+        # Accept int or BitArray
         if type(number) == type(int):
             number = BitArray(uint=number, length=self.width)
         elif type(number) != type(BitArray()):
@@ -286,18 +300,18 @@ class Data_Memory(Base_Memory):
             sys.exit(1)
         # If no address given, store in next free location.
         if address is None:
-            self.pool_local += 1
-            address = self.pool_local
+            self.pool_local[thread] += 1
+            address = self.pool_local[thread]
         if address not in self.memmap_obj.local:
             print("ERROR: Out of bounds local memory address ({0}) assignment in {1}".format(address, self.__name__))
             sys.exit(1)
         # Name and assemble number, allow explicitly unnamed numbers
         if name is not None:
-            self.name_mem(thread, name, address)
+            self.name_mem(name, address)
         # Oh, this is ugly. BitArray's LSB is our MSB...
         self.mem[address].overwrite(number,(self.width-number.length))
 
-    def data_local(self, thread, numbers, name, address = None):
+    def data_local(self, thread, numbers, name = None, address = None):
         """Place a list of numbers into consecutive locations.
            Optionally name the head of the list."""
         if len(numbers) == 0:
@@ -308,7 +322,7 @@ class Data_Memory(Base_Memory):
         for entry in numbers:
             if address is not None:
                 address += 1
-            self.literal_local(thread, entry, address)
+            self.literal_local(thread, entry, None, address)
 
 # ---------------------------------------------------------------------
 # Opcode Decoder Memory: translate opcode into ALU control bits
@@ -365,54 +379,74 @@ class Instruction_Memory(Base_Memory):
     simple_instr_format = 'uint:4,uint:12,uint:10,uint:10'
     dual_instr_format   = 'uint:4,uint:6,uint:6,uint:10,uint:10'
 
-    def __init__(self, depth, width, filename, A_mem_obj, B_mem_obj, opcode_obj, thread_obj):
+    def __init__(self, depth, width, filename, A_mem_obj, B_mem_obj, opcode_obj):
         Base_Memory.__init__(self, depth, width, filename)
         self.A_mem_obj      = A_mem_obj
         self.B_mem_obj      = B_mem_obj
         self.opcode_obj     = opcode_obj
         self.write_mem_list = [self.A_mem_obj, self.B_mem_obj, self]
+        self.here           = -1
+        self.names          = {}
 
-    def 
+    def literal_instruction (self, instruction, name = None):
+        """Place an instruction in the next Instruction Memory location."""
+        if type(instruction) != type(BitArray()):
+            printf("Instruction not a BitArray: {0}".format(instruction))
+            sys.exit(1)
+        self.here += 1
+        address = self.here
+        if address not in range(self.depth):
+            print("ERROR: Out of bounds instruction memory address ({0}) assignment in {1}".format(address, self.__name__))
+            sys.exit(1)
+        if name is not None:
+            self.names.update({name:address})
+        # Oh, this is ugly. BitArray's LSB is our MSB...
+        self.mem[address].overwrite(instruction,(self.width-instruction.length))
 
-    def lookup_writable(self, thread, name):
+    def lookup(self, name):
+        if type(name) == type(int):
+            return name
+        address = self.names.get(name, None)
+        return address
+
+    def lookup_write(self, name):
         """Lookup the write address of a name across the listed writable memories."""
         if type(name) == type(int):
             return name
         addresses = []
         for entry in self.write_mem_list:
-            address = entry.lookup_write(thread, name)
+            address = entry.lookup_write(name)
             if address is not None:
                 addresses.append(address)
         if len(addresses) > 1:
             print("ERROR: Cannot resolve multiple identical write names {0} with addresses {1}".format(name, addresses))
             sys.exit(1)
         if len(addresses) == 0:
-            return None
+            print("ERROR: No write name {0} found.".format(name))
+            sys.exit(1)
         return addresses[0]
 
-    def simple(self, thread, op_name, dest, src1, src2):
+    def simple(self, op_name, dest, src1, src2, name = None):
         """Assemble a simple instruction"""
         op = self.opcode_obj.lookup_opcode(op_name)
-        D_operand = self.lookup_writable(dest)
+        D_operand = self.lookup_write(dest)
         A_operand = self.A_mem_obj.lookup_read(src1)
         B_operand = self.B_mem_obj.lookup_read(src2)
         print([op, D_operand, A_operand, B_operand])
         instr = pack(self.simple_instr_format, op, D_operand, A_operand, B_operand)
-        self.(instr.uint)
+        self.literal_instruction(instr, name)
 
-    def dual(self, op_name, dest1, dest2, src1, src2):
+    def dual(self, op_name, dest1, dest2, src1, src2, name = None):
         """Assemble a dual instruction (split addressing mode)
            The CPU re-adds the correct write offset after it decodes the instruction
            It's a power-of-2 alignment, so it just prepends the right value"""
-        thread = self.thread_obj.current
-        offset = self.thread_obj.default_offset[thread]
-        op = self.opcode_obj.lookup(op_name)
-        DA_operand = self.A_mem_obj.lookup_write(dest1) - offset - self.A_mem_obj.write_offset
-        DB_operand = self.B_mem_obj.lookup_write(dest2) - offset - self.B_mem_obj.write_offset
-        A_operand  = self.A_mem_obj.lookup_read(src1) - offset
-        B_operand  = self.B_mem_obj.lookup_read(src2) - offset
+        op = self.opcode_obj.lookup_opcode(op_name)
+        DA_operand = self.A_mem_obj.lookup_write(dest1) - self.A_mem_obj.write_base
+        DB_operand = self.B_mem_obj.lookup_write(dest2) - self.B_mem_obj.write_base
+        A_operand  = self.A_mem_obj.lookup_read(src1)
+        B_operand  = self.B_mem_obj.lookup_read(src2)
         instr = pack(self.dual_instr_format, op, DA_operand, DB_operand, A_operand, B_operand)
-        self.lit(instr.uint)
+        self.literal_instruction(instr, name)
 
 # ---------------------------------------------------------------------
 # Branch Detector
@@ -423,13 +457,12 @@ class Branch_Detector:
     condition_format    = 'uint:{0},uint:{1},uint:{2}'.format(Branch.A_flag_width, Branch.B_flag_width, Branch.AB_operator_width)
     branch_format       = 'uint:{0},uint:{1},uint:{2},uint:{3},uint:{4},uint:{5}'.format(Branch.origin_width, Branch.origin_enable_width, Branch.destination_width, Branch.predict_taken_width, Branch.predict_enable_width, Branch.condition_width)
 
-    def __init__(self, A_mem_obj, B_mem_obj, instr_mem_obj, thread_obj):
+    def __init__(self, A_mem_obj, B_mem_obj, instr_mem_obj):
         self.conditions          = {} # {name:bits}
         self.unresolved_branches = [] # list of parameters to br()
         self.A_mem_obj           = A_mem_obj
         self.B_mem_obj           = B_mem_obj
         self.instr_mem_obj       = instr_mem_obj
-        self.thread_obj          = thread_obj
 
     def condition(self, name, A_flag, B_flag, AB_operator):
         condition_bits = BitArray()
@@ -446,15 +479,14 @@ class Branch_Detector:
             config.append(entry)
         return config
 
-    def bt(self, destination):
-        thread = self.thread_obj.current
-        self.instr_mem_obj.loc(destination, write_addr = self.instr_mem_obj.here[thread])
+#    def bt(self, destination):
+#        thread = self.thread_obj.current
+#        self.instr_mem_obj.loc(destination, write_addr = self.instr_mem_obj.here[thread])
 
     def br(self, condition_bits, destination, predict, storage, origin_enable = True, origin = None):
-        thread = self.thread_obj.current
         if origin is None:
-            origin = self.instr_mem_obj.here[thread]
-        dest_addr = self.instr_mem_obj.lookup_write(destination)
+            origin = self.instr_mem_obj.here
+        dest_addr = self.instr_mem_obj.lookup(destination)
         if dest_addr is None:
             self.unresolved_branches.append([condition_bits, destination, predict, storage, origin_enable, origin])    
             return
@@ -468,14 +500,14 @@ class Branch_Detector:
             predict         = Branch.predict_not_taken
             predict_enable  = Branch.predict_disabled
         else:
-            print("Invalid branch prediction setting on branch {0}.".format(storage))
+            print("Invalid branch prediction setting {0} on branch {1}.".format(predict, storage))
             sys.exit(1)
         if origin_enable is True:
             origin_enable = Branch.origin_enabled
         elif origin_enabled is False:
             origin_enable = Branch.origin_disabled
         else:
-            print("Invalid branch origin enabled setting on branch {0}.".format(storage))
+            print("Invalid branch origin enabled setting {0} on branch{1}.".format(origin_enable, storage))
             sys.exit(1)
         branch_config = self.branch(origin, origin_enable, dest_addr, predict, predict_enable, condition_bits)
         # Works because a loc() usually sets both read/write addresses

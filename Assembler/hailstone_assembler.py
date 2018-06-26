@@ -2,25 +2,37 @@
 
 """Assembles a hailstone benchmark/test using Assembler.py"""
 
-from Assembler import *
+from Assembler  import *
+from pprint     import pprint
 
-from pprint import pprint
+# Only for object initialization.
+thread_count            = 8
+memory_depth_words      = 1024
+memory_width_bits       = 36
+memory_shared_count     = 32
+# Must fit in shared, and match hardware
+memoru_indirect_base    = 24
+memory_indirect_count   = 4
+memory_io_base          = 28
+memory_io_count         = 4
 
-T = Threads(8, 1024, MEMMAP.normal)
+T = Threads(thread_count)
 
-A = Data_Memory(1024, 36, "A.mem", MEMMAP.a, T)
-B = Data_Memory(1024, 36, "B.mem", MEMMAP.b, T)
+DO = Default_Offset("DO.mem", memory_depth_words, memory_shared_count, T)
+
+MM = Memory_Map(memory_depth_words, memory_width_bits, memory_shared_count, memory_indirect_base, memory_indirect_count, memory_io_base, memory_io_count, DO)
+
+A = Data_Memory(memory_depth_words, memory_width_bits, "A.mem", MEMMAP.a, T)
+B = Data_Memory(memory_depth_words, memory_width_bits, "B.mem", MEMMAP.b, T)
 
 OD = Opcode_Decoder("OD.mem", T)
 
-I = Instruction_Memory(1024, 36, "I.mem", MEMMAP.i, A, B, OD, T)
+I = Instruction_Memory(memory_depth_words, memory_width_bits, "I.mem", MEMMAP.i, A, B, OD, T)
 
 BD = Branch_Detector(A, B, I, T)
 
 PC      = Program_Counter("PC.mem", T)
 PC_prev = Program_Counter("PC_prev.mem", T)
-
-DO = Default_Offset("DO.mem", T)
 
 PO_A  = Programmed_Offset("PO_A.mem",  A, Programmed_Offset.po_offset_bits_A,  T)
 PO_B  = Programmed_Offset("PO_B.mem",  B, Programmed_Offset.po_offset_bits_B,  T)
@@ -135,7 +147,8 @@ def init_I():
     I.simple("NOP",     "zeroA",        "zeroA",        "zeroB")
 
     # Store y (replace x)
-    I.simple("ADD",     "seed_ptrA",    "zeroA",        "nextseedB"),   BD.bt("output"), BD.br("CTZ", "restart", None, "restart_test"), BD.br("JMP", "next_seed", None, "next_test")
+    I.simple("ADD",     "seed_ptrA",    "zeroA",        "nextseedB"),   BD.bt("output")
+    I.simple("ADD",     MEMMAP.io[0],   "zeroA",        "nextseedB"),   BD.br("CTZ", "restart", None, "restart_test"), BD.br("JMP", "next_seed", None, "next_test")
 
 #    I.align(PC.start[1])
 #
