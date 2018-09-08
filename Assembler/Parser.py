@@ -10,8 +10,7 @@ class Parser:
         """Return line without trailing comments. If comment starts a line, return empty line."""
         stripped_line   = line.split("#")
         stripped_line   = stripped_line[0]
-        # Leave leading space, as it's syntactically significant (branch labels vs. opcodes)
-        stripped_line   = stripped_line.rstrip()
+        stripped_line   = stripped_line.strip()
         return stripped_line
 
     def parse_line (self, line):

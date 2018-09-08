@@ -16,7 +16,7 @@ include branches.asm
 
 # Future: need code and data de-allocation words to allow loading code/data at runtime.
 
-start_data
+data
 
 variable    seed    0
 array       seeds   11 11 11 11 11 11
@@ -30,43 +30,44 @@ variable    newseed 0
 #           name        I/O port number
 port        seed_out    0
 
-start_code
-
 # In which threads will this code run. This determines how many copies of the variables and arrays will be created.
 # The pointers are already multi-threaded in hardware.
 # Constants and literals exist as single copies in the literal pool area.
-
-threads     0 1 2 3 4 5 6 7
-
+# If first word is not an opcode, or a code-generating command, then it's a branch or read/write label.
 # There are also drop_branch and drop_pointers to free up the used branch detector and indirect memory entries.
 
-hailstone   load_branch     hailstone
-            load_branch     even
-            load_branch     output
-            load_pointer    seeds_ptr
-            load_branch     next_seed
+code 0 1 2 3 4 5 6 7
 
-next_seed   add     seed        seeds_ptr    0                          # Load x
+hailstone
+load_branch     hailstone
+load_branch     even
+load_branch     output
+load_pointer    seeds_ptr
+load_branch     next_seed
 
-            # Odd case y = (3x+1)/2
+next_seed
+add     seed        seeds_ptr   0                           # Load x
 
-            add*2   newseed     seed        0                           # y = (x+0)*2
-            bsa not_taken sentinel 0 mask only_lsb even
+# Odd case y = (3x+1)/2
+add*2   newseed     seed        0                           # y = (x+0)*2
+bsa not_taken sentinel 0 mask only_lsb even
 
-            add     newseed     seed        newseed                     # y = (x+y)
-            add/2u  newseed     1           newseed                     # y = (1+y)/2
-            jmp taken output                                            # y = (1+y)/2
+add     newseed     seed        newseed                     # y = (x+y)
+add/2u  newseed     1           newseed                     # y = (1+y)/2
+jmp taken output                                            # y = (1+y)/2
 
-            # Even case y = x/2
-even        add/2u  newseed     seed        0                           # y = (x+0)/2
-            nop     0           0           0                           # even out cycle count for waveform debug
-            nop     0           0           0
+# Even case y = x/2
+even        
+add/2u  newseed     seed        0                           # y = (x+0)/2
+nop     0           0           0                           # even out cycle count for waveform debug
+nop     0           0           0
 
-            # Store y (replace x)
-output      add     seeds_ptr   0           newseed 
-            add     seed_out    0           newseed
-            ctz unpredicted initial_count 6 hailstone
-            jmp unpredicted next_seed 
+# Store y (replace x)
+output      
+add     seeds_ptr   0           newseed 
+add     seed_out    0           newseed
+ctz unpredicted initial_count 6 hailstone
+jmp unpredicted next_seed 
 
 # Set initial PC for each thread
 
