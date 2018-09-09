@@ -93,24 +93,24 @@ class Branch_Detector_Operators:
         self.predict_not_taken      = BitArray("0b0")
         self.predict_enabled        = BitArray("0b1")
         self.predict_disabled       = BitArray("0b0")
-        self.A_flag_negative        = BitArray("0b00")
-        self.A_flag_carryout        = BitArray("0b01")
-        self.A_flag_sentinel        = BitArray("0b10")
-        self.A_flag_external        = BitArray("0b11")
-        self.B_flag_lessthan        = BitArray("0b00")
-        self.B_flag_counter         = BitArray("0b01")
-        self.B_flag_sentinel        = BitArray("0b10")
-        self.B_flag_external        = BitArray("0b11")
+        self.a_negative             = BitArray("0b00")
+        self.a_carryout             = BitArray("0b01")
+        self.a_sentinel             = BitArray("0b10")
+        self.a_external             = BitArray("0b11")
+        self.b_lessthan             = BitArray("0b00")
+        self.b_counter              = BitArray("0b01")
+        self.b_sentinel             = BitArray("0b10")
+        self.b_external             = BitArray("0b11")
 
         self.origin_width           = 10
         self.origin_enable_width    = 1
         self.destination_width      = 10
         self.predict_taken_width    = 1
         self.predict_enable_width   = 1
-        self.A_flag_width           = 2
-        self.B_flag_width           = 2
-        self.AB_operator_width      = self.dyadic.operator_width
-        self.condition_width        = self.A_flag_width + self.B_flag_width + self.AB_operator_width
+        self.a_width                = 2
+        self.b_width                = 2
+        self.ab_operator_width      = self.dyadic.operator_width
+        self.condition_width        = self.a_width + self.b_width + self.ab_operator_width
 
         assert (self.origin_width + self.origin_enable_width + self.destination_width + self.predict_taken_width + self.predict_enable_width + self.condition_width) == self.control_width, "ERROR: Branch Detector control word width and sum of control bits widths do not agree"
 
@@ -557,28 +557,35 @@ class Instruction_Memory(Base_Memory):
 
 class Branch_Detector:
 
-    def __init__(self, A_mem_obj, B_mem_obj, instr_mem_obj, branch_detect_obj):
+    def __init__(self, a_mem_obj, b_mem_obj, instr_mem_obj, branch_detect_obj, dyadic_obj):
         self.conditions          = {} # {name:bits}
         self.unresolved_branches = [] # list of parameters to br()
-        self.A_mem_obj           = A_mem_obj
-        self.B_mem_obj           = B_mem_obj
+        self.a_mem_obj           = a_mem_obj
+        self.b_mem_obj           = b_mem_obj
         self.instr_mem_obj       = instr_mem_obj
-        self.branch              = branch_detect_obj
+        self.branch_detect_obj   = branch_detect_obj
+        self.dyadic_obj          = dyadic_obj
         branch_count             = 4
-        condition_format         = 'uint:{0},uint:{1},uint:{2}'.format(self.branch.A_flag_width, self.branch.B_flag_width, self.branch.AB_operator_width)
-        branch_format            = 'uint:{0},uint:{1},uint:{2},uint:{3},uint:{4},uint:{5}'.format(self.branch.origin_width, self.branch.origin_enable_width, self.branch.destination_width, self.branch.predict_taken_width, self.branch.predict_enable_width, self.branch.condition_width)
+        condition_format         = 'uint:{0},uint:{1},uint:{2}'.format(self.branch_detect_obj.a_width, self.branch_detect_obj.b_width, self.branch_detect_obj.ab_operator_width)
+        branch_format            = 'uint:{0},uint:{1},uint:{2},uint:{3},uint:{4},uint:{5}'.format(self.branch_detect_obj.origin_width, self.branch_detect_obj.origin_enable_width, self.branch_detect_obj.destination_width, self.branch_detect_obj.predict_taken_width, self.branch_detect_obj.predict_enable_width, self.branch_detect_obj.condition_width)
 
 
-    def condition(self, name, A_flag, B_flag, AB_operator):
+    def branch(self, name, a, b, ab_operator):
         condition_bits = BitArray()
-        for entry in [A_flag, B_flag, AB_operator]:
-            condition_bits.append(entry)
+        for entry in [a, b, ab_operator]:
+            field_bits = getattr(self.dyadic_obj, entry, None)
+            field_bits = getattr(self.branch_detect_obj, entry, field_bits)
+            if field_bits is None:
+                print("Unknown branch field value: {0}".format(entry))
+                exit(1)
+            condition_bits.append(field_bits)
         self.conditions.update({name:condition_bits}) 
+        pprint(self.conditions)
 
-    def branch(self, origin, origin_enable, destination, predict_taken, predict_enable, condition_name):
+    def assemble_branch(self, origin, origin_enable, destination, predict_taken, predict_enable, condition_name):
         condition_bits      = self.conditions[condition_name]
-        origin_bits         = BitArray(uint=origin, length=Branch.origin_width)
-        destination_bits    = BitArray(uint=destination, length=Branch.destination_width)
+        origin_bits         = BitArray(uint=origin, length=self.branch_detect_obj.origin_width)
+        destination_bits    = BitArray(uint=destination, length=self.branch_detect_obj.destination_width)
         config = BitArray()
         for entry in [origin_bits, origin_enable, destination_bits, predict_taken, predict_enable, condition_bits]:
             config.append(entry)
@@ -588,7 +595,7 @@ class Branch_Detector:
 #        thread = self.thread_obj.current
 #        self.instr_mem_obj.loc(destination, write_addr = self.instr_mem_obj.here[thread])
 
-    def br(self, condition_bits, destination, predict, storage, origin_enable = True, origin = None):
+    def load_branch(self, condition_bits, destination, predict, storage, origin_enable = True, origin = None):
         if origin is None:
             origin = self.instr_mem_obj.here
         dest_addr = self.instr_mem_obj.lookup(destination)
@@ -596,36 +603,36 @@ class Branch_Detector:
             self.unresolved_branches.append([condition_bits, destination, predict, storage, origin_enable, origin])    
             return
         if predict is True:
-            predict         = Branch.predict_taken
-            predict_enable  = Branch.predict_enabled
+            predict         = self.branch_detect_obj.predict_taken
+            predict_enable  = self.branch_detect_obj.predict_enabled
         elif predict is False:
-            predict         = Branch.predict_not_taken
-            predict_enable  = Branch.predict_enabled
+            predict         = self.branch_detect_obj.predict_not_taken
+            predict_enable  = self.branch_detect_obj.predict_enabled
         elif predict is None:
-            predict         = Branch.predict_not_taken
-            predict_enable  = Branch.predict_disabled
+            predict         = self.branch_detect_obj.predict_not_taken
+            predict_enable  = self.branch_detect_obj.predict_disabled
         else:
             print("Invalid branch prediction setting {0} on branch {1}.".format(predict, storage))
             sys.exit(1)
         if origin_enable is True:
-            origin_enable = Branch.origin_enabled
+            origin_enable = self.branch_detect_obj.origin_enabled
         elif origin_enabled is False:
-            origin_enable = Branch.origin_disabled
+            origin_enable = self.branch_detect_obj.origin_disabled
         else:
             print("Invalid branch origin enabled setting {0} on branch{1}.".format(origin_enable, storage))
             sys.exit(1)
-        branch_config = self.branch(origin, origin_enable, dest_addr, predict, predict_enable, condition_bits)
+        branch_config = self.branch_detect_obj(origin, origin_enable, dest_addr, predict, predict_enable, condition_bits)
         # Works because a loc() usually sets both read/write addresses
         # and the read address is the local, absolute location in memory
         # (write address is offset to the global memory map)
-        if (storage in self.A_mem_obj.write_names[thread]):
-            address = self.A_mem_obj.read_names[thread][storage]
+        if (storage in self.a_mem_obj.write_names[thread]):
+            address = self.a_mem_obj.read_names[thread][storage]
             offset = self.thread_obj.default_offset[thread]
-            self.A_mem_obj.mem[address+offset] = branch_config
-        elif (storage in self.B_mem_obj.write_names[thread]):
-            address = self.B_mem_obj.read_names[thread][storage]
+            self.a_mem_obj.mem[address+offset] = branch_config
+        elif (storage in self.b_mem_obj.write_names[thread]):
+            address = self.b_mem_obj.read_names[thread][storage]
             offset = self.thread_obj.default_offset[thread]
-            self.B_mem_obj.mem[address+offset] = branch_config
+            self.b_mem_obj.mem[address+offset] = branch_config
         else:
             print("Invalid storage location on branch: {0}.".format(storage))
             sys.exit(1)
@@ -688,7 +695,7 @@ class Back_End:
 
         self.I = Instruction_Memory(self.MM.depth, self.MM.width, "I.mem", self.A, self.B, self.OD)
 
-        self.BD = Branch_Detector(self.A, self.B, self.I, self.BDO)
+        self.BD = Branch_Detector(self.A, self.B, self.I, self.BDO, self.Dyadic)
 
         self.PC      = Program_Counter("PC.mem", self.T)
         self.PC_prev = Program_Counter("PC_prev.mem", self.T)

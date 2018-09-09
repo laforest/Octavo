@@ -20,4 +20,7 @@ class Front_End:
         print("reached opcode!")
         self.back_end.OD.define(*arguments) 
         
+    def branch (self, arguments):
+        print("reached branch!")
+        self.back_end.BD.branch(*arguments) 
  

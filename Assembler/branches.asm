@@ -7,7 +7,7 @@
 
 #       name    a           b           Op
 
-branch  jmp     negative    lessthan    1     # Jump always
-branch  bsa     sentinel    lessthan    a     # Jump on Branch Sentinel A match
-branch  ctz     negative    counter     !b    # Jump on Counter reaching Zero (not running)
+branch  jmp     a_negative  b_lessthan  always_one  # Jump always
+branch  bsa     a_sentinel  b_lessthan  a           # Jump on Branch Sentinel A match
+branch  ctz     a_negative  b_counter   not_b       # Jump on Counter reaching Zero (not running)
 
