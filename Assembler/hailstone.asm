@@ -34,40 +34,37 @@ port        seed_out    0
 # The pointers are already multi-threaded in hardware.
 # Constants and literals exist as single copies in the literal pool area.
 # If first word is not an opcode, or a code-generating command, then it's a branch or read/write label.
+# Then pass remainder of line back to line parser.
 # There are also drop_branch and drop_pointers to free up the used branch detector and indirect memory entries.
 
 code 0 1 2 3 4 5 6 7
 
-hailstone
-load_branch     hailstone
-load_branch     even
-load_branch     output
-load_pointer    seeds_ptr
-load_branch     next_seed
+hailstone   load_branch     hailstone
+            load_branch     even
+            load_branch     output
+            load_pointer    seeds_ptr
+            load_branch     next_seed
 
-next_seed
-add     seed        seeds_ptr   0                           # Load x
+next_seed   add     seed        seeds_ptr   0                           # Load x
 
-# Odd case y = (3x+1)/2
-add*2   newseed     seed        0                           # y = (x+0)*2
-bsa not_taken sentinel 0 mask only_lsb even
+            # Odd case y = (3x+1)/2
+            add*2   newseed     seed        0                           # y = (x+0)*2
+            bsa not_taken sentinel 0 mask only_lsb even
 
-add     newseed     seed        newseed                     # y = (x+y)
-add/2u  newseed     1           newseed                     # y = (1+y)/2
-jmp taken output                                            # y = (1+y)/2
+            add     newseed     seed        newseed                     # y = (x+y)
+            add/2u  newseed     1           newseed                     # y = (1+y)/2
+            jmp taken output                                            # y = (1+y)/2
 
 # Even case y = x/2
-even        
-add/2u  newseed     seed        0                           # y = (x+0)/2
-nop     0           0           0                           # even out cycle count for waveform debug
-nop     0           0           0
+even        add/2u  newseed     seed        0                           # y = (x+0)/2
+            nop     0           0           0                           # even out cycle count for waveform debug
+            nop     0           0           0
 
 # Store y (replace x)
-output      
-add     seeds_ptr   0           newseed 
-add     seed_out    0           newseed
-ctz unpredicted initial_count 6 hailstone
-jmp unpredicted next_seed 
+output      add     seeds_ptr   0           newseed 
+            add     seed_out    0           newseed
+            ctz unpredicted initial_count 6 hailstone
+            jmp unpredicted next_seed 
 
 # Set initial PC for each thread
 
