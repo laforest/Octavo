@@ -27,13 +27,13 @@ class Parser:
             return
         parser_command(arguments)
 
-    def include (self, arguments):
-        """Recurse into included files. No cycle checking!"""
-        filename = arguments[0]
-        self.parse_file(filename)
-
     def parse_file (self, filename):
         with open(filename) as f:
             for raw_line in f.readlines():
                 self.parse_line(raw_line)
+
+    def include (self, arguments):
+        """Recurse into included files. No cycle checking!"""
+        filename = arguments[0]
+        self.parse_file(filename)
 
