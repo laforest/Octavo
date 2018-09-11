@@ -3,7 +3,7 @@
 
 # Common library of definitions
 include opcodes.asm
-include branches.asm
+include conditions.asm
 
 # The location of a variable, array, or pointer is set by first read/write use, default to least full memory.
 # The storage location of the initialization value of a pointer is also set by first read/write use.

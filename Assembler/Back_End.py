@@ -570,7 +570,7 @@ class Branch_Detector:
         branch_format            = 'uint:{0},uint:{1},uint:{2},uint:{3},uint:{4},uint:{5}'.format(self.branch_detect_obj.origin_width, self.branch_detect_obj.origin_enable_width, self.branch_detect_obj.destination_width, self.branch_detect_obj.predict_taken_width, self.branch_detect_obj.predict_enable_width, self.branch_detect_obj.condition_width)
 
 
-    def branch(self, name, a, b, ab_operator):
+    def condition (self, name, a, b, ab_operator):
         condition_bits = BitArray()
         for entry in [a, b, ab_operator]:
             field_bits = getattr(self.dyadic_obj, entry, None)
