@@ -16,28 +16,27 @@ include conditions.asm
 
 # Future: need code and data de-allocation words to allow loading code/data at runtime.
 
-data
+# If first word is not an opcode, or a code-generating command, then it's a branch or read/write label.
+# Then pass remainder of line back to line parser.
 
-variable    seed    0
-array       seeds   11 11 11 11 11 11
+seed        variable    0
+seeds       array       11 11 11 11 11 11
 
-#           name                base_addr   read_increment          base_addr   write_increment
-pointer     seeds_ptr   read    seeds       1               write   seeds       1
+#                       base_addr   read_increment  base_addr   write_increment
+seeds_ptr   pointer     seeds       1               seeds       1
 
-constant    only_lsb    0xFFFFFFFFE
-variable    newseed 0
+only_lsb    constant    0xFFFFFFFFE
+newseed     variable    0
 
-#           name        I/O port number
-port        seed_out    0
+# name                  I/O port number
+seed_out    port        0
 
 # In which threads will this code run. This determines how many copies of the variables and arrays will be created.
 # The pointers are already multi-threaded in hardware.
 # Constants and literals exist as single copies in the literal pool area.
-# If first word is not an opcode, or a code-generating command, then it's a branch or read/write label.
-# Then pass remainder of line back to line parser.
 # There are also drop_branch and drop_pointers to free up the used branch detector and indirect memory entries.
 
-code 0 1 2 3 4 5 6 7
+threads 0 1 2 3 4 5 6 7
 
 hailstone   load_branch     hailstone
             load_branch     even

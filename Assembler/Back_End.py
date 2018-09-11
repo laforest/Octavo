@@ -439,7 +439,7 @@ class Opcode_Decoder(Base_Memory):
         self.alu_control_format = 'uint:{0},uint:{1},uint:{2},uint:{3},uint:{4},uint:{5},uint:{6},uint:{7}'.format(self.triadic.split_width, self.triadic.shift_width, self.triadic.dyadic3_width, self.triadic.addsub_width, self.triadic.dual_width, self.triadic.dyadic2_width, self.triadic.dyadic1_width, self.triadic.select_width)
 
 
-    def define (self, name, split, shift, dyadic3, addsub, dual, dyadic2, dyadic1, select):
+    def define (self, label, split, shift, dyadic3, addsub, dual, dyadic2, dyadic1, select):
         """Assembles and names the control bits of an instruction. Shared amongst all threads."""
         control_bits = BitArray()
         for entry in [split, shift, dyadic3, addsub, dual, dyadic2, dyadic1, select]:
@@ -449,8 +449,7 @@ class Opcode_Decoder(Base_Memory):
                 print("Unknown opcode field value: {0}".format(entry))
                 exit(1)
             control_bits.append(field_bits)
-        self.opcodes.update({name:control_bits})
-        pprint(self.opcodes)
+        self.opcodes.update({label:control_bits})
 
     def load (self, thread, name, opcode = None):
         """Assigne a per-thread opcode to a previously defined instruction.
@@ -570,7 +569,7 @@ class Branch_Detector:
         branch_format            = 'uint:{0},uint:{1},uint:{2},uint:{3},uint:{4},uint:{5}'.format(self.branch_detect_obj.origin_width, self.branch_detect_obj.origin_enable_width, self.branch_detect_obj.destination_width, self.branch_detect_obj.predict_taken_width, self.branch_detect_obj.predict_enable_width, self.branch_detect_obj.condition_width)
 
 
-    def condition (self, name, a, b, ab_operator):
+    def condition (self, label, a, b, ab_operator):
         condition_bits = BitArray()
         for entry in [a, b, ab_operator]:
             field_bits = getattr(self.dyadic_obj, entry, None)
@@ -579,8 +578,7 @@ class Branch_Detector:
                 print("Unknown branch field value: {0}".format(entry))
                 exit(1)
             condition_bits.append(field_bits)
-        self.conditions.update({name:condition_bits}) 
-        pprint(self.conditions)
+        self.conditions.update({label:condition_bits}) 
 
     def assemble_branch(self, origin, origin_enable, destination, predict_taken, predict_enable, condition_name):
         condition_bits      = self.conditions[condition_name]
