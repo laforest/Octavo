@@ -119,8 +119,9 @@ class Branch_Detector_Operators:
 class Threads:
     """Keeps thread list format and numbering in one place."""
     def __init__(self, thread_count):
-        self.count = thread_count
-        self.all   = range(thread_count)
+        self.count      = thread_count
+        self.all        = range(thread_count)
+        self.current    = None
 
 # ---------------------------------------------------------------------------
 

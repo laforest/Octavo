@@ -6,9 +6,10 @@ from pprint import pprint
 class Front_End:
     """Parses the assembly language commands into intermediate structures and various dependency resolutions. Drives the back end for code generation."""
 
-    def __init__ (self, back_end, front_end_data):
+    def __init__ (self, back_end, front_end_data, front_end_code):
         self.back_end       = back_end
         self.front_end_data = front_end_data
+        self.front_end_code = front_end_code
 
     def parse_command (self, command, arguments):
         label               = None
@@ -52,3 +53,7 @@ class Front_End:
     def port (self, arguments):
         self.front_end_data.port(*arguments)
 
+    def threads (self, arguments):
+        # Discard any label, pass remaining list
+        thread_list = arguments[1:]
+        self.front_end_code.threads(thread_list)
