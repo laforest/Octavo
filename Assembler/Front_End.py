@@ -6,8 +6,9 @@ from pprint import pprint
 class Front_End:
     """Parses the assembly language commands into intermediate structures and various dependency resolutions. Drives the back end for code generation."""
 
-    def __init__ (self, back_end):
-        self.back_end = back_end
+    def __init__ (self, back_end, front_end_data):
+        self.back_end       = back_end
+        self.front_end_data = front_end_data
 
     def parse_command (self, command, arguments):
         label               = None
@@ -30,7 +31,24 @@ class Front_End:
 
     def opcode (self, arguments):
         self.back_end.OD.define(*arguments) 
-        
+
     def condition (self, arguments):
         self.back_end.BD.condition(*arguments) 
- 
+
+    def variable (self, arguments):
+        self.front_end_data.variable(*arguments)
+
+    def array (self, arguments):
+        label   = arguments[0]
+        values  = arguments[1:]
+        self.front_end_data.array(label, values)
+
+    def pointer (self, arguments):
+        self.front_end_data.pointer(*arguments)
+
+    def constant (self, arguments):
+        self.front_end_data.constant(*arguments)
+
+    def port (self, arguments):
+        self.front_end_data.port(*arguments)
+
