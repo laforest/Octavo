@@ -57,3 +57,7 @@ class Front_End:
         # Discard any label, pass remaining list
         thread_list = arguments[1:]
         self.front_end_code.threads(thread_list)
+
+    def load_branch (self, arguments):
+        self.front_end_code.load_branch(*arguments)
+
