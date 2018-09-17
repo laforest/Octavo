@@ -37,27 +37,27 @@ class Front_End:
         self.back_end.BD.condition(*arguments) 
 
     def variable (self, arguments):
-        self.front_end_data.variable(*arguments)
+        self.front_end_data.allocate_variable(*arguments)
 
     def array (self, arguments):
         label   = arguments[0]
         values  = arguments[1:]
-        self.front_end_data.array(label, values)
+        self.front_end_data.allocate_array(label, values)
 
     def pointer (self, arguments):
-        self.front_end_data.pointer(*arguments)
+        self.front_end_data.allocate_pointer(*arguments)
 
     def constant (self, arguments):
-        self.front_end_data.constant(*arguments)
+        self.front_end_data.allocate_constant(*arguments)
 
     def port (self, arguments):
-        self.front_end_data.port(*arguments)
+        self.front_end_data.allocate_port(*arguments)
 
     def threads (self, arguments):
         # Discard any label, pass remaining list
         thread_list = arguments[1:]
-        self.front_end_code.threads(thread_list)
+        self.front_end_code.set_current_threads(thread_list)
 
     def load_branch (self, arguments):
-        self.front_end_code.load_branch(*arguments)
+        self.front_end_code.allocate_branch_load(*arguments)
 
