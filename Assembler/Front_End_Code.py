@@ -19,7 +19,19 @@ class Instruction:
 
 class Branch_Load:
     """Contains info necessary to generate the branch load instruction and init data.
-       The instruction is always an 'Add to Zero', so must exist in the system."""
+       The instruction is always an 'Add to Zero', so must exist in the system.
+       The destination is a code label."""
+
+    def __init__ (self, front_end_data, label = None, destination = None,):
+        self.label          = label
+        self.destination    = destination
+        self.instruction    = Instruction(label = label, opcode = "add")
+        self.init_data      = front_end_data.allocate_variable(label)
+
+class Pointer_Load:
+    """Contains info necessary to generate the pointer load instruction and init data.
+       The instruction is always an 'Add to Zero', so must exist in the system.
+       The destination is a data label."""
 
     def __init__ (self, front_end_data, label = None, destination = None,):
         self.label          = label
@@ -34,6 +46,7 @@ class Front_End_Code:
         self.back_end       = back_end
         self.front_end_data = front_end_data
         self.branch_loads   = []
+        self.pointer_loads  = []
         self.instructions   = []
 
     def set_current_threads (self, thread_list):
@@ -44,3 +57,9 @@ class Front_End_Code:
         self.branch_loads.append(new_branch_load)
         self.instructions.append(new_branch_load.instruction)
         return new_branch_load
+
+    def allocate_pointer_load (self, label, destination_label):
+        new_pointer_load = Pointer_Load(self.front_end_data, label = label, destination = destination_label)
+        self.pointer_loads.append(new_pointer_load)
+        self.instructions.append(new_pointer_load.instruction)
+        return new_pointer_load

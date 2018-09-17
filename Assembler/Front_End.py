@@ -61,3 +61,6 @@ class Front_End:
     def load_branch (self, arguments):
         self.front_end_code.allocate_branch_load(*arguments)
 
+    def load_pointer (self, arguments):
+        self.front_end_code.allocate_pointer_load(*arguments)
+
