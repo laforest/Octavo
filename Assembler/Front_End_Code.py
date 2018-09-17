@@ -17,21 +17,10 @@ class Instruction:
         self.A          = A
         self.B          = B
 
-class Branch_Load:
-    """Contains info necessary to generate the branch load instruction and init data.
+class Initialization_Load:
+    """Contains info necessary to generate an initialization load instruction and data.
        The instruction is always an 'Add to Zero', so must exist in the system.
-       The destination is a code label."""
-
-    def __init__ (self, front_end_data, label = None, destination = None,):
-        self.label          = label
-        self.destination    = destination
-        self.instruction    = Instruction(label = label, opcode = "add")
-        self.init_data      = front_end_data.allocate_variable(label)
-
-class Pointer_Load:
-    """Contains info necessary to generate the pointer load instruction and init data.
-       The instruction is always an 'Add to Zero', so must exist in the system.
-       The destination is a data label."""
+       The destination is a code or data label."""
 
     def __init__ (self, front_end_data, label = None, destination = None,):
         self.label          = label
@@ -53,13 +42,13 @@ class Front_End_Code:
         self.back_end.T.current = thread_list
 
     def allocate_branch_load (self, label, destination_label):
-        new_branch_load = Branch_Load(self.front_end_data, label = label, destination = destination_label)
+        new_branch_load = Initialization_Load(self.front_end_data, label = label, destination = destination_label)
         self.branch_loads.append(new_branch_load)
         self.instructions.append(new_branch_load.instruction)
         return new_branch_load
 
     def allocate_pointer_load (self, label, destination_label):
-        new_pointer_load = Pointer_Load(self.front_end_data, label = label, destination = destination_label)
+        new_pointer_load = Initialization_Load(self.front_end_data, label = label, destination = destination_label)
         self.pointer_loads.append(new_pointer_load)
         self.instructions.append(new_pointer_load.instruction)
         return new_pointer_load
