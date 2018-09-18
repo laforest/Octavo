@@ -11,30 +11,57 @@ class Front_End:
         self.front_end_data = front_end_data
         self.front_end_code = front_end_code
 
+    def search_command(self, command):
+        assembler   = getattr(self, command, None) is not None
+        opcode      = command in [opcode.label for opcode in self.front_end_code.opcodes]
+        condition   = command in [condition.label for condition in self.front_end_code.conditions] 
+        return (assembler, opcode, condition)
+
+    def find_command (self, command):
+        found_flags = self.search_command(command)
+        return True in found_flags
+
+    def execute_command (self, command, arguments):
+        assembler, opcode, condition = self.search_command(command)
+        if assembler is True:
+            assembler_command = getattr(self, command, None)
+            assembler_command(arguments)
+            return
+        if opcode is True:
+            self.front_end_code.resolve_instruction(command, arguments)
+            return
+        if condition is True:
+            self.front_end_code.resolve_branch(command, *arguments)
+            return
+
     def parse_command (self, command, arguments):
         label               = None
-        front_end_command   = getattr(self, command, None)
+        command_exists = self.find_command(command)
 
-        if front_end_command is None:
+        if command_exists is False:
             label       = command
             command     = arguments[0]
             arguments   = arguments[1:]
             print("Found label: {0} for command {1}".format(label, command))
-            front_end_command   = getattr(self, command, None)
-            if front_end_command is None:
-                print("Unknown front-end command: {0}".format(command))
-                exit(1)
         else:
             print("Found command: {0}".format(command))
-
         arguments.insert(0, label)
-        front_end_command(arguments)
+
+        command_exists = self.find_command(command)
+
+        if command_exists is False:
+            print("Unknown front-end command: {0}".format(command))
+            exit(1)
+
+        self.execute_command(command, arguments)
+
+    # These are the assembler commands.
 
     def opcode (self, arguments):
-        self.back_end.OD.define(*arguments) 
+        self.front_end_code.allocate_opcode(*arguments)
 
     def condition (self, arguments):
-        self.back_end.BD.condition(*arguments) 
+        self.front_end_code.allocate_condition(*arguments)
 
     def variable (self, arguments):
         self.front_end_data.allocate_variable(*arguments)
