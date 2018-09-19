@@ -28,10 +28,10 @@ class Front_End:
             assembler_command(arguments)
             return
         if opcode is True:
-            self.front_end_code.resolve_instruction(command, arguments)
+            self.front_end_code.allocate_instruction(command, arguments)
             return
         if condition is True:
-            self.front_end_code.resolve_branch(command, *arguments)
+            self.front_end_code.allocate_branch(command, *arguments)
             return
 
     def parse_command (self, command, arguments):

@@ -108,11 +108,18 @@ class Front_End_Code:
         print("Opcode {0} not found".format(label))
         exit(1)
 
-    def resolve_instruction (self, opcode_label, operands):
+    def allocate_instruction_simple (self, opcode_label, instruction_label, D, A, B):
+        new_instruction = Instruction(label = instruction_label, opcode = opcode_label, D = D, A = A, B = B)
+        self.instructions.append(new_instruction)
+
+    def allocate_instruction_dual (self, opcode_label, instruction_label, DA, DB, A, B):
+        new_instruction = Instruction(label = instruction_label, opcode = opcode_label, DA = DA, DB = DB, A = A, B = B)
+        self.instructions.append(new_instruction)
+
+    def allocate_instruction (self, opcode_label, operands):
         opcode = self.lookup_opcode(opcode_label)
         if opcode.is_dual is True:
-            self.resolve_instruction_dual()
+            self.allocate_instruction_dual(opcode_label, *operands)
         else:
-            self.resolve_instruction_simple()
+            self.allocate_instruction_simple(opcode_label, *operands)
         
-    
