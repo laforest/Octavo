@@ -86,8 +86,8 @@ class Front_End:
         self.front_end_code.set_current_threads(thread_list)
 
     def load_branch (self, arguments):
-        self.front_end_code.allocate_branch_load(*arguments)
+        self.front_end_code.allocate_init_load(*arguments)
 
     def load_pointer (self, arguments):
-        self.front_end_code.allocate_pointer_load(*arguments)
+        self.front_end_code.allocate_init_load(*arguments)
 
