@@ -38,11 +38,11 @@ seed_out    port        0
 
 threads 0 1 2 3 4 5 6 7
 
-hailstone   load_branch     hailstone
-            load_branch     even
-            load_branch     output
-            load_pointer    seeds_ptr
-            load_branch     next_seed
+hailstone   init    hailstone
+            init    even
+            init    output
+            init    seeds_ptr
+            init    next_seed
 
 next_seed   add     seed        seeds_ptr   0                           # Load x
 
