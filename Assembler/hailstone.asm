@@ -19,14 +19,14 @@ include conditions.asm
 # If first word is not an opcode, or a code-generating command, then it's a branch or read/write label.
 # Then pass remainder of line back to line parser.
 
-seed        variable    0
-seeds       array       11 11 11 11 11 11
+seed        private     0
+seeds       private     11 11 11 11 11 11
 
 #                       base_addr   read_increment  base_addr   write_increment
 seeds_ptr   pointer     seeds       1               seeds       1
 
-only_lsb    constant    0xFFFFFFFFE
-newseed     variable    0
+only_lsb    shared      0xFFFFFFFFE
+newseed     private     0
 
 # name                  I/O port number
 seed_out    port        0

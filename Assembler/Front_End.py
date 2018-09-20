@@ -63,19 +63,18 @@ class Front_End:
     def condition (self, arguments):
         self.front_end_code.allocate_condition(*arguments)
 
-    def variable (self, arguments):
-        self.front_end_data.allocate_variable(*arguments)
-
-    def array (self, arguments):
+    def private (self, arguments):
         label   = arguments[0]
         values  = arguments[1:]
-        self.front_end_data.allocate_array(label, values)
+        self.front_end_data.allocate_private(label, values)
+
+    def shared (self, arguments):
+        label   = arguments[0]
+        values  = arguments[1:]
+        self.front_end_data.allocate_shared(label, values)
 
     def pointer (self, arguments):
         self.front_end_data.allocate_pointer(*arguments)
-
-    def constant (self, arguments):
-        self.front_end_data.allocate_constant(*arguments)
 
     def port (self, arguments):
         self.front_end_data.allocate_port(*arguments)

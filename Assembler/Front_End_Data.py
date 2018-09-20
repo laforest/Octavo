@@ -34,29 +34,28 @@ class Front_End_Data:
     """Contains descriptions of data and resolves locations, etc... before passing to back-end for memory image generation"""
 
     def __init__ (self):
-        self.variables  = []
+        self.private    = []
+        self.shared     = []
         self.pointers   = []
-        self.constants  = []
         self.ports      = []
 
-    def allocate_variable (self, label, initial_value = None):
-        if initial_value is not None:
-            initial_value = int(initial_value, 0)
-        new_variable = Variable(label = label, value = initial_value)
-        self.variables.append(new_variable)
+    def create_variable (self, label, initial_values = None):
+        if initial_values is not None:
+            initial_values = [int(entry, 0) for entry in initial_values]
+            if len(initial_values) == 1:
+                initial_values = initial_values[0]
+        new_variable = Variable(label = label, value = initial_values)
         return new_variable
 
-    def allocate_constant (self, label, initial_value = None):
-        initial_value   = int(initial_value, 0)
-        new_constant    = Variable(label = label, value = initial_value)
-        self.constants.append(new_constant)
-        return new_constant
+    def allocate_private (self, label, initial_values = None):
+        new_variable = self.create_variable(label, initial_values = initial_values)
+        self.private.append(new_variable)
+        return new_variable
 
-    def allocate_array (self, label, initial_values = []):
-        initial_values  = [int(value, 0) for value in initial_values]
-        new_array       = Variable(label = label, value = initial_values)
-        self.variables.append(new_array)
-        return new_array
+    def allocate_shared (self, label, initial_values = None):
+        new_variable = self.create_variable(label, initial_values = initial_values)
+        self.shared.append(new_variable)
+        return new_variable
 
     def allocate_pointer (self, label, read_base = None, read_incr = None, write_base = None, write_incr = None):
         # We can't determine the init data value until we know which Data Memory it's read from.
