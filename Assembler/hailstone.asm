@@ -25,7 +25,8 @@ seeds       private     11 11 11 11 11 11
 #                       base_addr   read_increment  base_addr   write_increment
 seeds_ptr   pointer     seeds       1               seeds       1
 
-only_lsb    shared      0xFFFFFFFFE
+lsb_mask    shared      0xFFFFFFFFE
+seeds_len   shared      6
 newseed     private     0
 
 # name                  I/O port number
@@ -48,7 +49,7 @@ next_seed   add     seed        seeds_ptr   0                           # Load x
 
             # Odd case y = (3x+1)/2
             add*2   newseed     seed        0                           # y = (x+0)*2
-            bsa not_taken sentinel 0 mask only_lsb even
+            bsa not_taken 0 lsb_mask even
 
             add     newseed     seed        newseed                     # y = (x+y)
             add/2u  newseed     1           newseed                     # y = (1+y)/2
@@ -62,7 +63,7 @@ even        add/2u  newseed     seed        0                           # y = (x
 # Store y (replace x)
 output      add     seeds_ptr   0           newseed 
             add     seed_out    0           newseed
-            ctz unpredicted initial_count 6 hailstone
+            ctz unpredicted seeds_len hailstone
             jmp unpredicted next_seed 
 
 # Set initial PC for each thread

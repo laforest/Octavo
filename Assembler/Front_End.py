@@ -31,7 +31,7 @@ class Front_End:
             self.front_end_code.allocate_instruction(command, arguments)
             return
         if condition is True:
-            self.front_end_code.allocate_branch(command, *arguments)
+            self.front_end_code.allocate_branch(command, arguments)
             return
 
     def parse_command (self, command, arguments):
