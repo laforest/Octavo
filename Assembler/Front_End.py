@@ -87,4 +87,8 @@ class Front_End:
     def init (self, arguments):
         self.front_end_code.allocate_init_load(*arguments)
 
+    def program_counter (self, arguments):
+        label       = arguments[0]
+        pc_list     = arguments[1:]
+        self.front_end_code.set_pc(label, pc_list)
 

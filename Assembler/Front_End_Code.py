@@ -119,6 +119,8 @@ class Branch:
 class Front_End_Code:
     """Parses the code, which drives the resolution of unknowns about the data."""
 
+    thread_count = 8
+
     def __init__ (self, back_end, front_end_data):
         self.back_end       = back_end
         self.front_end_data = front_end_data
@@ -128,6 +130,7 @@ class Front_End_Code:
         self.opcodes        = []
         self.conditions     = []
         self.branches       = []
+        self.initial_pc     = []
 
     def set_current_threads (self, thread_list):
         self.threads = thread_list
@@ -181,3 +184,10 @@ class Front_End_Code:
         new_branch = Branch(self, condition_label, branch_parameters)
         self.branches.append(new_branch)
         
+    def set_pc (self, label, pc_list):
+        pc_count = len(pc_list)
+        if pc_count != self.thread_count:
+            print("ERROR: You must provide an initial PC for each of the {0} threads, but you provided {1}: {2}".format(self.thread_count, pc_count, pc_list))
+            exit(1)
+        self.initial_pc = pc_list
+ 
