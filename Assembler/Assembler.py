@@ -4,6 +4,7 @@ from Parser     import Parser
 from Commands   import Commands
 from Data       import Data
 from Code       import Code
+from Resolver   import Resolver
 
 from sys import argv
 
@@ -13,5 +14,11 @@ if __name__ == "__main__":
     commands    = Commands(data, code)
     parser      = Parser(commands)
     parser.parse_file(argv[1])
+    del parser
+    del commands
+    print("Parsing and Allocation Done")
+    resolver = Resolver(data, code)
+    resolver.resolve()
+    print("Resolution Done")
     print("OK")
 
