@@ -4,10 +4,9 @@ from sys import exit
 from pprint import pprint
 
 class Front_End:
-    """Parses the assembly language commands into intermediate structures and various dependency resolutions. Drives the back end for code generation."""
+    """Parses the assembly language commands into intermediate structures for later dependency resolutions."""
 
-    def __init__ (self, back_end, front_end_data, front_end_code):
-        self.back_end       = back_end
+    def __init__ (self, front_end_data, front_end_code):
         self.front_end_data = front_end_data
         self.front_end_code = front_end_code
 

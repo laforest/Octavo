@@ -121,8 +121,7 @@ class Front_End_Code:
 
     thread_count = 8
 
-    def __init__ (self, back_end, front_end_data):
-        self.back_end       = back_end
+    def __init__ (self, front_end_data):
         self.front_end_data = front_end_data
         self.threads        = []
         self.init_loads     = []
@@ -143,13 +142,11 @@ class Front_End_Code:
         new_opcode = Opcode(label, split, shift, dyadic3, addsub, dual, dyadic2, dyadic1, select)
         self.opcodes.append(new_opcode)
         return new_opcode
-        # self.back_end.OD.define(label, split, shift, dyadic3, addsub, dual, dyadic2, dyadic1, select) 
         
     def allocate_condition (self, label, a, b, ab_operator):
         new_condition = Condition(label, a, b, ab_operator)
         self.conditions.append(new_condition)
         return new_condition
-        # self.back_end.BD.condition(label, a, b, ab_operator)
 
     def lookup_opcode (self, label):
         for opcode in self.opcodes:
