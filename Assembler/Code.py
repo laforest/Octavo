@@ -55,23 +55,23 @@ class Initialization_Load:
        The instruction is always an 'Add to Zero', so must exist in the system.
        The destination is a code or data label identifying the pointer or branch."""
 
-    def __init__ (self, front_end_data, front_end_code, label = None, destination = None,):
+    def __init__ (self, data, code, label = None, destination = None,):
         self.label          = label
         self.destination    = destination
         self.instructions   = []
         self.init_data      = []
-        self.front_end_data = front_end_data
+        self.data = data
         # keep any init instructions added later in order, so add list of init instructions
-        front_end_code.instructions.append(self.instructions)
+        code.instructions.append(self.instructions)
 
     def add_variable (self, label):
         """Adds data for an initialization load. Order not important. Referenced by label."""
-        new_init_data = self.front_end_data.allocate_variable(label)
+        new_init_data = self.data.allocate_variable(label)
         self.init_data.append(new_init_data)
 
     def add_constant (self, label):
         """Adds data for an initialization load. Order not important. Referenced by label."""
-        new_init_data = self.front_end_data.allocate_constant(label)
+        new_init_data = self.data.allocate_constant(label)
         self.init_data.append(new_init_data)
 
     def add_instruction (self, label):
@@ -82,8 +82,8 @@ class Initialization_Load:
 class Branch:
     """Holds the possible parameters to create a branch initialization load(s)."""
 
-    def __init__ (self, front_end_code, condition_label, branch_parameters):
-        self.condition = front_end_code.lookup_condition(condition_label)
+    def __init__ (self, code, condition_label, branch_parameters):
+        self.condition = code.lookup_condition(condition_label)
 
         label = branch_parameters.pop(0)
         if label is not None:
@@ -116,13 +116,13 @@ class Branch:
             exit(1)
 
 
-class Front_End_Code:
+class Code:
     """Parses the code, which drives the resolution of unknowns about the data."""
 
     thread_count = 8
 
-    def __init__ (self, front_end_data):
-        self.front_end_data = front_end_data
+    def __init__ (self, data):
+        self.data = data
         self.threads        = []
         self.init_loads     = []
         self.instructions   = []
@@ -135,7 +135,7 @@ class Front_End_Code:
         self.threads = thread_list
 
     def allocate_init_load (self, label, destination):
-        new_init_load = Initialization_Load(self.front_end_data, self, label = label, destination = destination)
+        new_init_load = Initialization_Load(self.data, self, label = label, destination = destination)
         self.init_loads.append(new_init_load)
 
     def allocate_opcode (self, label, split, shift, dyadic3, addsub, dual, dyadic2, dyadic1, select):

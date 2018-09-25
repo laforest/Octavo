@@ -1,10 +1,10 @@
 #! /usr/bin/python3
 
 class Parser:
-    """Parses the assembly file lines and passes non-file commands to the front-end"""
+    """Parses the assembly file lines and passes non-file commands to the command parser"""
     
-    def __init__ (self, front_end):
-        self.front_end = front_end
+    def __init__ (self, commands):
+        self.commands = commands
 
     def strip_comments (self, line):
         """Return line without trailing comments. If comment starts a line, return empty line."""
@@ -14,7 +14,7 @@ class Parser:
         return stripped_line
 
     def parse_line (self, line):
-        """Process each line, converting the command name into a method call, or pass it to front end."""
+        """Process each line, converting the command name into a method call, or pass it to command parser."""
         line = self.strip_comments(line)
         if len(line) == 0:
             return
@@ -23,7 +23,7 @@ class Parser:
         arguments       = split_line[1:]
         parser_command  = getattr(self, command, None)
         if parser_command is None:
-            self.front_end.parse_command(command, arguments)
+            self.commands.parse_command(command, arguments)
             return
         parser_command(arguments)
 

@@ -3,17 +3,17 @@
 from sys import exit
 from pprint import pprint
 
-class Front_End:
+class Commands:
     """Parses the assembly language commands into intermediate structures for later dependency resolutions."""
 
-    def __init__ (self, front_end_data, front_end_code):
-        self.front_end_data = front_end_data
-        self.front_end_code = front_end_code
+    def __init__ (self, data, code):
+        self.data = data
+        self.code = code
 
     def search_command(self, command):
         assembler   = getattr(self, command, None) is not None
-        opcode      = command in [opcode.label for opcode in self.front_end_code.opcodes]
-        condition   = command in [condition.label for condition in self.front_end_code.conditions] 
+        opcode      = command in [opcode.label for opcode in self.code.opcodes]
+        condition   = command in [condition.label for condition in self.code.conditions] 
         return (assembler, opcode, condition)
 
     def find_command (self, command):
@@ -27,10 +27,10 @@ class Front_End:
             assembler_command(arguments)
             return
         if opcode is True:
-            self.front_end_code.allocate_instruction(command, arguments)
+            self.code.allocate_instruction(command, arguments)
             return
         if condition is True:
-            self.front_end_code.allocate_branch(command, arguments)
+            self.code.allocate_branch(command, arguments)
             return
 
     def parse_command (self, command, arguments):
@@ -49,7 +49,7 @@ class Front_End:
         command_exists = self.find_command(command)
 
         if command_exists is False:
-            print("Unknown front-end command: {0}".format(command))
+            print("Unknown command: {0}".format(command))
             exit(1)
 
         self.execute_command(command, arguments)
@@ -57,26 +57,26 @@ class Front_End:
     # These are the assembler commands.
 
     def opcode (self, arguments):
-        self.front_end_code.allocate_opcode(*arguments)
+        self.code.allocate_opcode(*arguments)
 
     def condition (self, arguments):
-        self.front_end_code.allocate_condition(*arguments)
+        self.code.allocate_condition(*arguments)
 
     def private (self, arguments):
         label   = arguments[0]
         values  = arguments[1:]
-        self.front_end_data.allocate_private(label, values)
+        self.data.allocate_private(label, values)
 
     def shared (self, arguments):
         label   = arguments[0]
         values  = arguments[1:]
-        self.front_end_data.allocate_shared(label, values)
+        self.data.allocate_shared(label, values)
 
     def pointer (self, arguments):
-        self.front_end_data.allocate_pointer(*arguments)
+        self.data.allocate_pointer(*arguments)
 
     def port (self, arguments):
-        self.front_end_data.allocate_port(*arguments)
+        self.data.allocate_port(*arguments)
 
     def threads (self, arguments):
         label       = arguments[0]
@@ -84,10 +84,10 @@ class Front_End:
         if label is not None:
             print("No label ({0}) allowed for command threads".format(label))
             exit(1)
-        self.front_end_code.set_current_threads(thread_list)
+        self.code.set_current_threads(thread_list)
 
     def init (self, arguments):
-        self.front_end_code.allocate_init_load(*arguments)
+        self.code.allocate_init_load(*arguments)
 
     def program_counter (self, arguments):
         label       = arguments[0]
@@ -95,5 +95,5 @@ class Front_End:
         if label is not None:
             print("No label ({0}) allowed for command program_counter".format(label))
             exit(1)
-        self.front_end_code.set_pc(label, pc_list)
+        self.code.set_pc(label, pc_list)
 

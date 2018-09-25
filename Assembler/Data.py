@@ -30,7 +30,7 @@ class Port:
         self.data   = Variable(label = label, address = address, value = 0, memory = memory)
         self.number = number
 
-class Front_End_Data:
+class Data:
     """Contains descriptions of data and resolves locations, etc... before passing to back-end for memory image generation"""
 
     def __init__ (self):
