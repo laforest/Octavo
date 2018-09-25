@@ -80,8 +80,11 @@ class Front_End:
         self.front_end_data.allocate_port(*arguments)
 
     def threads (self, arguments):
-        # Discard any label, pass remaining list
+        label       = arguments[0]
         thread_list = arguments[1:]
+        if label is not None:
+            print("No label ({0}) allowed for command threads".format(label))
+            exit(1)
         self.front_end_code.set_current_threads(thread_list)
 
     def init (self, arguments):
@@ -90,5 +93,8 @@ class Front_End:
     def program_counter (self, arguments):
         label       = arguments[0]
         pc_list     = arguments[1:]
+        if label is not None:
+            print("No label ({0}) allowed for command program_counter".format(label))
+            exit(1)
         self.front_end_code.set_pc(label, pc_list)
 
