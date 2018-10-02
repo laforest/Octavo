@@ -1,10 +1,11 @@
 #! /usr/bin/python3
 
-from Parser     import Parser
-from Commands   import Commands
-from Data       import Data
-from Code       import Code
-from Resolver   import Resolver
+from Parser         import Parser
+from Commands       import Commands
+from Data           import Data
+from Code           import Code
+from Resolver       import Resolver
+from Configuration  import Configuration
 
 from sys import argv
 
@@ -17,7 +18,8 @@ if __name__ == "__main__":
     del parser
     del commands
     print("Parsing and Allocation Done")
-    resolver = Resolver(data, code)
+    configuration   = Configuration()
+    resolver        = Resolver(data, code, configuration)
     resolver.resolve()
     print("Resolution Done")
     print("OK")

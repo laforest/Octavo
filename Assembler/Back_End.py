@@ -125,49 +125,6 @@ class Threads:
 
 # ---------------------------------------------------------------------------
 
-class Memory_Map:
-    """Describes the static properties of the data address space: shared, local, and high,
-       all zero-based, as the CPU applies default offsets to local mem at runtime."""
-
-    def __init__(self, memory_depth_words, memory_width_bits, memory_shared_count, memory_indirect_base, memory_indirect_count, memory_io_base, memory_io_count, default_offset_obj):
-        # Data Memory dimensions
-        self.depth      = memory_depth_words
-        self.width      = memory_width_bits
-
-        # Shared memory (all threads): 
-        self.shared     = range(memory_shared_count)
-        # Shared Literal Pool (Zero is reserved as zero-register, implemented by hardware also)
-        self.pool       = range(1, memory_indirect_base)
-        self.indirect   = range(memory_indirect_base, memory_indirect_base + memory_indirect_count)
-        self.io         = range(memory_io_base, memory_io_base + memory_io_count)
-
-        # Private memory range for one thread, no offset applied.
-        self.local    = range(memory_shared_count, memory_shared_count + default_offset_obj.local_mem_count)
-
-        # Total thread mem is shared + local, mapped consecutively.
-        self.total      = chain(self.shared, self.local)
-
-        # Base write addresses.
-        # Add these to A/B read address to get write address.
-        # I is only readable by the Program Counter, writable by code.
-        # H is only writable by code. Not readable at all.
-        self.write_bases = {"A":0, "B":1024, "I":2048, "H":3072}
-
-        # Config registers write addresses in write-only H (high) memory
-        self.s           = 3072
-        self.a_po        = [3076,3077,3078,3079]
-        self.b_po        = [3080,3081,3082,3083]
-        self.da_po       = [3084,3085,3086,3087]
-        self.db_po       = [3088,3089,3090,3091]
-        self.do          = 3092
-        self.bs1_sentinel= [3100,3106,3112,3118]
-        self.bs1_mask    = [3101,3107,3113,3119]
-        self.bs2_sentinel= [3102,3108,3114,3120]
-        self.bs2_mask    = [3103,3109,3115,3121]
-        self.bc          = [3104,3110,3116,3122]
-        self.bd          = [3105,3111,3117,3123]
-        self.od          = [3200,3201,3202,3203,3204,3205,3206,3207,3208,3209,3210,3211,3212,3213,3214,3215]
-
 # ---------------------------------------------------------------------------
 
 class Base_Memory:
@@ -204,26 +161,6 @@ class Base_Memory:
                 f.write(output + "\n")
 
 # ---------------------------------------------------------------------------
-
-class Default_Offset(Base_Memory):
-    """Calculates the run-time offsets applied by the CPU to accesses in local memory,
-       so that all available local memory is equally distributed amongst the threads."""
-
-    # This should be 10 for A/B memories, and 12 for DA/DB, but readmemh()
-    # expects an integral hex number, so 10 or 12 bits represents the same.
-    do_width = 12 
-
-    def __init__(self, filename, data_mem_depth, start_of_local_mem, thread_obj):
-        Base_Memory.__init__(self, thread_obj.count, self.do_width, filename)
-        # Divide between threads the remaining data memory after the shared memory range.
-        self.local_mem_count = ceil((data_mem_depth - start_of_local_mem) / thread_obj.count)
-        self.default_offset = [(self.local_mem_count * thread) for thread in thread_obj.all]
-        # Set these in memory init file so we don't have to do a tedious init
-        # code sequence. These offsets normally never change at runtime.
-        for thread in thread_obj.all:
-            offset = self.default_offset[thread]
-            offset = BitArray(uint=offset, length=self.width)
-            self.mem[thread] = offset;
 
 # ---------------------------------------------------------------------------
 
@@ -666,16 +603,6 @@ class Back_End:
     """Converts the intermediate data from the front end into binary machine code."""
 
     def __init__ (self):
-        # Only for object initialization.
-        self.thread_count            = 8
-        self.memory_depth_words      = 1024
-        self.memory_width_bits       = 36
-        self.memory_shared_count     = 32
-        # Must fit in shared, and match hardware
-        self.memory_indirect_base    = 24
-        self.memory_indirect_count   = 4
-        self.memory_io_base          = 28
-        self.memory_io_count         = 4
 
         self.Dyadic  = Dyadic_Operators()
         self.Triadic = Triadic_ALU_Operators(self.Dyadic)
