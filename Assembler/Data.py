@@ -41,9 +41,17 @@ class Data:
 
     def create_variable (self, label, initial_values = None):
         if initial_values is not None:
-            initial_values = [int(entry, 0) for entry in initial_values]
-            if len(initial_values) == 1:
-                initial_values = initial_values[0]
+            if type(initial_values) == list:
+                initial_values = [int(entry, 0) for entry in initial_values]
+                if len(initial_values) == 1:
+                    initial_values = initial_values[0]
+            elif type(initial_values) == str:
+                initial_values = int(initial_values, 0)
+            elif type(initial_values) == int:
+                pass
+            else:
+                print("Unusable initial value {0} for variable {1}".format(label, initial_values))
+                exit(1)
         new_variable = Variable(label = label, value = initial_values)
         return new_variable
 
@@ -74,4 +82,10 @@ class Data:
         new_port    = Port(label = label, number = number)
         self.ports.append(new_port)
         return new_port
+
+    def lookup_shared_value (self, value):
+        for entry in self.shared:
+            if entry.value == value:
+                return entry
+        return None
 
