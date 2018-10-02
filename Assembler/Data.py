@@ -89,3 +89,24 @@ class Data:
                 return entry
         return None
 
+    def max_variable_address (self, variables):
+        # No variable at address zero, ever. (Zero Register)
+        # We expect this to be pre-incremented when used
+        max_address = 0
+        for variable in variables:
+            address = variable.address
+            if address is not None:
+                max_address = max(address, max_address)
+        return max_address
+
+    def resolve_shared (self, value, memory):
+        entry = self.lookup_shared_value(value)
+        if entry is None:
+            entry = self.allocate_shared(None, initial_values = value)
+        entry.address = self.max_variable_address(self.shared) + 1
+        if entry.memory != memory and entry.memory is not None:
+            print("Conflicting memory allocation for shared value {0}. Was {1}, now {2}".format(value, entry.memory, memory))
+            exit(1)
+        entry.memory = memory 
+        return entry.address
+
