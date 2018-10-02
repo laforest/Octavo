@@ -187,4 +187,12 @@ class Code:
             print("ERROR: You must provide an initial PC for each of the {0} threads, but you provided {1}: {2}".format(self.thread_count, pc_count, pc_list))
             exit(1)
         self.initial_pc = pc_list
+
+    def all_instructions (self):
+        for instruction in self.instructions:
+            if type(instruction) == list:
+                for list_instruction in instruction:
+                    yield list_instruction
+            else:
+                yield instruction
  
