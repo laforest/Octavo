@@ -10,7 +10,6 @@ class Resolver:
         self.data           = data
         self.code           = code
         self.configuration  = configuration
-        self.shared_index   = {"A":1, "B":1}
 
     def try_int (self, value):
         try:
