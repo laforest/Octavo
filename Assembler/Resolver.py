@@ -27,18 +27,27 @@ class Resolver:
             self.resolve_read_operand(instruction, "A")
             self.resolve_read_operand(instruction, "B")
 
-    def resolve_read_operand (self, instruction, operand_name):
-        operand = getattr(instruction, operand_name)
+    def resolve_read_operand (self, instruction, operand):
+        value = getattr(instruction, operand)
         # Source is all strings, convert to int if possible
-        operand = self.try_int(operand)
+        value = self.try_int(value)
         # Zero has address zero, so nothing to do then.
-        if type(operand) == int and operand == 0:
-            setattr(instruction, operand_name, 0)
-            print(operand_name, operand, 0)
+        if type(value) == int and value == 0:
+            setattr(instruction, operand, 0)
+            print(operand, value, 0)
             return
         # If it's a non-zero number, add it to the shared memory pool
-        if type(operand) == int:
-            address = self.data.resolve_shared(operand, operand_name)
-            setattr(instruction, operand_name, address)
-            print(operand_name, operand, address)
+        if type(value) == int:
+            address = self.data.resolve_shared(value, operand)
+            setattr(instruction, operand, address)
+            print(operand, value, address)
+            return
+        # If it's a string, look it up and add it to whichever memory area it belongs to
+        if type(value) == str:
+            address = self.data.resolve_named_read(value, operand)
+            print(operand, value, address)
+            setattr(instruction, operand, address)
+            return
+            
+
  

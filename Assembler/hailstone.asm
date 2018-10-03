@@ -29,8 +29,8 @@ lsb_mask    shared      0xFFFFFFFFE
 seeds_len   shared      6
 newseed     private     0
 
-# name                  I/O port number
-seed_out    port        0
+# name                  I/O port memory and number
+seed_out    port        A 0
 
 # In which threads will this code run. This determines how many copies of the variables and arrays will be created.
 # The pointers are already multi-threaded in hardware.

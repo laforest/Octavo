@@ -12,32 +12,33 @@ class Variable:
         self.value   = value
         self.memory  = memory
 
-class Pointer:
+class Pointer (Variable):
     """Describes pointer initialization data and which indirect memory slot it refers to"""
 
     def __init__ (self, label = None, address = None, value = None, memory = None, read_base = None, read_incr = None, write_base = None, write_incr = None, slot = None):
-        self.init_data  = Variable(label = label, address = address, value = value, memory = memory)
+        Variable.__init__(self, label = label, address = address, value = value, memory = memory)
         self.read_base  = read_base
         self.read_incr  = read_incr
         self.write_base = write_base
         self.write_incr = write_incr
         self.slot       = slot
 
-class Port:
+class Port (Variable):
     """Describes an I/O port. Derive address from port number. Has no value (set to 0)."""
 
     def __init__ (self, label = None, address = None, memory = None, number = None):
-        self.data   = Variable(label = label, address = address, value = 0, memory = memory)
+        Variable.__init__(self, label = label, address = address, value = 0, memory = memory)
         self.number = number
 
 class Data:
     """Contains descriptions of data and resolves locations, etc... before passing to back-end for memory image generation"""
 
-    def __init__ (self):
+    def __init__ (self, configuration):
         self.private    = []
         self.shared     = []
         self.pointers   = []
         self.ports      = []
+        self.configuration = configuration
 
     def create_variable (self, label, initial_values = None):
         if initial_values is not None:
@@ -77,9 +78,9 @@ class Data:
         self.pointers.append(new_pointer)
         return new_pointer
 
-    def allocate_port (self, label, number):
+    def allocate_port (self, label, memory, number):
         number      = int(number, 0)
-        new_port    = Port(label = label, number = number)
+        new_port    = Port(label = label, number = number, memory = memory)
         self.ports.append(new_port)
         return new_port
 
@@ -88,6 +89,13 @@ class Data:
             if entry.value == value:
                 return entry
         return None
+
+    def lookup_variable (self, label):
+        for memory_list in [self.shared, self.private, self.pointers, self.ports]:
+            for entry in memory_list:
+                if entry.label == label:
+                    return (memory_list, entry)
+        return (None, None)
 
     def max_variable_address (self, variables):
         # No variable at address zero, ever. (Zero Register)
@@ -99,14 +107,66 @@ class Data:
                 max_address = max(address, max_address)
         return max_address
 
+    def max_pointer_slot (self, pointers):
+        # Pointer slots start at zero
+        # We expect this to be pre-incremented when used
+        max_slot = -1
+        for pointer in pointers:
+            slot = pointer.slot
+            if slot is not None:
+                max_slot = max(slot, max_slot)
+        return max_slot
+
     def resolve_shared (self, value, memory):
         entry = self.lookup_shared_value(value)
         if entry is None:
             entry = self.allocate_shared(None, initial_values = value)
-        entry.address = self.max_variable_address(self.shared) + 1
+        if entry.address is None:
+            entry.address = self.max_variable_address(self.shared) + 1
         if entry.memory != memory and entry.memory is not None:
             print("Conflicting memory allocation for shared value {0}. Was {1}, now {2}".format(value, entry.memory, memory))
             exit(1)
         entry.memory = memory 
         return entry.address
 
+    def resolve_named_read (self, name, memory):
+        memory_list, entry = self.lookup_variable(name)
+
+        if memory_list is None:
+            print("Unknown label {0}".format(name))
+            exit(1)
+
+        if memory_list == self.shared:
+            value = entry.value
+            address = self.resolve_shared(value, memory)
+            return address
+
+        if memory_list == self.private:
+            if entry.address is None:
+                entry.address = self.max_variable_address(self.private) + 1
+            if entry.memory != memory and entry.memory is not None:
+                print("Conflicting memory allocation for private variable {0}. Was {1}, now {2}".format(name, entry.memory, memory))
+                exit(1)
+            entry.memory = memory 
+            return entry.address
+
+        if memory_list == self.ports:
+            if entry.address is None:
+                entry.address = self.configuration.memory_map.io[entry.number]
+            if entry.memory != memory:
+                print("Conflicting memory allocation for I/O port {0}. Was {1}, now {2}".format(name, entry.memory, memory))
+                exit(1)
+            return entry.address
+            
+        if memory_list == self.pointers:
+            if entry.slot is None:
+                entry.slot = self.max_pointer_slot(self.pointers) + 1
+            if entry.address is None:
+                entry.address = self.configuration.memory_map.indirect[entry.slot]
+            if entry.memory != memory and entry.memory is not None:
+                print("Conflicting memory allocation for I/O port {0}. Was {1}, now {2}".format(name, entry.memory, memory))
+                exit(1)
+            entry.memory = memory 
+            return entry.address
+            
+        
