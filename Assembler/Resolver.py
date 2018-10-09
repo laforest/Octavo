@@ -20,6 +20,7 @@ class Resolver:
 
     def resolve (self):
         self.resolve_read_operands()
+        self.resolve_write_operands()
 
     def resolve_read_operands (self):
         for instruction in self.code.all_instructions():
@@ -43,10 +44,39 @@ class Resolver:
             return
         # If it's a string, look it up and add it to whichever memory area it belongs to
         if type(value) == str:
-            address = self.data.resolve_named_read(value, operand)
+            address = self.data.resolve_named(value, operand)
             print(operand, value, address)
             setattr(instruction, operand, address)
             return
-            
 
- 
+    def resolve_write_operands (self):
+        for instruction in self.code.all_instructions():
+            self.resolve_write_operand(instruction)
+
+    def resolve_write_operand (self, instruction):
+        is_dual = self.code.is_instruction_dual(instruction)
+        if is_dual is True:
+            self.resolve_write_operand_case(instruction, "DA")
+            self.resolve_write_operand_case(instruction, "DB")
+        else:
+            self.resolve_write_operand_case(instruction, "D") 
+
+    def resolve_write_operand_case (self, instruction, operand):
+        value = getattr(instruction, operand)
+        # Source is all strings, convert to int if possible
+        value = self.try_int(value)
+        # Literal ints as destination denote an absolute (thread) address
+        if type(value) == int:
+            print(operand, value)
+            setattr(instruction, operand, value);
+            return
+        # If it's a string, look it up, and replace with its write address
+        if type(value) == str:
+            dummy, variable = self.data.lookup_variable(value)
+            memory          = variable.memory
+            address         = self.data.resolve_named(value, memory)
+            address         = self.configuration.memory_map.read_to_write_address(address, memory)
+            print(operand, value, address)
+            setattr(instruction, operand, address)
+            return
+

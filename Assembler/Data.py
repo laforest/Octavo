@@ -129,7 +129,7 @@ class Data:
         entry.memory = memory 
         return entry.address
 
-    def resolve_named_read (self, name, memory):
+    def resolve_named (self, name, memory):
         memory_list, entry = self.lookup_variable(name)
 
         if memory_list is None:
