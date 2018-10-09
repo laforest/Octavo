@@ -55,6 +55,12 @@ class MemoryMap:
         self.bd             = [3105,3111,3117,3123]
         self.od             = [3200,3201,3202,3203,3204,3205,3206,3207,3208,3209,3210,3211,3212,3213,3214,3215]
 
+    def read_to_write_address (self, read_address, memory):
+        if memory == "A" or memory == "B":
+            return read_address + self.write_bases[memory]
+        print("Memory range {0} is not not readable, so no read address conversion is possible (absolute write address)".format(memory))
+        exit(1)
+
 class Configuration:
     """Place system configuration parameters here. Any hardcoded value goes here."""
 
