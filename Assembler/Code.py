@@ -196,3 +196,7 @@ class Code:
             else:
                 yield instruction
  
+    def is_instruction_dual (self, instruction):
+        opcode = self.lookup_opcode(instruction.opcode)
+        return opcode.is_dual()
+        
