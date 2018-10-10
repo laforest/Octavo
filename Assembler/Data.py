@@ -109,15 +109,14 @@ class Data:
                     max_data_length = len(variable.value)
         return max_address + max_data_length
 
-    def max_pointer_slot (self, pointers):
+    def next_pointer_slot (self, pointers):
         # Pointer slots start at zero
-        # We expect this to be pre-incremented when used
         max_slot = -1
         for pointer in pointers:
             slot = pointer.slot
             if slot is not None:
                 max_slot = max(slot, max_slot)
-        return max_slot
+        return max_slot + 1
 
     def resolve_shared (self, value, memory):
         entry = self.lookup_shared_value(value)
@@ -162,7 +161,7 @@ class Data:
             
         if memory_list == self.pointers:
             if entry.slot is None:
-                entry.slot = self.max_pointer_slot(self.pointers) + 1
+                entry.slot = self.next_pointer_slot(self.pointers)
             if entry.address is None:
                 entry.address = self.configuration.memory_map.indirect[entry.slot]
             if entry.memory != memory and entry.memory is not None:
