@@ -98,7 +98,7 @@ class Data:
     def next_variable_address (self, variables):
         # No variable at address zero, ever. (Zero Register)
         # Add the length of the data of the max-addressed variable
-        # so we allocate the next address just past its value(s)
+        # so we return the next address just past its value(s)
         max_address     = 0
         max_data_length = 1
         for variable in variables:
