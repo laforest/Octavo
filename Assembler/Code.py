@@ -64,14 +64,14 @@ class Initialization_Load:
         # keep any init instructions added later in order, so add list of init instructions
         code.instructions.append(self.instructions)
 
-    def add_variable (self, label):
+    def add_private (self, label):
         """Adds data for an initialization load. Order not important. Referenced by label."""
-        new_init_data = self.data.allocate_variable(label)
+        new_init_data = self.data.allocate_private(label)
         self.init_data.append(new_init_data)
 
-    def add_constant (self, label):
+    def add_shared (self, label):
         """Adds data for an initialization load. Order not important. Referenced by label."""
-        new_init_data = self.data.allocate_constant(label)
+        new_init_data = self.data.allocate_shared(label)
         self.init_data.append(new_init_data)
 
     def add_instruction (self, label):
@@ -98,6 +98,7 @@ class Branch:
         self.mask_b         = None
         self.counter        = None
         self.destination    = None
+        self.origin         = None
 
         if self.condition.a == "a_sentinel":
             self.sentinel_a = branch_parameters.pop(0)
