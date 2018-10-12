@@ -95,15 +95,16 @@ class Data:
                     return (memory_list, entry)
         return (None, None)
 
-    def next_variable_address (self, variables):
+    def next_variable_address (self, variables, memory):
         # No variable at address zero, ever. (Zero Register)
         # Add the length of the data of the max-addressed variable
         # so we return the next address just past its value(s)
+        # Find in the same memory only, of course
         max_address     = 0
         max_data_length = 1
         for variable in variables:
             address = variable.address
-            if address is not None:
+            if address is not None and variable.memory == memory:
                 if address > max_address:
                     max_address     = address
                     max_data_length = len(variable.value)
@@ -123,7 +124,7 @@ class Data:
         if entry is None:
             entry = self.allocate_shared(None, initial_values = value)
         if entry.address is None:
-            entry.address = self.next_variable_address(self.shared)
+            entry.address = self.next_variable_address(self.shared, memory)
         if entry.memory != memory and entry.memory is not None:
             print("Conflicting memory allocation for shared value {0}. Was {1}, now {2}".format(value, entry.memory, memory))
             exit(1)
@@ -144,7 +145,7 @@ class Data:
 
         if memory_list == self.private:
             if entry.address is None:
-                entry.address = self.next_variable_address(self.private)
+                entry.address = self.next_variable_address(self.private, memory)
             if entry.memory != memory and entry.memory is not None:
                 print("Conflicting memory allocation for private variable {0}. Was {1}, now {2}".format(name, entry.memory, memory))
                 exit(1)
