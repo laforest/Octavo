@@ -74,7 +74,7 @@ class Initialization_Load:
         new_init_data = self.data.allocate_shared(label)
         self.init_data.append(new_init_data)
 
-    def add_instruction (self, label):
+    def add_instruction (self, label = None):
         """Adds an instruction to initialization load. Remains in sequence added."""
         new_instruction = Instruction(label = label, opcode = "add")
         self.instructions.append(new_instruction)
@@ -200,4 +200,10 @@ class Code:
     def is_instruction_dual (self, instruction):
         opcode = self.lookup_opcode(instruction.opcode)
         return opcode.is_dual()
-        
+
+    def lookup_init_load (self, destination):
+        for init_load in self.init_loads:
+            if init_load.destination == destination:
+                return init_load
+        return None
+ 
