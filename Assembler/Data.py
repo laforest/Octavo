@@ -40,17 +40,34 @@ class Data:
         self.ports      = []
         self.configuration = configuration
 
+    def try_int (self, value):
+        if value is None:
+            return None
+        if type(value) == int:
+            return value
+        try:
+            value = int(value, 0)
+        except ValueError:
+            # Assume it's a string. Leave it alone until resolution.
+            pass
+        except TypeError:
+            print("\nInvalid type for int() conversion. Input {0} of type {1}.\n".format(value, type(value)))
+            raise TypeError
+        return value
+
     def create_variable (self, label, initial_values = None):
-        if initial_values is not None:
-            if type(initial_values) == list:
-                initial_values = [int(entry, 0) for entry in initial_values]
-            elif type(initial_values) == str:
-                initial_values = [int(initial_values, 0)]
-            elif type(initial_values) == int:
-                initial_values = [initial_values]
-            else:
-                print("Unusable initial value {0} for variable {1}".format(label, initial_values))
-                exit(1)
+        # Always a list so we can know the len() of the variable value
+        if type(initial_values) == list:
+            initial_values = [self.try_int(entry) for entry in initial_values]
+        elif type(initial_values) == str:
+            initial_values = [self.try_int(initial_values)]
+        elif type(initial_values) == int:
+            initial_values = [initial_values]
+        elif type(initial_values) == type(None):
+            initial_values = [None]
+        else:
+            print("Unusable initial value {0} for variable {1}".format(label, initial_values))
+            exit(1)
         new_variable = Variable(label = label, value = initial_values)
         return new_variable
 
@@ -82,12 +99,6 @@ class Data:
         self.ports.append(new_port)
         return new_port
 
-    def lookup_shared_value (self, value):
-        for entry in self.shared:
-            if entry.value == value:
-                return entry
-        return None
-
     def lookup_variable (self, label):
         for memory_list in [self.shared, self.private, self.pointers, self.ports]:
             for entry in memory_list:
@@ -102,13 +113,32 @@ class Data:
         # Find in the same memory only, of course
         max_address     = 0
         max_data_length = 1
+
+        # Find the higest set address in the given memory
         for variable in variables:
             address = variable.address
             if address is not None and variable.memory == memory:
                 if address > max_address:
                     max_address     = address
                     max_data_length = len(variable.value)
-        return max_address + max_data_length
+        next_address =  max_address + max_data_length
+
+        # Limit the address to the given range of the variables (shared, private, etc...)
+        # We assume shared starts at zero
+        if variables == self.shared and next_address not in self.configuration.memory_map.shared:
+            print("Out of bounds address {0} for shared variable. Limit is {1}.".format(next_address, self.configuration.memory_map.shared[-1]))
+            exit(1)
+
+        if variables == self.private and next_address not in self.configuration.memory_map.private:
+            # Catch the first private variable and put it at the start of the private area, the rest will follow.
+            if next_address < self.configuration.memory_map.private[0]:
+                next_address = self.configuration.memory_map.private[0]
+            else:
+                # Then it's greater...
+                print("Out of bounds address {0} for private variable. Limit is {1}".format(next_address, self.configuration.memory_map.private[-1]))
+                exit(1)
+
+        return next_address
 
     def next_pointer_slot (self, pointers):
         # Pointer slots start at zero
@@ -118,6 +148,14 @@ class Data:
             if slot is not None:
                 max_slot = max(slot, max_slot)
         return max_slot + 1
+
+    def lookup_shared_value (self, value):
+        for entry in self.shared:
+            # Skip shared variables that have not been set a value
+            # We don't collapse those into previously allocated values, assuming they will get one later.
+            if entry.value == value and entry.value != [None]:
+                return entry
+        return None
 
     def resolve_shared (self, value, memory):
         entry = self.lookup_shared_value(value)
@@ -141,6 +179,8 @@ class Data:
         if memory_list == self.shared:
             value = entry.value
             address = self.resolve_shared(value, memory)
+            if entry.address is None:
+                entry.address = self.next_variable_address(self.shared, memory)
             return address
 
         if memory_list == self.private:
@@ -166,7 +206,7 @@ class Data:
             if entry.address is None:
                 entry.address = self.configuration.memory_map.indirect[entry.slot]
             if entry.memory != memory and entry.memory is not None:
-                print("Conflicting memory allocation for I/O port {0}. Was {1}, now {2}".format(name, entry.memory, memory))
+                print("Conflicting memory allocation for pointer {0}. Was {1}, now {2}".format(name, entry.memory, memory))
                 exit(1)
             entry.memory = memory 
             return entry.address
