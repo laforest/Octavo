@@ -63,6 +63,18 @@ class Initialization_Load:
         self.data = data
         # keep any init instructions added later in order, so add list of init instructions
         code.instructions.append(self.instructions)
+        # variable locations are resolved based on where they are read first.
+        # keep a toggle here to evenly distribute init data between A and B memories.
+        self.memory = "A"
+
+    def toggle_memory (self):
+        if self.memory == "A":
+            self.memory = "B"
+        elif self.memory == "B":
+            self.memory == "A"
+        else:
+            print("Invalid memory {0} for initialization loads.".format(self.memory))
+            exit(1)
 
     def add_private (self, label):
         """Adds data for an initialization load. Order not important. Referenced by label."""
@@ -74,9 +86,17 @@ class Initialization_Load:
         new_init_data = self.data.allocate_shared(label)
         self.init_data.append(new_init_data)
 
-    def add_instruction (self, label = None):
+    def add_instruction (self, label, branch_destination, data_label):
         """Adds an instruction to initialization load. Remains in sequence added."""
-        new_instruction = Instruction(label = label, opcode = "add")
+        if self.memory == "A":
+            A = data_label
+            B = 0
+        elif self.memory == "B":
+            A = 0
+            B = data_label
+        else:
+            print("Invalid memory {0} as branch init data {1} location".format(self.memory, data_label))
+        new_instruction = Instruction(label = label, opcode = "add", D = branch_destination, A = A, B = B)
         self.instructions.append(new_instruction)
 
 class Branch:
@@ -179,8 +199,48 @@ class Code:
             self.allocate_instruction_simple(opcode_label, *operands)
 
     def allocate_branch (self, condition_label, branch_parameters):
-        new_branch = Branch(self, condition_label, branch_parameters)
-        self.branches.append(new_branch)
+        branch = Branch(self, condition_label, branch_parameters)
+        self.branches.append(branch)
+        destination = branch.destination
+        init_load   = self.lookup_init_load(destination)
+
+        # Since init is identical across threads, the data is shared
+        # There is always a label, which identifies the branch in question later.
+        # Since the init data is shared, but resolved to its value later,
+        # we have to give them temporary unique values
+
+        # First, the instruction/data to init the branch detector entry
+        data_label  = destination + "_init"
+        init_load.add_shared(data_label)
+        init_load.add_instruction(init_load.label, destination, data_label)
+        init_load.toggle_memory()
+
+        # Then add any instr/data to init other hardware if necessary
+        if branch.sentinel_a is not None:
+            data_label  = destination + "_init_sentinel_a"
+            init_load.add_shared(data_label)
+            init_load.add_instruction(None, destination, data_label)
+            data_label  = branch.destination + "_init_mask_a"
+            init_load.add_shared(data_label)
+            init_load.add_instruction(None, destination, data_label)
+            init_load.toggle_memory()
+
+        if branch.sentinel_b is not None:
+            data_label  = destination + "_init_sentinel_b"
+            init_load.add_shared(data_label)
+            init_load.add_instruction(None, destination, data_label)
+            data_label  = branch.destination + "_init_mask_b"
+            init_load.add_shared(data_label)
+            init_load.add_instruction(None, destination, data_label)
+            init_load.toggle_memory()
+
+        if branch.counter is not None:
+            data_label  = branch.destination + "_init_counter"
+            init_load.add_shared(data_label)
+            init_load.add_instruction(None, destination, data_label)
+            init_load.toggle_memory()
+
+        pprint(init_load.__dict__)
         
     def set_pc (self, label, pc_list):
         pc_count = len(pc_list)

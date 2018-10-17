@@ -12,16 +12,23 @@ class Resolver:
         self.configuration  = configuration
 
     def try_int (self, value):
+        if value is None:
+            return None
+        if type(value) == int:
+            return value
         try:
             value = int(value, 0)
         except ValueError:
+            # Assume it's a string. Leave it alone until resolution.
             pass
+        except TypeError:
+            print("\nInvalid type for int() conversion. Input {0} of type {1}.\n".format(value, type(value)))
+            raise TypeError
         return value
 
     def resolve (self):
         self.resolve_read_operands()
         self.resolve_write_operands()
-        self.resolve_branches()
 
     def resolve_read_operands (self):
         for instruction in self.code.all_instructions():
@@ -64,6 +71,7 @@ class Resolver:
 
     def resolve_write_operand_case (self, instruction, operand):
         value = getattr(instruction, operand)
+        print(instruction.opcode, value)
         # Source is all strings, convert to int if possible
         value = self.try_int(value)
         # Literal ints as destination denote an absolute (thread) address
@@ -81,29 +89,4 @@ class Resolver:
             setattr(instruction, operand, address)
             return
 
-    def resolve_branches (self):
-        for branch in self.code.branches:
-            self.resolve_branch(branch)
 
-    def resolve_branch (self, branch):
-        init_load           = self.code.lookup_init_load(branch.destination)
-        instruction_label   = init_load.label
-        # First, the instruction/data to init the branch detector entry
-        init_load.add_instruction(label = instruction_label)
-        init_load.add_shared(label = branch.destination + "_init")
-        # Then add any instr/data to init other hardware if necessary
-        # Since init is identical across threads, the data is shared
-        if branch.sentinel_a is not None:
-            init_load.add_instruction()
-            init_load.add_shared(label = branch.destination + "_init_sentinel_a")
-            init_load.add_instruction()
-            init_load.add_shared(label = branch.destination + "_init_mask_a")
-        if branch.sentinel_b is not None:
-            init_load.add_instruction()
-            init_load.add_shared(label = branch.destination + "_init_sentinel_b")
-            init_load.add_instruction()
-            init_load.add_shared(label = branch.destination + "_init_mask_b")
-        if branch.counter is not None:
-            init_load.add_instruction()
-            init_load.add_shared(label = branch.destination + "_init_counter")
-        pprint(init_load.__dict__)
