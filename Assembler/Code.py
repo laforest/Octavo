@@ -136,14 +136,52 @@ class Branch:
             print("Unparsed branch parameters {0} for branch {1}".format(branch_parameters, condition_label))
             exit(1)
 
+class Usage:
+    """Keeps track of used resources such as Branch Detectors"""
+
+    def init_flags (self, entries):
+        return [False for entry in range(len(entries))]
+
+    def __init__ (self, configuration):
+        self.configuration = configuration
+
+        self.bd_in_use = self.init_flags(self.configuration.memory_map.bd)
+
+        self.po_in_use = dict()
+        for operand in ["A", "B", "DA", "DB"]:
+            self.po_in_use[operand] = self.init_flags(self.configuration.memory_map.po[operand])
+
+        self.sentinel_in_use = dict()
+        self.mask_in_use     = dict()
+        for operand in ["A", "B"]:
+            self.sentinel_in_use[operand] = self.init_flags(self.configuration.memory_map.sentinel[operand])
+            self.mask_in_use[operand] = self.init_flags(self.configuration.memory_map.mask[operand])
+
+        self.bc_in_use = self.init_flags(self.configuration.memory_map.bc)
+        self.bd_in_use = self.init_flags(self.configuration.memory_map.bd)
+        self.od_in_use = self.init_flags(self.configuration.memory_map.od)
+        
+
+    def allocate_next (self, resource, usage_flags):
+        try:
+            index = usage_flags.index(False)
+        except ValueError:
+            print("No more free slots for {0}.".format(usage_flags))
+            exit(-1)
+        usage_flags[index] = True
+        address = resource[index]
+        return address
+
 
 class Code:
     """Parses the code, which drives the resolution of unknowns about the data."""
 
     thread_count = 8
 
-    def __init__ (self, data):
-        self.data = data
+    def __init__ (self, data, configuration):
+        self.data           = data
+        self.configuration  = configuration
+        self.usage          = Usage(configuration)
         self.threads        = []
         self.init_loads     = []
         self.instructions   = []
@@ -212,7 +250,8 @@ class Code:
         # First, the instruction/data to init the branch detector entry
         data_label  = destination + "_init"
         init_load.add_shared(data_label)
-        init_load.add_instruction(init_load.label, destination, data_label)
+        bd_addr = self.next_free_bd()
+        init_load.add_instruction(init_load.label, bd_addr, data_label)
         init_load.toggle_memory()
 
         # Then add any instr/data to init other hardware if necessary

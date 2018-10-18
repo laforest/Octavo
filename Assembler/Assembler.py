@@ -12,7 +12,7 @@ from sys import argv
 if __name__ == "__main__":
     configuration   = Configuration()
     data            = Data(configuration)
-    code            = Code(data)
+    code            = Code(data, configuration)
     commands        = Commands(data, code)
     parser          = Parser(commands)
     parser.parse_file(argv[1])
