@@ -42,15 +42,18 @@ class MemoryMap:
         # Config registers write addresses in write-only H (high) memory
         # ECL XXX FIXME These should be computed from configuration, not hardcoded.
         self.s              = 3072
-        self.a_po           = [3076,3077,3078,3079]
-        self.b_po           = [3080,3081,3082,3083]
-        self.da_po          = [3084,3085,3086,3087]
-        self.db_po          = [3088,3089,3090,3091]
+        self.po             = dict()
+        self.po["A"]        = [3076,3077,3078,3079]
+        self.po["B"]        = [3080,3081,3082,3083]
+        self.po["DA"]       = [3084,3085,3086,3087]
+        self.po["DB"]       = [3088,3089,3090,3091]
         self.do             = 3092
-        self.bs1_sentinel   = [3100,3106,3112,3118]
-        self.bs1_mask       = [3101,3107,3113,3119]
-        self.bs2_sentinel   = [3102,3108,3114,3120]
-        self.bs2_mask       = [3103,3109,3115,3121]
+        self.sentinel       = dict()
+        self.mask           = dict()
+        self.sentinel["A"]  = [3100,3106,3112,3118]
+        self.mask["A"]      = [3101,3107,3113,3119]
+        self.sentinel["B"]  = [3102,3108,3114,3120]
+        self.mask["B"]      = [3103,3109,3115,3121]
         self.bc             = [3104,3110,3116,3122]
         self.bd             = [3105,3111,3117,3123]
         self.od             = [3200,3201,3202,3203,3204,3205,3206,3207,3208,3209,3210,3211,3212,3213,3214,3215]
