@@ -56,6 +56,19 @@ class Initialization_Load:
        The instruction is always an 'Add to Zero', so must exist in the system.
        The destination is a code or data label identifying the pointer or branch."""
 
+    # variable locations are resolved based on where they are read first.
+    # keep a toggle here to evenly distribute init data between A and B memories.
+    memory = "A"
+
+    def toggle_memory (self):
+        if Initialization_Load.memory == "A":
+            Initialization_Load.memory = "B"
+        elif Initialization_Load.memory == "B":
+            Initialization_Load.memory == "A"
+        else:
+            print("Invalid memory {0} for initialization loads.".format(Initialization_Load.memory))
+            exit(1)
+
     def __init__ (self, data, code, label = None, destination = None,):
         self.label          = label
         self.destination    = destination
@@ -64,18 +77,6 @@ class Initialization_Load:
         self.data = data
         # keep any init instructions added later in order, so add list of init instructions
         code.instructions.append(self.instructions)
-        # variable locations are resolved based on where they are read first.
-        # keep a toggle here to evenly distribute init data between A and B memories.
-        self.memory = "A"
-
-    def toggle_memory (self):
-        if self.memory == "A":
-            self.memory = "B"
-        elif self.memory == "B":
-            self.memory == "A"
-        else:
-            print("Invalid memory {0} for initialization loads.".format(self.memory))
-            exit(1)
 
     def add_private (self, label):
         """Adds data for an initialization load. Order not important. Referenced by label."""
@@ -89,14 +90,14 @@ class Initialization_Load:
 
     def add_instruction (self, label, branch_destination, data_label):
         """Adds an instruction to initialization load. Remains in sequence added."""
-        if self.memory == "A":
+        if Initialization_Load.memory == "A":
             A = data_label
             B = 0
-        elif self.memory == "B":
+        elif Initialization_Load.memory == "B":
             A = 0
             B = data_label
         else:
-            print("Invalid memory {0} as branch init data {1} location".format(self.memory, data_label))
+            print("Invalid memory {0} as branch init data {1} location".format(Initialization_Load.memory, data_label))
         new_instruction = Instruction(label = label, opcode = "add", D = branch_destination, A = A, B = B)
         self.instructions.append(new_instruction)
 
@@ -269,7 +270,6 @@ class Code:
         init_load.add_shared(data_label)
         bd_addr = self.usage.allocate_bd()
         init_load.add_instruction(init_load.label, bd_addr, data_label)
-        init_load.toggle_memory()
 
         # Then add any instr/data to init other hardware if necessary
         if branch.sentinel_a is not None:
@@ -280,7 +280,6 @@ class Code:
             data_label  = branch.destination + "_init_mask_a"
             init_load.add_shared(data_label)
             init_load.add_instruction(None, mask_addr, data_label)
-            init_load.toggle_memory()
 
         if branch.sentinel_b is not None:
             (sentinel_addr, mask_addr) = self.usage.allocate_sentinel_mask("B")
@@ -290,17 +289,15 @@ class Code:
             data_label  = branch.destination + "_init_mask_b"
             init_load.add_shared(data_label)
             init_load.add_instruction(None, mask_addr, data_label)
-            init_load.toggle_memory()
 
         if branch.counter is not None:
             bc_addr = self.usage.allocate_bc()
             data_label  = branch.destination + "_init_counter"
             init_load.add_shared(data_label)
             init_load.add_instruction(None, bc_addr, data_label)
-            init_load.toggle_memory()
+        # Next init code/data will use the other data memory to even out their use
+        init_load.toggle_memory()
 
-        pprint(init_load.__dict__)
-        
     def set_pc (self, label, pc_list):
         pc_count = len(pc_list)
         if pc_count != self.thread_count:
