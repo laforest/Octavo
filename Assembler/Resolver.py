@@ -68,15 +68,14 @@ class Resolver:
             self.resolve_write_operand_case(instruction, "DB")
         else:
             self.resolve_write_operand_case(instruction, "D") 
+        print(instruction.opcode, instruction.D, instruction.A, instruction.B)
 
     def resolve_write_operand_case (self, instruction, operand):
         value = getattr(instruction, operand)
-        print(instruction.opcode, value)
         # Source is all strings, convert to int if possible
         value = self.try_int(value)
         # Literal ints as destination denote an absolute (thread) address
         if type(value) == int:
-            print(operand, value)
             setattr(instruction, operand, value);
             return
         # If it's a string, look it up, and replace with its write address
@@ -85,7 +84,6 @@ class Resolver:
             memory          = variable.memory
             address         = self.data.resolve_named(value, memory)
             address         = self.configuration.memory_map.read_to_write_address(address, memory)
-            print(operand, value, address)
             setattr(instruction, operand, address)
             return
 
