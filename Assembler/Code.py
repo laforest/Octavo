@@ -7,7 +7,7 @@ from pprint import pprint
 class Opcode:
     """Contains symbolic information to assemble the bit representation of an opcode""" 
 
-    def __init__ (self, label, split, shift, dyadic3, addsub, dual, dyadic2, dyadic1, select):
+    def __init__ (self, label, split, shift, dyadic3, addsub, dual, dyadic2, dyadic1, select, op_addr):
         self.label      = label
         self.split      = split
         self.shift      = shift
@@ -17,6 +17,7 @@ class Opcode:
         self.dyadic2    = dyadic2
         self.dyadic1    = dyadic1
         self.select     = select
+        self.addr       = op_addr
 
     def is_dual (self):
         if self.dual == "dual":
@@ -145,8 +146,6 @@ class Usage:
     def __init__ (self, configuration):
         self.configuration = configuration
 
-        self.bd_in_use = self.init_flags(self.configuration.memory_map.bd)
-
         self.po_in_use = dict()
         for operand in ["A", "B", "DA", "DB"]:
             self.po_in_use[operand] = self.init_flags(self.configuration.memory_map.po[operand])
@@ -161,7 +160,6 @@ class Usage:
         self.bd_in_use = self.init_flags(self.configuration.memory_map.bd)
         self.od_in_use = self.init_flags(self.configuration.memory_map.od)
         
-
     def allocate_next (self, resource, usage_flags):
         try:
             index = usage_flags.index(False)
@@ -171,6 +169,24 @@ class Usage:
         usage_flags[index] = True
         address = resource[index]
         return address
+
+    def allocate_bd (self):
+        return self.allocate_next(self.configuration.memory_map.bd, self.bd_in_use)
+
+    def allocate_po (self, operand):
+        return self.allocate_next(self.configuration.memory_map.po[operand], self.po_in_use[operand])
+
+    def allocate_sentinel_mask (self, operand):
+        # Allocate together to make sure the allocate_next() internal indexes always match
+        sentinel_addr = self.allocate_next(self.configuration.memory_map.sentinel[operand], self.sentinel_in_use[operand])
+        mask_addr = self.allocate_next(self.configuration.memory_map.mask[operand], self.mask_in_use[operand])
+        return (sentinel_addr, mask_addr)
+
+    def allocate_bc (self):
+        return self.allocate_next(self.configuration.memory_map.bc, self.bc_in_use)
+
+    def allocate_od (self):
+        return self.allocate_next(self.configuration.memory_map.od, self.od_in_use)
 
 
 class Code:
@@ -198,7 +214,8 @@ class Code:
         self.init_loads.append(new_init_load)
 
     def allocate_opcode (self, label, split, shift, dyadic3, addsub, dual, dyadic2, dyadic1, select):
-        new_opcode = Opcode(label, split, shift, dyadic3, addsub, dual, dyadic2, dyadic1, select)
+        op_addr = self.usage.allocate_od()
+        new_opcode = Opcode(label, split, shift, dyadic3, addsub, dual, dyadic2, dyadic1, select, op_addr)
         self.opcodes.append(new_opcode)
         return new_opcode
         
@@ -248,35 +265,38 @@ class Code:
         # we have to give them temporary unique values
 
         # First, the instruction/data to init the branch detector entry
-        data_label  = destination + "_init"
+        data_label = destination + "_init"
         init_load.add_shared(data_label)
-        bd_addr = self.next_free_bd()
+        bd_addr = self.usage.allocate_bd()
         init_load.add_instruction(init_load.label, bd_addr, data_label)
         init_load.toggle_memory()
 
         # Then add any instr/data to init other hardware if necessary
         if branch.sentinel_a is not None:
+            (sentinel_addr, mask_addr) = self.usage.allocate_sentinel_mask("A")
             data_label  = destination + "_init_sentinel_a"
             init_load.add_shared(data_label)
-            init_load.add_instruction(None, destination, data_label)
+            init_load.add_instruction(None, sentinel_addr, data_label)
             data_label  = branch.destination + "_init_mask_a"
             init_load.add_shared(data_label)
-            init_load.add_instruction(None, destination, data_label)
+            init_load.add_instruction(None, mask_addr, data_label)
             init_load.toggle_memory()
 
         if branch.sentinel_b is not None:
+            (sentinel_addr, mask_addr) = self.usage.allocate_sentinel_mask("B")
             data_label  = destination + "_init_sentinel_b"
             init_load.add_shared(data_label)
-            init_load.add_instruction(None, destination, data_label)
+            init_load.add_instruction(None, sentinel_addr, data_label)
             data_label  = branch.destination + "_init_mask_b"
             init_load.add_shared(data_label)
-            init_load.add_instruction(None, destination, data_label)
+            init_load.add_instruction(None, mask_addr, data_label)
             init_load.toggle_memory()
 
         if branch.counter is not None:
+            bc_addr = self.usage.allocate_bc()
             data_label  = branch.destination + "_init_counter"
             init_load.add_shared(data_label)
-            init_load.add_instruction(None, destination, data_label)
+            init_load.add_instruction(None, bc_addr, data_label)
             init_load.toggle_memory()
 
         pprint(init_load.__dict__)
