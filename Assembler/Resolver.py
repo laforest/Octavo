@@ -29,6 +29,24 @@ class Resolver:
     def resolve (self):
         self.resolve_read_operands()
         self.resolve_write_operands()
+        self.resolve_pointers()
+
+        # Print simple code/data dump to check if we have resolved everything
+        print("\nCurrent shared variables:")
+        for variable in self.data.shared:
+            print(variable.__dict__)
+        print("\nCurrent private variables:")
+        for variable in self.data.private:
+            print(variable.__dict__)
+        print("\nCurrent pointer variables:")
+        for variable in self.data.pointers:
+            print(variable.__dict__)
+        print("\nCurrent port variables:")
+        for variable in self.data.ports:
+            print(variable.__dict__)
+        print("\nCurrent branches:")
+        for branch in self.code.branches:
+            print(branch.__dict__)
 
     def resolve_read_operands (self):
         for instruction in self.code.all_instructions():
@@ -87,4 +105,19 @@ class Resolver:
             setattr(instruction, operand, address)
             return
 
+    def resolve_pointers (self):
+        for pointer in self.data.pointers:
+            self.resolve_pointer(pointer)
+
+    def resolve_pointer (self, pointer):
+        read_variable_list, read_variable   = self.data.lookup_variable(pointer.read_base)
+        write_variable_list, write_variable = self.data.lookup_variable(pointer.write_base)
+        read_variable.memory    = pointer.memory
+        write_variable.memory   = pointer.memory
+        read_variable.address   = self.data.next_variable_address(read_variable_list,  read_variable.memory)
+        # Don't allocate twice if read/write are the same variable
+        if write_variable != read_variable:
+            write_variable.address  = self.data.next_variable_address(write_variable_list, write_variable.memory)
+        pointer.read_base       = read_variable.address
+        pointer.write_base      = write_variable.address
 
