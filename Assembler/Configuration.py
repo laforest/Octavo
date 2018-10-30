@@ -3,23 +3,27 @@
 # To concatenate range() iterators
 from itertools  import chain
 from math       import ceil
+from pprint     import pformat
+from Debug      import Debug
 
-class DefaultOffset:
+class DefaultOffset (Debug):
     """Calculates the run-time offsets applied by the CPU to accesses in private memory,
        so that all available private memory is equally distributed amongst the threads.
        Set the offsets in a memory init file so we don't have to do a tedious init
        code sequence. These offsets normally never change at runtime."""
 
     def __init__ (self, data_mem_depth, start_of_private_mem, thread_count):
+        Debug.__init__(self)
         # Divide between threads the remaining data memory after the shared memory range.
         self.private_mem_depth  = ceil((data_mem_depth - start_of_private_mem) / thread_count)
         self.default_offset     = [(self.private_mem_depth * thread) for thread in range(thread_count)]
 
-class MemoryMap:
+class MemoryMap (Debug):
     """Describes the static properties of the data address space: shared, private, and high,
        all zero-based, as the CPU applies default offsets to private mem accesses at runtime."""
 
     def __init__ (self, memory_shared_count, memory_indirect_base, memory_indirect_count, memory_io_base, memory_io_count, default_offset_obj):
+        Debug.__init__(self)
         # Shared memory (all threads): 
         self.shared     = range(memory_shared_count)
         # Shared Literal Pool (Zero is reserved as zero-register, implemented by hardware also)
@@ -64,10 +68,11 @@ class MemoryMap:
         print("Memory range {0} is not not readable, so no read address conversion is possible (absolute write address)".format(memory))
         exit(1)
 
-class Configuration:
+class Configuration (Debug):
     """Place system configuration parameters here. Any hardcoded value goes here."""
 
     def __init__ (self):
+        Debug.__init__(self)
         self.thread_count           = 8
         self.memory_depth_words     = 1024
         self.memory_width_bits      = 36

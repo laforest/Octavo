@@ -1,12 +1,15 @@
 #! /usr/bin/python3
 
-from sys import exit
-from pprint import pprint
+from sys        import exit
+from pprint     import pprint
+from Utility    import Utility
+from Debug      import Debug
 
-class Variable:
+class Variable (Debug):
     """Describes a variable and what we know about it so far"""
 
     def __init__ (self, label = None, address = None, value = None, memory = None):
+        Debug.__init__(self)
         self.label   = label
         self.address = address
         self.value   = value
@@ -30,30 +33,17 @@ class Port (Variable):
         Variable.__init__(self, label = label, address = address, value = 0, memory = memory)
         self.number = number
 
-class Data:
+class Data (Utility, Debug):
     """Contains descriptions of data and resolves locations, etc... before passing to back-end for memory image generation"""
 
     def __init__ (self, configuration):
+        Utility.__init__(self)
+        Debug.__init__(self)
         self.private    = []
         self.shared     = []
         self.pointers   = []
         self.ports      = []
         self.configuration = configuration
-
-    def try_int (self, value):
-        if value is None:
-            return None
-        if type(value) == int:
-            return value
-        try:
-            value = int(value, 0)
-        except ValueError:
-            # Assume it's a string. Leave it alone until resolution.
-            pass
-        except TypeError:
-            print("\nInvalid type for int() conversion. Input {0} of type {1}.\n".format(value, type(value)))
-            raise TypeError
-        return value
 
     def create_variable (self, label, initial_values = None):
         # Always a list so we can know the len() of the variable value

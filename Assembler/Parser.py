@@ -1,9 +1,12 @@
 #! /usr/bin/python3
 
-class Parser:
+from Debug import Debug
+
+class Parser (Debug):
     """Parses the assembly file lines and passes non-file commands to the command parser"""
     
     def __init__ (self, commands):
+        Debug.__init__(self)
         self.commands = commands
 
     def strip_comments (self, line):

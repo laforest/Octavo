@@ -2,29 +2,18 @@
 
 from sys import exit
 from pprint import pprint
+from Utility import Utility
+from Debug import Debug
 
-class Resolver:
+class Resolver (Utility, Debug):
     """Takes the allocated intermediate structures and resolves names, addresses, and code. The final result gets used for binary image generation."""
 
     def __init__ (self, data, code, configuration):
+        Utility.__init__(self)
+        Debug.__init__(self)
         self.data           = data
         self.code           = code
         self.configuration  = configuration
-
-    def try_int (self, value):
-        if value is None:
-            return None
-        if type(value) == int:
-            return value
-        try:
-            value = int(value, 0)
-        except ValueError:
-            # Assume it's a string. Leave it alone until resolution.
-            pass
-        except TypeError:
-            print("\nInvalid type for int() conversion. Input {0} of type {1}.\n".format(value, type(value)))
-            raise TypeError
-        return value
 
     def resolve (self):
         self.resolve_read_operands()
@@ -34,19 +23,19 @@ class Resolver:
         # Print simple code/data dump to check if we have resolved everything
         print("\nCurrent shared variables:")
         for variable in self.data.shared:
-            print(variable.__dict__)
+            print(variable)
         print("\nCurrent private variables:")
         for variable in self.data.private:
-            print(variable.__dict__)
+            print(variable)
         print("\nCurrent pointer variables:")
         for variable in self.data.pointers:
-            print(variable.__dict__)
+            print(variable)
         print("\nCurrent port variables:")
         for variable in self.data.ports:
-            print(variable.__dict__)
+            print(variable)
         print("\nCurrent branches:")
         for branch in self.code.branches:
-            print(branch.__dict__)
+            print(branch)
 
     def resolve_read_operands (self):
         for instruction in self.code.all_instructions():

@@ -1,12 +1,14 @@
 #! /usr/bin/python3
 
-from sys import exit
+from sys    import exit
 from pprint import pprint
+from Debug  import Debug
 
-class Commands:
+class Commands (Debug):
     """Parses the assembly language commands into intermediate structures for later dependency resolutions."""
 
     def __init__ (self, data, code):
+        Debug.__init__(self)
         self.data = data
         self.code = code
 

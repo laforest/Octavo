@@ -1,13 +1,15 @@
 
 #! /usr/bin/python3
 
-from sys import exit
+from sys    import exit
 from pprint import pprint
+from Debug  import Debug
 
-class Opcode:
+class Opcode (Debug):
     """Contains symbolic information to assemble the bit representation of an opcode""" 
 
     def __init__ (self, label, split, shift, dyadic3, addsub, dual, dyadic2, dyadic1, select, op_addr):
+        Debug.__init__(self)
         self.label      = label
         self.split      = split
         self.shift      = shift
@@ -28,20 +30,22 @@ class Opcode:
             print("Invalid simple/dual opcode specifier {0} for opcode {1}".format(self.dual, self.label))
             exit(1)
 
-class Condition:
+class Condition (Debug):
     """Contains symbolic information to assemble the bit representation of a branch condition""" 
 
     def __init__ (self, label, a, b, ab_operator):
+        Debug.__init__(self)
         self.label          = label
         self.a              = a
         self.b              = b
         self.ab_operator    = ab_operator
 
 
-class Instruction:
+class Instruction (Debug):
     """Contains symbolic information to assemble the bit representation of an instruction""" 
 
     def __init__ (self, label = None, address = None, opcode = None, D = None, DA = None, DB = None, A = None, B = None):
+        Debug.__init__(self)
         self.label      = label
         self.address    = address
         self.opcode     = opcode
@@ -51,7 +55,7 @@ class Instruction:
         self.A          = A
         self.B          = B
 
-class Initialization_Load:
+class Initialization_Load (Debug):
     """Contains info necessary to generate an initialization load instructions and data.
        The instruction is always an 'Add to Zero', so must exist in the system.
        The destination is a code or data label identifying the pointer or branch."""
@@ -70,6 +74,7 @@ class Initialization_Load:
             exit(1)
 
     def __init__ (self, data, code, label = None, destination = None,):
+        Debug.__init__(self)
         self.label          = label
         self.destination    = destination
         self.instructions   = []
@@ -101,10 +106,11 @@ class Initialization_Load:
         new_instruction = Instruction(label = label, opcode = "add", D = branch_destination, A = A, B = B)
         self.instructions.append(new_instruction)
 
-class Branch:
+class Branch (Debug):
     """Holds the possible parameters to create a branch initialization load(s)."""
 
     def __init__ (self, code, condition_label, branch_parameters):
+        Debug.__init__(self)
         self.condition = code.lookup_condition(condition_label)
 
         label = branch_parameters.pop(0)
@@ -138,13 +144,14 @@ class Branch:
             print("Unparsed branch parameters {0} for branch {1}".format(branch_parameters, condition_label))
             exit(1)
 
-class Usage:
+class Usage (Debug):
     """Keeps track of used resources such as Branch Detectors"""
 
     def init_flags (self, entries):
         return [False for entry in range(len(entries))]
 
     def __init__ (self, configuration):
+        Debug.__init__(self)
         self.configuration = configuration
 
         self.po_in_use = dict()
@@ -190,12 +197,13 @@ class Usage:
         return self.allocate_next(self.configuration.memory_map.od, self.od_in_use)
 
 
-class Code:
+class Code (Debug):
     """Parses the code, which drives the resolution of unknowns about the data."""
 
     thread_count = 8
 
     def __init__ (self, data, configuration):
+        Debug.__init__(self)
         self.data           = data
         self.configuration  = configuration
         self.usage          = Usage(configuration)
