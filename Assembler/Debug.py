@@ -18,3 +18,7 @@ class Debug:
             output += str(entry) + "\n"
         return output
 
+    def filedump (self, filename):
+        with open(filename, 'w') as f:
+            print(self, end="", file=f)
+
