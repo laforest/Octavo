@@ -20,23 +20,6 @@ class Resolver (Utility, Debug):
         self.resolve_write_operands()
         self.resolve_pointers()
 
-        # Print simple code/data dump to check if we have resolved everything
-        print("\nCurrent shared variables:")
-        for variable in self.data.shared:
-            print(variable)
-        print("\nCurrent private variables:")
-        for variable in self.data.private:
-            print(variable)
-        print("\nCurrent pointer variables:")
-        for variable in self.data.pointers:
-            print(variable)
-        print("\nCurrent port variables:")
-        for variable in self.data.ports:
-            print(variable)
-        print("\nCurrent branches:")
-        for branch in self.code.branches:
-            print(branch)
-
     def resolve_read_operands (self):
         for instruction in self.code.all_instructions():
             self.resolve_read_operand(instruction, "A")

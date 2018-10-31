@@ -85,3 +85,11 @@ class Configuration (Debug):
         self.default_offset         = DefaultOffset (self.memory_depth_words, self.memory_shared_count, self.thread_count)
         self.memory_map             = MemoryMap (self.memory_shared_count, self.memory_indirect_base, self.memory_indirect_count, self.memory_io_base, self.memory_io_count, self.default_offset)
 
+    def __str__ (self):
+        output = ""
+        output += super().__str__() + "\n"
+        output += str(self.default_offset) + "\n"
+        output += str(self.memory_map) + "\n"
+        return output
+
+

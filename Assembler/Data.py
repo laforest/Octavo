@@ -45,6 +45,16 @@ class Data (Utility, Debug):
         self.ports      = []
         self.configuration = configuration
 
+    def __str__ (self):
+        output = "\nData:\n"
+        output += "\nPrivate Variables:\n"
+        output += self.list_str(self.private)
+        output += "\nShared Variables:\n"
+        output += self.list_str(self.shared) + "\n"
+        output += self.list_str(self.pointers) + "\n"
+        output += self.list_str(self.ports) + "\n"
+        return output
+
     def create_variable (self, label, initial_values = None):
         # Always a list so we can know the len() of the variable value
         if type(initial_values) == list:

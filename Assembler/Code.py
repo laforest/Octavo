@@ -40,7 +40,6 @@ class Condition (Debug):
         self.b              = b
         self.ab_operator    = ab_operator
 
-
 class Instruction (Debug):
     """Contains symbolic information to assemble the bit representation of an instruction""" 
 
@@ -82,6 +81,14 @@ class Initialization_Load (Debug):
         self.data = data
         # keep any init instructions added later in order, so add list of init instructions
         code.instructions.append(self.instructions)
+
+    def __str__ (self):
+        output = "\nInit Load:\n"
+        output += "Label: " + str(self.label) + "\n"
+        output += "Dest: " + str(self.destination) + "\n"
+        output += self.list_str(self.instructions)
+        output += self.list_str(self.init_data)
+        return output
 
     def add_private (self, label):
         """Adds data for an initialization load. Order not important. Referenced by label."""
@@ -214,6 +221,18 @@ class Code (Debug):
         self.conditions     = []
         self.branches       = []
         self.initial_pc     = []
+
+    def __str__ (self):
+        output = "\nCode:\n"
+        output += "\n" + str(self.usage) + "\n"
+        output += "\nThreads: " + str(self.threads) + "\n"  
+        output += self.list_str(self.init_loads) + "\n"
+        output += self.list_str(self.instructions) + "\n"
+        output += self.list_str(self.opcodes) + "\n"
+        output += self.list_str(self.conditions) + "\n"
+        output += self.list_str(self.branches) + "\n"
+        output += str(self.initial_pc) + "\n"
+        return output
 
     def set_current_threads (self, thread_list):
         self.threads = thread_list

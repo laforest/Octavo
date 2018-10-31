@@ -10,5 +10,11 @@ class Debug:
 
     def __str__ (self):
         """Debug information formatter."""
-        return self.__class__.__name__ + ": " + pformat(self.__dict__, width=160)
+        return self.__class__.__name__ + " ({0}): ".format(hex(id(self))) + pformat(self.__dict__, width=160)
+
+    def list_str (self, items):
+        output = ""
+        for entry in items:
+            output += str(entry) + "\n"
+        return output
 
