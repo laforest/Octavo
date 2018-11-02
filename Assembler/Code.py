@@ -2,7 +2,6 @@
 #! /usr/bin/python3
 
 from sys    import exit
-from pprint import pprint
 from Debug  import Debug
 
 class Opcode (Debug):

@@ -1,7 +1,6 @@
 #! /usr/bin/python3
 
 from sys import exit
-from pprint import pprint
 from Utility import Utility
 from Debug import Debug
 
@@ -32,18 +31,18 @@ class Resolver (Utility, Debug):
         # Zero has address zero, so nothing to do then.
         if type(value) == int and value == 0:
             setattr(instruction, operand, 0)
-            print(operand, value, 0)
+#            print(operand, value, 0)
             return
         # If it's a non-zero number, add it to the shared memory pool
         if type(value) == int:
             address = self.data.resolve_shared(value, operand)
             setattr(instruction, operand, address)
-            print(operand, value, address)
+#            print(operand, value, address)
             return
         # If it's a string, look it up and add it to whichever memory area it belongs to
         if type(value) == str:
             address = self.data.resolve_named(value, operand)
-            print(operand, value, address)
+#            print(operand, value, address)
             setattr(instruction, operand, address)
             return
 
@@ -58,7 +57,7 @@ class Resolver (Utility, Debug):
             self.resolve_write_operand_case(instruction, "DB")
         else:
             self.resolve_write_operand_case(instruction, "D") 
-        print(instruction.opcode, instruction.D, instruction.A, instruction.B)
+#        print(instruction.opcode, instruction.D, instruction.A, instruction.B)
 
     def resolve_write_operand_case (self, instruction, operand):
         value = getattr(instruction, operand)

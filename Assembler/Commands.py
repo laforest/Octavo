@@ -1,7 +1,6 @@
 #! /usr/bin/python3
 
 from sys    import exit
-from pprint import pprint
 from Debug  import Debug
 
 class Commands (Debug):
@@ -36,16 +35,16 @@ class Commands (Debug):
             return
 
     def parse_command (self, command, arguments):
-        label               = None
-        command_exists = self.find_command(command)
+        label           = None
+        command_exists  = self.find_command(command)
 
         if command_exists is False:
             label       = command
             command     = arguments[0]
             arguments   = arguments[1:]
-            print("Found label: {0} for command {1}".format(label, command))
-        else:
-            print("Found command: {0}".format(command))
+#            print("Found label: {0} for command {1}".format(label, command))
+#        else:
+#            print("Found command: {0}".format(command))
         arguments.insert(0, label)
 
         command_exists = self.find_command(command)
