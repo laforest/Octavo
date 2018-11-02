@@ -16,6 +16,9 @@ if __name__ == "__main__":
     commands        = Commands(data, code)
     parser          = Parser(commands)
     parser.parse_file(argv[1])
+    print(configuration)
+    print(data)
+    print(code)
     del parser
     del commands
     print("Parsing and Allocation Done")
