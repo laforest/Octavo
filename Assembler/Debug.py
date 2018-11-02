@@ -1,6 +1,7 @@
 #! /usr/bin/python3
 
 from pprint import pformat
+from sys    import exit
 
 class Debug:
     """Common debug code."""
@@ -18,7 +19,14 @@ class Debug:
             output += str(entry) + "\n"
         return output
 
-    def filedump (self, filename):
-        with open(filename, 'w') as f:
+    def filedump (self, filename, append = False):
+        if append is False:
+            mode = 'w'
+        elif append is True:
+            mode = 'a'
+        else:
+            print("debug filedump append flag must be True/False, not {0}".format(append))
+            exit(1)
+        with open(filename, mode) as f:
             print(self, end="", file=f)
 
