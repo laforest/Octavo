@@ -119,6 +119,9 @@ class Branch (Debug):
     def __init__ (self, code, condition_label, branch_parameters):
         Debug.__init__(self)
         self.condition = code.lookup_condition(condition_label)
+        # The init load was already given, just blank.
+        # We will fill it with the necessary code/data when we allocate this branch.
+        self.init_load = None
 
         label = branch_parameters.pop(0)
         if label is not None:
@@ -282,48 +285,47 @@ class Code (Debug):
             self.allocate_instruction_simple(opcode_label, *operands)
 
     def allocate_branch (self, condition_label, branch_parameters):
+
+        # Since init is identical across threads, the data is shared There is
+        # always a destination label, which identifies the branch in question
+        # later.  Since the init data is shared, but resolved to its value
+        # later, we have to give them temporary unique values so they don't end
+        # up coalesced into a single value by the shared variable resolution
+        # process.
+
         branch = Branch(self, condition_label, branch_parameters)
+        branch.init_load = self.lookup_init_load(branch.destination)
         self.branches.append(branch)
-        destination = branch.destination
-        init_load   = self.lookup_init_load(destination)
 
-        # Since init is identical across threads, the data is shared
-        # There is always a label, which identifies the branch in question later.
-        # Since the init data is shared, but resolved to its value later,
-        # we have to give them temporary unique values
-
-        # First, the instruction/data to init the branch detector entry
-        data_label = destination + "_init"
-        init_load.add_shared(data_label)
+        # First, the instruction and data to initialize the branch detector entry
+        data_label = branch.destination + "_init"
+        branch.init_load.add_shared(data_label)
         bd_addr = self.usage.allocate_bd()
-        init_load.add_instruction(init_load.label, bd_addr, data_label)
+        branch.init_load.add_instruction(branch.init_load.label, bd_addr, data_label)
 
         # Then add any instr/data to init other hardware if necessary
+
         if branch.sentinel_a is not None:
             (sentinel_addr, mask_addr) = self.usage.allocate_sentinel_mask("A")
-            data_label  = destination + "_init_sentinel_a"
-            init_load.add_shared(data_label)
-            init_load.add_instruction(None, sentinel_addr, data_label)
-            data_label  = branch.destination + "_init_mask_a"
-            init_load.add_shared(data_label)
-            init_load.add_instruction(None, mask_addr, data_label)
+            branch.init_load.add_shared(branch.sentinel_a)
+            branch.init_load.add_instruction(None, sentinel_addr, branch.sentinel_a)
+            branch.init_load.add_shared(branch.mask_a)
+            branch.init_load.add_instruction(None, mask_addr, branch.mask_a)
 
         if branch.sentinel_b is not None:
             (sentinel_addr, mask_addr) = self.usage.allocate_sentinel_mask("B")
-            data_label  = destination + "_init_sentinel_b"
-            init_load.add_shared(data_label)
-            init_load.add_instruction(None, sentinel_addr, data_label)
-            data_label  = branch.destination + "_init_mask_b"
-            init_load.add_shared(data_label)
-            init_load.add_instruction(None, mask_addr, data_label)
+            branch.init_load.add_shared(branch.sentinel_b)
+            branch.init_load.add_instruction(None, sentinel_addr, branch.sentinel_b)
+            branch.init_load.add_shared(branch.mask_b)
+            branch.init_load.add_instruction(None, mask_addr, branch.mask_b)
 
         if branch.counter is not None:
             bc_addr = self.usage.allocate_bc()
-            data_label  = branch.destination + "_init_counter"
-            init_load.add_shared(data_label)
-            init_load.add_instruction(None, bc_addr, data_label)
+            branch.init_load.add_shared(branch.counter)
+            branch.init_load.add_instruction(None, bc_addr, branch.counter)
+
         # Next init code/data will use the other data memory to even out their use
-        init_load.toggle_memory()
+        branch.init_load.toggle_memory()
 
     def set_pc (self, label, pc_list):
         pc_count = len(pc_list)
