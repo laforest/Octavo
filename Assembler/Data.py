@@ -70,15 +70,39 @@ class Data (Utility, Debug):
         new_variable = Variable(label = label, value = initial_values)
         return new_variable
 
+    def lookup_variable (self, label):
+        """Locate variable if it exists. Search exhaustively to find duplicates."""
+        memory, variable = (None, None)
+        for memory_list in [self.shared, self.private, self.pointers, self.ports]:
+            for entry in memory_list:
+                if entry.label == label:
+                    if memory is not None and variable is not None:
+                        print("Duplicate label found: {0}!".format(label))
+                        exit(1)
+                    memory, variable = memory_list, entry
+        return (memory, variable)
+
     def allocate_private (self, label, initial_values = None):
-        new_variable = self.create_variable(label, initial_values = initial_values)
-        self.private.append(new_variable)
-        return new_variable
+        """Allocate, or return existing private variable. """
+        memory, variable = self.lookup_variable(label)
+        if memory != self.private and variable is not None:
+            print("The label {0} is already in use by a non-private variable!".format(label))
+            exit(1)
+        if variable is None:
+            variable = self.create_variable(label, initial_values = initial_values)
+            self.private.append(variable)
+        return variable
 
     def allocate_shared (self, label, initial_values = None):
-        new_variable = self.create_variable(label, initial_values = initial_values)
-        self.shared.append(new_variable)
-        return new_variable
+        """Allocate, or return existing shared variable."""
+        memory, variable = self.lookup_variable(label)
+        if memory != self.shared and variable is not None:
+            print("The label {0} is already in used by a non-shared variable!".format(label))
+            exit(1)
+        if variable is None:
+            variable = self.create_variable(label, initial_values = initial_values)
+            self.shared.append(variable)
+        return variable
 
     def allocate_pointer (self, label, read_base = None, read_incr = None, write_base = None, write_incr = None):
         # We can't determine the init data value until we know which Data Memory it's read from.
@@ -97,13 +121,6 @@ class Data (Utility, Debug):
         new_port    = Port(label = label, number = number, memory = memory)
         self.ports.append(new_port)
         return new_port
-
-    def lookup_variable (self, label):
-        for memory_list in [self.shared, self.private, self.pointers, self.ports]:
-            for entry in memory_list:
-                if entry.label == label:
-                    return (memory_list, entry)
-        return (None, None)
 
     def next_variable_address (self, variables, memory):
         # No variable at address zero, ever. (Zero Register)
@@ -176,11 +193,13 @@ class Data (Utility, Debug):
             exit(1)
 
         if memory_list == self.shared:
-            value = entry.value
-            address = self.resolve_shared(value, memory)
             if entry.address is None:
                 entry.address = self.next_variable_address(self.shared, memory)
-            return address
+            if entry.memory != memory and entry.memory is not None:
+                print("Conflicting memory allocation for shared variable {0}. Was {1}, now {2}".format(name, entry.memory, memory))
+                exit(1)
+            entry.memory = memory 
+            return entry.address
 
         if memory_list == self.private:
             if entry.address is None:
