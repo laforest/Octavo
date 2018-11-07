@@ -1,0 +1,52 @@
+Design Notes for Octavo Assembler.
+----------------------------------
+
+All names must be globally unique. Names are labels applied to variables, pointers, ports, or instructions.
+An absent name has no value (None), and is not included in any name search.
+
+Private variables are copied for each thread, with different addresses per thread, and always named, and so writable. They can only be looked up by name.
+
+Shared variables exist as a single copy, identically addressed, by all threads.
+If unnamed, they are constants (since they cannot be written to) and referenced by value only (named variables are ignored on lookup), and other references to the same value get pointed to the first such instance.
+If named, they are variables (since they are writable) and referenced by name only (ignored on value lookup).
+Unnamed shared variables cannot refer to named shared variables and vice-versa.
+
+Variables hold either no value (None), an integer (Int), or a list of values where each item is an integer.
+A variable name refers to the first element of a list.
+Lists eventually get resolved to a sequence of integers in memory.
+The memory bank of a variable is inferred from the first instruction read operand which accesses it.
+If a variable is only written to, then the memory bank inference is arbitrary (usually allocated into the least-full bank).
+
+Pointers are like shared variables but multi-threaded values (unique to each thread, but at same address), always named, and also referred by name only.
+Pointers point to a named variable.
+The memory bank of a pointer is inferred to be the same as that of the pointed-to variable.
+
+Ports are like pointers, with the memory bank pre-specified instead of inferred (since anything wired to it pre-exists any instruction).
+
+Instruction addresses are all zero-based. The Octavo CPU adds the per-thread default offset (for private variables) to these at runtime.
+Instruction read operands can be names or literal values.
+Names will be resolved to the address of the named variable, pointer, or port.
+Literal values will be resolved to the address of the unnamed shared variable holding that value.
+Instruction write operands are always names, which refer to variables, pointers, or ports.
+Literals are disallowed in instruction write operands.
+(cross-thread communication will be solved later, if not through named shared variables.)
+
+----
+
+The assembly process goes through 5 high-level phases:
+
+1. Parsing the source
+2. Allocating code and data
+3. Resolving the references in the code/data to integers (addresses and values)
+4. Translation to binary values
+5. Output to memory initialization files
+
+Names and other references go through the follwing sequence of value types as they are resolved:
+
+0. None (no value assigned)
+1. String (at Allocation)
+2. Integer (at Resolution)
+3. Binary pattern (at Translation)
+
+
+
