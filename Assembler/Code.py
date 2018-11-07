@@ -1,8 +1,9 @@
 
 #! /usr/bin/python3
 
-from sys    import exit
-from Debug  import Debug
+from sys        import exit
+from Debug      import Debug
+from Utility    import Utility
 
 class Opcode (Debug):
     """Contains symbolic information to assemble the bit representation of an opcode""" 
@@ -53,7 +54,7 @@ class Instruction (Debug):
         self.A          = A
         self.B          = B
 
-class Initialization_Load (Debug):
+class Initialization_Load (Debug, Utility):
     """Contains info necessary to generate an initialization load instructions and data.
        The instruction is always an 'Add to Zero', so must exist in the system.
        The destination is a code or data label identifying the pointer or branch."""
@@ -96,6 +97,12 @@ class Initialization_Load (Debug):
 
     def add_shared (self, label):
         """Adds data for an initialization load. Order not important. Referenced by label."""
+        # Check if we gave a literal number.
+        label = self.try_int(label)
+        if type(label) == int:
+            new_init_data = self.data.resolve_shared(label, Initialization_Load.memory)
+            self.init_data.append(new_init_data)
+            return
         new_init_data = self.data.allocate_shared(label)
         self.init_data.append(new_init_data)
 
