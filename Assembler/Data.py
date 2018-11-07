@@ -40,6 +40,10 @@ class Data (Utility, Debug):
         Debug.__init__(self)
         self.private    = []
         self.shared     = []
+        # Location Zero is a special case always equal to zero.
+        # It must exist before any other shared variable.
+        self.shared.append(Variable(label = None, address = 0, value = [0], memory = "A"))
+        self.shared.append(Variable(label = None, address = 0, value = [0], memory = "B"))
         self.pointers   = []
         self.ports      = []
         self.configuration = configuration
@@ -70,16 +74,23 @@ class Data (Utility, Debug):
         new_variable = Variable(label = label, value = initial_values)
         return new_variable
 
-    def lookup_variable (self, label):
+    def lookup_variable (self, label, value = None, memory = None):
         """Locate variable if it exists. Search exhaustively to find duplicates."""
         memory, variable = (None, None)
         for memory_list in [self.shared, self.private, self.pointers, self.ports]:
             for entry in memory_list:
                 if entry.label == label:
-                    if memory is not None and variable is not None:
+                    if memory is not None and variable is not None and label is not None:
                         print("Duplicate label found: {0}!".format(label))
                         exit(1)
                     memory, variable = memory_list, entry
+                    # Now undo that if we have more things to match that fail.
+                    if value is not None:
+                        if entry.value != value:
+                            memory, variable = (None, None)
+                    if memory is not None:
+                        if entry.memory != memory:
+                            memory, variable = (None, None)
         return (memory, variable)
 
     def allocate_private (self, label, initial_values = None):
@@ -95,7 +106,7 @@ class Data (Utility, Debug):
 
     def allocate_shared (self, label, initial_values = None):
         """Allocate, or return existing shared variable."""
-        memory, variable = self.lookup_variable(label)
+        memory, variable = self.lookup_variable(label, [initial_values], self.shared)
         if memory != self.shared and variable is not None:
             print("The label {0} is already in used by a non-shared variable!".format(label))
             exit(1)
@@ -166,24 +177,38 @@ class Data (Utility, Debug):
         return max_slot + 1
 
     def lookup_shared_value (self, value):
+        entries = []
         for entry in self.shared:
             # Skip shared variables that have not been set a value
-            # We don't collapse those into previously allocated values, assuming they will get one later.
-            if entry.value == value and entry.value != [None]:
-                return entry
-        return None
+            # We don't collapse those into previously allocated values,
+            # assuming they will get one later.
+            # Find it in existing *unlabelled* shared variables.
+            # meaning: other identical literals
+            if entry.value == value and entry.value != [None] and entry.label is None:
+                entries.append(entry)
+        return entries
 
     def resolve_shared (self, value, memory):
-        entry = self.lookup_shared_value(value)
-        if entry is None:
+        entries = self.lookup_shared_value(value)
+        # Is there one in the memory we specified?
+        entries = [entry for entry in entries if entry.memory == memory]
+        # If not, create it!
+        if entries == []:
             entry = self.allocate_shared(None, initial_values = value)
+            entry.memory = memory
+            entries.append(entry)
+        if len(entries) > 1:
+            print("Duplicate shared variables with value {0} in memory {1}!".format(value, memory))
+            exit(1)
+        # At this point, we're found or created our entry
+        entry = entries[0]
         if entry.address is None:
             entry.address = self.next_variable_address(self.shared, memory)
-        if entry.memory != memory and entry.memory is not None:
-            print("Conflicting memory allocation for shared value {0}. Was {1}, now {2}".format(value, entry.memory, memory))
-            exit(1)
-        entry.memory = memory 
-        return entry.address
+#        if entry.memory != memory and entry.memory is not None:
+#            print("Conflicting memory allocation for shared value {0}. Was {1}, now {2}".format(value, entry.memory, memory))
+#            exit(1)
+#        entry.memory = memory 
+        return entry
 
     def resolve_named (self, name, memory):
         memory_list, entry = self.lookup_variable(name)
