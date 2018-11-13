@@ -22,6 +22,7 @@ class Opcode (Debug):
         self.addr       = op_addr
 
     def is_dual (self):
+        """Does an opcode use the dual addressing mode (DA/DB instead of D)?"""
         if self.dual == "dual":
             return True
         elif self.dual == "simple":
@@ -59,7 +60,7 @@ class Initialization_Load (Debug, Utility):
        The instruction is always an 'Add to Zero', so must exist in the system.
        The destination is a code or data label identifying the pointer or branch."""
 
-    # variable locations are resolved based on where they are read first.
+    # variable locations are resolved based on which instruction operand reads them first.
     # keep a toggle here to evenly distribute init data between A and B memories.
     memory = "A"
 
@@ -79,7 +80,8 @@ class Initialization_Load (Debug, Utility):
         self.instructions   = []
         self.init_data      = []
         self.data = data
-        # keep any init instructions added later in order, so add list of init instructions
+        # keep any init instructions added later in order,
+        # so add list of init instructions to global list
         code.instructions.append(self.instructions)
 
     def __str__ (self):
@@ -96,15 +98,21 @@ class Initialization_Load (Debug, Utility):
         self.init_data.append(new_init_data)
 
     def add_shared (self, label):
-        """Adds data for an initialization load. Order not important. Referenced by label."""
-        # Check if we gave a literal number.
+        """Adds data for an initialization load. Order not important. 
+           Referenced by label for previously defined shared variable,
+           else reference by a literal value."""
+        # Check if we gave a literal number, which becomes an unnnamed shared variable
         label = self.try_int(label)
         if type(label) == int:
-            new_init_data = self.data.resolve_shared(label, Initialization_Load.memory)
+            new_init_data = self.data.resolve_shared_value(label, Initialization_Load.memory)
             self.init_data.append(new_init_data)
             return
-        new_init_data = self.data.allocate_shared(label)
-        self.init_data.append(new_init_data)
+        if type(label) == str:
+            new_init_data = self.data.lookup_variable_name(label, self.data.shared)
+            if new_init_data is None:
+                new_init_data = self.data.allocate_shared(label)
+            self.init_data.append(new_init_data)
+            return
 
     def add_instruction (self, label, branch_destination, data_label):
         """Adds an instruction to initialization load. Remains in sequence added."""
@@ -189,7 +197,7 @@ class Usage (Debug):
             index = usage_flags.index(False)
         except ValueError:
             print("No more free slots for {0}.".format(usage_flags))
-            exit(-1)
+            exit(1)
         usage_flags[index] = True
         address = resource[index]
         return address
@@ -216,6 +224,7 @@ class Usage (Debug):
 class Code (Debug):
     """Parses the code, which drives the resolution of unknowns about the data."""
 
+    # Not likely to ever change...
     thread_count = 8
 
     def __init__ (self, data, configuration):
@@ -236,7 +245,12 @@ class Code (Debug):
         output += "\n" + str(self.usage) + "\n"
         output += "\nThreads: " + str(self.threads) + "\n"  
         output += self.list_str(self.init_loads) + "\n"
-        output += self.list_str(self.instructions) + "\n"
+        for instruction in self.instructions:
+            if type(instruction) == list:
+                output += self.list_str(instruction)
+            else:
+                output += str(instruction) + "\n"
+        output += "\n"
         output += self.list_str(self.opcodes) + "\n"
         output += self.list_str(self.conditions) + "\n"
         output += self.list_str(self.branches) + "\n"
@@ -292,12 +306,9 @@ class Code (Debug):
 
     def allocate_branch (self, condition_label, branch_parameters):
 
-        # Since init is identical across threads, the data is shared There is
-        # always a destination label, which identifies the branch in question
-        # later.  Since the init data is shared, but resolved to its value
-        # later, we have to give them temporary unique values so they don't end
-        # up coalesced into a single value by the shared variable resolution
-        # process.
+        # Since init is identical across threads, the data is shared. 
+        # There is always a destination label, which identifies the 
+        # branch in question later.
 
         branch = Branch(self, condition_label, branch_parameters)
         branch.init_load = self.lookup_init_load(branch.destination)
@@ -341,6 +352,7 @@ class Code (Debug):
         self.initial_pc = pc_list
 
     def all_instructions (self):
+        """Iterate over all instruction, nesting into lists of instructions."""
         for instruction in self.instructions:
             if type(instruction) == list:
                 for list_instruction in instruction:

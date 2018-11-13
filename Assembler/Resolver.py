@@ -17,7 +17,7 @@ class Resolver (Utility, Debug):
     def resolve (self):
         self.resolve_read_operands()
         self.resolve_write_operands()
-        self.resolve_pointers()
+        #self.resolve_pointers()
 
     def resolve_read_operands (self):
         for instruction in self.code.all_instructions():
@@ -28,23 +28,18 @@ class Resolver (Utility, Debug):
         value = getattr(instruction, operand)
         # Source is all strings, convert to int if possible
         value = self.try_int(value)
-        # Zero has address zero, so nothing to do then.
-        if type(value) == int and value == 0:
-            setattr(instruction, operand, 0)
-#            print(operand, value, 0)
-            return
-        # If it's a non-zero number, add it to the shared memory pool
+        # If it's a literal number, add it to the shared memory pool
         if type(value) == int:
-            address = self.data.resolve_shared(value, operand)
-            setattr(instruction, operand, address)
-#            print(operand, value, address)
-            return
+            entry = self.data.resolve_shared_value(value, operand)
         # If it's a string, look it up and add it to whichever memory area it belongs to
-        if type(value) == str:
-            address = self.data.resolve_named(value, operand)
-#            print(operand, value, address)
-            setattr(instruction, operand, address)
-            return
+        elif type(value) == str:
+            entry = self.data.resolve_named(value, operand)
+        else:
+            print("Read operand value has unexpected type!: {0}".format(value))
+            print(instruction)
+            exit(1)
+        setattr(instruction, operand, entry.address)
+        return
 
     def resolve_write_operands (self):
         for instruction in self.code.all_instructions():
@@ -62,33 +57,44 @@ class Resolver (Utility, Debug):
     def resolve_write_operand_case (self, instruction, operand):
         value = getattr(instruction, operand)
         # Source is all strings, convert to int if possible
-        value = self.try_int(value)
-        # Literal ints as destination denote an absolute (thread) address
-        if type(value) == int:
-            setattr(instruction, operand, value);
+        converted_value = self.try_int(value)
+        # If its an int, nothing much to do.
+        if type(converted_value) == int:
+            setattr(instruction, operand, converted_value)
             return
         # If it's a string, look it up, and replace with its write address
-        if type(value) == str:
-            dummy, variable = self.data.lookup_variable(value)
-            memory          = variable.memory
-            address         = self.data.resolve_named(value, memory)
-            address         = self.configuration.memory_map.read_to_write_address(address, memory)
-            setattr(instruction, operand, address)
+        # The variable must have been used as a read operand before, so its
+        # we have already set which memory it must reside in.
+        elif type(converted_value) == str:
+            variable = self.data.lookup_variable_name(converted_value)
+            if variable is None:
+                print("Unknown variable {0} used as write operand.".format(converted_value))
+                print(instruction)
+                exit(1)
+            variable      = self.data.resolve_named(converted_value, variable.memory)
+            write_address = self.configuration.memory_map.read_to_write_address(variable.address, variable.memory)
+            setattr(instruction, operand, write_address)
             return
+        else:
+            print("Write operand value has unexpected type!: {0}".format(converted_value))
+            print(instruction)
+            exit(1)
 
-    def resolve_pointers (self):
-        for pointer in self.data.pointers:
-            self.resolve_pointer(pointer)
+# Not ready yet
 
-    def resolve_pointer (self, pointer):
-        read_variable_list, read_variable   = self.data.lookup_variable(pointer.read_base)
-        write_variable_list, write_variable = self.data.lookup_variable(pointer.write_base)
-        read_variable.memory    = pointer.memory
-        write_variable.memory   = pointer.memory
-        read_variable.address   = self.data.next_variable_address(read_variable_list,  read_variable.memory)
-        # Don't allocate twice if read/write are the same variable
-        if write_variable != read_variable:
-            write_variable.address  = self.data.next_variable_address(write_variable_list, write_variable.memory)
-        pointer.read_base       = read_variable.address
-        pointer.write_base      = write_variable.address
+#    def resolve_pointers (self):
+#        for pointer in self.data.pointers:
+#            self.resolve_pointer(pointer)
+#
+#    def resolve_pointer (self, pointer):
+#        read_variable_list, read_variable   = self.data.lookup_variable_name(pointer.read_base)
+#        write_variable_list, write_variable = self.data.lookup_variable_name(pointer.write_base)
+#        read_variable.memory    = pointer.memory
+#        write_variable.memory   = pointer.memory
+#        read_variable.address   = self.data.next_variable_address(read_variable_list,  read_variable.memory)
+#        # Don't allocate twice if read/write are the same variable
+#        if write_variable != read_variable:
+#            write_variable.address  = self.data.next_variable_address(write_variable_list, write_variable.memory)
+#        pointer.read_base       = read_variable.address
+#        pointer.write_base      = write_variable.address
 
