@@ -28,7 +28,8 @@ Instruction read operands can be names or literal values.
 Names will be resolved to the address of the named variable, pointer, or port.
 Literal values will be resolved to the address of the unnamed shared variable holding that value.
 Instruction write operands are always names, which refer to variables, pointers, or ports.
-Literals are disallowed in instruction write operands.
+Literals are allowed in instruction write operands, but only to support writing to address zero as a NOP.
+A literal value will be taken as a (zero-offset) address, and isn't recommended as it may corrupt state in this or other threads.
 (cross-thread communication will be solved later, if not through named shared variables.)
 
 ----
