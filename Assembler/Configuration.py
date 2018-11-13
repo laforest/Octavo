@@ -3,7 +3,6 @@
 # To concatenate range() iterators
 from itertools  import chain
 from math       import ceil
-from pprint     import pformat
 from Debug      import Debug
 
 class DefaultOffset (Debug):
