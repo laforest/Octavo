@@ -15,7 +15,7 @@ class Utility:
         try:
             value = int(value, 0)
         except ValueError:
-            # Assume it's a string. Leave it alone until resolution.
+            # Assume it's a label string. Leave it alone and pass it back out for later resolution.
             pass
         except TypeError:
             print("\nInvalid type for int() conversion. Input {0} of type {1}.\n".format(value, type(value)))
