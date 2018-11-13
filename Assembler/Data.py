@@ -81,6 +81,15 @@ class Data (Utility, Debug):
         output += self.list_str(self.ports) + "\n"
         return output
 
+    def lookup_variable_type (self, variable):
+        """Searches the variable type lists to find the one the given variable belongs to."""
+        for variable_type in self.variables:
+            if variable in variable_type:
+                return variable_type
+        # A variable not in a type list, or a non-existent variable, should never happen.
+        print("Variable {0} does not belong to any type! This is impossible.".format(variable.label))
+        exit(1)
+
     def lookup_variable_name (self, name, specific_variable_type = None):
         """Locate variable by name if it exists. Search exhaustively to find duplicates.
            Specify variable type list if you want to lookup a specific type."""
