@@ -106,13 +106,13 @@ class Initialization_Load (Debug, Utility):
         if type(label) == int:
             new_init_data = self.data.resolve_shared_value(label, Initialization_Load.memory)
             self.init_data.append(new_init_data)
-            return
+            return new_init_data
         if type(label) == str:
             new_init_data = self.data.lookup_variable_name(label, self.data.shared)
             if new_init_data is None:
                 new_init_data = self.data.allocate_shared(label)
             self.init_data.append(new_init_data)
-            return
+            return new_init_data
 
     def add_instruction (self, label, branch_destination, data_label):
         """Adds an instruction to initialization load. Remains in sequence added."""
@@ -126,6 +126,7 @@ class Initialization_Load (Debug, Utility):
             print("Invalid memory {0} as branch init data {1} location".format(Initialization_Load.memory, data_label))
         new_instruction = Instruction(label = label, opcode = "add", D = branch_destination, A = A, B = B)
         self.instructions.append(new_instruction)
+        return new_instruction
 
 class Branch (Debug):
     """Holds the possible parameters to create a branch initialization load(s)."""
