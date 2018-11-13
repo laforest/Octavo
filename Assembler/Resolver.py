@@ -118,10 +118,8 @@ class Resolver (Utility, Debug):
         init_load.add_shared(init_label_write)
         init_address_read  = self.configuration.memory_map.po[pointer.memory][pointer.slot]
         init_address_write = self.configuration.memory_map.po["D" + pointer.memory][pointer.slot]
-
         self.code.usage.allocate_po(pointer.memory)
         self.code.usage.allocate_po("D" + pointer.memory)
-
         read_instr  = init_load.add_instruction(init_load.label, init_address_read, init_label_read)
         write_instr = init_load.add_instruction(init_load.label, init_address_write, init_label_write)
         self.resolve_read_operands([read_instr])
