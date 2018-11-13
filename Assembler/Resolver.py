@@ -17,7 +17,7 @@ class Resolver (Utility, Debug):
     def resolve (self):
         self.resolve_read_operands()
         self.resolve_write_operands()
-        #self.resolve_pointers()
+        self.resolve_pointers()
 
     def resolve_read_operands (self):
         for instruction in self.code.all_instructions():
@@ -80,21 +80,30 @@ class Resolver (Utility, Debug):
             print(instruction)
             exit(1)
 
-# Not ready yet
+    def resolve_pointers (self):
+        for pointer in self.data.pointers:
+            self.resolve_pointer(pointer)
 
-#    def resolve_pointers (self):
-#        for pointer in self.data.pointers:
-#            self.resolve_pointer(pointer)
-#
-#    def resolve_pointer (self, pointer):
-#        read_variable_list, read_variable   = self.data.lookup_variable_name(pointer.read_base)
-#        write_variable_list, write_variable = self.data.lookup_variable_name(pointer.write_base)
-#        read_variable.memory    = pointer.memory
-#        write_variable.memory   = pointer.memory
-#        read_variable.address   = self.data.next_variable_address(read_variable_list,  read_variable.memory)
-#        # Don't allocate twice if read/write are the same variable
-#        if write_variable != read_variable:
-#            write_variable.address  = self.data.next_variable_address(write_variable_list, write_variable.memory)
-#        pointer.read_base       = read_variable.address
-#        pointer.write_base      = write_variable.address
+    def resolve_pointer (self, pointer):
+        read_variable  = self.data.lookup_variable_name(pointer.read_base)
+        write_variable = self.data.lookup_variable_name(pointer.write_base)
+        # A pointer only refers to locations in the same memory as it.
+        # The pointer memory should have already been set by resolving an
+        # instruction which reads/writes it.
+        if read_variable.memory is not None and read_variable.memory != pointer.memory:
+            print("Variable {0} already assigned to memory {1} and does not match read pointer {2}, memory {3}".format(read_variable.label, read_variable.memory, pointer.label, pointer.memory))
+            exit(1)
+        if write_variable.memory is not None and write_variable.memory != pointer.memory:
+            print("Variable {0} already assigned to memory {1} and does not match write pointer {2}, memory {3}".format(write_variable.label, write_variable.memory, pointer.label, pointer.memory))
+            exit(1)
+        read_variable.memory    = pointer.memory
+        write_variable.memory   = pointer.memory
+        read_variable_type      = self.data.lookup_variable_type(read_variable)
+        write_variable_type     = self.data.lookup_variable_type(write_variable)
+        read_variable.address   = self.data.next_variable_address(read_variable_type,  read_variable.memory)
+        # Don't allocate twice if read/write are the same variable
+        if write_variable != read_variable:
+            write_variable.address  = self.data.next_variable_address(write_variable_type, write_variable.memory)
+        pointer.read_base       = read_variable.address
+        pointer.write_base      = write_variable.address
 
