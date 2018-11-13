@@ -19,8 +19,10 @@ class Resolver (Utility, Debug):
         self.resolve_write_operands()
         self.resolve_pointers()
 
-    def resolve_read_operands (self):
-        for instruction in self.code.all_instructions():
+    def resolve_read_operands (self, instruction_list = None):
+        if instruction_list is None:
+            instruction_list = self.code.all_instructions()
+        for instruction in instruction_list:
             self.resolve_read_operand(instruction, "A")
             self.resolve_read_operand(instruction, "B")
 
@@ -41,8 +43,10 @@ class Resolver (Utility, Debug):
         setattr(instruction, operand, entry.address)
         return
 
-    def resolve_write_operands (self):
-        for instruction in self.code.all_instructions():
+    def resolve_write_operands (self, instruction_list = None):
+        if instruction_list is None:
+            instruction_list = self.code.all_instructions()
+        for instruction in instruction_list:
             self.resolve_write_operand(instruction)
 
     def resolve_write_operand (self, instruction):
@@ -89,12 +93,12 @@ class Resolver (Utility, Debug):
         write_variable = self.data.lookup_variable_name(pointer.write_base)
         # A pointer only refers to locations in the same memory as it.
         # The pointer memory should have already been set by resolving an
-        # instruction which reads/writes it.
+        # instruction which reads it.
         if read_variable.memory is not None and read_variable.memory != pointer.memory:
-            print("Variable {0} already assigned to memory {1} and does not match read pointer {2}, memory {3}".format(read_variable.label, read_variable.memory, pointer.label, pointer.memory))
+            print("Variable {0} already assigned to memory {1} but read pointer {2} is in memory {3}".format(read_variable.label, read_variable.memory, pointer.label, pointer.memory))
             exit(1)
         if write_variable.memory is not None and write_variable.memory != pointer.memory:
-            print("Variable {0} already assigned to memory {1} and does not match write pointer {2}, memory {3}".format(write_variable.label, write_variable.memory, pointer.label, pointer.memory))
+            print("Variable {0} already assigned to memory {1} but write pointer {2} is in memory {3}".format(write_variable.label, write_variable.memory, pointer.label, pointer.memory))
             exit(1)
         read_variable.memory    = pointer.memory
         write_variable.memory   = pointer.memory
@@ -106,4 +110,21 @@ class Resolver (Utility, Debug):
             write_variable.address  = self.data.next_variable_address(write_variable_type, write_variable.memory)
         pointer.read_base       = read_variable.address
         pointer.write_base      = write_variable.address
+        # Now construct the init load for this pointer
+        init_load = self.code.lookup_init_load(pointer.label)
+        init_label_read  = pointer.label + "_read_init"
+        init_label_write = pointer.label + "_write_init"
+        init_load.add_shared(init_label_read)
+        init_load.add_shared(init_label_write)
+        init_address_read  = self.configuration.memory_map.po[pointer.memory][pointer.slot]
+        init_address_write = self.configuration.memory_map.po["D" + pointer.memory][pointer.slot]
 
+        self.code.usage.allocate_po(pointer.memory)
+        self.code.usage.allocate_po("D" + pointer.memory)
+
+        read_instr  = init_load.add_instruction(init_load.label, init_address_read, init_label_read)
+        write_instr = init_load.add_instruction(init_load.label, init_address_write, init_label_write)
+        self.resolve_read_operands([read_instr])
+        self.resolve_read_operands([write_instr])
+        # Put the next pointer init data in the other memory (evens out storage)
+        init_load.toggle_memory()
