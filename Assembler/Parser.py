@@ -17,7 +17,8 @@ class Parser (Debug):
         return stripped_line
 
     def parse_line (self, line):
-        """Process each line, converting the command name into a method call, or pass it to command parser."""
+        """Process each line, converting the command name into a method call to built-in assembler commands (not part of the programming per se)
+           or pass it to command parser if unknown. First word is the command, the rest are it's arguments. (but see parse_commands re: labels)"""
         line = self.strip_comments(line)
         if len(line) == 0:
             return
@@ -34,6 +35,8 @@ class Parser (Debug):
         with open(filename) as f:
             for raw_line in f.readlines():
                 self.parse_line(raw_line)
+
+# These are assembler commands, not related to the programming itself.
 
     def include (self, arguments):
         """Recurse into included files. No cycle checking!"""
