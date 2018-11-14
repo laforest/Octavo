@@ -129,7 +129,7 @@ class Initialization_Load (Debug, Utility):
         return new_instruction
 
 class Branch (Debug):
-    """Holds the possible parameters to create a branch initialization load(s)."""
+    """Holds the possible parameters to create a branch initialization load(s) later."""
 
     def __init__ (self, code, condition_label, branch_parameters):
         Debug.__init__(self)
@@ -168,6 +168,11 @@ class Branch (Debug):
         if len(branch_parameters) > 0:
             print("Unparsed branch parameters {0} for branch {1}".format(branch_parameters, condition_label))
             exit(1)
+
+        # A branch definition always follows an instruction, and will execute "in parallel",
+        # so we need to know which instruction so we know the branch origin, which will be
+        # resolved after all the instructions are resolved and given addresses.
+        self.instruction = code.instructions[-1]
 
 class Usage (Debug):
     """Keeps track of used resources such as Branch Detectors"""
@@ -306,7 +311,7 @@ class Code (Debug):
             self.allocate_instruction_simple(opcode_label, *operands)
 
     def allocate_branch (self, condition_label, branch_parameters):
-
+        """Parse the branch definition parameters and create the necessary init code/data, which will be filled-in later."""
         # Since init is identical across threads, the data is shared. 
         # There is always a destination label, which identifies the 
         # branch in question later.
@@ -369,5 +374,11 @@ class Code (Debug):
         for init_load in self.init_loads:
             if init_load.destination == destination:
                 return init_load
+        return None
+ 
+    def lookup_instruction (self, label):
+        for instruction in self.all_instructions():
+            if instruction.label == label:
+                return instruction
         return None
  
