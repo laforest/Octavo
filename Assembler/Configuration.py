@@ -15,7 +15,7 @@ class DefaultOffset (Debug):
         Debug.__init__(self)
         # Divide between threads the remaining data memory after the shared memory range.
         self.private_mem_depth  = ceil((data_mem_depth - start_of_private_mem) / thread_count)
-        self.default_offset     = [(self.private_mem_depth * thread) for thread in range(thread_count)]
+        self.offsets            = [(self.private_mem_depth * thread) for thread in range(thread_count)]
 
 class MemoryMap (Debug):
     """Describes the static properties of the data address space: shared, private, and high,
