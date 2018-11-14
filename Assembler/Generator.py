@@ -1,44 +1,40 @@
 #! /usr/bin/python3
 
-from bitstring import pack,BitArray
-from sys  import exit
-from math import ceil
-# To concatenate range() iterators
-from itertools import chain
-from pprint import pprint
+from bitstring      import pack, BitArray
+from sys            import exit
+from Debug          import Debug
+from Configuration  import Configuration
 
 # ---------------------------------------------------------------------------
 
-class Dyadic_Operators:
+class Dyadic_Operators (Debug):
     """Common definition of dyadic operations.
        Treat them as mux data inputs, LSB
        on the right, with a/b as the MSB/LSB selectors."""
 
-    operator_width = 4
-
-    always_zero  = BitArray("0b0000")
-    a_and_b      = BitArray("0b1000")
-    a_and_not_b  = BitArray("0b0100")
-    a            = BitArray("0b1100")
-    not_a_and_b  = BitArray("0b0010")
-    b            = BitArray("0b1010")
-    a_xor_b      = BitArray("0b0110")
-    a_or_b       = BitArray("0b1110")
-    a_nor_b      = BitArray("0b0001")
-    a_xnor_b     = BitArray("0b1001")
-    not_b        = BitArray("0b0101")
-    a_or_not_b   = BitArray("0b1101")
-    not_a        = BitArray("0b0011")
-    not_a_or_b   = BitArray("0b1011")
-    a_nand_b     = BitArray("0b0111")
-    always_one   = BitArray("0b1111")
-
     def __init__ (self):
-        pass
+        self.operator_width = 4
+
+        self.always_zero    = BitArray("0b0000")
+        self.a_and_b        = BitArray("0b1000")
+        self.a_and_not_b    = BitArray("0b0100")
+        self.a              = BitArray("0b1100")
+        self.not_a_and_b    = BitArray("0b0010")
+        self.b              = BitArray("0b1010")
+        self.a_xor_b        = BitArray("0b0110")
+        self.a_or_b         = BitArray("0b1110")
+        self.a_nor_b        = BitArray("0b0001")
+        self.a_xnor_b       = BitArray("0b1001")
+        self.not_b          = BitArray("0b0101")
+        self.a_or_not_b     = BitArray("0b1101")
+        self.not_a          = BitArray("0b0011")
+        self.not_a_or_b     = BitArray("0b1011")
+        self.a_nand_b       = BitArray("0b0111")
+        self.always_one     = BitArray("0b1111")
 
 # ---------------------------------------------------------------------------
 
-class Triadic_ALU_Operators:
+class Triadic_ALU_Operators (Debug):
     """Control bit fields for the Triadic ALU"""
 
     def __init__ (self, dyadic_obj):
@@ -78,7 +74,7 @@ class Triadic_ALU_Operators:
 
 # ---------------------------------------------------------------------------
 
-class Branch_Detector_Operators:
+class Branch_Detector_Operators (Debug):
     """Control bit fields for the Flow Control Branch Detector"""
 
     def __init__ (self, dyadic_obj):
@@ -116,9 +112,7 @@ class Branch_Detector_Operators:
 
 # ---------------------------------------------------------------------------
 
-# ---------------------------------------------------------------------------
-
-class Base_Memory:
+class Base_Memory (Debug):
     """A generic list of BitArrays, dumpable to a file for loading into Verilog."""
 
     def create_memory(self, depth, width):
@@ -150,16 +144,27 @@ class Base_Memory:
             for entry in self.mem:
                 output = format_string.format(entry.uint)
                 f.write(output + "\n")
+# ---------------------------------------------------------------------------
+
+class Default_Offset (Base_Memory):
+    """Create the DO memory to set the Default Offsets of each thread. Not usually altered at runtime."""
+
+    def __init__ (self, filename, configuration):
+        offsets = configuration.default_offset.offsets
+        # Must match Verilog code, currently 10 or 12 bits, so same output either way
+        width   = 12
+        depth   = len(offsets)
+        Base_Memory.__init__(self, depth, width, filename)
+        for entry in range(depth):
+            self.mem[entry] = BitArray(uint=offsets[entry], length=width)
 
 # ---------------------------------------------------------------------------
 
-# ---------------------------------------------------------------------------
-
-class Programmed_Offset(Base_Memory):
+class Programmed_Offset (Base_Memory):
     """Calculates the run-time offset applied by the CPU to accesses at indirect memory locations.
        The offset is applied, then incremented by some constant."""
 
-    # Contrary to DO, the offset length matters here, since other
+    # Contrary to Default Offset, the offset length matters here, since other
     # data follows it in the upper bits.
     po_offset_bits_A        = 10
     po_offset_bits_B        = 10
@@ -590,7 +595,7 @@ class Program_Counter(Base_Memory):
 
 # ---------------------------------------------------------------------------
 
-class Generator:
+class Generator (Debug):
     """Converts the resolved code/data/branch/etc... information into binary machine code."""
 
     def __init__ (self, data, code, configuration):
@@ -599,7 +604,7 @@ class Generator:
         self.Triadic = Triadic_ALU_Operators(self.Dyadic)
         self.BDO     = Branch_Detector_Operators(self.Dyadic)
 
-        # self.DO = Default_Offset("DO.mem", self.memory_depth_words, self.memory_shared_count, self.T)
+        self.DO = Default_Offset("DO.mem", configuration)
 
         # self.A = Data_Memory("A.mem", "A", self.T, self.MM)
         # self.B = Data_Memory("B.mem", "B", self.T, self.MM)
@@ -619,11 +624,9 @@ class Generator:
         # self.PO_DB = Programmed_Offset("PO_DB.mem", self.B, Programmed_Offset.po_offset_bits_DB, self.MM, self.T)
 
         # self.initializable_memories = [self.A, self.B, self.I, self.OD, self.DO, self.PO_A, self.PO_B, self.PO_DA, self.PO_DB, self.PC, self.PC_prev]
+        self.initializable_memories = [self.DO]
 
-    def generate (self):
-        pass
-
-    def dump_all(self, mem_obj_list = None):
+    def generate (self, mem_obj_list = None):
         if mem_obj_list is None:
             mem_obj_list = self.initializable_memories
         for mem in mem_obj_list:
