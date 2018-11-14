@@ -116,15 +116,6 @@ class Branch_Detector_Operators:
 
 # ---------------------------------------------------------------------------
 
-class Threads:
-    """Keeps thread list format and numbering in one place."""
-    def __init__(self, thread_count):
-        self.count      = thread_count
-        self.all        = range(thread_count)
-        self.current    = None
-
-# ---------------------------------------------------------------------------
-
 # ---------------------------------------------------------------------------
 
 class Base_Memory:
@@ -599,39 +590,38 @@ class Program_Counter(Base_Memory):
 
 # ---------------------------------------------------------------------------
 
-class Back_End:
-    """Converts the intermediate data from the front end into binary machine code."""
+class Generator:
+    """Converts the resolved code/data/branch/etc... information into binary machine code."""
 
-    def __init__ (self):
+    def __init__ (self, data, code, configuration):
 
         self.Dyadic  = Dyadic_Operators()
         self.Triadic = Triadic_ALU_Operators(self.Dyadic)
         self.BDO     = Branch_Detector_Operators(self.Dyadic)
 
-        self.T = Threads(self.thread_count)
+        # self.DO = Default_Offset("DO.mem", self.memory_depth_words, self.memory_shared_count, self.T)
 
-        self.DO = Default_Offset("DO.mem", self.memory_depth_words, self.memory_shared_count, self.T)
+        # self.A = Data_Memory("A.mem", "A", self.T, self.MM)
+        # self.B = Data_Memory("B.mem", "B", self.T, self.MM)
 
-        self.MM = Memory_Map(self.memory_depth_words, self.memory_width_bits, self.memory_shared_count, self.memory_indirect_base, self.memory_indirect_count, self.memory_io_base, self.memory_io_count, self.DO)
+        # self.OD = Opcode_Decoder("OD.mem", self.Dyadic, self.Triadic, self.T)
 
-        self.A = Data_Memory("A.mem", "A", self.T, self.MM)
-        self.B = Data_Memory("B.mem", "B", self.T, self.MM)
+        # self.I = Instruction_Memory(self.MM.depth, self.MM.width, "I.mem", self.A, self.B, self.OD)
 
-        self.OD = Opcode_Decoder("OD.mem", self.Dyadic, self.Triadic, self.T)
+        # self.BD = Branch_Detector(self.A, self.B, self.I, self.BDO, self.Dyadic)
 
-        self.I = Instruction_Memory(self.MM.depth, self.MM.width, "I.mem", self.A, self.B, self.OD)
+        # self.PC      = Program_Counter("PC.mem", self.T)
+        # self.PC_prev = Program_Counter("PC_prev.mem", self.T)
 
-        self.BD = Branch_Detector(self.A, self.B, self.I, self.BDO, self.Dyadic)
+        # self.PO_A  = Programmed_Offset("PO_A.mem",  self.A, Programmed_Offset.po_offset_bits_A, self.MM, self.T)
+        # self.PO_B  = Programmed_Offset("PO_B.mem",  self.B, Programmed_Offset.po_offset_bits_B, self.MM, self.T)
+        # self.PO_DA = Programmed_Offset("PO_DA.mem", self.A, Programmed_Offset.po_offset_bits_DA, self.MM, self.T)
+        # self.PO_DB = Programmed_Offset("PO_DB.mem", self.B, Programmed_Offset.po_offset_bits_DB, self.MM, self.T)
 
-        self.PC      = Program_Counter("PC.mem", self.T)
-        self.PC_prev = Program_Counter("PC_prev.mem", self.T)
+        # self.initializable_memories = [self.A, self.B, self.I, self.OD, self.DO, self.PO_A, self.PO_B, self.PO_DA, self.PO_DB, self.PC, self.PC_prev]
 
-        self.PO_A  = Programmed_Offset("PO_A.mem",  self.A, Programmed_Offset.po_offset_bits_A, self.MM, self.T)
-        self.PO_B  = Programmed_Offset("PO_B.mem",  self.B, Programmed_Offset.po_offset_bits_B, self.MM, self.T)
-        self.PO_DA = Programmed_Offset("PO_DA.mem", self.A, Programmed_Offset.po_offset_bits_DA, self.MM, self.T)
-        self.PO_DB = Programmed_Offset("PO_DB.mem", self.B, Programmed_Offset.po_offset_bits_DB, self.MM, self.T)
-
-        self.initializable_memories = [self.A, self.B, self.I, self.OD, self.DO, self.PO_A, self.PO_B, self.PO_DA, self.PO_DB, self.PC, self.PC_prev]
+    def generate (self):
+        pass
 
     def dump_all(self, mem_obj_list = None):
         if mem_obj_list is None:

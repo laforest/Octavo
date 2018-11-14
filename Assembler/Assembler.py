@@ -6,6 +6,7 @@ from Data           import Data
 from Code           import Code
 from Resolver       import Resolver
 from Configuration  import Configuration
+from Generator      import Generator
 
 from sys import argv
 
@@ -40,6 +41,10 @@ if __name__ == "__main__":
     configuration.filedump("LOG.resolve")
     data.filedump("LOG.resolve", append = True)
     code.filedump("LOG.resolve", append = True)
+
+    generator = Generator(data, code, configuration)
+    generator.generate()
+    print("Generation done")
 
     print("OK")
 
