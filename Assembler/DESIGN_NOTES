@@ -39,15 +39,21 @@ The assembly process goes through 5 high-level phases:
 1. Parsing the source
 2. Allocating code and data
 3. Resolving the references in the code/data to integers (addresses and values)
-4. Translation to binary values
+4. Generation of the binary values to control the hardware
 5. Output to memory initialization files
 
 Names and other references go through the follwing sequence of value types as they are resolved:
 
-0. None (no value assigned)
+0. None (no value assigned, usually right after Parsing)
 1. String (at Allocation)
 2. Integer (at Resolution)
-3. Binary pattern (at Translation)
+3. Binary pattern (at Generation)
+
+----
+
+TODO
+
+How to define branches with no branch origin enabled (active everywhere)? (maybe fold into prediction flag parameter)
 
 
 
