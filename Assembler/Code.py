@@ -227,7 +227,7 @@ class Usage (Debug):
         return self.allocate_next(self.configuration.memory_map.od, self.od_in_use)
 
 
-class Code (Debug):
+class Code (Debug, Utility):
     """Parses the code, which drives the resolution of unknowns about the data."""
 
     # Not likely to ever change...
@@ -264,7 +264,23 @@ class Code (Debug):
         return output
 
     def set_current_threads (self, thread_list):
-        self.threads = thread_list
+        self.threads = [self.try_int(thread) for thread in thread_list]
+        # Type check
+        for thread in self.threads:
+            if type(thread) is not int:
+                print("Thread values must be literal integers: {0}".format(self.threads))
+                exit(1)
+        # Range check
+        min_thread = 0
+        max_thread = self.configuration.thread_count - 1
+        for thread in self.threads:
+            if thread < min_thread or thread > max_thread:
+                print("Out of range thread: {0}. Min: {1}, Max: {2}".format(self.thread, min_thread, max_thread))
+                exit(1)
+        # Duplication test
+        if len(self.threads) < len(set(self.threads)):
+            print("Duplicate thread numbers not allowed: {0}".format(threads))
+            exit(1)
 
     def allocate_init_load (self, label, destination):
         new_init_load = Initialization_Load(self.data, self, label = label, destination = destination)
