@@ -19,6 +19,7 @@ class Resolver (Utility, Debug):
         self.resolve_write_operands()
         self.resolve_pointers()
         self.resolve_instruction_addresses()
+        self.resolve_branches()
 
     def resolve_read_operands (self, instruction_list = None):
         if instruction_list is None:
@@ -137,3 +138,25 @@ class Resolver (Utility, Debug):
                 exit(1)
             instruction.address = address
             address += 1
+
+    def resolve_branches (self):
+        for branch in self.code.branches:
+            self.resolve_branch(branch)
+
+    def resolve_branch (self, branch):
+        """After the instruction addresses are known, we can finish filling-in the Branch data. (e.g.: destination and origins)"""
+        # Resolve the branch origin address
+        branch.origin = branch.instruction.address
+        if branch.origin is None or type(branch.origin) is not int:
+            print("Instruction {0} did not have an address when resolving origin {1} of associated branch {2}".format(branch.instruction, branch.origin, branch))
+            exit(1)
+        # Resolve the branch destination address (we have the instruction label already)
+        destination_instruction = self.code.lookup_instruction(branch.destination)
+        if destination_instruction is None:
+            print("No instruction with label {0} found when resolving branch {1} destination".format(branch.destination, branch))
+            exit(1)
+        branch.destination = destination_instruction.address
+        if branch.destination is None or type(branch.destination) is not int:
+            print("Instruction {0} did not have an address when resolving destination {1} of associated branch {2}".format(branch.instruction, branch.destination, branch))
+            exit(1)
+
