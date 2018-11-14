@@ -1,8 +1,8 @@
 // format=hex addressradix=h dataradix=h version=1.0 wordsperline=1 noaddress
 000000000
+0deadbeef
+ffffffffe
 000000001
-000000000
-000000000
 000000000
 000000000
 000000000

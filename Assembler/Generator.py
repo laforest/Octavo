@@ -1,5 +1,7 @@
 #! /usr/bin/python3
 
+"""Machine-specific knowledge, such as bit widths, goes here, not in Configuration."""
+
 from bitstring      import pack, BitArray
 from sys            import exit
 from Debug          import Debug
@@ -144,6 +146,53 @@ class Base_Memory (Debug):
             for entry in self.mem:
                 output = format_string.format(entry.uint)
                 f.write(output + "\n")
+
+# ---------------------------------------------------------------------------
+
+class Data_Memory (Base_Memory):
+    """Create the contents of a Data Memory referenced by an instruction read/write operands.        This is essentially part of the combined register file/memory.
+       Replicates private variables for each thread."""
+
+    def write_bits (self, address, value):
+        # Oh, this is ugly. BitArray left-justifies the bits!?!, so shift it back.
+        position = self.width - value.length
+        self.mem[address].overwrite(value,position)
+
+    def write_variables (self, variables, offset = 0):
+        """Place the variable values in memory, with optional thread offset, and handling lists of values (arrays)."""
+        for variable in variables:
+            address = variable.address + offset
+            value   = variable.value
+            if type(value) is list:
+                for entry in value:
+                    entry = BitArray(uint=entry, length=self.width)
+                    self.write_bits(address, entry)
+                    address += 1
+            else:
+                # ECL FIXME
+                # This should never happen, but let's allow it for now until
+                # we have the final variable resolutions done. (init data for init loads)
+                if value is None:
+                    value = 0xDEADBEEF
+                value  = BitArray(uint=value, length=self.width)
+                self.write_bits(address, value)
+
+    def __init__(self, filename, memory, data, code, configuration):
+        self.depth = configuration.memory_depth_words
+        self.width = configuration.memory_width_bits
+        Base_Memory.__init__(self, self.depth, self.width, filename)
+        # Gather all variables for the given memory
+        shared_variables  = [entry for entry in data.shared  if entry.memory == memory]
+        private_variables = [entry for entry in data.private if entry.memory == memory]
+        # Dump the shared variables once
+        self.write_variables(shared_variables)
+        # Dump the private variables once per thread at its default offset
+        threads = code.threads
+        offsets = configuration.default_offset.offsets
+        for thread in threads:
+            offset = offsets[thread]
+            self.write_variables(private_variables, offset)
+
 # ---------------------------------------------------------------------------
 
 class Default_Offset (Base_Memory):
@@ -214,147 +263,6 @@ class Programmed_Offset (Base_Memory):
             sys.exit(1)
         address = po_entry + (thread * self.po_entries)
         self.mem[address] = po;
-
-# ---------------------------------------------------------------------------
-
-class Data_Memory(Base_Memory):
-    """Allocates, assembles, and names data values. Keeps track of dynamic properties for each memory area."""
-
-    def __init__(self, filename, write_base_name, thread_obj, memmap_obj):
-        Base_Memory.__init__(self, memmap_obj.depth, memmap_obj.width, filename)
-        # The "here" pointer marks the last used place in memory (linear allocation).
-        # Shared and local memory ranges have separate allocations.
-        self.pool_here      = -1
-        self.local_here     = [-1 for thread in thread_obj.all]
-        # We name locations to later refer to them by name, not address.
-        self.names          = {}
-        # Add this offset to get the write address of a location.
-        self.write_base     = memmap_obj.write_bases[write_base_name]
-        self.memmap_obj     = memmap_obj
-
-    # ---------------------------------------------------------------------------
-    # Location naming and lookup
-
-    def name_mem(self, name, addr):
-        """Name a given memory location. All threads share names.
-           (so multiple threads can run the same code)
-           Multiple names for one address is OK.
-           Multiple addresses per name are not possible.
-           Repeated identical allocations are idempotent."""
-        if name in self.names and self.names[name] != addr:
-            print("ERROR: The name {0} is already in use for address {1}. Cannot assign new address {2}".format(name, self.names[name], addr))
-            sys.exit(1)
-        self.names.update({name:addr})
-
-    def lookup_read(self, name):
-        if type(name) == type(int):
-            return name
-        address = self.names[name]
-        return address
-
-    def lookup_write(self, name):
-        if type(name) == type(int):
-            return name
-        read_address  = self.lookup_read(name)
-        write_address = read_address + self.write_base
-        return write_address
-
-    # ---------------------------------------------------------------------------
-    # Compile literals at locations (basic assembler mechanism and state)
-
-    def literal_pool(self, number, name):
-        """Place and name a literal number in the next literal pool location.
-           If the number already exists in the literal pool, have the name refer to that one instead."""
-        # Convert to BitArray if integer
-        if type(number) == type(int):
-            number = BitArray(uint=number, length=self.width)
-        elif type(number) != type(BitArray()):
-            printf("Incompatible literal type: {0}".format(number))
-            sys.exit(1)
-        # Check if it already exists in literal pool
-        address = None
-        for entry in self.memmap_obj.pool:
-            if self.mem[entry] == number:
-                address = entry
-        # If not, then use next location
-        if address is None:
-            self.pool_here += 1
-            address = self.pool_here
-        if address not in self.memmap_obj.pool:
-            print("ERROR: Out of bounds literal pool memory address ({0}) assignment in {1}".format(address, self.__name__))
-            sys.exit(1)
-        if name is None:
-            print("ERROR: You cannot give a None name to a literal pool entry, in {0}".format(self.__name__))
-            sys.exit(1)
-        self.name_mem(name, address)
-        # Oh, this is ugly. BitArray's LSB is our MSB...
-        self.mem[address].overwrite(number,(self.width-number.length))
-
-    def name_indirect_pointer(self, entry, name):
-        """Name one of the indirect memory locations."""
-        if type(entry) != type(int):
-            printf("Pointer entry not an int: {0}".format(number))
-            sys.exit(1)
-        if entry not in range(len(self.memmap_obj.indirect)):
-            print("ERROR: Out of bounds indirect pointer entry ({0}) assignment in {1}".format(entry, self.__name__))
-            sys.exit(1)
-        address = self.memmap_obj.indirect[entry]
-        if name is None:
-            print("ERROR: You cannot give a None name to an indirect pointer entry, in {0}".format(self.__name__))
-            sys.exit(1)
-        self.name_mem(name, address)
-        # That location is never really accessed. Zero it out.
-        self.mem[address] = BitArray()
-
-    def name_io_port(self, entry, name):
-        """Name one of the memory-mapped I/O ports."""
-        if type(entry) != type(int):
-            printf("Port entry not an int: {0}".format(number))
-            sys.exit(1)
-        if entry not in range(len(self.memmap_obj.io)):
-            print("ERROR: Out of bounds I/O port entry ({0}) assignment in {1}".format(entry, self.__name__))
-            sys.exit(1)
-        address = self.memmap_obj.io[entry]
-        if name is None:
-            print("ERROR: You cannot give a None name to an I/O port entry, in {0}".format(self.__name__))
-            sys.exit(1)
-        self.name_mem(name, address)
-        # That location is never really accessed. Zero it out.
-        self.mem[address] = BitArray()
-
-    def literal_local(self, thread, number, name = None, address = None):
-        """Place and name a literal number in the specified or next thread local memory location."""
-        # Accept int or BitArray
-        if type(number) == type(int):
-            number = BitArray(uint=number, length=self.width)
-        elif type(number) != type(BitArray()):
-            printf("Incompatible literal type: {0}".format(number))
-            sys.exit(1)
-        # If no address given, store in next free location.
-        if address is None:
-            self.pool_local[thread] += 1
-            address = self.pool_local[thread]
-        if address not in self.memmap_obj.local:
-            print("ERROR: Out of bounds local memory address ({0}) assignment in {1}".format(address, self.__name__))
-            sys.exit(1)
-        # Name and assemble number, allow explicitly unnamed numbers
-        if name is not None:
-            self.name_mem(name, address)
-        # Oh, this is ugly. BitArray's LSB is our MSB...
-        self.mem[address].overwrite(number,(self.width-number.length))
-
-    def data_local(self, thread, numbers, name = None, address = None):
-        """Place a list of numbers into consecutive locations.
-           Optionally name the head of the list."""
-        if len(numbers) == 0:
-            print("ERROR: Empty numbers list for {0}".format(self.__name__))
-        if name is not None:
-            head = numbers.pop(0)
-            self.literal_local(thread, head, name, address)
-        for entry in numbers:
-            if address is not None:
-                address += 1
-            self.literal_local(thread, entry, None, address)
 
 # ---------------------------------------------------------------------------
 # Opcode Decoder Memory: translate opcode into ALU control bits
@@ -606,8 +514,8 @@ class Generator (Debug):
 
         self.DO = Default_Offset("DO.mem", configuration)
 
-        # self.A = Data_Memory("A.mem", "A", self.T, self.MM)
-        # self.B = Data_Memory("B.mem", "B", self.T, self.MM)
+        self.A = Data_Memory("A.mem", "A", data, code, configuration)
+        self.B = Data_Memory("B.mem", "B", data, code, configuration)
 
         # self.OD = Opcode_Decoder("OD.mem", self.Dyadic, self.Triadic, self.T)
 
@@ -624,7 +532,7 @@ class Generator (Debug):
         # self.PO_DB = Programmed_Offset("PO_DB.mem", self.B, Programmed_Offset.po_offset_bits_DB, self.MM, self.T)
 
         # self.initializable_memories = [self.A, self.B, self.I, self.OD, self.DO, self.PO_A, self.PO_B, self.PO_DA, self.PO_DB, self.PC, self.PC_prev]
-        self.initializable_memories = [self.DO]
+        self.initializable_memories = [self.DO, self.A, self.B]
 
     def generate (self, mem_obj_list = None):
         if mem_obj_list is None:
