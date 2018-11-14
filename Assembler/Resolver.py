@@ -18,6 +18,7 @@ class Resolver (Utility, Debug):
         self.resolve_read_operands()
         self.resolve_write_operands()
         self.resolve_pointers()
+        self.resolve_instruction_addresses()
 
     def resolve_read_operands (self, instruction_list = None):
         if instruction_list is None:
@@ -126,3 +127,13 @@ class Resolver (Utility, Debug):
         self.resolve_read_operands([write_instr])
         # Put the next pointer init data in the other memory (evens out storage)
         init_load.toggle_memory()
+
+    def resolve_instruction_addresses (self):
+        """After all instructions are allocated and their operands resolved, we can sequentially give them addresses."""
+        address = 0
+        for instruction in self.code.all_instructions():
+            if address == self.configuration.memory_depth_words:
+                print("Out of code memory!")
+                exit(1)
+            instruction.address = address
+            address += 1
