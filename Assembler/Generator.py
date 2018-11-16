@@ -265,58 +265,46 @@ class Programmed_Offset (Base_Memory):
         self.mem[address] = po;
 
 # ---------------------------------------------------------------------------
-# Opcode Decoder Memory: translate opcode into ALU control bits
 
 class Opcode_Decoder(Base_Memory):
+    """Construct the memory to translate from opcode to ALU control bits."""
 
-    def __init__(self, filename, dyadic_obj, triadic_obj, thread_obj):
-        self.opcode_count = 16
-        self.dyadic     = dyadic_obj
-        self.triadic    = triadic_obj
-        width           = self.triadic.control_width
-        depth           = self.opcode_count * thread_obj.count
-        Base_Memory.__init__(self, depth, width, filename)
-        self.opcodes    = {} # {name:bits}
-        self.opcodes_here = [-1 for thread in thread_obj.all]
-        self.alu_control_format = 'uint:{0},uint:{1},uint:{2},uint:{3},uint:{4},uint:{5},uint:{6},uint:{7}'.format(self.triadic.split_width, self.triadic.shift_width, self.triadic.dyadic3_width, self.triadic.addsub_width, self.triadic.dual_width, self.triadic.dyadic2_width, self.triadic.dyadic1_width, self.triadic.select_width)
-
-
-    def define (self, label, split, shift, dyadic3, addsub, dual, dyadic2, dyadic1, select):
-        """Assembles and names the control bits of an instruction. Shared amongst all threads."""
+    def to_binary (self, opcode):
+        """Converts the fields of the control bits of an instruction opcode, 
+           looked-up from symbolic names, to binary encoding. 
+           Field values are strings naming the same field in the dyadic/triadic
+           operations objects."""
         control_bits = BitArray()
-        for entry in [split, shift, dyadic3, addsub, dual, dyadic2, dyadic1, select]:
+        for entry in [opcode.split, opcode.shift, opcode.dyadic3, opcode.addsub, opcode.dual, opcode.dyadic2, opcode.dyadic1, opcode.select]:
             field_bits = getattr(self.dyadic, entry, None)
             field_bits = getattr(self.triadic, entry, field_bits)
             if field_bits is None:
                 print("Unknown opcode field value: {0}".format(entry))
                 exit(1)
             control_bits.append(field_bits)
-        self.opcodes.update({label:control_bits})
+        return control_bits
 
-    def load (self, thread, name, opcode = None):
-        """Assigne a per-thread opcode to a previously defined instruction.
-           The opcode indexes into the opcode decoder memory, separately for each thread."""
-        if opcode is None:
-            self.opcode_here[thread] += 1
-            opcode = self.opcode_here[thread]
-        if opcode not in range(self.opcode_count):
-            print("Opcode {0} load out of range in thread {1}".format(name, thread))
-            sys.exit(-1)
-        address = (thread * self.opcode_count) + opcode
-        self.mem[address] = self.opcodes[name]
+    def load (self, opcodes, thread_offset):
+        """Place the control bits for each opcode at the thread-offset location
+           corresponding to the opcode number used in the instructions."""
+        for opcode_number in range(len(opcodes)):
+            opcode                                  = opcodes[opcode_number]
+            control_bits                            = self.to_binary(opcode)
+            self.mem[opcode_number + thread_offset] = control_bits
 
-    def lookup_control (self, name):
-        return self.opcodes[name]
+    def __init__(self, filename, dyadic_obj, triadic_obj, code, configuration):
+        self.opcode_count = 16
+        self.dyadic     = dyadic_obj
+        self.triadic    = triadic_obj
+        width           = self.triadic.control_width
+        depth           = self.opcode_count * configuration.thread_count
+        Base_Memory.__init__(self, depth, width, filename)
+        for thread_number in range(configuration.thread_count):
+            thread_offset = thread_number * self.opcode_count
+            self.load(code.opcodes, thread_offset)
+        # Kept for future Debug output
+        # self.alu_control_format = 'uint:{0},uint:{1},uint:{2},uint:{3},uint:{4},uint:{5},uint:{6},uint:{7}'.format(self.triadic.split_width, self.triadic.shift_width, self.triadic.dyadic3_width, self.triadic.addsub_width, self.triadic.dual_width, self.triadic.dyadic2_width, self.triadic.dyadic1_width, self.triadic.select_width)
 
-    def lookup_opcode (self, thread, name):
-        """Returns the per-thread opcode matching that name."""
-        control_bits = self.lookup_control(name)
-        op_zero = (thread * self.opcode_count)
-        for opcode in range(op_zero, op_zero + self.opcode_count):
-            if self.mem[opcode] == control_bits:
-                return opcode - op_zero
-        print("Could not find opcode named {0} in thread {1}".format(name, thread))
-        sys.exit(1)
     
 # ---------------------------------------------------------------------------
 
@@ -517,7 +505,7 @@ class Generator (Debug):
         self.A = Data_Memory("A.mem", "A", data, code, configuration)
         self.B = Data_Memory("B.mem", "B", data, code, configuration)
 
-        # self.OD = Opcode_Decoder("OD.mem", self.Dyadic, self.Triadic, self.T)
+        self.OD = Opcode_Decoder("OD.mem", self.Dyadic, self.Triadic, code, configuration)
 
         # self.I = Instruction_Memory(self.MM.depth, self.MM.width, "I.mem", self.A, self.B, self.OD)
 
@@ -532,7 +520,7 @@ class Generator (Debug):
         # self.PO_DB = Programmed_Offset("PO_DB.mem", self.B, Programmed_Offset.po_offset_bits_DB, self.MM, self.T)
 
         # self.initializable_memories = [self.A, self.B, self.I, self.OD, self.DO, self.PO_A, self.PO_B, self.PO_DA, self.PO_DB, self.PC, self.PC_prev]
-        self.initializable_memories = [self.DO, self.A, self.B]
+        self.initializable_memories = [self.DO, self.A, self.B, self.OD]
 
     def generate (self, mem_obj_list = None):
         if mem_obj_list is None:
