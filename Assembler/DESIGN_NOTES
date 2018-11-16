@@ -54,6 +54,7 @@ Names and other references go through the follwing sequence of value types as th
 TODO
 
 How to define branches with no branch origin enabled (active everywhere)? (maybe fold into prediction flag parameter)
-
+Move hardcoded values in Generator to Configuration.
+Separate opcode definition from numbering, so we can redefine at runtime any one of the 16 opcodes from a larger pool of definitions.
 
 
