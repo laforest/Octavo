@@ -21,6 +21,7 @@ class Resolver (Utility, Debug):
         self.resolve_instruction_addresses()
         self.resolve_branches()
         self.resolve_opcodes()
+        self.resolve_program_counters()
 
     def resolve_read_operands (self, instruction_list = None):
         if instruction_list is None:
@@ -172,3 +173,12 @@ class Resolver (Utility, Debug):
         opcode = self.code.lookup_opcode(instruction.opcode)
         number = self.code.opcodes.index(opcode)
         instruction.opcode = number
+
+    def resolve_program_counters (self):
+        """Convert code labels for thread initial start points into instruction addresses."""
+        pc_list = self.code.initial_pc
+        for thread_number in range(len(pc_list)):
+            start_label = pc_list[thread_number]
+            instruction = self.code.lookup_instruction(start_label)
+            pc_list[thread_number] = instruction.address
+
