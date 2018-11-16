@@ -147,16 +147,16 @@ class Base_Memory (Debug):
                 output = format_string.format(entry.uint)
                 f.write(output + "\n")
 
+    def write_bits (self, address, value):
+        # Oh, this is ugly. BitArray left-justifies the bits!?!, so shift it back.
+        position = self.width - value.length
+        self.mem[address].overwrite(value,position)
+
 # ---------------------------------------------------------------------------
 
 class Data_Memory (Base_Memory):
     """Create the contents of a Data Memory referenced by an instruction read/write operands.        This is essentially part of the combined register file/memory.
        Replicates private variables for each thread."""
-
-    def write_bits (self, address, value):
-        # Oh, this is ugly. BitArray left-justifies the bits!?!, so shift it back.
-        position = self.width - value.length
-        self.mem[address].overwrite(value,position)
 
     def write_variables (self, variables, offset = 0):
         """Place the variable values in memory, with optional thread offset, and handling lists of values (arrays)."""
@@ -266,7 +266,7 @@ class Programmed_Offset (Base_Memory):
 
 # ---------------------------------------------------------------------------
 
-class Opcode_Decoder(Base_Memory):
+class Opcode_Decoder (Base_Memory):
     """Construct the memory to translate from opcode to ALU control bits."""
 
     def to_binary (self, opcode):
@@ -308,79 +308,32 @@ class Opcode_Decoder(Base_Memory):
     
 # ---------------------------------------------------------------------------
 
-class Instruction_Memory(Base_Memory):
+class Instruction_Memory (Base_Memory):
+    """Construct the instruction memory.
+       Pretty simple, as all the work was done during resolution."""
 
     simple_instr_format = 'uint:4,uint:12,uint:10,uint:10'
     dual_instr_format   = 'uint:4,uint:6,uint:6,uint:10,uint:10'
 
-    def __init__(self, depth, width, filename, A_mem_obj, B_mem_obj, opcode_obj):
+    def to_binary(self, instruction):
+        """Assemble a simple or dual instruction into binary."""
+        # We assume the D/DA/DB operands were already error-checked.
+        # If D is not none, it's a simple instruction and DA/DB must be None
+        # the reverse means it's a dual instruction, else it's invalid
+        if instruction.D is not None:
+            instr_format = self.simple_instr_format
+        else:
+            instr_format = self.dual_instr_format
+        return pack(instr_format, instruction.opcode, instruction.D, instruction.A, instruction.B)
+
+    def __init__(self, filename, code, configuration):
+        depth = configuration.memory_depth_words
+        width = configuration.memory_width_bits
         Base_Memory.__init__(self, depth, width, filename)
-        self.A_mem_obj      = A_mem_obj
-        self.B_mem_obj      = B_mem_obj
-        self.opcode_obj     = opcode_obj
-        self.write_mem_list = [self.A_mem_obj, self.B_mem_obj, self]
-        self.here           = -1
-        self.names          = {}
-
-    def literal_instruction (self, instruction, name = None):
-        """Place an instruction in the next Instruction Memory location."""
-        if type(instruction) != type(BitArray()):
-            printf("Instruction not a BitArray: {0}".format(instruction))
-            sys.exit(1)
-        self.here += 1
-        address = self.here
-        if address not in range(self.depth):
-            print("ERROR: Out of bounds instruction memory address ({0}) assignment in {1}".format(address, self.__name__))
-            sys.exit(1)
-        if name is not None:
-            self.names.update({name:address})
-        # Oh, this is ugly. BitArray's LSB is our MSB...
-        self.mem[address].overwrite(instruction,(self.width-instruction.length))
-
-    def lookup(self, name):
-        if type(name) == type(int):
-            return name
-        address = self.names.get(name, None)
-        return address
-
-    def lookup_write(self, name):
-        """Lookup the write address of a name across the listed writable memories."""
-        if type(name) == type(int):
-            return name
-        addresses = []
-        for entry in self.write_mem_list:
-            address = entry.lookup_write(name)
-            if address is not None:
-                addresses.append(address)
-        if len(addresses) > 1:
-            print("ERROR: Cannot resolve multiple identical write names {0} with addresses {1}".format(name, addresses))
-            sys.exit(1)
-        if len(addresses) == 0:
-            print("ERROR: No write name {0} found.".format(name))
-            sys.exit(1)
-        return addresses[0]
-
-    def simple(self, op_name, dest, src1, src2, name = None):
-        """Assemble a simple instruction"""
-        op = self.opcode_obj.lookup_opcode(op_name)
-        D_operand = self.lookup_write(dest)
-        A_operand = self.A_mem_obj.lookup_read(src1)
-        B_operand = self.B_mem_obj.lookup_read(src2)
-        print([op, D_operand, A_operand, B_operand])
-        instr = pack(self.simple_instr_format, op, D_operand, A_operand, B_operand)
-        self.literal_instruction(instr, name)
-
-    def dual(self, op_name, dest1, dest2, src1, src2, name = None):
-        """Assemble a dual instruction (split addressing mode)
-           The CPU re-adds the correct write offset after it decodes the instruction
-           It's a power-of-2 alignment, so it just prepends the right value"""
-        op = self.opcode_obj.lookup_opcode(op_name)
-        DA_operand = self.A_mem_obj.lookup_write(dest1) - self.A_mem_obj.write_base
-        DB_operand = self.B_mem_obj.lookup_write(dest2) - self.B_mem_obj.write_base
-        A_operand  = self.A_mem_obj.lookup_read(src1)
-        B_operand  = self.B_mem_obj.lookup_read(src2)
-        instr = pack(self.dual_instr_format, op, DA_operand, DB_operand, A_operand, B_operand)
-        self.literal_instruction(instr, name)
+        address = 0
+        for instruction in code.all_instructions():
+            self.write_bits(address, self.to_binary(instruction))
+            address += 1
 
 # ---------------------------------------------------------------------------
 
@@ -507,7 +460,7 @@ class Generator (Debug):
 
         self.OD = Opcode_Decoder("OD.mem", self.Dyadic, self.Triadic, code, configuration)
 
-        # self.I = Instruction_Memory(self.MM.depth, self.MM.width, "I.mem", self.A, self.B, self.OD)
+        self.I = Instruction_Memory("I.mem", code, configuration)
 
         # self.BD = Branch_Detector(self.A, self.B, self.I, self.BDO, self.Dyadic)
 
@@ -520,7 +473,7 @@ class Generator (Debug):
         # self.PO_DB = Programmed_Offset("PO_DB.mem", self.B, Programmed_Offset.po_offset_bits_DB, self.MM, self.T)
 
         # self.initializable_memories = [self.A, self.B, self.I, self.OD, self.DO, self.PO_A, self.PO_B, self.PO_DA, self.PO_DB, self.PC, self.PC_prev]
-        self.initializable_memories = [self.DO, self.A, self.B, self.OD]
+        self.initializable_memories = [self.DO, self.A, self.B, self.OD, self.I]
 
     def generate (self, mem_obj_list = None):
         if mem_obj_list is None:
