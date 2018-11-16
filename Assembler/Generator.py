@@ -337,6 +337,23 @@ class Instruction_Memory (Base_Memory):
 
 # ---------------------------------------------------------------------------
 
+class Program_Counter (Base_Memory):
+    """Load the Program Counter with the addresses of the given start instructions."""
+
+    pc_width = 10
+    pc_format = 'uint:{0}'.format(pc_width)
+
+    def __init__(self, filename, code, configuration):
+        depth           = configuration.thread_count
+        width           = self.pc_width
+        Base_Memory.__init__(self, depth, width, filename)
+        for thread_number in range(depth):
+            pc = code.initial_pc[thread_number]
+            pc = pack(self.pc_format, pc)
+            self.write_bits(thread_number, pc)
+
+# ---------------------------------------------------------------------------
+
 class Branch_Detector:
 
     def __init__(self, a_mem_obj, b_mem_obj, instr_mem_obj, branch_detect_obj, dyadic_obj):
@@ -423,26 +440,6 @@ class Branch_Detector:
             self.br(*entry)
 
 # ---------------------------------------------------------------------------
-# Program Counter, current and previous
-
-class Program_Counter(Base_Memory):
-
-    pc_width = 10
-    pc_format = 'uint:{0}'.format(pc_width)
-
-    def __init__(self, filename, thread_obj):
-        self.thread_obj = thread_obj
-        depth           = self.thread_obj.count
-        width           = self.pc_width
-        Base_Memory.__init__(self, depth, width, filename)
-        self.start      = [None for i in range(self.thread_obj.count)]
-
-    def set (self, pc_value):
-        thread = self.thread_obj.current
-        self.start[thread]  = pc_value
-        self.mem[thread]    = BitArray(uint=self.start[thread], length=self.mem[0].length);
-
-# ---------------------------------------------------------------------------
 
 class Generator (Debug):
     """Converts the resolved code/data/branch/etc... information into binary machine code."""
@@ -462,10 +459,11 @@ class Generator (Debug):
 
         self.I = Instruction_Memory("I.mem", code, configuration)
 
+        self.PC      = Program_Counter("PC.mem", code, configuration)
+        self.PC_prev = Program_Counter("PC_prev.mem", code, configuration)
+
         # self.BD = Branch_Detector(self.A, self.B, self.I, self.BDO, self.Dyadic)
 
-        # self.PC      = Program_Counter("PC.mem", self.T)
-        # self.PC_prev = Program_Counter("PC_prev.mem", self.T)
 
         # self.PO_A  = Programmed_Offset("PO_A.mem",  self.A, Programmed_Offset.po_offset_bits_A, self.MM, self.T)
         # self.PO_B  = Programmed_Offset("PO_B.mem",  self.B, Programmed_Offset.po_offset_bits_B, self.MM, self.T)
@@ -473,7 +471,7 @@ class Generator (Debug):
         # self.PO_DB = Programmed_Offset("PO_DB.mem", self.B, Programmed_Offset.po_offset_bits_DB, self.MM, self.T)
 
         # self.initializable_memories = [self.A, self.B, self.I, self.OD, self.DO, self.PO_A, self.PO_B, self.PO_DA, self.PO_DB, self.PC, self.PC_prev]
-        self.initializable_memories = [self.DO, self.A, self.B, self.OD, self.I]
+        self.initializable_memories = [self.DO, self.A, self.B, self.OD, self.I, self.PC, self.PC_prev]
 
     def generate (self, mem_obj_list = None):
         if mem_obj_list is None:
