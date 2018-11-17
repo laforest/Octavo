@@ -209,63 +209,6 @@ class Default_Offset (Base_Memory):
 
 # ---------------------------------------------------------------------------
 
-class Programmed_Offset (Base_Memory):
-    """Calculates the run-time offset applied by the CPU to accesses at indirect memory locations.
-       The offset is applied, then incremented by some constant."""
-
-    # Contrary to Default Offset, the offset length matters here, since other
-    # data follows it in the upper bits.
-    po_offset_bits_A        = 10
-    po_offset_bits_B        = 10
-    po_offset_bits_DA       = 12
-    po_offset_bits_DB       = 12
-
-    # These must match the Verilog parameters
-    po_entries              = 4
-    po_increment_bits       = 4
-    po_increment_sign_bits  = 1
-
-    def __init__(self, filename, target_mem_obj, offset_width, memmap_obj, thread_obj):
-        self.memmap_obj     = memmap_obj
-        self.target_mem_obj = target_mem_obj
-        self.offset_width   = offset_width
-        self.total_width    = self.po_increment_sign_bits + self.po_increment_bits + self.offset_width
-        depth               = thread_obj.count * self.po_entries
-        Base_Memory.__init__(self, depth, self.total_width, filename)
-
-    def gen_po(self, po_entry, target_address, increment):
-        po_address      = self.memmap_obj.indirect[po_entry]
-        offset          = target_address - po_address
-        if increment >= 0:
-            sign = 0
-        else:
-            sign = 1
-        sign        = BitArray(uint=sign,      length=self.po_increment_sign_bits)
-        increment   = BitArray(uint=increment, length=self.po_increment_bits)
-        offset      = BitArray(uint=offset,    length=self.offset_width)
-        po          = BitArray()
-        for field in [sign, increment, offset]:
-            po.append(field)
-        # A programmed offset is only correct in a given PO entry
-        return (po_entry, po)
-
-    def gen_read_po(self, po_entry, target_name, increment):
-        target_address  = self.target_mem_obj.lookup_read(target_name)
-        return self.gen_po(po_entry, target_address, increment)
-
-    def gen_write_po(self, po_entry, target_name, increment):
-        target_address  = self.target_mem_obj.lookup_write(target_name)
-        return self.gen_po(po_entry, target_address, increment)
-
-    def load (self, thread, po_entry, po):
-        if po_entry not in range(self.po_entries):
-            print("Out of bounds PO entry: {0}".format(entry))
-            sys.exit(1)
-        address = po_entry + (thread * self.po_entries)
-        self.mem[address] = po;
-
-# ---------------------------------------------------------------------------
-
 class Opcode_Decoder (Base_Memory):
     """Construct the memory to translate from opcode to ALU control bits."""
 
@@ -355,89 +298,116 @@ class Program_Counter (Base_Memory):
 # ---------------------------------------------------------------------------
 
 class Branch_Detector:
+    """Generate the binary values for the initialization loads of future branches.
+       Contrary to most Generator classes, this does not output a memory file,
+       but updates the resolved initialization loads."""
 
-    def __init__(self, a_mem_obj, b_mem_obj, instr_mem_obj, branch_detect_obj, dyadic_obj):
-        self.conditions          = {} # {name:bits}
-        self.unresolved_branches = [] # list of parameters to br()
-        self.a_mem_obj           = a_mem_obj
-        self.b_mem_obj           = b_mem_obj
-        self.instr_mem_obj       = instr_mem_obj
-        self.branch_detect_obj   = branch_detect_obj
-        self.dyadic_obj          = dyadic_obj
-        branch_count             = 4
-        condition_format         = 'uint:{0},uint:{1},uint:{2}'.format(self.branch_detect_obj.a_width, self.branch_detect_obj.b_width, self.branch_detect_obj.ab_operator_width)
-        branch_format            = 'uint:{0},uint:{1},uint:{2},uint:{3},uint:{4},uint:{5}'.format(self.branch_detect_obj.origin_width, self.branch_detect_obj.origin_enable_width, self.branch_detect_obj.destination_width, self.branch_detect_obj.predict_taken_width, self.branch_detect_obj.predict_enable_width, self.branch_detect_obj.condition_width)
-
-
-    def condition (self, label, a, b, ab_operator):
+    def condition_to_binary (self, bdo, branch):
+        condition = branch.condition
+        dyadic    = bdo.dyadic
         condition_bits = BitArray()
-        for entry in [a, b, ab_operator]:
-            field_bits = getattr(self.dyadic_obj, entry, None)
-            field_bits = getattr(self.branch_detect_obj, entry, field_bits)
+        for entry in [condition.a, condition.b, condition.ab_operator]:
+            field_bits = getattr(dyadic, entry, None)
+            field_bits = getattr(bdo, entry, field_bits)
             if field_bits is None:
                 print("Unknown branch field value: {0}".format(entry))
                 exit(1)
             condition_bits.append(field_bits)
-        self.conditions.update({label:condition_bits}) 
+        return condition_bits
 
-    def assemble_branch(self, origin, origin_enable, destination, predict_taken, predict_enable, condition_name):
-        condition_bits      = self.conditions[condition_name]
-        origin_bits         = BitArray(uint=origin, length=self.branch_detect_obj.origin_width)
-        destination_bits    = BitArray(uint=destination, length=self.branch_detect_obj.destination_width)
-        config = BitArray()
-        for entry in [origin_bits, origin_enable, destination_bits, predict_taken, predict_enable, condition_bits]:
-            config.append(entry)
-        return config
-
-#    def bt(self, destination):
-#        thread = self.thread_obj.current
-#        self.instr_mem_obj.loc(destination, write_addr = self.instr_mem_obj.here[thread])
-
-    def load_branch(self, condition_bits, destination, predict, storage, origin_enable = True, origin = None):
-        if origin is None:
-            origin = self.instr_mem_obj.here
-        dest_addr = self.instr_mem_obj.lookup(destination)
-        if dest_addr is None:
-            self.unresolved_branches.append([condition_bits, destination, predict, storage, origin_enable, origin])    
-            return
-        if predict is True:
-            predict         = self.branch_detect_obj.predict_taken
-            predict_enable  = self.branch_detect_obj.predict_enabled
-        elif predict is False:
-            predict         = self.branch_detect_obj.predict_not_taken
-            predict_enable  = self.branch_detect_obj.predict_enabled
-        elif predict is None:
-            predict         = self.branch_detect_obj.predict_not_taken
-            predict_enable  = self.branch_detect_obj.predict_disabled
+    def branch_to_binary (self, bdo, branch):
+        # Processed here instead of in Resolver since it depends on binary values.
+        if branch.prediction == "not_taken":
+            predict         = bdo.predict_not_taken
+            predict_enable  = bdo.predict_enabled
+        elif branch.prediction == "taken":
+            predict         = bdo.predict_taken
+            predict_enable  = bdo.predict_enabled
+        elif branch.prediction == "unpredicted":
+            predict         = bdo.predict_not_taken
+            predict_enable  = bdo.predict_disabled
         else:
-            print("Invalid branch prediction setting {0} on branch {1}.".format(predict, storage))
+            print("Invalid branch prediction setting {0} on branch {1}.".format(branch.prediction, branch))
             sys.exit(1)
-        if origin_enable is True:
-            origin_enable = self.branch_detect_obj.origin_enabled
-        elif origin_enabled is False:
-            origin_enable = self.branch_detect_obj.origin_disabled
-        else:
-            print("Invalid branch origin enabled setting {0} on branch{1}.".format(origin_enable, storage))
-            sys.exit(1)
-        branch_config = self.branch_detect_obj(origin, origin_enable, dest_addr, predict, predict_enable, condition_bits)
-        # Works because a loc() usually sets both read/write addresses
-        # and the read address is the local, absolute location in memory
-        # (write address is offset to the global memory map)
-        if (storage in self.a_mem_obj.write_names[thread]):
-            address = self.a_mem_obj.read_names[thread][storage]
-            offset = self.thread_obj.default_offset[thread]
-            self.a_mem_obj.mem[address+offset] = branch_config
-        elif (storage in self.b_mem_obj.write_names[thread]):
-            address = self.b_mem_obj.read_names[thread][storage]
-            offset = self.thread_obj.default_offset[thread]
-            self.b_mem_obj.mem[address+offset] = branch_config
-        else:
-            print("Invalid storage location on branch: {0}.".format(storage))
-            sys.exit(1)
+        # ECL FIXME We don't have a way to disable branch origin yet in the assembly source. See DESIGN_NOTES TODO.
+        origin_enable = bdo.origin_enabled
+        origin        = BitArray(uint=branch.origin,      length=bdo.origin_width)
+        destination   = BitArray(uint=branch.destination, length=bdo.destination_width)
+        condition     = self.condition_to_binary(bdo, branch)
+        branch_bits   = BitArray()
+        # Field order must match hardware
+        for entry in [origin, origin_enable, destination, predict, predict_enable, condition]:
+            branch_bits.append(entry)
+        return branch_bits
 
-    def resolve_forward_branches(self):
-        for entry in self.unresolved_branches:
-            self.br(*entry)
+    def __init__(self, branch_detector_ops, code):
+        branch_count        = 4
+        self.bdo            = branch_detector_ops
+        self.code           = code
+        for branch in code.branches:
+            branch_init = self.branch_to_binary(self.bdo, branch)
+
+        # Saved for future Debug output
+        # condition_format         = 'uint:{0},uint:{1},uint:{2}'.format(self.branch_detect_obj.a_width, self.branch_detect_obj.b_width, self.branch_detect_obj.ab_operator_width)
+        # branch_format            = 'uint:{0},uint:{1},uint:{2},uint:{3},uint:{4},uint:{5}'.format(self.branch_detect_obj.origin_width, self.branch_detect_obj.origin_enable_width, self.branch_detect_obj.destination_width, self.branch_detect_obj.predict_taken_width, self.branch_detect_obj.predict_enable_width, self.branch_detect_obj.condition_width)
+
+
+# ---------------------------------------------------------------------------
+
+class Programmed_Offset (Base_Memory):
+    """Calculates the run-time offset applied by the CPU to accesses at indirect memory locations.
+       The offset is applied, then incremented by some constant."""
+
+    # Contrary to Default Offset, the offset length matters here, since other
+    # data follows it in the upper bits.
+    po_offset_bits_A        = 10
+    po_offset_bits_B        = 10
+    po_offset_bits_DA       = 12
+    po_offset_bits_DB       = 12
+
+    # These must match the Verilog parameters
+    po_entries              = 4
+    po_increment_bits       = 4
+    po_increment_sign_bits  = 1
+
+    def __init__(self, filename, target_mem_obj, offset_width, memmap_obj, thread_obj):
+        self.memmap_obj     = memmap_obj
+        self.target_mem_obj = target_mem_obj
+        self.offset_width   = offset_width
+        self.total_width    = self.po_increment_sign_bits + self.po_increment_bits + self.offset_width
+        depth               = thread_obj.count * self.po_entries
+        Base_Memory.__init__(self, depth, self.total_width, filename)
+
+    def gen_po(self, po_entry, target_address, increment):
+        po_address      = self.memmap_obj.indirect[po_entry]
+        offset          = target_address - po_address
+        if increment >= 0:
+            sign = 0
+        else:
+            sign = 1
+        sign        = BitArray(uint=sign,      length=self.po_increment_sign_bits)
+        increment   = BitArray(uint=increment, length=self.po_increment_bits)
+        offset      = BitArray(uint=offset,    length=self.offset_width)
+        po          = BitArray()
+        for field in [sign, increment, offset]:
+            po.append(field)
+        # A programmed offset is only correct in a given PO entry
+        return (po_entry, po)
+
+    def gen_read_po(self, po_entry, target_name, increment):
+        target_address  = self.target_mem_obj.lookup_read(target_name)
+        return self.gen_po(po_entry, target_address, increment)
+
+    def gen_write_po(self, po_entry, target_name, increment):
+        target_address  = self.target_mem_obj.lookup_write(target_name)
+        return self.gen_po(po_entry, target_address, increment)
+
+    def load (self, thread, po_entry, po):
+        if po_entry not in range(self.po_entries):
+            print("Out of bounds PO entry: {0}".format(entry))
+            sys.exit(1)
+        address = po_entry + (thread * self.po_entries)
+        self.mem[address] = po;
 
 # ---------------------------------------------------------------------------
 
@@ -450,19 +420,21 @@ class Generator (Debug):
         self.Triadic = Triadic_ALU_Operators(self.Dyadic)
         self.BDO     = Branch_Detector_Operators(self.Dyadic)
 
-        self.DO = Default_Offset("DO.mem", configuration)
-
-        self.A = Data_Memory("A.mem", "A", data, code, configuration)
-        self.B = Data_Memory("B.mem", "B", data, code, configuration)
-
         self.OD = Opcode_Decoder("OD.mem", self.Dyadic, self.Triadic, code, configuration)
-
-        self.I = Instruction_Memory("I.mem", code, configuration)
 
         self.PC      = Program_Counter("PC.mem", code, configuration)
         self.PC_prev = Program_Counter("PC_prev.mem", code, configuration)
 
-        # self.BD = Branch_Detector(self.A, self.B, self.I, self.BDO, self.Dyadic)
+        self.DO = Default_Offset("DO.mem", configuration)
+
+        self.BD = Branch_Detector(self.BDO, code)
+
+        self.A = Data_Memory("A.mem", "A", data, code, configuration)
+        self.B = Data_Memory("B.mem", "B", data, code, configuration)
+
+        self.I = Instruction_Memory("I.mem", code, configuration)
+
+
 
 
         # self.PO_A  = Programmed_Offset("PO_A.mem",  self.A, Programmed_Offset.po_offset_bits_A, self.MM, self.T)
