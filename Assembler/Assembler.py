@@ -46,5 +46,9 @@ if __name__ == "__main__":
     generator.generate()
     print("Generation done")
 
+    configuration.filedump("LOG.generate")
+    data.filedump("LOG.generate", append = True)
+    code.filedump("LOG.generate", append = True)
+
     print("OK")
 

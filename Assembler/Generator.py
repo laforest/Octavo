@@ -165,7 +165,8 @@ class Data_Memory (Base_Memory):
             value   = variable.value
             if type(value) is list:
                 for entry in value:
-                    entry = BitArray(uint=entry, length=self.width)
+                    if type(value) != type(BitArray()):
+                        entry = BitArray(uint=entry, length=self.width)
                     self.write_bits(address, entry)
                     address += 1
             else:
@@ -174,7 +175,8 @@ class Data_Memory (Base_Memory):
                 # we have the final variable resolutions done. (init data for init loads)
                 if value is None:
                     value = 0xDEADBEEF
-                value  = BitArray(uint=value, length=self.width)
+                if type(value) != type(BitArray()):
+                    value  = BitArray(uint=value, length=self.width)
                 self.write_bits(address, value)
 
     def __init__(self, filename, memory, data, code, configuration):
@@ -340,12 +342,43 @@ class Branch_Detector:
             branch_bits.append(entry)
         return branch_bits
 
-    def __init__(self, branch_detector_ops, code):
+    def find_branch_init_data (self, branch, configuration):
+        """Find the init load instruction in a branch, check if the destination is a branch detector, 
+           find the init data variable and fill it with the branch detector initialization binary data."""
+
+        # Branch resolution always adds the BD init load first
+        init_instr = branch.init_load.instructions[0]
+        # But check anyway...
+        if init_instr.D not in configuration.memory_map.bd:
+            print("First init load destination of branch {1} is not to BD entry!".format(branch))
+            exit(1)
+        # Find which operand references the init data variable (the other is zero)
+        if init_instr.A == 0:
+            init_data_addr = init_instr.B
+        else:
+            init_data_addr = init_instr.A
+        # Find the matching init data variable in the init load
+        init_data = None
+        for variable in branch.init_load.init_data:
+            if variable.address == init_data_addr:
+                init_data = variable
+                break
+        if init_data is None:
+            print("Init data at address {0} not found for init load {1}".format(init_data_addr, branch.init_load))
+            exit(1)
+        # Check that it's not already resolved (it shouldn't, that's what we're doing here)
+        if init_data.value is not None:
+            print("Init data {0} is already resolved in init load {1}".format(init_data, branch.init_load))
+            exit(1)
+        return init_data
+
+    def __init__(self, branch_detector_ops, code, configuration):
         branch_count        = 4
         self.bdo            = branch_detector_ops
-        self.code           = code
         for branch in code.branches:
-            branch_init = self.branch_to_binary(self.bdo, branch)
+            init_data    = self.find_branch_init_data(branch, configuration)
+            bd_init_data = self.branch_to_binary(self.bdo, branch)
+            init_data.value = bd_init_data
 
         # Saved for future Debug output
         # condition_format         = 'uint:{0},uint:{1},uint:{2}'.format(self.branch_detect_obj.a_width, self.branch_detect_obj.b_width, self.branch_detect_obj.ab_operator_width)
@@ -427,7 +460,7 @@ class Generator (Debug):
 
         self.DO = Default_Offset("DO.mem", configuration)
 
-        self.BD = Branch_Detector(self.BDO, code)
+        self.BD = Branch_Detector(self.BDO, code, configuration)
 
         self.A = Data_Memory("A.mem", "A", data, code, configuration)
         self.B = Data_Memory("B.mem", "B", data, code, configuration)
