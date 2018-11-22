@@ -74,6 +74,7 @@ class Configuration (Debug):
         Debug.__init__(self)
         self.thread_count           = 8
         self.memory_depth_words     = 1024
+        self.memory_depth_words_write = self.memory_depth_words * 4 # ECL FIXME this needs a cleaner definition
         self.memory_width_bits      = 36
         self.memory_shared_count    = 32
         # Indirect and I/O memory must fit in shared, and match hardware
