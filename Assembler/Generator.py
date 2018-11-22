@@ -388,20 +388,53 @@ class Branch_Detector:
 # ---------------------------------------------------------------------------
 
 class Programmed_Offset (Base_Memory):
-    """Calculates the run-time offset applied by the CPU to accesses at indirect memory locations.
-       The offset is applied, then incremented by some constant."""
+    """Calculates the run-time offset applied by the CPU to accesses at 
+       indirect memory locations. The offset is applied, then incremented 
+       by some constant. Contrary to most Generator classes, this does not 
+       output a memory file, but updates the resolved initialization loads."""
 
     # Contrary to Default Offset, the offset length matters here, since other
     # data follows it in the upper bits.
-    po_offset_bits_A        = 10
-    po_offset_bits_B        = 10
-    po_offset_bits_DA       = 12
-    po_offset_bits_DB       = 12
+    read_offset_bit_width   = 10
+    write_offset_bit_width  = 12
 
     # These must match the Verilog parameters
-    po_entries              = 4
-    po_increment_bits       = 4
-    po_increment_sign_bits  = 1
+    entries              = 4
+    increment_bits       = 4
+    increment_sign_bits  = 1
+
+    def to_sign_bit (self, value):
+        """Return the signed magnitude sign bit for a given signed int"""
+        if value >= 0:
+            return 0
+        else:
+            return 1
+
+    def pointer_to_binary (self, pointer, configuration):
+        """Convert a Pointer object to the binary init load values 
+           for a read/write pair of Programmed Offset entries."""
+        # Addresses wrap around when the offset is added, 
+        # so express negative values as the modular sum value
+        read_offset  = (pointer.read_base  - pointer.address) % configuration.memory_depth_words
+        write_offset = (pointer.write_base - pointer.address) % configuration.memory_depth_words_write
+        read_offset  = BitArray(uint=read_offset,  length=self.read_offset_bit_width) 
+        write_offset = BitArray(uint=write_offset, length=self.write_offset_bit_width) 
+        # The increments are signed magnitude numbers
+        read_increment  = BitArray(uint=pointer.read_incr,  length=self.increment_bits)
+        write_increment = BitArray(uint=pointer.write_incr, length=self.increment_bits)
+        # And the sign bit...
+        read_increment_sign  = self.to_sign_bit(pointer.read_incr)
+        write_increment_sign = self.to_sign_bit(pointer.write_incr)
+        read_increment_sign  = BitArray(uint=read_increment_sign,  length=self.increment_sign_bits)
+        write_increment_sign = BitArray(uint=write_increment_sign, length=self.increment_sign_bits)
+        # Now pack them into the Programmed Offset entry binary configurations
+        read_pointer_bits = BitArray()
+        for entry in [read_increment_sign, read_increment, read_offset]:
+            read_pointer_bits.append(entry)
+        write_pointer_bits = BitArray()
+        for entry in [write_increment_sign, write_increment, write_offset]:
+            write_pointer_bits.append(entry)
+        return (read_pointer_bits, write_pointer_bits)
 
     def __init__(self, filename, target_mem_obj, offset_width, memmap_obj, thread_obj):
         self.memmap_obj     = memmap_obj
@@ -410,37 +443,6 @@ class Programmed_Offset (Base_Memory):
         self.total_width    = self.po_increment_sign_bits + self.po_increment_bits + self.offset_width
         depth               = thread_obj.count * self.po_entries
         Base_Memory.__init__(self, depth, self.total_width, filename)
-
-    def gen_po(self, po_entry, target_address, increment):
-        po_address      = self.memmap_obj.indirect[po_entry]
-        offset          = target_address - po_address
-        if increment >= 0:
-            sign = 0
-        else:
-            sign = 1
-        sign        = BitArray(uint=sign,      length=self.po_increment_sign_bits)
-        increment   = BitArray(uint=increment, length=self.po_increment_bits)
-        offset      = BitArray(uint=offset,    length=self.offset_width)
-        po          = BitArray()
-        for field in [sign, increment, offset]:
-            po.append(field)
-        # A programmed offset is only correct in a given PO entry
-        return (po_entry, po)
-
-    def gen_read_po(self, po_entry, target_name, increment):
-        target_address  = self.target_mem_obj.lookup_read(target_name)
-        return self.gen_po(po_entry, target_address, increment)
-
-    def gen_write_po(self, po_entry, target_name, increment):
-        target_address  = self.target_mem_obj.lookup_write(target_name)
-        return self.gen_po(po_entry, target_address, increment)
-
-    def load (self, thread, po_entry, po):
-        if po_entry not in range(self.po_entries):
-            print("Out of bounds PO entry: {0}".format(entry))
-            sys.exit(1)
-        address = po_entry + (thread * self.po_entries)
-        self.mem[address] = po;
 
 # ---------------------------------------------------------------------------
 
