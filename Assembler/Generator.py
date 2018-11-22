@@ -453,35 +453,37 @@ class Generator (Debug):
         self.Triadic = Triadic_ALU_Operators(self.Dyadic)
         self.BDO     = Branch_Detector_Operators(self.Dyadic)
 
+        self.init_mems = []
+
         self.OD = Opcode_Decoder("OD.mem", self.Dyadic, self.Triadic, code, configuration)
+        self.init_mems.append(self.OD)
 
         self.PC      = Program_Counter("PC.mem", code, configuration)
         self.PC_prev = Program_Counter("PC_prev.mem", code, configuration)
+        self.init_mems.append(self.PC)
+        self.init_mems.append(self.PC_prev)
 
         self.DO = Default_Offset("DO.mem", configuration)
+        self.init_mems.append(self.DO)
 
         self.BD = Branch_Detector(self.BDO, code, configuration)
 
         self.A = Data_Memory("A.mem", "A", data, code, configuration)
         self.B = Data_Memory("B.mem", "B", data, code, configuration)
+        self.init_mems.append(self.A)
+        self.init_mems.append(self.B)
 
         self.I = Instruction_Memory("I.mem", code, configuration)
-
-
-
+        self.init_mems.append(self.I)
 
         # self.PO_A  = Programmed_Offset("PO_A.mem",  self.A, Programmed_Offset.po_offset_bits_A, self.MM, self.T)
         # self.PO_B  = Programmed_Offset("PO_B.mem",  self.B, Programmed_Offset.po_offset_bits_B, self.MM, self.T)
         # self.PO_DA = Programmed_Offset("PO_DA.mem", self.A, Programmed_Offset.po_offset_bits_DA, self.MM, self.T)
         # self.PO_DB = Programmed_Offset("PO_DB.mem", self.B, Programmed_Offset.po_offset_bits_DB, self.MM, self.T)
 
-        # self.initializable_memories = [self.A, self.B, self.I, self.OD, self.DO, self.PO_A, self.PO_B, self.PO_DA, self.PO_DB, self.PC, self.PC_prev]
-        self.initializable_memories = [self.DO, self.A, self.B, self.OD, self.I, self.PC, self.PC_prev]
-
     def generate (self, mem_obj_list = None):
         if mem_obj_list is None:
-            mem_obj_list = self.initializable_memories
+            mem_obj_list = self.init_mems
         for mem in mem_obj_list:
             mem.file_dump()
-
 
