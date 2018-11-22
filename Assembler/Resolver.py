@@ -116,6 +116,8 @@ class Resolver (Utility, Debug):
         pointer.write_base      = write_variable.address
         # Now construct the init load for this pointer
         init_load = self.code.lookup_init_load(pointer.label)
+        # Used later to resolve the init load data for this pointer
+        pointer.init_load = init_load
         init_label_read  = pointer.label + "_read_init"
         init_label_write = pointer.label + "_write_init"
         init_load.add_shared(init_label_read)

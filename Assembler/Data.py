@@ -45,6 +45,8 @@ class Pointer (Variable):
         self.write_base = write_base
         self.write_incr = write_incr
         self.slot       = slot
+        # Set at Resolution, as the code and data haven't been generated yet!
+        self.init_load  = None
 
 class Port (Variable):
     """Describes an I/O port. Derive address from port number. Has no value (set to 0)."""
