@@ -247,7 +247,7 @@ class Code (Debug, Utility):
     def __str__ (self):
         output = "\nCode:\n"
         output += "\n" + str(self.usage) + "\n"
-        output += "\nThreads: " + str(self.threads) + "\n"  
+        output += "\nThreads: " + str(self.threads) + "\n\n"  
         output += self.list_str(self.init_loads) + "\n"
         for instruction in self.instructions:
             if type(instruction) == list:
@@ -258,7 +258,7 @@ class Code (Debug, Utility):
         output += self.list_str(self.opcodes) + "\n"
         output += self.list_str(self.conditions) + "\n"
         output += self.list_str(self.branches) + "\n"
-        output += str(self.initial_pc) + "\n"
+        output += "Initial PC: " + str(self.initial_pc) + "\n"
         return output
 
     def set_current_threads (self, thread_list):
