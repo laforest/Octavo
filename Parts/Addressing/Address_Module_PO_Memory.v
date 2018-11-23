@@ -15,7 +15,6 @@ module Address_Module_PO_Memory
     parameter       PO_ADDR_WIDTH               = 0,
     parameter       PO_ENTRY_COUNT              = 0,
     parameter       PO_ENTRY_WIDTH              = 0,
-    parameter       PO_INIT_FILE                = "",
     parameter       INDIRECT_ADDR_BASE          = 0,
     // Common RAM parameters
     parameter       RAMSTYLE                    = "",
@@ -213,8 +212,8 @@ module Address_Module_PO_Memory
         .RAMSTYLE       (RAMSTYLE),
         .READ_NEW_DATA  (READ_NEW_DATA),
         // Force init file use to simplify setup
-        .USE_INIT_FILE  (1),
-        .INIT_FILE      (PO_INIT_FILE)
+        .USE_INIT_FILE  (0),
+        .INIT_FILE      ()
     )
     PO_MEM
     (

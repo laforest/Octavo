@@ -13,7 +13,6 @@ module Address_Module
     parameter       PO_ADDR_WIDTH           = 0,
     parameter       PO_ENTRY_COUNT          = 0,
     parameter       PO_ENTRY_WIDTH          = 0,
-    parameter       PO_INIT_FILE            = "",
     // Base address for later translation to 0-based index
     parameter       INDIRECT_ADDR_BASE      = 0,
     // One Default Offset per Thread
@@ -174,7 +173,6 @@ module Address_Module
         .PO_ENTRY_COUNT         (PO_ENTRY_COUNT),
         .PO_ENTRY_WIDTH         (PO_ENTRY_WIDTH),
         .PO_ADDR_WIDTH          (PO_ADDR_WIDTH),
-        .PO_INIT_FILE           (PO_INIT_FILE),
         .INDIRECT_ADDR_BASE     (INDIRECT_ADDR_BASE),
         .RAMSTYLE               (RAMSTYLE),
         .READ_NEW_DATA          (READ_NEW_DATA),
