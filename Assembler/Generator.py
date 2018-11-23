@@ -436,13 +436,12 @@ class Programmed_Offset (Base_Memory):
             write_pointer_bits.append(entry)
         return (read_pointer_bits, write_pointer_bits)
 
-    def __init__(self, filename, target_mem_obj, offset_width, memmap_obj, thread_obj):
-        self.memmap_obj     = memmap_obj
-        self.target_mem_obj = target_mem_obj
-        self.offset_width   = offset_width
-        self.total_width    = self.po_increment_sign_bits + self.po_increment_bits + self.offset_width
-        depth               = thread_obj.count * self.po_entries
-        Base_Memory.__init__(self, depth, self.total_width, filename)
+    def __init__(self, data, configuration):
+        for pointer in data.pointers:
+            read_pointer_bits, write_pointer_bits = self.pointer_to_binary(pointer, configuration)
+            # Assumes creation order for init data: read, then write. FIXME need a better way.
+            pointer.init_load.init_data[0].value = read_pointer_bits
+            pointer.init_load.init_data[1].value = write_pointer_bits
 
 # ---------------------------------------------------------------------------
 
@@ -457,6 +456,8 @@ class Generator (Debug):
 
         self.init_mems = []
 
+        # Do all these first. Instructions and data depend on them
+
         self.OD = Opcode_Decoder("OD.mem", self.Dyadic, self.Triadic, code, configuration)
         self.init_mems.append(self.OD)
 
@@ -469,6 +470,10 @@ class Generator (Debug):
         self.init_mems.append(self.DO)
 
         self.BD = Branch_Detector(self.BDO, code, configuration)
+        self.PO = Programmed_Offset(data, configuration)
+
+        # Now all Code and Data have been resolved and generated
+        # We can now create the Data and Instruction Memories
 
         self.A = Data_Memory("A.mem", "A", data, code, configuration)
         self.B = Data_Memory("B.mem", "B", data, code, configuration)
@@ -477,11 +482,6 @@ class Generator (Debug):
 
         self.I = Instruction_Memory("I.mem", code, configuration)
         self.init_mems.append(self.I)
-
-        # self.PO_A  = Programmed_Offset("PO_A.mem",  self.A, Programmed_Offset.po_offset_bits_A, self.MM, self.T)
-        # self.PO_B  = Programmed_Offset("PO_B.mem",  self.B, Programmed_Offset.po_offset_bits_B, self.MM, self.T)
-        # self.PO_DA = Programmed_Offset("PO_DA.mem", self.A, Programmed_Offset.po_offset_bits_DA, self.MM, self.T)
-        # self.PO_DB = Programmed_Offset("PO_DB.mem", self.B, Programmed_Offset.po_offset_bits_DB, self.MM, self.T)
 
     def generate (self, mem_obj_list = None):
         if mem_obj_list is None:
