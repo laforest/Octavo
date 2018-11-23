@@ -11,7 +11,7 @@ class Debug:
 
     def __str__ (self):
         """Debug information formatter. Override in sub-classes for more complex structures."""
-        return self.__class__.__name__ + " ({0}): ".format(hex(id(self))) + pformat(self.__dict__, width=80)
+        return self.__class__.__name__ + " ({0}): ".format(hex(id(self))) + pformat(self.__dict__, width=320, compact=True)
 
     def list_str (self, items):
         """Convert a list to a string. One item per line."""
