@@ -196,34 +196,44 @@ class Usage (Debug):
         self.bd_in_use = self.init_flags(self.configuration.memory_map.bd)
         self.od_in_use = self.init_flags(self.configuration.memory_map.od)
         
-    def allocate_next (self, resource, usage_flags):
-        try:
-            index = usage_flags.index(False)
-        except ValueError:
-            print("No more free slots for {0}.".format(usage_flags))
-            exit(1)
+    def allocate_next (self, resource, usage_flags, index = None):
+        """Sequentially return the next free allocation index and resource address, or do so at provided index if available."""
+        if index is None:
+            try:
+                index = usage_flags.index(False)
+            except ValueError:
+                print("No more free slots for {0}.".format(usage_flags))
+                exit(1)
+        else:
+            if usage_flags[index] != False:
+                print("Allocation conflict for {0} at index {1}.".format(usage_flags, index))
+                exit(1)
+            
         usage_flags[index] = True
         address = resource[index]
-        return address
+        return address, index
 
     def allocate_bd (self):
-        return self.allocate_next(self.configuration.memory_map.bd, self.bd_in_use)
+        address, index = self.allocate_next(self.configuration.memory_map.bd, self.bd_in_use)
+        return address, index
 
     def allocate_po (self, operand):
-        return self.allocate_next(self.configuration.memory_map.po[operand], self.po_in_use[operand])
+        address, index = self.allocate_next(self.configuration.memory_map.po[operand], self.po_in_use[operand])
+        return address
 
-    def allocate_sentinel_mask (self, operand):
+    def allocate_sentinel_mask (self, operand, index):
         # Allocate together to make sure the allocate_next() internal indexes always match
-        sentinel_addr = self.allocate_next(self.configuration.memory_map.sentinel[operand], self.sentinel_in_use[operand])
-        mask_addr = self.allocate_next(self.configuration.memory_map.mask[operand], self.mask_in_use[operand])
+        sentinel_addr, dummy_index = self.allocate_next(self.configuration.memory_map.sentinel[operand], self.sentinel_in_use[operand], index)
+        mask_addr, dummy_index = self.allocate_next(self.configuration.memory_map.mask[operand], self.mask_in_use[operand], index)
         return (sentinel_addr, mask_addr)
 
-    def allocate_bc (self):
-        return self.allocate_next(self.configuration.memory_map.bc, self.bc_in_use)
+    def allocate_bc (self, index):
+        address, index = self.allocate_next(self.configuration.memory_map.bc, self.bc_in_use, index)
+        return address
 
     def allocate_od (self):
-        return self.allocate_next(self.configuration.memory_map.od, self.od_in_use)
-
+        address, index = self.allocate_next(self.configuration.memory_map.od, self.od_in_use)
+        return address
 
 class Code (Debug, Utility):
     """Parses the code, which drives the resolution of unknowns about the data."""
@@ -337,27 +347,27 @@ class Code (Debug, Utility):
         # First, the instruction and data to initialize the branch detector entry
         data_label = branch.destination + "_init"
         branch.init_load.add_shared(data_label)
-        bd_addr = self.usage.allocate_bd()
+        bd_addr, bd_index = self.usage.allocate_bd()
         branch.init_load.add_instruction(branch.init_load.label, bd_addr, data_label)
 
         # Then add any instr/data to init other hardware if necessary
 
         if branch.sentinel_a is not None:
-            (sentinel_addr, mask_addr) = self.usage.allocate_sentinel_mask("A")
+            (sentinel_addr, mask_addr) = self.usage.allocate_sentinel_mask("A", bd_index)
             branch.init_load.add_shared(branch.sentinel_a)
             branch.init_load.add_instruction(None, sentinel_addr, branch.sentinel_a)
             branch.init_load.add_shared(branch.mask_a)
             branch.init_load.add_instruction(None, mask_addr, branch.mask_a)
 
         if branch.sentinel_b is not None:
-            (sentinel_addr, mask_addr) = self.usage.allocate_sentinel_mask("B")
+            (sentinel_addr, mask_addr) = self.usage.allocate_sentinel_mask("B", bd_index)
             branch.init_load.add_shared(branch.sentinel_b)
             branch.init_load.add_instruction(None, sentinel_addr, branch.sentinel_b)
             branch.init_load.add_shared(branch.mask_b)
             branch.init_load.add_instruction(None, mask_addr, branch.mask_b)
 
         if branch.counter is not None:
-            bc_addr = self.usage.allocate_bc()
+            bc_addr = self.usage.allocate_bc(bd_index)
             branch.init_load.add_shared(branch.counter)
             branch.init_load.add_instruction(None, bc_addr, branch.counter)
 
