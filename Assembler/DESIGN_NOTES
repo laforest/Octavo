@@ -20,6 +20,7 @@ If a variable is only written to, then the memory bank inference is arbitrary (u
 Pointers are like shared variables but multi-threaded values (unique to each thread, but at same address), always named, and also referred by name only.
 Pointers point to a named variable.
 The memory bank of a pointer is inferred to be the same as that of the pointed-to variable.
+Pointers are dual, with both read and write entries.
 
 Ports are like pointers, with the memory bank pre-specified instead of inferred (since anything wired to it pre-exists any instruction).
 
