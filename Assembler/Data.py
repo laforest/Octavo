@@ -61,6 +61,7 @@ class Data (Utility, Debug):
     def __init__ (self, configuration):
         Utility.__init__(self)
         Debug.__init__(self)
+        self.current_threads = []
         # Variable types
         self.shared     = []
         self.private    = []
@@ -75,6 +76,7 @@ class Data (Utility, Debug):
 
     def __str__ (self):
         output = "\nData:\n"
+        output += "\nCurrent Threads: " + str(self.current_threads) + "\n"  
         output += "\nPrivate Variables:\n"
         output += self.list_str(self.private)
         output += "\nShared Variables:\n"
@@ -82,6 +84,25 @@ class Data (Utility, Debug):
         output += self.list_str(self.pointers) + "\n"
         output += self.list_str(self.ports) + "\n"
         return output
+
+    def set_current_threads (self, thread_list):
+        self.current_threads = [self.try_int(thread) for thread in thread_list]
+        # Type check
+        for thread in self.current_threads:
+            if type(thread) is not int:
+                print("Thread values must be literal integers: {0}".format(self.current_threads))
+                exit(1)
+        # Range check
+        min_thread = 0
+        max_thread = self.configuration.thread_count - 1
+        for thread in self.current_threads:
+            if thread < min_thread or thread > max_thread:
+                print("Out of range thread: {0}. Min: {1}, Max: {2}".format(self.thread, min_thread, max_thread))
+                exit(1)
+        # Duplication test
+        if len(self.current_threads) > len(set(self.current_threads)):
+            print("Duplicate thread numbers not allowed: {0}".format(current_threads))
+            exit(1)
 
     def lookup_variable_type (self, variable):
         """Searches the variable type lists to find the one the given variable belongs to."""

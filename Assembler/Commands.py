@@ -106,7 +106,7 @@ class Commands (Debug):
         if label is not None:
             print("No label ({0}) allowed for command threads".format(label))
             exit(1)
-        self.code.set_current_threads(thread_list)
+        self.data.set_current_threads(thread_list)
 
     def init (self, arguments):
         """Declare a placeholder for the initialization code of a branch or a pointer. Filled-in later."""

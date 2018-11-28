@@ -243,7 +243,6 @@ class Code (Debug, Utility):
         self.data           = data
         self.configuration  = configuration
         self.usage          = Usage(configuration)
-        self.threads        = []
         self.init_loads     = []
         self.instructions   = []
         self.opcodes        = []
@@ -254,7 +253,6 @@ class Code (Debug, Utility):
     def __str__ (self):
         output = "\nCode:\n"
         output += "\n" + str(self.usage) + "\n"
-        output += "\nThreads: " + str(self.threads) + "\n\n"  
         output += self.list_str(self.init_loads) + "\n"
         for instruction in self.instructions:
             if type(instruction) == list:
@@ -267,25 +265,6 @@ class Code (Debug, Utility):
         output += self.list_str(self.branches) + "\n"
         output += "Initial PC: " + str(self.initial_pc) + "\n"
         return output
-
-    def set_current_threads (self, thread_list):
-        self.threads = [self.try_int(thread) for thread in thread_list]
-        # Type check
-        for thread in self.threads:
-            if type(thread) is not int:
-                print("Thread values must be literal integers: {0}".format(self.threads))
-                exit(1)
-        # Range check
-        min_thread = 0
-        max_thread = self.configuration.thread_count - 1
-        for thread in self.threads:
-            if thread < min_thread or thread > max_thread:
-                print("Out of range thread: {0}. Min: {1}, Max: {2}".format(self.thread, min_thread, max_thread))
-                exit(1)
-        # Duplication test
-        if len(self.threads) > len(set(self.threads)):
-            print("Duplicate thread numbers not allowed: {0}".format(threads))
-            exit(1)
 
     def allocate_init_load (self, label, destination):
         new_init_load = Initialization_Load(self.data, self, label = label, destination = destination)
