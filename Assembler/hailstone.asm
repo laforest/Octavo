@@ -20,7 +20,7 @@ include conditions.asm
 # Then pass remainder of line back to line parser.
 
 seed        private     0
-seeds       private     11 11 11 11 11 11
+seeds       private     41 47 54 55 62 71
 
 #                       base_addr   read_increment  base_addr   write_increment
 seeds_ptr   pointer     seeds       1               seeds       1
