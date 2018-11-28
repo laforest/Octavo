@@ -286,7 +286,7 @@ class Code (Debug, Utility):
                 print("Out of range thread: {0}. Min: {1}, Max: {2}".format(self.thread, min_thread, max_thread))
                 exit(1)
         # Duplication test
-        if len(self.threads) < len(set(self.threads)):
+        if len(self.threads) > len(set(self.threads)):
             print("Duplicate thread numbers not allowed: {0}".format(threads))
             exit(1)
 
