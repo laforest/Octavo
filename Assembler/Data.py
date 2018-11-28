@@ -28,12 +28,13 @@ class Variable (Debug, Utility):
             exit(1)
         return initial_values
 
-    def __init__ (self, label = None, address = None, value = None, memory = None):
+    def __init__ (self, label = None, address = None, value = None, memory = None, threads = None):
         Debug.__init__(self)
         self.label   = label
         self.address = address
         self.value   = self.parse_value(label, value)
         self.memory  = memory
+        self.thread  = threads
 
 class Pointer (Variable):
     """Describes pointer initialization data and which indirect memory slot it refers to"""
@@ -156,7 +157,7 @@ class Data (Utility, Debug):
         if label is None:
             print("Private variable label/name cannot be None! Initial value: {0}".format(initial_values))
             exit(1)
-        variable = Variable(label = label, value = initial_values)
+        variable = Variable(label = label, value = initial_values, threads = self.current_threads)
         self.private.append(variable)
         return variable
 
