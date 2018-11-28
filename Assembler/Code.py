@@ -238,9 +238,6 @@ class Usage (Debug):
 class Code (Debug, Utility):
     """Parses the code, which drives the resolution of unknowns about the data."""
 
-    # Not likely to ever change...
-    thread_count = 8
-
     def __init__ (self, data, configuration):
         Debug.__init__(self)
         self.data           = data
@@ -376,8 +373,8 @@ class Code (Debug, Utility):
 
     def set_pc (self, label, pc_list):
         pc_count = len(pc_list)
-        if pc_count != self.thread_count:
-            print("ERROR: You must provide an initial PC for each of the {0} threads, but you provided {1}: {2}".format(self.thread_count, pc_count, pc_list))
+        if pc_count != self.configuration.thread_count:
+            print("ERROR: You must provide an initial PC for each of the {0} threads, but you provided {1}: {2}".format(self.configuration.thread_count, pc_count, pc_list))
             exit(1)
         self.initial_pc = pc_list
 
