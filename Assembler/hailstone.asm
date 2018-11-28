@@ -19,25 +19,32 @@ include conditions.asm
 # If first word is not an opcode, or a code-generating command, then it's a branch or read/write label.
 # Then pass remainder of line back to line parser.
 
-seed        private     0
-seeds       private     41 47 54 55 62 71
-
-#                       base_addr   read_increment  base_addr   write_increment
-seeds_ptr   pointer     seeds       1               seeds       1
-
-lsb_mask    shared      0xFFFFFFFFE
-seeds_len   shared      6
-newseed     private     0
-
-# name                  I/O port memory and number
-seed_out    port        A 0
-
 # In which threads will this code run. This determines how many copies of the variables and arrays will be created.
 # The pointers are already multi-threaded in hardware.
 # Constants and literals exist as single copies in the literal pool area.
 # There are also drop_branch and drop_pointers to free up the used branch detector and indirect memory entries.
 
+# Private to each thread as separate data memory copies
+
 threads 0 1 2 3 4 5 6 7
+
+seed        private     0
+newseed     private     0
+seeds       private     41 47 54 55 62 71
+
+# Private to each thread via multi-threaded hardware
+
+#                       base_addr   read_increment  base_addr   write_increment
+seeds_ptr   pointer     seeds       1               seeds       1
+# name                  I/O port memory and number
+seed_out    port        A 0
+
+# Shared across all threads
+
+lsb_mask    shared      0xFFFFFFFFE
+seeds_len   shared      6
+
+# Code
 
 hailstone   init    hailstone
             init    even
