@@ -155,7 +155,8 @@ class Base_Memory (Debug):
 # ---------------------------------------------------------------------------
 
 class Data_Memory (Base_Memory):
-    """Create the contents of a Data Memory referenced by an instruction read/write operands.        This is essentially part of the combined register file/memory.
+    """Create the contents of a Data Memory referenced by an instruction read/write operands.
+       This is essentially part of the combined register file/memory.
        Replicates private variables for each thread."""
 
     def write_variables (self, variables, offset = 0):
