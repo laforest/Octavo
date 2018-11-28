@@ -403,8 +403,3 @@ class Code (Debug, Utility):
                 return instruction
         return None
  
-    def lookup_opcode (self, label):
-        for opcode in self.opcodes:
-            if opcode.label == label:
-                return opcode
-        return None
