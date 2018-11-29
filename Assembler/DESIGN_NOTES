@@ -4,7 +4,9 @@ Design Notes for Octavo Assembler.
 All names must be globally unique. Names are labels applied to variables, pointers, ports, or instructions.
 An absent name has no value (None), and is not included in any name search.
 
-Private variables are copied for each thread, with different addresses per thread, and always named, and so writable. They can only be looked up by name.
+Private variables are always named, and so writable. They can only be looked up by name.
+Each thread may have a separate instance of the same private variable, holding different data under the same name.
+These multiple instances will all resolve to the same address in the code, and be generated at the same relative location in each thread where they are defined.
 
 Shared variables exist as a single copy, identically addressed, by all threads.
 If unnamed, they are constants (since they cannot be written to) and referenced by value only (named variables are ignored on lookup), and other references to the same value get pointed to the first such instance.

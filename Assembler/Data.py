@@ -34,7 +34,7 @@ class Variable (Debug, Utility):
         self.address = address
         self.value   = self.parse_value(label, value)
         self.memory  = memory
-        self.thread  = threads
+        self.threads = threads
 
 class Pointer (Variable):
     """Describes pointer initialization data and which indirect memory slot it refers to"""
@@ -115,8 +115,9 @@ class Data (Utility, Debug):
         exit(1)
 
     def lookup_variable_name (self, name, specific_variable_type = None):
-        """Locate variable by name if it exists. Search exhaustively to find duplicates.
-           Specify variable type list if you want to lookup a specific type."""
+        """Locate variable by name if it exists.
+           Specify variable type list if you want to lookup a specific type.
+           Return list of variables of that name across all threads."""
         if name is None:
             print("Variable name lookup cannot have a None name!")
             exit(1)
@@ -129,13 +130,18 @@ class Data (Utility, Debug):
                     variables.append(variable)
         if len(variables) == 0:
             return None
-        if len(variable_types) > 1 or len(variables) > 1:
-            print("Variable name {0} found more than once in variable types {0}.".format(name, variable_types))
+        # Now check that the variable does not exist in multiple types, which is an error.
+        # Just pick one type and compare it to the rest.
+        test_type = variable_types[0]
+        for variable_type in variable_types:
+            if variable_type != test_type:
+                print("Variable name {0} found in two variable types {1} and {2}.".format(name, test_type, variable_type))
+                exit(1)
+        # If a desired variable type was given, check that the found variables are in that type.
+        if specific_variable_type is not None and test_type != specific_variable_type:
+            print("Variable name {0} found in variable type {1}, not in specified variable type {2}.".format(name, test_type, specific_variable_type))
             exit(1)
-        if specific_variable_type is not None and variable_types[0] != specific_variable_type:
-            print("Variable name {0} searched in variable type {1} already in use in other variable type {2}.".format(name, variable_type, variable_types[0]))
-            exit(1)
-        return variables[0]
+        return variables
 
     def lookup_shared_variable_value (self, value, memory):
         """Locate unnamed shared variable by value if it exists in the given memory.
@@ -250,13 +256,25 @@ class Data (Utility, Debug):
         return variable
 
     def resolve_named (self, name, memory):
-        variable = self.lookup_variable_name(name)
+        """Lookup a variable and allocate it an address and a memory if not already set.
+           For private variables existing in multiple threads, allocate the first one found,
+           then apply the same memory and address to all the others of the same name.
+           Returns the first matched variable, as its identical to the others, except for assigned thread."""
 
-        if variable is None:
+        # We know that the list is always of variables of a single type
+        variables = self.lookup_variable_name(name)
+
+        if variables is None:
             print("Unknown variable name {0}".format(name))
             exit(1)
 
+        # Use the first match for sanity checks and for resolution.
+        variable = variables[0]
+
         if variable in self.shared:
+            if len(variables) > 1:
+                print("Duplicate shared variable {0}: {1}".format(variable.label, variables))
+                exit(1)
             if variable.address is None:
                 variable.address = self.next_variable_address(self.shared, memory)
             if variable.memory is not None and variable.memory != memory:
@@ -272,9 +290,17 @@ class Data (Utility, Debug):
                 print("Conflicting memory allocation for private variable {0}. Was {1}, now {2}".format(name, variable.memory, memory))
                 exit(1)
             variable.memory = memory 
+            # Now apply to all the other thread instances of that variable
+            for instance in variables:
+                instance.address = variable.address
+                instance.memory  = variable.memory
             return variable
 
+        # Ports are located in the shared address space, so treat them like shared variables.
         if variable in self.ports:
+            if len(variables) > 1:
+                print("Duplicate port variable {0}: {1}".format(variable.label, variables))
+                exit(1)
             if variable.address is None:
                 variable.address = self.configuration.memory_map.io[variable.number]
             # Memory always set at port definition
@@ -282,8 +308,12 @@ class Data (Utility, Debug):
                 print("Conflicting memory allocation for I/O port {0}. Was {1}, now {2}".format(name, variable.memory, memory))
                 exit(1)
             return variable
-            
+
+        # Pointers are located in the shared address space, so treat them like shared variables.
         if variable in self.pointers:
+            if len(variables) > 1:
+                print("Duplicate pointer variable {0}: {1}".format(variable.label, variables))
+                exit(1)
             if variable.slot is None:
                 variable.slot = self.next_pointer_slot()
             if variable.address is None:

@@ -74,7 +74,10 @@ class Resolver (Utility, Debug):
         # The variable must have been used as a read operand before, so its
         # we have already set which memory it must reside in.
         elif type(converted_value) == str:
-            variable = self.data.lookup_variable_name(converted_value)
+            # There may be a list of instances of the variable for different threads.
+            # Use the first one as they are identical in addressing and memory
+            variables = self.data.lookup_variable_name(converted_value)
+            variable  = variables[0]
             if variable is None:
                 print("Unknown variable {0} used as write operand.".format(converted_value))
                 print(instruction)
@@ -93,8 +96,13 @@ class Resolver (Utility, Debug):
             self.resolve_pointer(pointer)
 
     def resolve_pointer (self, pointer):
-        read_variable  = self.data.lookup_variable_name(pointer.read_base)
-        write_variable = self.data.lookup_variable_name(pointer.write_base)
+        # The lookup returns lists of variables.
+        # A pointer can refer to multiple thread instances of a variable
+        # so process the list, using the first variable for tests and reference
+        read_variables  = self.data.lookup_variable_name(pointer.read_base)
+        write_variables = self.data.lookup_variable_name(pointer.write_base)
+        read_variable   = read_variables[0]
+        write_variable  = write_variables[0]
         # A pointer only refers to locations in the same memory as it.
         # The pointer memory should have already been set by resolving an
         # instruction which reads it.
@@ -104,6 +112,7 @@ class Resolver (Utility, Debug):
         if write_variable.memory is not None and write_variable.memory != pointer.memory:
             print("Variable {0} already assigned to memory {1} but write pointer {2} is in memory {3}".format(write_variable.label, write_variable.memory, pointer.label, pointer.memory))
             exit(1)
+        # Now resolve the pointed-to variable
         read_variable.memory    = pointer.memory
         write_variable.memory   = pointer.memory
         read_variable_type      = self.data.lookup_variable_type(read_variable)
@@ -112,8 +121,16 @@ class Resolver (Utility, Debug):
         # Don't allocate twice if read/write are the same variable
         if write_variable != read_variable:
             write_variable.address  = self.data.next_variable_address(write_variable_type, write_variable.memory)
+        # Resolve the pointer addresses
         pointer.read_base       = read_variable.address
         pointer.write_base      = write_variable.address
+        # Now apply the resolution to all instances of the variables
+        for read_instance in read_variables:
+            read_instance.memory    = read_variable.memory
+            read_instance.address   = read_variable.address
+        for write_instance in write_variables:
+            write_instance.memory   = write_variable.memory
+            write_instance.address  = write_instance.address
         # Now construct the init load for this pointer
         init_load = self.code.lookup_init_load(pointer.label)
         # Used later to resolve the init load data for this pointer

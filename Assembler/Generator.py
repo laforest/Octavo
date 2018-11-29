@@ -189,12 +189,13 @@ class Data_Memory (Base_Memory):
         private_variables = [entry for entry in data.private if entry.memory == memory]
         # Dump the shared variables once
         self.write_variables(shared_variables)
-        # Dump the private variables once per thread at its default offset
-        threads = data.current_threads
-        offsets = configuration.default_offset.offsets
-        for thread in threads:
-            offset = offsets[thread]
-            self.write_variables(private_variables, offset)
+        # Dump the private variables, once per assigned thread, at their default offset
+        for private_variable in private_variables:
+            threads = private_variable.threads 
+            offsets = configuration.default_offset.offsets
+            for thread in threads:
+                offset = offsets[thread]
+                self.write_variables([private_variable], offset)
 
 # ---------------------------------------------------------------------------
 
