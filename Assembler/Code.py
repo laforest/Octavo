@@ -94,6 +94,7 @@ class Initialization_Load (Debug, Utility):
         """Adds data for an initialization load. Order not important. Referenced by label."""
         new_init_data = self.data.allocate_private(label)
         self.init_data.append(new_init_data)
+        return new_init_data
 
     def add_shared (self, label):
         """Adds data for an initialization load. Order not important. 
