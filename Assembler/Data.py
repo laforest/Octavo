@@ -28,13 +28,12 @@ class Variable (Debug, Utility):
             exit(1)
         return initial_values
 
-    def __init__ (self, label = None, address = None, value = None, memory = None, threads = None):
+    def __init__ (self, label = None, address = None, value = None, memory = None):
         Debug.__init__(self)
         self.label   = label
         self.address = address
         self.value   = self.parse_value(label, value)
         self.memory  = memory
-        self.threads = threads
 
 class Pointer (Variable):
     """Describes pointer initialization data and which indirect memory slot it refers to"""
@@ -173,6 +172,18 @@ class Data (Utility, Debug):
         self.shared.append(variable)
         return variable
 
+    def next_pointer_slot (self, set_pointer):
+        """Find the highest used slot in all pointers in the same memory, and return the next one."""
+        max_slot = -1
+        for pointer in self.pointers:
+            if pointer.memory != set_pointer.memory:
+                continue
+            slot     = pointer.slot
+            if slot is None:
+                slot = -1
+            max_slot = max(slot, max_slot)
+        return max_slot + 1
+
     def allocate_pointer (self, label, read_base = None, read_incr = None, write_base = None, write_incr = None):
         # We can't determine the init data value until we know which Data Memory it's read from.
         # This also affects the placement of the referred-to pointer/array.
@@ -182,9 +193,8 @@ class Data (Utility, Debug):
             exit(1)
         read_incr   = self.try_int(read_incr)
         write_incr  = self.try_int(write_incr)
-        # assign next consecutive slot (later improve to grant first freed slot)
-        slot        = len(self.pointers)
         new_pointer = Pointer(label = label, read_base = read_base, read_incr = read_incr, write_base = write_base, write_incr = write_incr)
+        # Can't set slot here, as we don't know which Data Memory we will end up in. This is done at Resolution.
         self.pointers.append(new_pointer)
         return new_pointer
 
@@ -233,16 +243,6 @@ class Data (Utility, Debug):
                 exit(1)
         #
         return next_address
-
-    def next_pointer_slot (self):
-        # Pointer slots start at zero
-        max_slot = 0
-        for pointer in self.pointers:
-            slot     = pointer.slot
-            if slot is None:
-                slot = 0
-            max_slot = max(slot, max_slot)
-        return max_slot
 
     def resolve_shared_value (self, value, memory):
         variable = self.lookup_shared_variable_value(value, memory)
@@ -309,19 +309,21 @@ class Data (Utility, Debug):
                 exit(1)
             return variable
 
-        # Pointers are located in the shared address space, so treat them like shared variables.
+        # Pointers are located in the shared address space, but are initialized per-thread.
         if variable in self.pointers:
-            if len(variables) > 1:
-                print("Duplicate pointer variable {0}: {1}".format(variable.label, variables))
-                exit(1)
-            if variable.slot is None:
-                variable.slot = self.next_pointer_slot()
-            if variable.address is None:
-                variable.address = self.configuration.memory_map.indirect[variable.slot]
             if variable.memory is not None and variable.memory != memory:
                 print("Conflicting memory allocation for pointer {0}. Was {1}, now {2}".format(name, variable.memory, memory))
                 exit(1)
             variable.memory = memory 
+            if variable.slot is None:
+                variable.slot = self.next_pointer_slot(variable)
+            if variable.address is None:
+                variable.address = self.configuration.memory_map.indirect[variable.slot]
+            # Now apply to all the other thread instances of that pointer
+            for instance in variables:
+                instance.slot    = variable.slot
+                instance.address = variable.address
+                instance.memory  = variable.memory
             return variable
 
 
