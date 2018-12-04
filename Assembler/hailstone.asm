@@ -31,61 +31,66 @@ threads 0
 seed        private     0
 newseed     private     0
 seeds       private     41 47 54 
+# Private to each thread since the init data is different for each. Same multi-threaded hardware address for all.
+#                       base_addr   read_increment  base_addr   write_increment
+seeds_ptr   pointer     seeds       1               seeds       1
 
 threads 1
 
 seed        private     0
 newseed     private     0
 seeds       private     55 62 71
+seeds_ptr   pointer     seeds       1               seeds       1
 
 threads 2
 
 seed        private     0
 newseed     private     0
 seeds       private     73 82 83
+seeds_ptr   pointer     seeds       1               seeds       1
 
 threads 3
 
 seed        private     0
 newseed     private     0
 seeds       private     91 94 95
+seeds_ptr   pointer     seeds       1               seeds       1
 
 threads 4
 
 seed        private     0
 newseed     private     0
 seeds       private     97 103 107
+seeds_ptr   pointer     seeds       1               seeds       1
 
 threads 5
 
 seed        private     0
 newseed     private     0
 seeds       private     108 109 110
+seeds_ptr   pointer     seeds       1               seeds       1
 
 threads 6
 
 seed        private     0
 newseed     private     0
 seeds       private     121 124 125
+seeds_ptr   pointer     seeds       1               seeds       1
 
 threads 7
 
 seed        private     0
 newseed     private     0
 seeds       private     126 129 137
-
-# Private to each thread via multi-threaded hardware
-
-#                       base_addr   read_increment  base_addr   write_increment
 seeds_ptr   pointer     seeds       1               seeds       1
-
-# name                  I/O port memory and number
-seed_out    port        A 0
 
 # Shared across all threads
 
 lsb_mask    shared      0xFFFFFFFFE
 seeds_len   shared      3
+# name                  I/O port memory and number
+seed_out    port        A 0
+
 
 # Code
 
