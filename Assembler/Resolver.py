@@ -137,8 +137,8 @@ class Resolver (Utility, Debug):
         pointer.init_load = init_load
         init_label_read  = pointer.label + "_read_init"
         init_label_write = pointer.label + "_write_init"
-        init_load.add_shared(init_label_read)
-        init_load.add_shared(init_label_write)
+        new_init_data_read  = init_load.add_private(init_label_read)
+        new_init_data_write = init_load.add_private(init_label_write)
         init_address_read  = self.configuration.memory_map.po[pointer.memory][pointer.slot]
         init_address_write = self.configuration.memory_map.po["D" + pointer.memory][pointer.slot]
         self.code.usage.allocate_po(pointer.memory)
