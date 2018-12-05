@@ -1,0 +1,12 @@
+# Quartus output files
+**/db/**
+**/incremental_db/**
+*.rpt
+*.summary
+*.smsg
+*.done
+*.pin
+
+# Log files
+LOG*
+
