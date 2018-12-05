@@ -5,7 +5,8 @@ from Utility    import Utility
 from Debug      import Debug
 
 class Variable (Debug, Utility):
-    """Describes a variable and what we know about it so far"""
+    """Base class to describe a variable and what we know about it so far.
+       Has no value. Have the derived class create the kind of value it should hold."""
 
     def parse_value (self, label, initial_values):
         """Deal with ints, lists, and strings. Convert to int where possible."""
@@ -28,31 +29,61 @@ class Variable (Debug, Utility):
             exit(1)
         return initial_values
 
-    def __init__ (self, label = None, address = None, value = None, memory = None):
+    def __init__ (self, label = None, address = None, memory = None):
         Debug.__init__(self)
         self.label   = label
         self.address = address
-        self.value   = self.parse_value(label, value)
         self.memory  = memory
 
-class Pointer (Variable):
-    """Describes pointer initialization data and which indirect memory slot it refers to"""
+class Shared_Variable (Variable):
+    """Shared variables exist as a unique value identically addressed by all threads."""
 
-    def __init__ (self, label = None, address = None, value = None, memory = None, read_base = None, read_incr = None, write_base = None, write_incr = None, slot = None):
-        Variable.__init__(self, label = label, address = address, value = value, memory = memory)
+    def __init__ (self, label = None, address = None, memory = None, value = None):
+        Variable.__init__(self, label = label, address = address, memory = memory)
+        self.value = self.parse_value(self.label, value)
+
+class Private_Variable (Variable):
+    """Private variables can have multiple values, one per thread. The CPU adds a per-thread
+       offset to the common address so as to access the per-thread value."""
+
+    def __init__ (self, label = None, address = None, memory = None, value = None, threads = None):
+        Variable.__init__(self, label = label, address = address, memory = memory)
+        self.value = {} # {thread:value}
+        value = self.parse_value(value)
+        # If created in multiple threads at a time
+        for thread in threads:
+            self.value[thread] = value
+
+    def add_value (self, value, threads):
+        """Add a new per-thread value. Disallow changing initial values once not None. Disallow duplicate threads."""
+        value = self.parse_value(value)
+        for thread in threads:
+            old_value = self.value.get(thread)
+            if old_value is not None:
+                print("Thread {0} already has a value {1} in private variable {2}. Tried to assign {3}.".format(thread, self.value[thread], self.label, value))
+                exit(1)
+        self.value[thread] = value
+
+class Pointer_Variable (Variable):
+    """Describes pointer initialization data, which indirect memory slot it refers to, and in which threads is it used. Has no value."""
+
+    def __init__ (self, label = None, address = None, memory = None, read_base = None, read_incr = None, write_base = None, write_incr = None, slot = None, threads = None):
+        Variable.__init__(self, label = label, address = address, memory = memory)
         self.read_base  = read_base
         self.read_incr  = read_incr
         self.write_base = write_base
         self.write_incr = write_incr
         self.slot       = slot
         # Set at Resolution, as the code and data haven't been generated yet!
+        # The slot indexes into the access address list and the configuration address list
         self.init_load  = None
+        self.threads    = threads
 
-class Port (Variable):
-    """Describes an I/O port. Derive address from port number. Has no value (set to 0)."""
+class Port_Variable (Variable):
+    """Describes an I/O port. Derive address from port number. Has no value. Identical in all threads."""
 
     def __init__ (self, label = None, address = None, memory = None, number = None):
-        Variable.__init__(self, label = label, address = address, value = 0, memory = memory)
+        Variable.__init__(self, label = label, address = address, memory = memory)
         self.number = number
 
 class Data (Utility, Debug):
