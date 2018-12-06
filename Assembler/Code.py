@@ -1,4 +1,3 @@
-
 #! /usr/bin/python3
 
 from sys        import exit
@@ -107,11 +106,8 @@ class Initialization_Load (Debug, Utility):
             self.init_data.append(new_init_data)
             return new_init_data
         if type(label) == str:
-            new_init_datas = self.data.lookup_variable_name(label)
-            # Never multiple instances of a shared variable
-            if new_init_datas is not None:
-                new_init_data = new_init_datas[0]
-            else:
+            new_init_data = self.data.lookup_variable_name(label)
+            if new_init_data is None:
                 new_init_data = self.data.allocate_shared(label)
             self.init_data.append(new_init_data)
             return new_init_data
