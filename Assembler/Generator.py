@@ -159,11 +159,14 @@ class Data_Memory (Base_Memory):
        This is essentially part of the combined register file/memory.
        Replicates private variables for each thread."""
 
-    def write_variables (self, variables, offset = 0):
+    def write_variables (self, variables, offset = 0, thread = None):
         """Place the variable values in memory, with optional thread offset, and handling lists of values (arrays)."""
         for variable in variables:
             address = variable.address + offset
-            value   = variable.value
+            if thread is None:
+                value = variable.value
+            else:
+                value = variable.value[thread]
             if type(value) is list:
                 for entry in value:
                     if type(value) != type(BitArray()):
@@ -191,11 +194,11 @@ class Data_Memory (Base_Memory):
         self.write_variables(shared_variables)
         # Dump the private variables, once per assigned thread, at their default offset
         for private_variable in private_variables:
-            threads = private_variable.threads 
+            threads = private_variable.threads()
             offsets = configuration.default_offset.offsets
             for thread in threads:
                 offset = offsets[thread]
-                self.write_variables([private_variable], offset)
+                self.write_variables([private_variable], offset = offset, thread = thread)
 
 # ---------------------------------------------------------------------------
 
@@ -412,13 +415,19 @@ class Programmed_Offset (Base_Memory):
         else:
             return 1
 
-    def pointer_to_binary (self, pointer, configuration):
+    def pointer_to_binary (self, pointer, configuration, thread = None):
         """Convert a Pointer object to the binary init load values 
            for a read/write pair of Programmed Offset entries."""
+        # Add the Default Offset for each thread, so we point to the correct per-thread instance of the pointed-to variable
+        # None thread means a shared variable holds the init data, or other unique location identical to all threads.
+        if thread is not None:
+            default_offset = configuration.default_offset.offsets[thread]
+        else:
+            default_offset = 0
         # Addresses wrap around when the offset is added, 
         # so express negative values as the modular sum value
-        read_offset  = (pointer.read_base  - pointer.address) % configuration.memory_depth_words
-        write_offset = (pointer.write_base - pointer.address) % configuration.memory_depth_words_write
+        read_offset  = (pointer.read_base  - pointer.address + default_offset) % configuration.memory_depth_words
+        write_offset = (pointer.write_base - pointer.address + default_offset) % configuration.memory_depth_words_write
         read_offset  = BitArray(uint=read_offset,  length=self.read_offset_bit_width) 
         write_offset = BitArray(uint=write_offset, length=self.write_offset_bit_width) 
         # The increments are signed magnitude numbers
@@ -438,12 +447,27 @@ class Programmed_Offset (Base_Memory):
             write_pointer_bits.append(entry)
         return (read_pointer_bits, write_pointer_bits)
 
+    def load_init_data (self, pointer, configuration):
+        # Assumes creation order for init data: read, then write. FIXME need a better way.
+        read_init_data_variable  = pointer.init_load.init_data[0]
+        write_init_data_variable = pointer.init_load.init_data[1]
+        if type(read_init_data_variable) != type(write_init_data_variable):
+            print("Mismatched pointer init data variable types. Read: {0}, Write: {1}".format(read_init_data_variable, write_init_data_variable)
+            exit(1)
+        # ECL FIXME we assume a Private Variable type holding init data per thread.
+        # Not sure what holding init data in a shared variable means yet.
+        if pointer.threads != read_init_data_variable.threads() or pointer.threads != write_init_data_variable.threads():
+            print("Pointer {0} and its init data variables don't all exist in the same threads".format(pointer.label))
+            exit(1)
+        for thread in pointer.threads:
+            read_pointer_bits, write_pointer_bits  = self.pointer_to_binary(pointer, configuration, thread)
+            read_init_data_variable.value[thread]  = read_pointer_bits
+            write_init_data_variable.value[thread] = write_pointer_bits
+
     def __init__(self, data, configuration):
         for pointer in data.pointers:
-            read_pointer_bits, write_pointer_bits = self.pointer_to_binary(pointer, configuration)
-            # Assumes creation order for init data: read, then write. FIXME need a better way.
-            pointer.init_load.init_data[0].value = read_pointer_bits
-            pointer.init_load.init_data[1].value = write_pointer_bits
+            self.load_init_data(pointer, configuration)
+
 
 # ---------------------------------------------------------------------------
 
