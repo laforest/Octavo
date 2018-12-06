@@ -75,6 +75,10 @@ class Private_Variable (Variable):
                 exit(1)
             self.value[thread] = value
 
+    def threads (self):
+        """Don't expose the value implementation outside this class. Return the thread number associated with each value."""
+        return self.value.keys()
+
 class Pointer_Variable (Variable):
     """Describes pointer initialization data, which indirect memory slot it refers to, and in which threads is it used. Has no value."""
 
