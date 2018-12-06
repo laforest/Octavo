@@ -112,8 +112,7 @@ next_seed   add     seed        seeds_ptr   0                           # Load x
 
 # Even case y = x/2
 even        add/2u  newseed     seed        0                           # y = (x+0)/2
-            nop     0           0           0                           # even out cycle count for waveform debug
-            nop     0           0           0
+            nop     0           0           0                           # even out cycle count of even/odd cases
 
 # Store y (replace x)
 output      add     seeds_ptr   0           newseed 
