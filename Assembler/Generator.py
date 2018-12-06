@@ -452,7 +452,7 @@ class Programmed_Offset (Base_Memory):
         read_init_data_variable  = pointer.init_load.init_data[0]
         write_init_data_variable = pointer.init_load.init_data[1]
         if type(read_init_data_variable) != type(write_init_data_variable):
-            print("Mismatched pointer init data variable types. Read: {0}, Write: {1}".format(read_init_data_variable, write_init_data_variable)
+            print("Mismatched pointer init data variable types. Read: {0}, Write: {1}".format(read_init_data_variable, write_init_data_variable))
             exit(1)
         # ECL FIXME we assume a Private Variable type holding init data per thread.
         # Not sure what holding init data in a shared variable means yet.

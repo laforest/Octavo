@@ -40,7 +40,7 @@ class Shared_Variable (Variable):
 
     def __init__ (self, label = None, address = None, memory = None, value = None):
         Variable.__init__(self, label = label, address = address, memory = memory)
-        self.value = self.parse_value(self.label, value)
+        self.value = self.parse_value(label, value)
 
 class Private_Variable (Variable):
     """Private variables can have multiple values, one per thread. The CPU adds a per-thread
@@ -49,7 +49,7 @@ class Private_Variable (Variable):
     def __init__ (self, label = None, address = None, memory = None, value = None, threads = None):
         Variable.__init__(self, label = label, address = address, memory = memory)
         self.value = {} # {thread:value}
-        value = self.parse_value(value)
+        value = self.parse_value(label, value)
         # If created in multiple threads at a time
         for thread in threads:
             self.value[thread] = value
@@ -59,14 +59,23 @@ class Private_Variable (Variable):
            New value must be of same length as all previous values to keep this and other private variable instances
            at the same address across all threads."""
         # Check existing value length consistency and get length if consistent
-        value_lengths = [len(entry) for entry in self.value.values()]
+        value_lengths = []
+        for entry in self.value.values():
+            if type(entry) is list:
+                value_lengths.append(len(entry))
+            else:
+                value_lengths.append(1)
         value_lengths = set(value_lengths)
         if len(value_lengths) > 1:
             print("There are values of different lengths in private variable {0}: {1}. All values must be of same length.".format(self.label, self.value))
             exit(1)
-        value = self.parse_value(value)
-        if len(value) != value_lengths[0]:
-            print("Private variable {0}: added value {1} for thread(s) {2} not of same length as existing values {3}.".format(self.label, value, threads, self.values))
+        value = self.parse_value(self.label, value)
+        if type(value) is list:
+            length = len(value)
+        else:
+            length = 1
+        if length not in value_lengths:
+            print("Private variable {0}: added value {1} for thread(s) {2} not of same length as existing values {3}.".format(self.label, value, threads, self.value))
             exit(1)
         for thread in threads:
             old_value = self.value.get(thread)
@@ -77,7 +86,7 @@ class Private_Variable (Variable):
 
     def threads (self):
         """Don't expose the value implementation outside this class. Return the thread number associated with each value."""
-        return self.value.keys()
+        return list(self.value.keys())
 
 class Pointer_Variable (Variable):
     """Describes pointer initialization data, which indirect memory slot it refers to, and in which threads is it used. Has no value."""
@@ -100,7 +109,7 @@ class Pointer_Variable (Variable):
             if thread in self.threads:
                 print("Pointer was already declared in thread {0}. Threads: {1}".format(thread, self.threads))
                 exit(1)
-            self.threads.extend(thread)
+            self.threads.append(thread)
         self.threads.sort()
 
 class Port_Variable (Variable):
@@ -192,9 +201,13 @@ class Data (Utility, Debug):
             exit(1)
         return variables[0]
 
-    def allocate_private (self, label, value = None):
+    def allocate_private (self, label, value = None, threads = None):
         """Allocate a private variable. Must be named (label not None).
            If the variable already exists, check the type, and add the values and threads."""
+        # No threads given when parsing source, but the Resolver may create a private variable here,
+        # so provide the expected threads
+        if threads is None:
+            threads = self.current_threads
         if label is None:
             print("Private variable label/name cannot be None! Initial value: {0}".format(value))
             exit(1)
@@ -203,18 +216,19 @@ class Data (Utility, Debug):
             print("A non-private variable named {0} of type {1} already exists!".format(label, type(variable)))
             exit(1)
         if variable is None:
-            variable = Private_Variable(label = label, value = value, threads = self.current_threads)
+            variable = Private_Variable(label = label, value = value, threads = threads)
             self.private.append(variable)
         else:
-            variable.add_value(value, self.current_threads)
+            variable.add_value(value, threads)
         return variable
 
     def allocate_shared (self, label, value = None):
         """Allocate a shared variable. Disallow redefinition or duplicate names. None name is allowed (literal constant)."""
-        variable = self.lookup_variable_name(label)
-        if variable is not None:
-            print("Variable {0} of type {1} already exists.".format(label, type(variable)))
-            exit(1)
+        if label is not None:
+            variable = self.lookup_variable_name(label)
+            if variable is not None:
+                print("Variable {0} of type {1} already exists.".format(label, type(variable)))
+                exit(1)
         variable = Shared_Variable(label = label, value = value)
         self.shared.append(variable)
         return variable
@@ -244,9 +258,9 @@ class Data (Utility, Debug):
         pointer = self.lookup_variable_name(label)
         if pointer is not None:
             if type(pointer) is not Pointer_Variable:
-                print("A non-pointer variable named {0} of type {1} already exists!".format(label, type(pointer))
+                print("A non-pointer variable named {0} of type {1} already exists!".format(label, type(pointer)))
                 exit(1)
-            if pointer.read_incr != read_incr or pointer.write_incr != write_incr or pointer.read_base != read base or pointer.write_base != write_base:
+            if pointer.read_incr != read_incr or pointer.write_incr != write_incr or pointer.read_base != read_base or pointer.write_base != write_base:
                 print("A pointer named {0} already exists, but with a different configuration. This is not allowed.".format(label))
                 exit(1)
             pointer.add_threads(self.current_threads)
@@ -304,7 +318,7 @@ class Data (Utility, Debug):
                     max_address = address
                     # All private variable values are of same length, so just use the first one
                     if   type(variable) is Private_Variable:
-                        value = variable.value.values()[0]
+                        value = list(variable.value.values())[0]
                     elif type(variable) is Shared_Variable:
                         value = variable.value
                     else:

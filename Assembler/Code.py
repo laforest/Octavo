@@ -89,14 +89,14 @@ class Initialization_Load (Debug, Utility):
         output += self.list_str(self.init_data)
         return output
 
-    def add_private (self, label):
-        """Adds data for an initialization load. Order not important. Referenced by label."""
-        new_init_data = self.data.allocate_private(label)
+    def add_private (self, label, threads):
+        """Adds data in a private variable for an initialization load. Order not important. Referenced by label."""
+        new_init_data = self.data.allocate_private(label, threads = threads)
         self.init_data.append(new_init_data)
         return new_init_data
 
     def add_shared (self, label):
-        """Adds data for an initialization load. Order not important. 
+        """Adds data in a shared variable for an initialization load. Order not important. 
            Referenced by label for previously defined shared variable,
            else reference by a literal value."""
         # Check if we gave a literal number, which becomes an unnnamed shared variable
