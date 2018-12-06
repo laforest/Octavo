@@ -107,7 +107,7 @@ class Initialization_Load (Debug, Utility):
             self.init_data.append(new_init_data)
             return new_init_data
         if type(label) == str:
-            new_init_datas = self.data.lookup_variable_name(label, self.data.shared)
+            new_init_datas = self.data.lookup_variable_name(label)
             # Never multiple instances of a shared variable
             if new_init_datas is not None:
                 new_init_data = new_init_datas[0]
