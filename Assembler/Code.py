@@ -78,10 +78,11 @@ class Initialization_Load (Debug, Utility):
         self.destination    = destination
         self.instructions   = []
         self.init_data      = []
-        self.data = data
+        self.data           = data
+        self.code           = code
         # keep any init instructions added later in order,
         # so add list of init instructions to global list
-        code.instructions.append(self.instructions)
+        self.code.instructions.append(self.instructions)
 
     def __str__ (self):
         output = super().__str__() + "\n"
@@ -114,6 +115,7 @@ class Initialization_Load (Debug, Utility):
 
     def add_instruction (self, label, branch_destination, data_label):
         """Adds an instruction to initialization load. Remains in sequence added."""
+        self.code.check_duplicate_instruction_label(label)
         if Initialization_Load.memory == "A":
             A = data_label
             B = 0
@@ -295,11 +297,35 @@ class Code (Debug, Utility):
         print("Condition {0} not found".format(label))
         exit(1)
 
+    def all_instructions (self):
+        """Iterate over all instruction, nesting into lists of instructions."""
+        for instruction in self.instructions:
+            if type(instruction) == list:
+                for list_instruction in instruction:
+                    yield list_instruction
+            else:
+                yield instruction
+ 
+    def lookup_instruction (self, label):
+        for instruction in self.all_instructions():
+            if instruction.label == label:
+                return instruction
+        return None
+
+    def check_duplicate_instruction_label (self, label):
+        if label is not None:
+            instruction = self.lookup_instruction(label)
+            if instruction is not None:
+                print("Label {0} is already in use by instruction {1}.".format(label, instruction))
+                exit(1)
+
     def allocate_instruction_simple (self, opcode_label, instruction_label, D, A, B):
+        self.check_duplicate_instruction_label(instruction_label)
         new_instruction = Instruction(label = instruction_label, opcode = opcode_label, D = D, A = A, B = B)
         self.instructions.append(new_instruction)
 
     def allocate_instruction_dual (self, opcode_label, instruction_label, DA, DB, A, B):
+        self.check_duplicate_instruction_label(instruction_label)
         new_instruction = Instruction(label = instruction_label, opcode = opcode_label, DA = DA, DB = DB, A = A, B = B)
         self.instructions.append(new_instruction)
 
@@ -310,6 +336,12 @@ class Code (Debug, Utility):
         else:
             self.allocate_instruction_simple(opcode_label, *operands)
 
+    def lookup_init_load (self, destination):
+        for init_load in self.init_loads:
+            if init_load.destination == destination:
+                return init_load
+        return None
+ 
     def allocate_branch (self, condition_label, branch_parameters):
         """Parse the branch definition parameters and create the necessary init code/data, which will be filled-in later."""
         # Since init is identical across threads, the data is shared. 
@@ -357,28 +389,7 @@ class Code (Debug, Utility):
             exit(1)
         self.initial_pc = pc_list
 
-    def all_instructions (self):
-        """Iterate over all instruction, nesting into lists of instructions."""
-        for instruction in self.instructions:
-            if type(instruction) == list:
-                for list_instruction in instruction:
-                    yield list_instruction
-            else:
-                yield instruction
- 
     def is_instruction_dual (self, instruction):
         opcode = self.lookup_opcode(instruction.opcode)
         return opcode.is_dual()
 
-    def lookup_init_load (self, destination):
-        for init_load in self.init_loads:
-            if init_load.destination == destination:
-                return init_load
-        return None
- 
-    def lookup_instruction (self, label):
-        for instruction in self.all_instructions():
-            if instruction.label == label:
-                return instruction
-        return None
- 

@@ -127,8 +127,9 @@ class Resolver (Utility, Debug):
         init_address_write = self.configuration.memory_map.po["D" + pointer.memory][pointer.slot]
         self.code.usage.allocate_po(pointer.memory)
         self.code.usage.allocate_po("D" + pointer.memory)
+        # Only apply label to first init load instruction
         read_instr  = init_load.add_instruction(init_load.label, init_address_read, init_label_read)
-        write_instr = init_load.add_instruction(init_load.label, init_address_write, init_label_write)
+        write_instr = init_load.add_instruction(None, init_address_write, init_label_write)
         self.resolve_read_operands([read_instr])
         self.resolve_read_operands([write_instr])
         # Put the next pointer init data in the other memory (evens out storage)
