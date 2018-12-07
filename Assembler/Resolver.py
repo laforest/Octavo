@@ -125,8 +125,8 @@ class Resolver (Utility, Debug):
         init_load.add_private(init_label_write, pointer.threads)
         init_address_read  = self.configuration.memory_map.po[pointer.memory][pointer.slot]
         init_address_write = self.configuration.memory_map.po["D" + pointer.memory][pointer.slot]
-        self.code.usage.allocate_po(pointer.memory)
-        self.code.usage.allocate_po("D" + pointer.memory)
+        self.code.usage.allocate_po(pointer.label, pointer.memory)
+        self.code.usage.allocate_po(pointer.label, "D" + pointer.memory)
         # Only apply label to first init load instruction
         read_instr  = init_load.add_instruction(init_load.label, init_address_read, init_label_read)
         write_instr = init_load.add_instruction(None, init_address_write, init_label_write)
