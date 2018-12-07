@@ -47,11 +47,11 @@ seeds       private     126 129 137
 
 # Code
 
-hailstone   init    hailstone
-            init    even
+start       init    even
             init    output
-            init    seeds_ptr
             init    next_seed
+hailstone   init    seeds_ptr
+            init    hailstone
 
 next_seed   add     seed        seeds_ptr   0           # Load x
 
@@ -75,5 +75,5 @@ output      add     seeds_ptr   0           newseed
 
 # Set initial PC for each thread
 
-program_counter hailstone hailstone hailstone hailstone hailstone hailstone hailstone hailstone
+program_counter start start start start start start start start
 
