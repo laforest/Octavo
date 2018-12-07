@@ -87,7 +87,8 @@ seeds_ptr   pointer     seeds       1               seeds       1
 # Shared across all threads
 
 lsb_mask    shared      0xFFFFFFFFE
-seeds_len   shared      3
+# Counter values must be N-1 for N passes
+seeds_len   shared      2
 # name                  I/O port memory and number
 seed_out    port        A 0
 
