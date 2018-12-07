@@ -59,5 +59,6 @@ TODO
 How to define branches with no branch origin enabled (active everywhere)? (maybe fold into prediction flag parameter)
 Move hardcoded values in Generator to Configuration.
 Separate opcode definition from numbering, so we can redefine at runtime any one of the 16 opcodes from a larger pool of definitions.
+Replace print-and-exit with print-and-ask-for-debugger, place in Debug class.
 
 
