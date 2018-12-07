@@ -24,73 +24,56 @@ include conditions.asm
 # Constants and literals exist as single copies in the literal pool area.
 # There are also drop_branch and drop_pointers to free up the used branch detector and indirect memory entries.
 
-# Private to each thread as separate data memory copies
-
-threads 0 
-
-seed        private     0
-newseed     private     0
-seeds       private     41 47 54 
-# Private to each thread since the init data is different for each. Same multi-threaded hardware address for all.
-#                       base_addr   read_increment  base_addr   write_increment
-seeds_ptr   pointer     seeds       1               seeds       1
-
-threads 1
-
-seed        private     0
-newseed     private     0
-seeds       private     55 62 71
-seeds_ptr   pointer     seeds       1               seeds       1
-
-threads 2
-
-seed        private     0
-newseed     private     0
-seeds       private     73 82 83
-seeds_ptr   pointer     seeds       1               seeds       1
-
-threads 3
-
-seed        private     0
-newseed     private     0
-seeds       private     91 94 95
-seeds_ptr   pointer     seeds       1               seeds       1
-
-threads 4
-
-seed        private     0
-newseed     private     0
-seeds       private     97 103 107
-seeds_ptr   pointer     seeds       1               seeds       1
-
-threads 5
-
-seed        private     0
-newseed     private     0
-seeds       private     108 109 110
-seeds_ptr   pointer     seeds       1               seeds       1
-
-threads 6
-
-seed        private     0
-newseed     private     0
-seeds       private     121 124 125
-seeds_ptr   pointer     seeds       1               seeds       1
-
-threads 7
-
-seed        private     0
-newseed     private     0
-seeds       private     126 129 137
-seeds_ptr   pointer     seeds       1               seeds       1
-
-# Shared across all threads
+# Shared variables across all threads
 
 lsb_mask    shared      0xFFFFFFFFE
 # Counter values must be N-1 for N passes
 seeds_len   shared      2
 # name                  I/O port memory and number
 seed_out    port        A 0
+
+# Common private variables (pointer is common, but init creates per-thread data)
+
+threads 0 1 2 3 4 5 6 7
+
+seed        private     0
+newseed     private     0
+#                       base_addr   read_increment  base_addr   write_increment
+seeds_ptr   pointer     seeds       1               seeds       1
+
+# Private to each thread as separate data memory copies
+
+threads 0 
+
+seeds       private     41 47 54 
+
+threads 1
+
+seeds       private     55 62 71
+
+threads 2
+
+seeds       private     73 82 83
+
+threads 3
+
+seeds       private     91 94 95
+
+threads 4
+
+seeds       private     97 103 107
+
+threads 5
+
+seeds       private     108 109 110
+
+threads 6
+
+seeds       private     121 124 125
+
+threads 7
+
+seeds       private     126 129 137
 
 
 # Code
