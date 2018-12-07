@@ -50,8 +50,8 @@ seeds       private     126 129 137
 start       init    even
             init    output
             init    next_seed
-hailstone   init    seeds_ptr
-            init    hailstone
+hailstone   init    hailstone
+            init    seeds_ptr # We can do this since we update the write pointer after the read pointer, filling the delay slot
 
 next_seed   add     seed        seeds_ptr   0           # Load x
 
