@@ -1,6 +1,10 @@
 Design Notes for Octavo Assembler.
 ----------------------------------
 
+Rough syntax:
+If first word is not an opcode, or a code-generating command, then it's a branch or read/write label.
+Then pass remainder of line back to line parser.
+
 All names must be globally unique. Names are labels applied to variables, pointers, ports, or instructions.
 An absent name has no value (None), and is not included in any name search.
 
@@ -60,5 +64,9 @@ How to define branches with no branch origin enabled (active everywhere)? (maybe
 Move hardcoded values in Generator to Configuration.
 Separate opcode definition from numbering, so we can redefine at runtime any one of the 16 opcodes from a larger pool of definitions.
 Replace print-and-exit with print-and-ask-for-debugger, place in Debug class.
+Need code and data de-allocation words to allow loading code/data at runtime.
+Pointers must be manually unloaded to free an indirect memory location.
+There needs also drop_branch and drop_pointers to free up the used branch detector and indirect memory entries.
+
 
 
