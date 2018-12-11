@@ -72,6 +72,7 @@ class Configuration (Debug):
 
     def __init__ (self):
         Debug.__init__(self)
+        self.opcode_count           = 16
         self.thread_count           = 8
         self.memory_depth_words     = 1024
         self.memory_depth_words_write = self.memory_depth_words * 4 # ECL FIXME this needs a cleaner definition

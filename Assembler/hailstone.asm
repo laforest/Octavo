@@ -47,6 +47,11 @@ seeds       private     126 129 137
 
 # Code
 
+# Runtime code is thread-agnostic, but the assembler needs to know
+# which thread(s) code will run in to manage the correct list of opcodes
+# when loading them.
+threads 0 1 2 3 4 5 6 7
+
 start       init    even
             init    output
             init    next_seed

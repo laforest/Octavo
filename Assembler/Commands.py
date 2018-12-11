@@ -60,7 +60,7 @@ class Commands (Debug):
 
     def opcode (self, arguments):
         """Define an instruction opcode. Called as command later to create an instruction."""
-        self.code.allocate_opcode(*arguments)
+        self.code.allocate_opcode(arguments)
 
     def condition (self, arguments):
         """Define a branch condition. Called as command later at the point a branch is taken."""
