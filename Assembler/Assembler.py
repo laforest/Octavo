@@ -7,13 +7,15 @@ from Code           import Code
 from Resolver       import Resolver
 from Configuration  import Configuration
 from Generator      import Generator
+from Operators      import Operators
 
 from sys import argv
 
 if __name__ == "__main__":
+    operators       = Operators()
     configuration   = Configuration()
     data            = Data(configuration)
-    code            = Code(data, configuration)
+    code            = Code(data, configuration, operators)
     commands        = Commands(data, code)
     parser          = Parser(commands)
     parser.parse_file(argv[1])
@@ -42,7 +44,7 @@ if __name__ == "__main__":
     data.filedump("LOG.resolve", append = True)
     code.filedump("LOG.resolve", append = True)
 
-    generator = Generator(data, code, configuration)
+    generator = Generator(data, code, configuration, operators)
     generator.generate()
     print("Generation done")
 
