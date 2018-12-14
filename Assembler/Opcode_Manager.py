@@ -2,11 +2,12 @@
 
 from sys        import exit
 from Debug      import Debug
+from bitstring  import BitArray
 
 class Opcode (Debug):
     """Contains symbolic information to assemble the bit representation of an opcode""" 
 
-    def __init__ (self, label, split, shift, dyadic3, addsub, dual, dyadic2, dyadic1, select):
+    def __init__ (self, label, split, shift, dyadic3, addsub, dual, dyadic2, dyadic1, select, operators):
         Debug.__init__(self)
         self.label      = label
         self.split      = split
@@ -17,7 +18,7 @@ class Opcode (Debug):
         self.dyadic2    = dyadic2
         self.dyadic1    = dyadic1
         self.select     = select
-#        self.addr       = op_addr
+        self.binary     = self.to_binary(operators)
 
     def is_dual (self):
         """Does an opcode use the dual addressing mode (DA/DB instead of D)?"""
@@ -36,6 +37,22 @@ class Opcode (Debug):
                 return False
         return True
 
+    def to_binary (self, operators):
+        """Converts the fields of the control bits of an instruction opcode, 
+           looked-up from symbolic names, to binary encoding. 
+           Field values are strings naming the same field in the dyadic/triadic
+           operations objects."""
+        control_bits = BitArray()
+        for entry in [self.split, self.shift, self.dyadic3, self.addsub, self.dual, self.dyadic2, self.dyadic1, self.select]:
+            field_bits = getattr(operators.dyadic, entry, None)
+            field_bits = getattr(operators.triadic, entry, field_bits)
+            if field_bits is None:
+                print("Unknown opcode field value: {0}".format(entry))
+                exit(1)
+            control_bits.append(field_bits)
+        return control_bits
+
+
 class Opcode_Manager (Debug):
     """Holds and processes two lists of opcodes, per thread:
        the initial list programmed into the Opcode Decoder memory initially,
@@ -43,7 +60,9 @@ class Opcode_Manager (Debug):
        Both lists are drawn from a larger list of defined opcodes for all threads.
        The instruction opcodes must be resolved immediately."""
 
-    def __init__ (self, code, data, configuration):
+    def __init__ (self, code, data, configuration, operators):
+        Debug.__init__(self)
+        self.operators          = operators
         self.code               = code
         self.data               = data
         self.configuration      = configuration
@@ -58,7 +77,7 @@ class Opcode_Manager (Debug):
         if label in self.defined_opcodes:
             print("Opcode {0} already defined. Redefinitions not allowed.".format(label))
             exit(1)
-        new_opcode = Opcode(label, split, shift, dyadic3, addsub, dual, dyadic2, dyadic1, select)
+        new_opcode = Opcode(label, split, shift, dyadic3, addsub, dual, dyadic2, dyadic1, select, self.operators)
         for previous_opcode in self.defined_opcodes.values():
             if new_opcode.is_same_as(previous_opcode):
                 print("Opcode {0} performs the same operations as previously defined opcode {1}. Redefinitions not allowed.".format(new_opcode.label, previous_opcode.label))
@@ -141,9 +160,11 @@ class Opcode_Manager (Debug):
         # Now allocate and resolve the init load for that opcode
         load_address = self.configuration.memory_map.od[index]
         init_load    = self.code.allocate_init_load(label, load_address)
-        # Let's use shared data as opcode numbers are small, likely reused numbers
-        init_data    = init_load.add_shared(index)
-        init_load.add_instruction(label, load_address, init_data.address)
+        # Let's use shared data as opcodes are common to all threads
+        opcode       = self.code.opcodes.lookup_opcode(index)
+        init_data    = init_load.add_shared(opcode.binary)
+        init_data.label = opcode.label + "_init"
+        init_load.add_instruction(label, load_address, init_data.label)
         init_load.toggle_memory()
 
     def resolve_thread_opcode (self, label, thread):
