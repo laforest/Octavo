@@ -20,7 +20,7 @@ class Resolver (Utility, Debug):
         self.resolve_pointers()
         self.resolve_instruction_addresses()
         self.resolve_branches()
-        self.resolve_opcodes()
+#        self.resolve_opcodes()
         self.resolve_program_counters()
 
     def resolve_read_operands (self, instruction_list = None):
@@ -166,17 +166,17 @@ class Resolver (Utility, Debug):
             print("Instruction {0} did not have an address when resolving destination {1} of associated branch {2}".format(branch.instruction, branch.destination, branch))
             exit(1)
 
-    def resolve_opcodes (self, instruction_list = None):
-        if instruction_list is None:
-            instruction_list = self.code.all_instructions()
-        for instruction in instruction_list:
-            self.resolve_opcode(instruction)
+#    def resolve_opcodes (self, instruction_list = None):
+#        if instruction_list is None:
+#            instruction_list = self.code.all_instructions()
+#        for instruction in instruction_list:
+#            self.resolve_opcode(instruction)
 
-    def resolve_opcode (self, instruction):
-        """Convert opcode label into opcode number. Number depends on the order of the opcode definitions."""
-        opcode = self.code.lookup_opcode(instruction.opcode)
-        number = self.code.opcodes.index(opcode)
-        instruction.opcode = number
+#    def resolve_opcode (self, instruction):
+#        """Convert opcode label into opcode number. Number depends on the order of the opcode definitions."""
+#        opcode = self.code.lookup_opcode(instruction.opcode)
+#        number = self.code.opcodes.index(opcode)
+#        instruction.opcode = number
 
     def resolve_program_counters (self):
         """Convert code labels for thread initial start points into instruction addresses."""

@@ -14,7 +14,7 @@ class Commands (Debug):
     def search_command(self, command):
         """Look for the command in the built-ins, and previously-defined opcodes and branch conditions."""
         assembler   = getattr(self, command, None) is not None
-        opcode      = command in [opcode.label for opcode in self.code.opcodes]
+        opcode      = command in self.code.opcodes.defined_opcodes
         condition   = command in [condition.label for condition in self.code.conditions] 
         return (assembler, opcode, condition)
 
@@ -61,6 +61,28 @@ class Commands (Debug):
     def opcode (self, arguments):
         """Define an instruction opcode. Called as command later to create an instruction."""
         self.code.allocate_opcode(arguments)
+
+    def preload (self, arguments):
+        """Preload one or more opcode definitions into the Opcode Decoder."""
+        label   = arguments[0]
+        opcodes = arguments[1:]
+        if label is not None:
+            print("No label ({0}) allowed for opcode preload.".format(label))
+            exit(1)
+        if len(opcodes) == 0:
+            print("No opcode(s) given to preload command.")
+            exit(1)
+        self.code.preload_opcode(opcodes)
+
+    def load (self, arguments):
+        opcode_labels = arguments[1:]
+        if len(opcode_labels) < 1:
+            print("No opcode to load given.")
+            exit(1)
+        if len(opcode_labels) > 2:
+            print("Too many opcodes given to load: {0}.".format(opcode_labels))
+            exit(1)
+        self.code.load_opcode(*arguments)
 
     def condition (self, arguments):
         """Define a branch condition. Called as command later at the point a branch is taken."""

@@ -7,7 +7,7 @@ from Utility    import Utility
 class Opcode (Debug):
     """Contains symbolic information to assemble the bit representation of an opcode""" 
 
-    def __init__ (self, label, split, shift, dyadic3, addsub, dual, dyadic2, dyadic1, select, op_addr):
+    def __init__ (self, label, split, shift, dyadic3, addsub, dual, dyadic2, dyadic1, select):
         Debug.__init__(self)
         self.label      = label
         self.split      = split
@@ -18,7 +18,7 @@ class Opcode (Debug):
         self.dyadic2    = dyadic2
         self.dyadic1    = dyadic1
         self.select     = select
-        self.addr       = op_addr
+#        self.addr       = op_addr
 
     def is_dual (self):
         """Does an opcode use the dual addressing mode (DA/DB instead of D)?"""
@@ -39,10 +39,10 @@ class Opcode (Debug):
 
 class Opcode_Manager (Debug):
     """Holds and processes two lists of opcodes, per thread:
-       the initial list programmed into the Opcode Decoder memory,
-       and the current list which is updated by loads in the source.
-       The instruction opcodes must be resolved immediately.
-       Both lists are drawn from a larger list of defined opcodes for all threads."""
+       the initial list programmed into the Opcode Decoder memory initially,
+       and the current list which updates the Opcode Decoder memory by loads in the source.
+       Both lists are drawn from a larger list of defined opcodes for all threads.
+       The instruction opcodes must be resolved immediately."""
 
     def __init__ (self, code, data, configuration):
         self.code               = code
@@ -59,7 +59,7 @@ class Opcode_Manager (Debug):
         if label in self.defined_opcodes:
             print("Opcode {0} already defined. Redefinitions not allowed.".format(label))
             exit(1)
-        new_opcode = Opcode(label, split, shift, dyadic3, addsub, dual, dyadic2, dyadic1, select, op_addr)
+        new_opcode = Opcode(label, split, shift, dyadic3, addsub, dual, dyadic2, dyadic1, select)
         for previous_opcode in self.defined_opcodes.values():
             if new_opcode.is_same_as(previous_opcode):
                 print("Opcode {0} performs the same operations as previously defined opcode {1}. Redefinitions not allowed.".format(new_opcode.label, previous_opcode.label))
@@ -95,6 +95,10 @@ class Opcode_Manager (Debug):
         for thread in self.data.current_threads:
             self.preload_thread_opcode(opcode_label, thread)
 
+    def preload_opcodes (self, opcode_label_list):
+        for opcode_label in opcode_label_list:
+            self.preload_opcode(opcode_label)
+
     def load_thread_opcode (self, new_label, old_label, thread):
         """Load a new opcode, at runtime, either in an empty Opcode Decoder memory entry, or replacing another opcode if given."""
         if old_label is not None:
@@ -109,6 +113,17 @@ class Opcode_Manager (Debug):
         return index
 
     def load_opcode (self, label, new_opcode_label, old_opcode_label = None):
+        """
+        Load a new opcode at runtime, either replacing an old one (taking its number) or using up a new number.
+        The new opcode number must always be the same, so future instructions don't incorrectly execute another opcode.
+        Thus, the execution of opcode loads cannot diverge: all possible paths through the program must result in the
+        same sequence of opcode loads. This consistency is checked in all threads the code is expected to execute
+        since each thread has its own Opcode Decoder memory, which must all be consistent with eachother else it's
+        no longer the same code running in all the current threads.
+        In data-flow graph analysis parlance: an opcode init load must dominate all later uses of that opcode,
+        and must happen in the same order relative to the other init loads.
+
+        """
         if old_opcode_label is not None and old_opcode_label not in self.defined_opcodes:
             print("Unknown previous opcode {0} when loading new opcode {1}.".format(old_opcode_label, new_opcode_label))
             exit(1)
@@ -116,7 +131,7 @@ class Opcode_Manager (Debug):
             print("Unknown new opcode {0} when loading over previous opcode {1}.".format(new_opcode_label, old_opcode_label))
             exit(1)
         # Load and check for consistency in opcode indices across current threads
-        # Opcode loads cannot become divergent and so must always happen before CDFG divergence and after CDFG re-convergence.
+        # Not sure if this is necessary or correct, but if wrong, it'll fail here instead of at runtime.
         indices = []
         for thread in self.data.current_threads:
             index = self.load_thread_opcode(new_opcode_label, old_opcode_label, thread)
@@ -135,7 +150,7 @@ class Opcode_Manager (Debug):
     def resolve_thread_opcode (self, label, thread):
         """Convert opcode label into opcode number. Number depends on the order of the opcode definitions, pre-loads, and loads."""
         try:
-            number = self.current_opcodes.index(label)
+            number = self.current_opcodes[thread].index(label)
         except ValueError:
             print("Unknown opcode {0} when resolving in thread {1}.".format(label, thread))
             exit(1)
@@ -143,12 +158,36 @@ class Opcode_Manager (Debug):
 
     def resolve_opcode (self, label):
         if label not in self.defined_opcodes:
-            print("Unknown opcode {0} when resolving to opcode number.".format(label))
+            print("Undefined opcode {0} when resolving to opcode number.".format(label))
             exit(1)
+        numbers = []
         for thread in self.data.current_threads:
-            self.resolve_thread_opcode(label, thread)
-            # ECL FIXME add consistency check: same opcode at that number in all current threads
+            number = self.resolve_thread_opcode(label, thread)
+            numbers.append(number)
+        if len(set(numbers)) > 1:
+            print("Opcode numbers {0} for opcode {1} have resolved to different values over threads {2}.".format(numbers, label, self.data.current_threads))
+            exit(1)
+        return number
 
+    def lookup_thread_opcode (self, opcode_number, thread):
+        opcode_label = self.current_opcodes[thread][opcode_number]
+        # ECL FIXME quick hack for when not all opcodes are used.
+        if opcode_label is None:
+            opcode_label = "nop"
+        if opcode_label not in self.defined_opcodes:
+            print("Unknown opcode {0} during lookup in thread {1}.".format(opcode_label, thread))
+        opcode       = self.defined_opcodes[opcode_label]
+        return opcode
+
+    def lookup_opcode (self, opcode_number):
+        opcodes = []
+        for thread in self.data.current_threads:
+            opcode = self.lookup_thread_opcode(opcode_number, thread)
+            opcodes.append(opcode)
+        if len(set(opcodes)) > 1:
+            print("Conflicting opcodes {0} with number {1} in threads {2}.".format(opcodes, opcode_number, self.data.current_threads))
+            exit(1)
+        return opcode
 
 class Condition (Debug):
     """Contains symbolic information to assemble the bit representation of a branch condition""" 
@@ -244,7 +283,8 @@ class Initialization_Load (Debug, Utility):
             B = data_label
         else:
             print("Invalid memory {0} as branch init data {1} location".format(Initialization_Load.memory, data_label))
-        new_instruction = Instruction(label = label, opcode = "add", D = branch_destination, A = A, B = B)
+        add_opcode = self.code.opcodes.resolve_opcode("add")
+        new_instruction = Instruction(label = label, opcode = add_opcode, D = branch_destination, A = A, B = B)
         self.instructions.append(new_instruction)
         return new_instruction
 
@@ -394,20 +434,18 @@ class Code (Debug, Utility):
         return new_init_load
 
     def allocate_opcode (self, arguments):
-        """Unpack and pass along the opcode source command."""
-        return self.code.opcodes.define_opcode(*arguments)
+        return self.opcodes.define_opcode(*arguments)
+
+    def preload_opcode (self, opcodes):
+        return self.opcodes.preload_opcodes(opcodes)
+
+    def load_opcode (self, label, new_opcode, old_opcode = None):
+        self.opcodes.load_opcode(label, new_opcode, old_opcode)
 
     def allocate_condition (self, label, a, b, ab_operator):
         new_condition = Condition(label, a, b, ab_operator)
         self.conditions.append(new_condition)
         return new_condition
-
-    def lookup_opcode (self, label):
-        for opcode in self.opcodes:
-            if opcode.label == label:
-                return opcode
-        print("Opcode {0} not found".format(label))
-        exit(1)
 
     def lookup_condition(self, label):
         for condition in self.conditions:
@@ -440,16 +478,19 @@ class Code (Debug, Utility):
 
     def allocate_instruction_simple (self, opcode_label, instruction_label, D, A, B):
         self.check_duplicate_instruction_label(instruction_label)
-        new_instruction = Instruction(label = instruction_label, opcode = opcode_label, D = D, A = A, B = B)
+        resolved_opcode = self.opcodes.resolve_opcode(opcode_label)
+        new_instruction = Instruction(label = instruction_label, opcode = resolved_opcode, D = D, A = A, B = B)
         self.instructions.append(new_instruction)
 
     def allocate_instruction_dual (self, opcode_label, instruction_label, DA, DB, A, B):
         self.check_duplicate_instruction_label(instruction_label)
-        new_instruction = Instruction(label = instruction_label, opcode = opcode_label, DA = DA, DB = DB, A = A, B = B)
+        resolved_opcode = self.opcodes.resolve_opcode(opcode_label)
+        new_instruction = Instruction(label = instruction_label, opcode = resolved_opcode, DA = DA, DB = DB, A = A, B = B)
         self.instructions.append(new_instruction)
 
     def allocate_instruction (self, opcode_label, operands):
-        opcode = self.lookup_opcode(opcode_label)
+        opcode_number = self.opcodes.resolve_opcode(opcode_label)
+        opcode        = self.opcodes.lookup_opcode(opcode_number)
         if opcode.is_dual is True:
             self.allocate_instruction_dual(opcode_label, *operands)
         else:
@@ -509,6 +550,6 @@ class Code (Debug, Utility):
         self.initial_pc = pc_list
 
     def is_instruction_dual (self, instruction):
-        opcode = self.lookup_opcode(instruction.opcode)
+        opcode = self.opcodes.lookup_opcode(instruction.opcode)
         return opcode.is_dual()
 

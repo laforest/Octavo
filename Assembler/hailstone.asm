@@ -52,6 +52,8 @@ seeds       private     126 129 137
 # when loading them.
 threads 0 1 2 3 4 5 6 7
 
+preload     nop add sub psr add*2 add/2 add/2u
+
 start       init    even
             init    output
             init    next_seed

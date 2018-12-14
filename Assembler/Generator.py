@@ -234,15 +234,16 @@ class Opcode_Decoder (Base_Memory):
             control_bits.append(field_bits)
         return control_bits
 
-    def load (self, opcodes, thread_offset):
+    def load (self, thread_offset, thread):
         """Place the control bits for each opcode at the thread-offset location
            corresponding to the opcode number used in the instructions."""
-        for opcode_number in range(len(opcodes)):
-            opcode                                  = opcodes[opcode_number]
+        for opcode_number in range(self.opcode_count):
+            opcode                                  = self.code.opcodes.lookup_thread_opcode(opcode_number, thread) 
             control_bits                            = self.to_binary(opcode)
             self.mem[opcode_number + thread_offset] = control_bits
 
     def __init__(self, filename, dyadic_obj, triadic_obj, code, configuration):
+        self.code       = code
         self.opcode_count = 16
         self.dyadic     = dyadic_obj
         self.triadic    = triadic_obj
@@ -251,7 +252,7 @@ class Opcode_Decoder (Base_Memory):
         Base_Memory.__init__(self, depth, width, filename)
         for thread_number in range(configuration.thread_count):
             thread_offset = thread_number * self.opcode_count
-            self.load(code.opcodes, thread_offset)
+            self.load(thread_offset, thread_number)
         # Kept for future Debug output
         # self.alu_control_format = 'uint:{0},uint:{1},uint:{2},uint:{3},uint:{4},uint:{5},uint:{6},uint:{7}'.format(self.triadic.split_width, self.triadic.shift_width, self.triadic.dyadic3_width, self.triadic.addsub_width, self.triadic.dual_width, self.triadic.dyadic2_width, self.triadic.dyadic1_width, self.triadic.select_width)
 
