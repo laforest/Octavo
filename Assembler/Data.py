@@ -3,6 +3,7 @@
 from sys        import exit
 from Utility    import Utility
 from Debug      import Debug
+from bitstring  import BitArray
 
 class Variable (Debug, Utility):
     """Base class to describe a variable and what we know about it so far.
@@ -24,8 +25,10 @@ class Variable (Debug, Utility):
             pass
         elif type(initial_values) == type(None):
             pass
+        elif type(initial_values) == BitArray:
+            pass
         else:
-            print("Unusable initial value {0} for variable {1}".format(label, initial_values))
+            print("Unusable initial value {0} of type {1} for variable {2}".format(initial_values, type(initial_values), label))
             exit(1)
         return initial_values
 

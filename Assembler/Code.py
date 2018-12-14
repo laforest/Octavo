@@ -4,6 +4,8 @@ from sys            import exit
 from Debug          import Debug
 from Utility        import Utility
 from Opcode_Manager import Opcode_Manager
+from bitstring      import BitArray
+
 
 class Condition (Debug):
     """Contains symbolic information to assemble the bit representation of a branch condition""" 
@@ -41,11 +43,12 @@ class Initialization_Load (Debug, Utility):
     def toggle_memory (self):
         if Initialization_Load.memory == "A":
             Initialization_Load.memory = "B"
-        elif Initialization_Load.memory == "B":
-            Initialization_Load.memory == "A"
-        else:
-            print("Invalid memory {0} for initialization loads.".format(Initialization_Load.memory))
-            exit(1)
+            return
+        if Initialization_Load.memory == "B":
+            Initialization_Load.memory = "A"
+            return
+        print("Invalid memory {0} for initialization loads.".format(Initialization_Load.memory))
+        exit(1)
 
     def __init__ (self, data, code, label = None, destination = None,):
         Debug.__init__(self)
@@ -75,9 +78,9 @@ class Initialization_Load (Debug, Utility):
         """Adds data in a shared variable for an initialization load. Order not important. 
            Referenced by label for previously defined shared variable,
            else reference by a literal value."""
-        # Check if we gave a literal number, which becomes an unnnamed shared variable
+        # Check if we gave a literal number or BitArray, which becomes an unnnamed shared variable
         label = self.try_int(label)
-        if type(label) == int:
+        if type(label) == int or type(label) == BitArray:
             new_init_data = self.data.resolve_shared_value(label, Initialization_Load.memory)
             self.init_data.append(new_init_data)
             return new_init_data
@@ -87,6 +90,8 @@ class Initialization_Load (Debug, Utility):
                 new_init_data = self.data.allocate_shared(label)
             self.init_data.append(new_init_data)
             return new_init_data
+        print("Label {0} has unknown type {1} when adding shared variable to init load.".format(label, type(label)))
+        exit(1)
 
     def add_instruction (self, label, branch_destination, data_label):
         """Adds an instruction to initialization load. Remains in sequence added."""
@@ -216,14 +221,15 @@ class Usage (Debug):
 class Code (Debug, Utility):
     """Parses the code, which drives the resolution of unknowns about the data."""
 
-    def __init__ (self, data, configuration):
+    def __init__ (self, data, configuration, operators):
         Debug.__init__(self)
+        self.operators      = operators
         self.data           = data
         self.configuration  = configuration
         self.usage          = Usage(configuration)
         self.init_loads     = []
         self.instructions   = []
-        self.opcodes        = Opcode_Manager(self, data, configuration)
+        self.opcodes        = Opcode_Manager(self, data, configuration, operators)
         self.conditions     = []
         self.branches       = []
         self.initial_pc     = []

@@ -1,5 +1,8 @@
 #! /usr/bin/python3
 
+from bitstring import BitArray
+
+
 class Utility:
     """Common utility functions for all other classes."""
 
@@ -11,6 +14,8 @@ class Utility:
         if value is None:
             return None
         if type(value) == int:
+            return value
+        if type(value) == BitArray:
             return value
         try:
             value = int(value, 0)
