@@ -1,6 +1,9 @@
 
 # Assembly code for Hailstone benchmark and initial test
 
+# Rough syntax: if the first word is not a recognized command, it's a label for
+# the next word, which is a command, followed by its arguments.
+
 # Common library of definitions
 include opcodes.asm
 include conditions.asm
@@ -52,41 +55,35 @@ seeds       private     126 129 137
 # when loading them.
 threads 0 1 2 3 4 5 6 7
 
+# These are baked into the Opcode Decoder memory
 preload     nop add
 
+# These are loaded at runtime
 start       load sub
             load psr
             load add*2
             load add/2
             load add/2u
-
-            init    even
-            init    output
-            init    next_seed
-hailstone   init    seeds_ptr
-            init    hailstone
-
+            init    even                                # Init branch
+            init    output                              # Init branch
+            init    next_seed                           # Init branch
+hailstone   init    seeds_ptr                           # Init pointer to start of array
+            init    hailstone                           # Init loop counter branch to length of array
 next_seed   add     seed        seeds_ptr   0           # Load x
-
-            # Odd case y = (3x+1)/2
-            add*2   newseed     seed        0           # y = (x+0)*2
-            bsa not_taken 0 lsb_mask even
-
-            add     newseed     seed        newseed     # y = (x+y)
-            add/2u  newseed     1           newseed     # y = (1+y)/2
-            jmp taken output                            # y = (1+y)/2
-
-# Even case y = x/2
-even        add/2u  newseed     seed        0           # y = (x+0)/2
+                                                        # Odd case: y = (3x+1)/2
+            add*2   newseed     seed        0           # y = (x+0)*2 (2x)
+            bsa not_taken 0 lsb_mask even               # Branch and cancel add*2 if loaded x (seed) was an even number (LSB == 0)
+            add     newseed     seed        newseed     # y = (x+y)   (3x)
+            add/2u  newseed     1           newseed     # y = (1+y)/2 (3x+1)/2
+            jmp taken output                            # Go output the number
+                                                        # Even case: y = x/2
+even        add/2u  newseed     seed        0           # y = (x+0)/2 (x/2)
             nop     0           0           0           # even out cycle count of even/odd cases (to keep thread output in order)
+output      add     seeds_ptr   0           newseed     # x = 0+y
+            add     seed_out    0           newseed     # output port = 0+x
+            ctz unpredicted seeds_len hailstone         # Start over if we've processed whole array
+            jmp unpredicted next_seed                   # else, process the next array element
 
-# Store y (replace x)
-output      add     seeds_ptr   0           newseed 
-            add     seed_out    0           newseed
-            ctz unpredicted seeds_len hailstone
-            jmp unpredicted next_seed 
-
-# Set initial PC for each thread
-
+# Set starting point (PC) for each thread
 program_counter start start start start start start start start
 
