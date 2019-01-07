@@ -73,6 +73,15 @@ module RAM_SDP
     // Blocking assignments make the write happen logically before the read,
     // as ordered here, and thus describe write-forwarding behaviour.
 
+    // NOTE: Using blocking assignments in a clocked always block isn't
+    // strictly correct, as they could cause simulation race conditions
+    // depending on the order of evaluation of the always blocks. However,
+    // I see no simpler way to describe "write-before-read" behaviour while
+    // letting the CAD tool decide if it can synthesize it, and how. It might
+    // add forwarding logic, or could simply declare the read data "don't
+    // care" under a concurrent write to the same address. Check your
+    // synthesis results!
+
     // Non-blocking assignments make them take effect simultaneously at the
     // end of the always block, so the read takes its data from the memory.
 
