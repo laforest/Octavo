@@ -72,6 +72,25 @@ class Configuration (Debug):
 
     def __init__ (self):
         Debug.__init__(self)
+        self.filename_od            = "OD.mem"
+        self.filename_pc            = "PC.mem"
+        self.filename_pc_prev       = "PC_prev.mem"
+        self.filename_do            = "DO.mem"
+        self.filename_data_A        = "A.mem"
+        self.data_A_label           = "A"
+        self.filename_data_B        = "B.mem"
+        self.data_B_label           = "B"
+        self.filename_I             = "I.mem"
+        self.branch_label_not_taken = "not_taken"
+        self.branch_label_taken     = "taken"
+        self.branch_label_none      = "unpredicted"
+        self.pc_width               = 10
+        self.instr_OP_width         = 4
+        self.instr_D_width          = 12
+        self.instr_DA_width         = 6
+        self.instr_DB_width         = 6
+        self.instr_A_width          = 10
+        self.instr_B_width          = 10
         self.opcode_count           = 16
         self.thread_count           = 8
         self.memory_depth_words     = 1024
@@ -83,6 +102,15 @@ class Configuration (Debug):
         self.memory_indirect_count  = 4
         self.memory_io_base         = 28
         self.memory_io_count        = 4
+        # Contrary to Default Offset, the offset length matters here, since other
+        # data follows it in the upper bits.
+        self.po_read_offset_bit_width   = 10
+        self.po_write_offset_bit_width  = 12
+        # These must match the Verilog parameters
+        self.po_increment_bits       = 4
+        self.po_increment_sign_bits  = 1
+        # Must match Verilog code, currently 10 or 12 bits, so same hex output either way
+        self.default_offset_width   = 12
         self.default_offset         = DefaultOffset (self.memory_depth_words, self.memory_shared_count, self.thread_count)
         self.memory_map             = MemoryMap (self.memory_shared_count, self.memory_indirect_base, self.memory_indirect_count, self.memory_io_base, self.memory_io_count, self.default_offset)
 

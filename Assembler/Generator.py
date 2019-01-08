@@ -1,6 +1,7 @@
 #! /usr/bin/python3
 
-"""Machine-specific knowledge, such as bit widths, goes here, not in Configuration."""
+"""Convert integer values into machine-specific encodings (usually BitArrays).
+   See Configuration for hardcoded/parameter values/strings."""
 
 from bitstring      import pack, BitArray
 from sys            import exit
@@ -101,8 +102,7 @@ class Default_Offset (Base_Memory):
 
     def __init__ (self, filename, configuration):
         offsets = configuration.default_offset.offsets
-        # Must match Verilog code, currently 10 or 12 bits, so same output either way
-        width   = 12
+        width   = configuration.default_offset_width
         depth   = len(offsets)
         Base_Memory.__init__(self, depth, width, filename)
         for entry in range(depth):
@@ -122,7 +122,7 @@ class Opcode_Decoder (Base_Memory):
 
     def __init__(self, filename, operators, code, configuration):
         self.code       = code
-        self.opcode_count = 16
+        self.opcode_count = configuration.opcode_count
         self.dyadic     = operators.dyadic
         self.triadic    = operators.triadic
         width           = self.triadic.control_width
@@ -141,9 +141,6 @@ class Instruction_Memory (Base_Memory):
     """Construct the instruction memory.
        Pretty simple, as all the work was done during resolution."""
 
-    simple_instr_format = 'uint:4,uint:12,uint:10,uint:10'
-    dual_instr_format   = 'uint:4,uint:6,uint:6,uint:10,uint:10'
-
     def to_binary(self, instruction):
         """Assemble a simple or dual instruction into binary."""
         # We assume the D/DA/DB operands were already error-checked.
@@ -159,6 +156,8 @@ class Instruction_Memory (Base_Memory):
         depth = configuration.memory_depth_words
         width = configuration.memory_width_bits
         Base_Memory.__init__(self, depth, width, filename)
+        self.simple_instr_format = "uint:{0},uint:{1},uint:{2},uint:{3}".format(configuration.instr_OP_width, configuration.instr_D_width, configuration.instr_A_width, configuration.instr_B_width)
+        self.dual_instr_format   = "uint:{0},uint:{1},uint:{2},uint:{3},uint:{4}".format(configuration.instr_OP_width, configuration.instr_DA_width, configuration.instr_DB_width, configuration.instr_A_width, configuration.instr_B_width)
         address = 0
         for instruction in code.all_instructions():
             self.write_bits(address, self.to_binary(instruction))
@@ -169,16 +168,14 @@ class Instruction_Memory (Base_Memory):
 class Program_Counter (Base_Memory):
     """Load the Program Counter with the addresses of the given start instructions."""
 
-    pc_width = 10
-    pc_format = 'uint:{0}'.format(pc_width)
-
     def __init__(self, filename, code, configuration):
         depth           = configuration.thread_count
-        width           = self.pc_width
+        width           = configuration.pc_width
         Base_Memory.__init__(self, depth, width, filename)
+        pc_format = "uint:{0}".format(configuration.pc_width)
         for thread_number in range(depth):
             pc = code.initial_pc[thread_number]
-            pc = pack(self.pc_format, pc)
+            pc = pack(pc_format, pc)
             self.write_bits(thread_number, pc)
 
 # ---------------------------------------------------------------------------
@@ -201,15 +198,15 @@ class Branch_Detector:
             condition_bits.append(field_bits)
         return condition_bits
 
-    def branch_to_binary (self, bdo, branch):
+    def branch_to_binary (self, bdo, branch, configuration):
         # Processed here instead of in Resolver since it depends on binary values.
-        if branch.prediction == "not_taken":
+        if branch.prediction == configuration.branch_label_not_taken:
             predict         = bdo.predict_not_taken
             predict_enable  = bdo.predict_enabled
-        elif branch.prediction == "taken":
+        elif branch.prediction == configuration.branch_label_taken:
             predict         = bdo.predict_taken
             predict_enable  = bdo.predict_enabled
-        elif branch.prediction == "unpredicted":
+        elif branch.prediction == configuration.branch_label_none:
             predict         = bdo.predict_not_taken
             predict_enable  = bdo.predict_disabled
         else:
@@ -257,11 +254,10 @@ class Branch_Detector:
         return init_data
 
     def __init__(self, branch_detector_ops, code, configuration):
-        branch_count        = 4
         self.bdo            = branch_detector_ops
         for branch in code.branches:
             init_data    = self.find_branch_init_data(branch, configuration)
-            bd_init_data = self.branch_to_binary(self.bdo, branch)
+            bd_init_data = self.branch_to_binary(self.bdo, branch, configuration)
             init_data.value = bd_init_data
 
         # Saved for future Debug output
@@ -276,16 +272,6 @@ class Programmed_Offset (Base_Memory):
        indirect memory locations. The offset is applied, then incremented 
        by some constant. Contrary to most Generator classes, this does not 
        output a memory file, but updates the resolved initialization loads."""
-
-    # Contrary to Default Offset, the offset length matters here, since other
-    # data follows it in the upper bits.
-    read_offset_bit_width   = 10
-    write_offset_bit_width  = 12
-
-    # These must match the Verilog parameters
-    entries              = 4
-    increment_bits       = 4
-    increment_sign_bits  = 1
 
     def to_sign_bit (self, value):
         """Return the signed magnitude sign bit for a given signed int"""
@@ -307,16 +293,16 @@ class Programmed_Offset (Base_Memory):
         # so express negative values as the modular sum value
         read_offset  = (pointer.read_base  - pointer.address + default_offset) % configuration.memory_depth_words
         write_offset = (pointer.write_base - pointer.address + default_offset) % configuration.memory_depth_words_write
-        read_offset  = BitArray(uint=read_offset,  length=self.read_offset_bit_width) 
-        write_offset = BitArray(uint=write_offset, length=self.write_offset_bit_width) 
+        read_offset  = BitArray(uint=read_offset,  length=configuration.po_read_offset_bit_width) 
+        write_offset = BitArray(uint=write_offset, length=configuration.po_write_offset_bit_width) 
         # The increments are signed magnitude numbers
-        read_increment  = BitArray(uint=pointer.read_incr,  length=self.increment_bits)
-        write_increment = BitArray(uint=pointer.write_incr, length=self.increment_bits)
+        read_increment  = BitArray(uint=pointer.read_incr,  length=configuration.po_increment_bits)
+        write_increment = BitArray(uint=pointer.write_incr, length=configuration.po_increment_bits)
         # And the sign bit...
         read_increment_sign  = self.to_sign_bit(pointer.read_incr)
         write_increment_sign = self.to_sign_bit(pointer.write_incr)
-        read_increment_sign  = BitArray(uint=read_increment_sign,  length=self.increment_sign_bits)
-        write_increment_sign = BitArray(uint=write_increment_sign, length=self.increment_sign_bits)
+        read_increment_sign  = BitArray(uint=read_increment_sign,  length=configuration.po_increment_sign_bits)
+        write_increment_sign = BitArray(uint=write_increment_sign, length=configuration.po_increment_sign_bits)
         # Now pack them into the Programmed Offset entry binary configurations
         read_pointer_bits = BitArray()
         for entry in [read_increment_sign, read_increment, read_offset]:
@@ -362,15 +348,15 @@ class Generator (Debug):
 
         # Do all these first. Instructions and data depend on them
 
-        self.OD = Opcode_Decoder("OD.mem", self.operators, code, configuration)
+        self.OD = Opcode_Decoder(configuration.filename_od, self.operators, code, configuration)
         self.init_mems.append(self.OD)
 
-        self.PC      = Program_Counter("PC.mem", code, configuration)
-        self.PC_prev = Program_Counter("PC_prev.mem", code, configuration)
+        self.PC      = Program_Counter(configuration.filename_pc, code, configuration)
+        self.PC_prev = Program_Counter(configuration.filename_pc_prev, code, configuration)
         self.init_mems.append(self.PC)
         self.init_mems.append(self.PC_prev)
 
-        self.DO = Default_Offset("DO.mem", configuration)
+        self.DO = Default_Offset(configuration.filename_do, configuration)
         self.init_mems.append(self.DO)
 
         self.BD = Branch_Detector(self.operators.branch_detector, code, configuration)
@@ -379,12 +365,12 @@ class Generator (Debug):
         # Now all Code and Data have been resolved and generated
         # We can now create the Data and Instruction Memories
 
-        self.A = Data_Memory("A.mem", "A", data, code, configuration)
-        self.B = Data_Memory("B.mem", "B", data, code, configuration)
+        self.A = Data_Memory(configuration.filename_data_A, configuration.data_A_label, data, code, configuration)
+        self.B = Data_Memory(configuration.filename_data_B, configuration.data_B_label, data, code, configuration)
         self.init_mems.append(self.A)
         self.init_mems.append(self.B)
 
-        self.I = Instruction_Memory("I.mem", code, configuration)
+        self.I = Instruction_Memory(configuration.filename_I, code, configuration)
         self.init_mems.append(self.I)
 
     def generate (self, mem_obj_list = None):
