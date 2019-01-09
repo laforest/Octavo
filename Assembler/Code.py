@@ -48,7 +48,7 @@ class Initialization_Load (Debug, Utility):
             Initialization_Load.memory = "A"
             return
         print("Invalid memory {0} for initialization loads.".format(Initialization_Load.memory))
-        exit(1)
+        self.ask_for_debugger()
 
     def __init__ (self, data, code, label = None, destination = None,):
         Debug.__init__(self)
@@ -91,7 +91,7 @@ class Initialization_Load (Debug, Utility):
             self.init_data.append(new_init_data)
             return new_init_data
         print("Label {0} has unknown type {1} when adding shared variable to init load.".format(label, type(label)))
-        exit(1)
+        self.ask_for_debugger()
 
     def add_instruction (self, label, branch_destination, data_label):
         """Adds an instruction to initialization load. Remains in sequence added."""
@@ -122,7 +122,7 @@ class Branch (Debug):
         label = branch_parameters.pop(0)
         if label is not None:
             print("Branches cannot have labels: {0} at {1}".format(label, condition_label))
-            exit(1)
+            self.ask_for_debugger()
 
         self.prediction = branch_parameters.pop(0)
 
@@ -148,7 +148,7 @@ class Branch (Debug):
         self.destination = branch_parameters.pop(0)
         if len(branch_parameters) > 0:
             print("Unparsed branch parameters {0} for branch {1}".format(branch_parameters, condition_label))
-            exit(1)
+            self.ask_for_debugger()
 
         # A branch definition always follows an instruction, and will execute "in parallel",
         # so we need to know which instruction so we know the branch origin, which will be
@@ -187,11 +187,11 @@ class Usage (Debug):
                 index = usage_flags.index(None)
             except ValueError:
                 print("Label {0}: No more free slots in {1}.".format(label, usage_flags))
-                exit(1)
+                self.ask_for_debugger()
         else:
             if usage_flags[index] is not None:
                 print("Label {0}: Allocation conflict for {1} at index {2}.".format(label, usage_flags, index))
-                exit(1)
+                self.ask_for_debugger()
         usage_flags[index] = label
         address = resource[index]
         return address, index
@@ -274,7 +274,7 @@ class Code (Debug, Utility):
             if condition.label == label:
                 return condition
         print("Condition {0} not found".format(label))
-        exit(1)
+        self.ask_for_debugger()
 
     def all_instructions (self):
         """Iterate over all instruction, nesting into lists of instructions."""
@@ -296,7 +296,7 @@ class Code (Debug, Utility):
             instruction = self.lookup_instruction(label)
             if instruction is not None:
                 print("Label {0} is already in use by instruction {1}.".format(label, instruction))
-                exit(1)
+                self.ask_for_debugger()
 
     def allocate_instruction_simple (self, opcode_label, instruction_label, D, A, B):
         self.check_duplicate_instruction_label(instruction_label)
@@ -368,7 +368,7 @@ class Code (Debug, Utility):
         pc_count = len(pc_list)
         if pc_count != self.configuration.thread_count:
             print("ERROR: You must provide an initial PC for each of the {0} threads, but you provided {1}: {2}".format(self.configuration.thread_count, pc_count, pc_list))
-            exit(1)
+            self.ask_for_debugger()
         self.initial_pc = pc_list
 
     def is_instruction_dual (self, instruction):

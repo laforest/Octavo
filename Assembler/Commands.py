@@ -53,7 +53,7 @@ class Commands (Debug):
         command_exists = self.find_command(command)
         if command_exists is False:
             print("Unknown command: {0}".format(command))
-            exit(1)
+            self.ask_for_debugger()
         self.execute_command(command, arguments)
 
 # These are the assembler commands.
@@ -68,20 +68,20 @@ class Commands (Debug):
         opcodes = arguments[1:]
         if label is not None:
             print("No label ({0}) allowed for opcode preload.".format(label))
-            exit(1)
+            self.ask_for_debugger()
         if len(opcodes) == 0:
             print("No opcode(s) given to preload command.")
-            exit(1)
+            self.ask_for_debugger()
         self.code.preload_opcode(opcodes)
 
     def load (self, arguments):
         opcode_labels = arguments[1:]
         if len(opcode_labels) < 1:
             print("No opcode to load given.")
-            exit(1)
+            self.ask_for_debugger()
         if len(opcode_labels) > 2:
             print("Too many opcodes given to load: {0}.".format(opcode_labels))
-            exit(1)
+            self.ask_for_debugger()
         self.code.load_opcode(*arguments)
 
     def condition (self, arguments):
@@ -94,7 +94,7 @@ class Commands (Debug):
         values  = arguments[1:]
         if label is None:
             print("No label found. Private variables MUST be named. Variable value(s) in declaration: {0}".format(values))
-            exit(1)
+            self.ask_for_debugger()
         self.data.allocate_private(label, values)
 
     def shared (self, arguments):
@@ -109,7 +109,7 @@ class Commands (Debug):
         values  = arguments[1:]
         if label is None:
             print("No label found. Pointer variables MUST be named. Variable value(s) in declaration: {0}".format(values))
-            exit(1)
+            self.ask_for_debugger()
         self.data.allocate_pointer(*arguments)
 
     def port (self, arguments):
@@ -118,7 +118,7 @@ class Commands (Debug):
         values  = arguments[1:]
         if label is None:
             print("No label found. Port variables MUST be named. Variable value(s) in declaration: {0}".format(values))
-            exit(1)
+            self.ask_for_debugger()
         self.data.allocate_port(*arguments)
 
     def threads (self, arguments):
@@ -127,7 +127,7 @@ class Commands (Debug):
         thread_list = arguments[1:]
         if label is not None:
             print("No label ({0}) allowed for command threads".format(label))
-            exit(1)
+            self.ask_for_debugger()
         self.data.set_current_threads(thread_list)
 
     def init (self, arguments):
@@ -140,6 +140,6 @@ class Commands (Debug):
         pc_list     = arguments[1:]
         if label is not None:
             print("No label ({0}) allowed for command program_counter".format(label))
-            exit(1)
+            self.ask_for_debugger()
         self.code.set_pc(label, pc_list)
 

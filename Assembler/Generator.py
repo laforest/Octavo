@@ -194,7 +194,7 @@ class Branch_Detector:
             field_bits = getattr(bdo, entry, field_bits)
             if field_bits is None:
                 print("Unknown branch field value: {0}".format(entry))
-                exit(1)
+                self.ask_for_debugger()
             condition_bits.append(field_bits)
         return condition_bits
 
@@ -211,7 +211,7 @@ class Branch_Detector:
             predict_enable  = bdo.predict_disabled
         else:
             print("Invalid branch prediction setting {0} on branch {1}.".format(branch.prediction, branch))
-            sys.exit(1)
+            self.ask_for_debugger()
         # ECL FIXME We don't have a way to disable branch origin yet in the assembly source. See DESIGN_NOTES TODO.
         origin_enable = bdo.origin_enabled
         origin        = BitArray(uint=branch.origin,      length=bdo.origin_width)
@@ -232,7 +232,7 @@ class Branch_Detector:
         # But check anyway...
         if init_instr.D not in configuration.memory_map.bd:
             print("First init load destination of branch {1} is not to BD entry!".format(branch))
-            exit(1)
+            self.ask_for_debugger()
         # Find which operand references the init data variable (the other is zero)
         if init_instr.A == 0:
             init_data_addr = init_instr.B
@@ -246,11 +246,11 @@ class Branch_Detector:
                 break
         if init_data is None:
             print("Init data at address {0} not found for init load {1}".format(init_data_addr, branch.init_load))
-            exit(1)
+            self.ask_for_debugger()
         # Check that it's not already resolved (it shouldn't, that's what we're doing here)
         if init_data.value is not None:
             print("Init data {0} is already resolved in init load {1}".format(init_data, branch.init_load))
-            exit(1)
+            self.ask_for_debugger()
         return init_data
 
     def __init__(self, branch_detector_ops, code, configuration):
@@ -318,12 +318,12 @@ class Programmed_Offset (Base_Memory):
         write_init_data_variable = pointer.init_load.init_data[1]
         if type(read_init_data_variable) != type(write_init_data_variable):
             print("Mismatched pointer init data variable types. Read: {0}, Write: {1}".format(read_init_data_variable, write_init_data_variable))
-            exit(1)
+            self.ask_for_debugger()
         # ECL FIXME we assume a Private Variable type holding init data per thread.
         # Not sure what holding init data in a shared variable means yet.
         if pointer.threads != read_init_data_variable.threads() or pointer.threads != write_init_data_variable.threads():
             print("Pointer {0} and its init data variables don't all exist in the same threads".format(pointer.label))
-            exit(1)
+            self.ask_for_debugger()
         for thread in pointer.threads:
             read_pointer_bits, write_pointer_bits  = self.pointer_to_binary(pointer, configuration, thread)
             read_init_data_variable.value[thread]  = read_pointer_bits

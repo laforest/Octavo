@@ -43,7 +43,7 @@ class Resolver (Utility, Debug):
         else:
             print("Read operand value has unexpected type!: {0}".format(value))
             print(instruction)
-            exit(1)
+            self.ask_for_debugger()
         setattr(instruction, operand, entry.address)
         return
 
@@ -78,7 +78,7 @@ class Resolver (Utility, Debug):
             if variable is None:
                 print("Unknown variable {0} used as write operand.".format(converted_value))
                 print(instruction)
-                exit(1)
+                self.ask_for_debugger()
             variable      = self.data.resolve_named(converted_value, variable.memory)
             write_address = self.configuration.memory_map.read_to_write_address(variable.address, variable.memory)
             setattr(instruction, operand, write_address)
@@ -86,7 +86,7 @@ class Resolver (Utility, Debug):
         else:
             print("Write operand value has unexpected type!: {0}".format(converted_value))
             print(instruction)
-            exit(1)
+            self.ask_for_debugger()
 
     def resolve_pointers (self):
         for pointer in self.data.pointers:
@@ -101,10 +101,10 @@ class Resolver (Utility, Debug):
         # instruction which reads it.
         if read_variable.memory is not None and read_variable.memory != pointer.memory:
             print("Variable {0} already assigned to memory {1} but read pointer {2} is in memory {3}".format(read_variable.label, read_variable.memory, pointer.label, pointer.memory))
-            exit(1)
+            self.ask_for_debugger()
         if write_variable.memory is not None and write_variable.memory != pointer.memory:
             print("Variable {0} already assigned to memory {1} but write pointer {2} is in memory {3}".format(write_variable.label, write_variable.memory, pointer.label, pointer.memory))
-            exit(1)
+            self.ask_for_debugger()
         # Now resolve the pointed-to variable
         read_variable.memory    = pointer.memory
         write_variable.memory   = pointer.memory
@@ -141,7 +141,7 @@ class Resolver (Utility, Debug):
         for instruction in self.code.all_instructions():
             if address == self.configuration.memory_depth_words:
                 print("Out of code memory!")
-                exit(1)
+                self.ask_for_debugger()
             instruction.address = address
             address += 1
 
@@ -155,16 +155,16 @@ class Resolver (Utility, Debug):
         branch.origin = branch.instruction.address
         if branch.origin is None or type(branch.origin) is not int:
             print("Instruction {0} did not have an address when resolving origin {1} of associated branch {2}".format(branch.instruction, branch.origin, branch))
-            exit(1)
+            self.ask_for_debugger()
         # Resolve the branch destination address (we have the instruction label already)
         destination_instruction = self.code.lookup_instruction(branch.destination)
         if destination_instruction is None:
             print("No instruction with label {0} found when resolving branch {1} destination".format(branch.destination, branch))
-            exit(1)
+            self.ask_for_debugger()
         branch.destination = destination_instruction.address
         if branch.destination is None or type(branch.destination) is not int:
             print("Instruction {0} did not have an address when resolving destination {1} of associated branch {2}".format(branch.instruction, branch.destination, branch))
-            exit(1)
+            self.ask_for_debugger()
 
 #    def resolve_opcodes (self, instruction_list = None):
 #        if instruction_list is None:

@@ -28,7 +28,7 @@ class Opcode (Debug):
             return False
         else:
             print("Invalid simple/dual opcode specifier {0} for opcode {1}".format(self.dual, self.label))
-            exit(1)
+            self.ask_for_debugger()
 
     def is_same_as (self, opcode):
         """Check if the given opcode object encodes the same operation as this opcode, regardless of label or address."""
@@ -48,7 +48,7 @@ class Opcode (Debug):
             field_bits = getattr(operators.triadic, entry, field_bits)
             if field_bits is None:
                 print("Unknown opcode field value: {0}".format(entry))
-                exit(1)
+                self.ask_for_debugger()
             control_bits.append(field_bits)
         return control_bits
 
@@ -76,12 +76,12 @@ class Opcode_Manager (Debug):
            Each opcode must have a unique name and operation across all threads."""
         if label in self.defined_opcodes:
             print("Opcode {0} already defined. Redefinitions not allowed.".format(label))
-            exit(1)
+            self.ask_for_debugger()
         new_opcode = Opcode(label, split, shift, dyadic3, addsub, dual, dyadic2, dyadic1, select, self.operators)
         for previous_opcode in self.defined_opcodes.values():
             if new_opcode.is_same_as(previous_opcode):
                 print("Opcode {0} performs the same operations as previously defined opcode {1}. Redefinitions not allowed.".format(new_opcode.label, previous_opcode.label))
-                exit(1)
+                self.ask_for_debugger()
         self.defined_opcodes.update({label:new_opcode})
 
     def preload_thread_opcode (self, opcode_label, thread):
@@ -92,24 +92,24 @@ class Opcode_Manager (Debug):
             initial_index = self.initial_opcodes[thread].index(None)
         except ValueError:
             print("Opcode {0} cannot be pre-loaded. No more free slots in Opcode Decoder memory for thread {1}.".format(opcode_label, thread))
-            exit(1)
+            self.ask_for_debugger()
         try:
             current_index = self.current_opcodes[thread].index(None)
         except ValueError:
             print("Opcode {0} cannot be pre-loaded. No more free slots in current opcode list for thread {1}.".format(opcode_label, thread))
-            exit(1)
+            self.ask_for_debugger()
         # This happens if loads and preloads are interleaved, and thus initial and
         # current opcodes end up with different opcode numbers. Don't do that. :)
         if initial_index != current_index:
             print("Mismatched initial ({0}) and current ({1}) opcode numbers for opcode {2} in thread {3} because an opcode load precedes an opcode preload. Please fix that.".format(initial_index, current_index, opcode_label, thread))
-            exit(1)
+            self.ask_for_debugger()
         self.initial_opcodes[thread][initial_index] = opcode_label
         self.current_opcodes[thread][current_index] = opcode_label
 
     def preload_opcode (self, opcode_label):
         if opcode_label not in self.defined_opcodes:
             print("Unknown opcode {0} for pre-loading.".format(opcode_label))
-            exit(1)
+            self.ask_for_debugger()
         for thread in self.data.current_threads:
             self.preload_thread_opcode(opcode_label, thread)
 
@@ -126,7 +126,7 @@ class Opcode_Manager (Debug):
                 index = self.current_opcodes[thread].index(None)
             except ValueError:
                 print("Opcode {0} cannot be loaded. No more free slots in current opcode list for thread {1}. Maybe load over an unused older opcode?".format(new_label, thread))
-                exit(1)
+                self.ask_for_debugger()
         self.current_opcodes[thread][index] = new_label
         return index
 
@@ -144,10 +144,10 @@ class Opcode_Manager (Debug):
         """
         if old_opcode_label is not None and old_opcode_label not in self.defined_opcodes:
             print("Unknown previous opcode {0} when loading new opcode {1}.".format(old_opcode_label, new_opcode_label))
-            exit(1)
+            self.ask_for_debugger()
         if new_opcode_label not in self.defined_opcodes:
             print("Unknown new opcode {0} when loading over previous opcode {1}.".format(new_opcode_label, old_opcode_label))
-            exit(1)
+            self.ask_for_debugger()
         # Load and check for consistency in opcode indices across current threads
         # Not sure if this is necessary or correct, but if wrong, it'll fail here instead of at runtime.
         indices = []
@@ -156,7 +156,7 @@ class Opcode_Manager (Debug):
             indices.append(index)
         if len(set(indices)) > 1:
             print("Opcode numbers {0} for new opcode {1} (old opcode {2}) have diverged over threads {3}.".format(indices, new_opcode_label, old_opcode_label, self.data.current_threads))
-            exit(1)
+            self.ask_for_debugger()
         # Now allocate and resolve the init load for that opcode
         load_address = self.configuration.memory_map.od[index]
         init_load    = self.code.allocate_init_load(label, load_address)
@@ -173,20 +173,20 @@ class Opcode_Manager (Debug):
             number = self.current_opcodes[thread].index(label)
         except ValueError:
             print("Unknown opcode {0} when resolving in thread {1}.".format(label, thread))
-            exit(1)
+            self.ask_for_debugger()
         return number
 
     def resolve_opcode (self, label):
         if label not in self.defined_opcodes:
             print("Undefined opcode {0} when resolving to opcode number.".format(label))
-            exit(1)
+            self.ask_for_debugger()
         numbers = []
         for thread in self.data.current_threads:
             number = self.resolve_thread_opcode(label, thread)
             numbers.append(number)
         if len(set(numbers)) > 1:
             print("Opcode numbers {0} for opcode {1} have resolved to different values over threads {2}.".format(numbers, label, self.data.current_threads))
-            exit(1)
+            self.ask_for_debugger()
         return number
 
     def lookup_thread_opcode (self, opcode_number, thread):
@@ -206,6 +206,6 @@ class Opcode_Manager (Debug):
             opcodes.append(opcode)
         if len(set(opcodes)) > 1:
             print("Conflicting opcodes {0} with number {1} in threads {2}.".format(opcodes, opcode_number, self.data.current_threads))
-            exit(1)
+            self.ask_for_debugger()
         return opcode
 

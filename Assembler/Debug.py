@@ -20,6 +20,10 @@ class Debug:
             output += str(entry) + "\n"
         return output
 
+    def ask_for_debugger (self):
+        input("Press Enter to run debugger, or Ctrl-C to exit.")
+        import pdb; pdb.set_trace()
+
     def filedump (self, filename, append = False):
         """Dump object __str__ representation to file, with optional append."""
         if append is False:
@@ -28,7 +32,7 @@ class Debug:
             mode = 'a'
         else:
             print("debug filedump append flag must be True/False, not {0}".format(append))
-            exit(1)
+            self.ask_for_debugger()
         with open(filename, mode) as f:
             print(self, end="", file=f)
 

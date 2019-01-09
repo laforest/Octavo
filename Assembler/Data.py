@@ -14,7 +14,7 @@ class Variable (Debug, Utility):
         if type(initial_values) == list:
             if len(initial_values) == 0:
                 print("Empty list of values passed to variable {0}.".format(label))
-                exit(1)
+                self.ask_for_debugger()
             if len(initial_values) > 1:
                 initial_values = [self.try_int(entry) for entry in initial_values]
             else:
@@ -29,7 +29,7 @@ class Variable (Debug, Utility):
             pass
         else:
             print("Unusable initial value {0} of type {1} for variable {2}".format(initial_values, type(initial_values), label))
-            exit(1)
+            self.ask_for_debugger()
         return initial_values
 
     def __init__ (self, label = None, address = None, memory = None):
@@ -71,7 +71,7 @@ class Private_Variable (Variable):
         value_lengths = set(value_lengths)
         if len(value_lengths) > 1:
             print("There are values of different lengths in private variable {0}: {1}. All values must be of same length.".format(self.label, self.value))
-            exit(1)
+            self.ask_for_debugger()
         value = self.parse_value(self.label, value)
         if type(value) is list:
             length = len(value)
@@ -79,12 +79,12 @@ class Private_Variable (Variable):
             length = 1
         if length not in value_lengths:
             print("Private variable {0}: added value {1} for thread(s) {2} not of same length as existing values {3}.".format(self.label, value, threads, self.value))
-            exit(1)
+            self.ask_for_debugger()
         for thread in threads:
             old_value = self.value.get(thread)
             if old_value is not None:
                 print("Thread {0} already has a value {1} in private variable {2}. Tried to assign {3}.".format(thread, self.value[thread], self.label, value))
-                exit(1)
+                self.ask_for_debugger()
             self.value[thread] = value
 
     def threads (self):
@@ -111,7 +111,7 @@ class Pointer_Variable (Variable):
         for thread in threads:
             if thread in self.threads:
                 print("Pointer was already declared in thread {0}. Threads: {1}".format(thread, self.threads))
-                exit(1)
+                self.ask_for_debugger()
             self.threads.append(thread)
         self.threads.sort()
 
@@ -159,24 +159,24 @@ class Data (Utility, Debug):
         for thread in self.current_threads:
             if type(thread) is not int:
                 print("Thread values must be literal integers: {0}".format(self.current_threads))
-                exit(1)
+                self.ask_for_debugger()
         # Range check
         min_thread = 0
         max_thread = self.configuration.thread_count - 1
         for thread in self.current_threads:
             if thread < min_thread or thread > max_thread:
                 print("Out of range thread: {0}. Min: {1}, Max: {2}".format(self.thread, min_thread, max_thread))
-                exit(1)
+                self.ask_for_debugger()
         # Duplication test
         if len(self.current_threads) > len(set(self.current_threads)):
             print("Duplicate thread numbers not allowed: {0}".format(current_threads))
-            exit(1)
+            self.ask_for_debugger()
 
     def lookup_variable_name (self, name):
         """Locate variable by name if it exists. Checks for duplicate entries."""
         if name is None:
             print("Variable name lookup cannot have a None name!")
-            exit(1)
+            self.ask_for_debugger()
         variables = []
         for variable_type_list in self.variables:
             for variable in variable_type_list:
@@ -186,7 +186,7 @@ class Data (Utility, Debug):
             return None
         if len(variables) > 1:
             print("Duplicate variable names found: {0}".format(variables))
-            exit(1)
+            self.ask_for_debugger()
         return variables[0]
 
     def lookup_shared_variable_value (self, value, memory):
@@ -201,7 +201,7 @@ class Data (Utility, Debug):
             return None
         if len(variables) > 1:
             print("Unnamed shared variable of value {0} found more than once in memory {1}.".format(value, memory))
-            exit(1)
+            self.ask_for_debugger()
         return variables[0]
 
     def allocate_private (self, label, value = None, threads = None):
@@ -213,11 +213,11 @@ class Data (Utility, Debug):
             threads = self.current_threads
         if label is None:
             print("Private variable label/name cannot be None! Initial value: {0}".format(value))
-            exit(1)
+            self.ask_for_debugger()
         variable = self.lookup_variable_name(label)
         if variable is not None and type(variable) is not Private_Variable:
             print("A non-private variable named {0} of type {1} already exists!".format(label, type(variable)))
-            exit(1)
+            self.ask_for_debugger()
         if variable is None:
             variable = Private_Variable(label = label, value = value, threads = threads)
             self.private.append(variable)
@@ -231,7 +231,7 @@ class Data (Utility, Debug):
             variable = self.lookup_variable_name(label)
             if variable is not None:
                 print("Variable {0} of type {1} already exists.".format(label, type(variable)))
-                exit(1)
+                self.ask_for_debugger()
         variable = Shared_Variable(label = label, value = value)
         self.shared.append(variable)
         return variable
@@ -255,17 +255,17 @@ class Data (Utility, Debug):
         # The bases are labels until resolved to addresses
         if label is None:
             print("Pointer cannot have a None name! Read/Write bases: {0}, {1}".format(read_base, write_base))
-            exit(1)
+            self.ask_for_debugger()
         read_incr   = self.try_int(read_incr)
         write_incr  = self.try_int(write_incr)
         pointer = self.lookup_variable_name(label)
         if pointer is not None:
             if type(pointer) is not Pointer_Variable:
                 print("A non-pointer variable named {0} of type {1} already exists!".format(label, type(pointer)))
-                exit(1)
+                self.ask_for_debugger()
             if pointer.read_incr != read_incr or pointer.write_incr != write_incr or pointer.read_base != read_base or pointer.write_base != write_base:
                 print("A pointer named {0} already exists, but with a different configuration. This is not allowed.".format(label))
-                exit(1)
+                self.ask_for_debugger()
             pointer.add_threads(self.current_threads)
         else:
             # Can't set slot here, as we don't know which Data Memory we will end up in. This is done at Resolution.
@@ -277,11 +277,11 @@ class Data (Utility, Debug):
         """Allocate a port, giving it a name and number. Disallow duplicate definition or redefinition."""
         if label is None:
             print("Port cannot have a None name! Memory: {0}, Number: {1}".format(memory, number))
-            exit(1)
+            self.ask_for_debugger()
         port = self.lookup_variable_name(label)
         if port is not None:
             print("A variable named {0} of type {1} already exists when trying to allocate a port.".format(label, type(port)))
-            exit(1)
+            self.ask_for_debugger()
         number      = int(number, 0)
         new_port    = Port_Variable(label = label, memory = memory, number = number)
         self.ports.append(new_port)
@@ -291,7 +291,7 @@ class Data (Utility, Debug):
         """Returns the list of all variables of the same type as the given variable."""
         if type(variable) is Variable:
             print("Found variable {0} of base type Variable. This should never happen.".format(variable.label))
-            exit(1)
+            self.ask_for_debugger()
         if type(variable) is Shared_Variable:
             return self.shared
         if type(variable) is Private_Variable:
@@ -302,7 +302,7 @@ class Data (Utility, Debug):
             return self.ports
         # A variable not in a type list, or a non-existent variable, should never happen.
         print("Variable {0} does not belong to any type! This is impossible.".format(variable.label))
-        exit(1)
+        self.ask_for_debugger()
 
     def next_variable_address (self, new_variable, memory):
         """Given a variable, return the next unallocated memory address for that type of variable for the given memory."""
@@ -326,7 +326,7 @@ class Data (Utility, Debug):
                         value = variable.value
                     else:
                         print("Non-private or non-shared variable cannot be allocated an address. Variable: {0}".format(new_variable))
-                        exit(1)
+                        self.ask_for_debugger()
                     if type(value) == list:
                         max_data_length = len(value)
                     else:
@@ -336,7 +336,7 @@ class Data (Utility, Debug):
         # We assume shared starts at zero
         if type(new_variable) is Shared_Variable and next_address not in self.configuration.memory_map.shared:
             print("Out of bounds address {0} for shared variable {1}. Limit is {2}.".format(next_address, new_variable.label, self.configuration.memory_map.shared[-1]))
-            exit(1)
+            self.ask_for_debugger()
         if type(new_variable) is Private_Variable and next_address not in self.configuration.memory_map.private:
             # Catch the first private variable given an address and put it at the start of the private area, the rest will follow.
             if next_address < self.configuration.memory_map.private[0]:
@@ -344,7 +344,7 @@ class Data (Utility, Debug):
             # Have we run out of room? 
             if next_address > self.configuration.memory_map.private[-1]:
                 print("Out of bounds address {0} for private variable {1}. Limit is {2}".format(next_address, new_variable.label, self.configuration.memory_map.private[-1]))
-                exit(1)
+                self.ask_for_debugger()
         return next_address
 
     def resolve_shared_value (self, value, memory):
@@ -365,14 +365,14 @@ class Data (Utility, Debug):
 
         if variable is None:
             print("No variable by name {0}.".format(name))
-            exit(1)
+            self.ask_for_debugger()
 
         if type(variable) is Shared_Variable or type(variable) is Private_Variable:
             if variable.address is None:
                 variable.address = self.next_variable_address(variable, memory)
             if variable.memory is not None and variable.memory != memory:
                 print("Conflicting memory allocation for {0} variable {1}. Was {2}, now {3}".format(variable, name, variable.memory, memory))
-                exit(1)
+                self.ask_for_debugger()
             variable.memory = memory 
             return variable
 
@@ -384,14 +384,14 @@ class Data (Utility, Debug):
             # Memory always set at port definition, so never None
             if variable.memory != memory:
                 print("Conflicting memory allocation for I/O port {0}. Was {1}, now {2}".format(name, variable.memory, memory))
-                exit(1)
+                self.ask_for_debugger()
             return variable
 
         # Pointers are located in the shared address space, but are initialized per-thread.
         if type(variable) is Pointer_Variable:
             if variable.memory is not None and variable.memory != memory:
                 print("Conflicting memory allocation for pointer {0}. Was {1}, now {2}".format(name, variable.memory, memory))
-                exit(1)
+                self.ask_for_debugger()
             variable.memory = memory 
             if variable.slot is None:
                 variable.slot = self.next_pointer_slot(variable)

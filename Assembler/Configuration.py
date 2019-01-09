@@ -65,7 +65,7 @@ class MemoryMap (Debug):
         if memory == "A" or memory == "B":
             return read_address + self.write_bases[memory]
         print("Memory range {0} is not not readable, so no read address conversion is possible (absolute write address)".format(memory))
-        exit(1)
+        self.ask_for_debugger()
 
 class Configuration (Debug):
     """Place system configuration parameters here. Any hardcoded value goes here."""

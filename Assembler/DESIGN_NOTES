@@ -60,7 +60,6 @@ Names and other references go through the follwing sequence of value types as th
 
 TODO
 
-Replace print-and-exit with print-and-ask-for-debugger, place in Debug class.
 How to define branches with no branch origin enabled (active everywhere)? (maybe fold into prediction flag parameter)
 Split pointers into read and write cases, which will fit better with resolving read and write operands and avoid the "Write before read" problem.
 Need code and data de-allocation words to allow loading code/data at runtime.
