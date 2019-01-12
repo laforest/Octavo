@@ -14,7 +14,7 @@
 
 module simulation_clock
 #(
-    parameter CLOCK_PERIOD = 10
+    parameter CLOCK_PERIOD = 0
 )
 (
     output reg clock
