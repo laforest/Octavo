@@ -200,20 +200,34 @@ class Branch_Detector:
 
     def branch_to_binary (self, bdo, branch, configuration):
         # Processed here instead of in Resolver since it depends on binary values.
+        # Predict not taken, cancel instruction if taken
         if branch.prediction == configuration.branch_label_not_taken:
             predict         = bdo.predict_not_taken
             predict_enable  = bdo.predict_enabled
+            origin_enable   = bdo.origin_enabled
+        # Predict taken, cancel instruction if not taken
         elif branch.prediction == configuration.branch_label_taken:
             predict         = bdo.predict_taken
             predict_enable  = bdo.predict_enabled
+            origin_enable   = bdo.origin_enabled
+        # No prediction, instruction never cancelled
         elif branch.prediction == configuration.branch_label_none:
             predict         = bdo.predict_not_taken
             predict_enable  = bdo.predict_disabled
+            origin_enable   = bdo.origin_enabled
+        # No prediction, trigger on previous instruction result anywhere, current instruction never cancelled
+        elif branch.prediction == configuration.branch_label_anywhere:
+            predict         = bdo.predict_not_taken
+            predict_enable  = bdo.predict_disabled
+            origin_enable   = bdo.origin_disabled
+        # Predict not taken, trigger on previous instruction result anywhere, cancel current instruction
+        elif branch.prediction == configuration.branch_label_anywhere_cancel:
+            predict         = bdo.predict_not_taken
+            predict_enable  = bdo.predict_enabled
+            origin_enable   = bdo.origin_disabled
         else:
             print("Invalid branch prediction setting {0} on branch {1}.".format(branch.prediction, branch))
             self.ask_for_debugger()
-        # ECL FIXME We don't have a way to disable branch origin yet in the assembly source. See DESIGN_NOTES TODO.
-        origin_enable = bdo.origin_enabled
         origin        = BitArray(uint=branch.origin,      length=bdo.origin_width)
         destination   = BitArray(uint=branch.destination, length=bdo.destination_width)
         condition     = self.condition_to_binary(bdo, branch)

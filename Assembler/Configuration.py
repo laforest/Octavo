@@ -84,6 +84,8 @@ class Configuration (Debug):
         self.branch_label_not_taken = "not_taken"
         self.branch_label_taken     = "taken"
         self.branch_label_none      = "unpredicted"
+        self.branch_label_anywhere  = "anywhere"
+        self.branch_label_anywhere_cancel  = "anywhere_cancel"
         self.pc_width               = 10
         self.instr_OP_width         = 4
         self.instr_D_width          = 12
