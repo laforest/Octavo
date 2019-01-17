@@ -1,0 +1,97 @@
+%Warning-PINCONNECTEMPTY: /home/laforest/Octavo/Octavo/Parts/Octavo/Octavo.v:241: Cell pin connected by name with empty reference: Ra
+%Warning-PINCONNECTEMPTY: Use "/* verilator lint_off PINCONNECTEMPTY */" and lint_on around source to disable this message.
+%Warning-PINCONNECTEMPTY: /home/laforest/Octavo/Octavo/Parts/Octavo/Octavo.v:243: Cell pin connected by name with empty reference: write_addr_Ra
+%Warning-PINCONNECTEMPTY: /home/laforest/Octavo/Octavo/Parts/Controlpath/Controlpath.v:93: Cell pin connected by name with empty reference: R_zero
+%Warning-PINCONNECTEMPTY: /home/laforest/Octavo/Octavo/Parts/Branching/Controller.v:51: Cell pin connected by name with empty reference: next_thread
+%Warning-PINCONNECTEMPTY: /home/laforest/Octavo/Octavo/Parts/Branching/Controller.v:72: Cell pin connected by name with empty reference: next_thread
+%Warning-PINCONNECTEMPTY: /home/laforest/Octavo/Octavo/Parts/Addressing/Address_Module.v:136: Cell pin connected by name with empty reference: next_thread
+%Warning-PINCONNECTEMPTY: /home/laforest/Octavo/Octavo/Parts/Addressing/Address_Module.v:160: Cell pin connected by name with empty reference: next_thread
+%Warning-PINCONNECTEMPTY: /home/laforest/Octavo/Octavo/Parts/Memory/RAM_SDP_Multithreaded.v:63: Cell pin connected by name with empty reference: next_thread
+%Warning-PINCONNECTEMPTY: /home/laforest/Octavo/Octavo/Parts/Memory/RAM_SDP_Multithreaded.v:78: Cell pin connected by name with empty reference: next_thread
+%Warning-PINCONNECTEMPTY: /home/laforest/Octavo/Octavo/Parts/Branching/Branch_Sentinel.v:45: Cell pin connected by name with empty reference: next_thread
+%Warning-PINCONNECTEMPTY: /home/laforest/Octavo/Octavo/Parts/Branching/Branch_Counter.v:144: Cell pin connected by name with empty reference: next_thread
+%Warning-PINCONNECTEMPTY: /home/laforest/Octavo/Octavo/Parts/Branching/Branch_Counter.v:161: Cell pin connected by name with empty reference: next_thread
+%Warning-PINCONNECTEMPTY: /home/laforest/Octavo/Octavo/Parts/Branching/Branch_Counter.v:248: Cell pin connected by name with empty reference: cout
+%Warning-WIDTH: /home/laforest/Octavo/Octavo/Parts/ALU/AddSub_Ripple_Carry.v:21: Operator SUB expects 19 bits on the RHS, but RHS's VARREF 'carry_in' generates 1 bits.
+%Warning-WIDTH: /home/laforest/Octavo/Octavo/Parts/ALU/AddSub_Ripple_Carry.v:21: Operator ADD expects 19 bits on the RHS, but RHS's VARREF 'carry_in' generates 1 bits.
+%Warning-WIDTH: /home/laforest/Octavo/Octavo/Parts/Address_Decode/Address_Range_Translator.v:76: Operator ASSIGN expects 32 bits on the Assign RHS, but Assign RHS's SEL generates 1 bits.
+%Warning-WIDTH: /home/laforest/Octavo/Octavo/Parts/Address_Decode/Address_Range_Translator.v:76: Operator ASSIGN expects 32 bits on the Assign RHS, but Assign RHS's SEL generates 10 bits.
+%Warning-WIDTH: /home/laforest/Octavo/Octavo/Parts/Address_Decode/Address_Range_Translator.v:76: Operator ASSIGN expects 32 bits on the Assign RHS, but Assign RHS's SEL generates 4 bits.
+%Warning-WIDTH: /home/laforest/Octavo/Octavo/Parts/Address_Decode/Address_Range_Translator.v:76: Operator ASSIGN expects 32 bits on the Assign RHS, but Assign RHS's SEL generates 2 bits.
+%Warning-WIDTH: /home/laforest/Octavo/Octavo/Parts/Address_Decode/Binary_to_N_Decoder.v:31: Operator EQ expects 32 bits on the RHS, but RHS's VARREF 'in' generates 2 bits.
+%Warning-WIDTH: /home/laforest/Octavo/Octavo/Parts/Multithreading/Thread_Number.v:33: Operator EQ expects 32 or 4 bits on the LHS, but LHS's VARREF 'current_thread' generates 3 bits.
+%Warning-WIDTH: /home/laforest/Octavo/Octavo/Parts/Addressing/Address_Module_PO_Memory.v:249: Operator ADD expects 10 bits on the RHS, but RHS's VARREF 'pi' generates 4 bits.
+%Warning-WIDTH: /home/laforest/Octavo/Octavo/Parts/Addressing/Address_Module_PO_Memory.v:249: Operator SUB expects 10 bits on the RHS, but RHS's VARREF 'pi' generates 4 bits.
+%Warning-WIDTH: /home/laforest/Octavo/Octavo/Parts/Addressing/Address_Module_PO_Memory.v:249: Operator ADD expects 12 bits on the RHS, but RHS's VARREF 'pi' generates 4 bits.
+%Warning-WIDTH: /home/laforest/Octavo/Octavo/Parts/Addressing/Address_Module_PO_Memory.v:249: Operator SUB expects 12 bits on the RHS, but RHS's VARREF 'pi' generates 4 bits.
+%Warning-WIDTH: /home/laforest/Octavo/Octavo/Parts/ALU/AddSub_Ripple_Carry_NoCarry.v:54: Operator ADD expects 37 bits on the RHS, but RHS's VARREF 'A_negative' generates 1 bits.
+%Warning-WIDTH: /home/laforest/Octavo/Octavo/Parts/ALU/AddSub_Ripple_Carry_NoCarry.v:54: Operator ADD expects 37 bits on the RHS, but RHS's VARREF 'B_negative' generates 1 bits.
+%Warning-UNUSED: /home/laforest/Octavo/Octavo/Parts/Addressing/Address_Module_Mapped.v:62: Bits of signal are not used: write_data[35:17]
+%Warning-UNUSED: /home/laforest/Octavo/Octavo/Parts/Misc/Register_Array.v:27: Bits of signal are not used: j[31:8]
+%Warning-UNUSED: /home/laforest/Octavo/Octavo/Parts/IO_Predication/IO_Active.v:18: Bits of signal are not used: addr[9:2]
+%Warning-UNUSED: /home/laforest/Octavo/Octavo/Parts/Addressing/Address_Module_PO_Memory.v:30: Bits of signal are not used: raw_addr[11:2]
+%Warning-UNUSED: /home/laforest/Octavo/Octavo/Parts/Branching/Branch_Detector.v:35: Bits of signal are not used: branch_config_data[35:31]
+%Warning-UNUSED: /home/laforest/Octavo/Octavo/Parts/Multiplexers/Translated_Addressed_Mux.v:17: Bits of signal are not used: addr[9:2]
+%Warning-UNUSED: /home/laforest/Octavo/Octavo/Parts/ALU/AddSub_Ripple_Carry_2stages.v:29: Bits of signal are not used: word[35:18]
+%Warning-UNUSED: /home/laforest/Octavo/Octavo/Parts/ALU/AddSub_Ripple_Carry_2stages.v:37: Bits of signal are not used: word[17:0]
+%Warning-UNUSED: /home/laforest/Octavo/Octavo/Parts/Address_Decode/Address_Range_Translator.v:25: Signal is not used: clock
+%Warning-COMBDLY: /home/laforest/Octavo/Octavo/Parts/Multithreading/Delay_Line.v:42: Delayed assignments (<=) in non-clocked (non flop or latch) block; suggest blocking assignments (=).
+%Warning-COMBDLY: *** See the manual before disabling this,
+%Warning-COMBDLY: else you may end up with different sim results.
+%Warning-COMBDLY: /home/laforest/Octavo/Octavo/Parts/Datapath/Datapath_IO_Predication.v:67: Delayed assignments (<=) in non-clocked (non flop or latch) block; suggest blocking assignments (=).
+%Warning-COMBDLY: /home/laforest/Octavo/Octavo/Parts/Address_Decode/Address_Range_Decoder_Static.v:51: Delayed assignments (<=) in non-clocked (non flop or latch) block; suggest blocking assignments (=).
+%Warning-COMBDLY: /home/laforest/Octavo/Octavo/Parts/IO_Predication/IO_Check.v:92: Delayed assignments (<=) in non-clocked (non flop or latch) block; suggest blocking assignments (=).
+%Warning-COMBDLY: /home/laforest/Octavo/Octavo/Parts/Address_Decode/Address_Range_Translator.v:50: Delayed assignments (<=) in non-clocked (non flop or latch) block; suggest blocking assignments (=).
+%Warning-COMBDLY: /home/laforest/Octavo/Octavo/Parts/Address_Decode/Address_Range_Translator.v:86: Delayed assignments (<=) in non-clocked (non flop or latch) block; suggest blocking assignments (=).
+%Warning-COMBDLY: /home/laforest/Octavo/Octavo/Parts/Multiplexers/Addressed_Mux.v:19: Delayed assignments (<=) in non-clocked (non flop or latch) block; suggest blocking assignments (=).
+%Warning-COMBDLY: /home/laforest/Octavo/Octavo/Parts/Address_Decode/Binary_to_N_Decoder.v:31: Delayed assignments (<=) in non-clocked (non flop or latch) block; suggest blocking assignments (=).
+%Warning-COMBDLY: /home/laforest/Octavo/Octavo/Parts/Misc/Annuller.v:46: Delayed assignments (<=) in non-clocked (non flop or latch) block; suggest blocking assignments (=).
+%Warning-COMBDLY: /home/laforest/Octavo/Octavo/Parts/Addressing/Address_Module_Mapped.v:109: Delayed assignments (<=) in non-clocked (non flop or latch) block; suggest blocking assignments (=).
+%Warning-COMBDLY: /home/laforest/Octavo/Octavo/Parts/Address_Decode/Memory_Mapper.v:96: Delayed assignments (<=) in non-clocked (non flop or latch) block; suggest blocking assignments (=).
+%Warning-COMBDLY: /home/laforest/Octavo/Octavo/Parts/Addressing/Address_Module.v:206: Delayed assignments (<=) in non-clocked (non flop or latch) block; suggest blocking assignments (=).
+%Warning-COMBDLY: /home/laforest/Octavo/Octavo/Parts/Addressing/Address_Module_PO_Memory.v:184: Delayed assignments (<=) in non-clocked (non flop or latch) block; suggest blocking assignments (=).
+%Warning-COMBDLY: /home/laforest/Octavo/Octavo/Parts/Addressing/Address_Module_PO_Memory.v:254: Delayed assignments (<=) in non-clocked (non flop or latch) block; suggest blocking assignments (=).
+%Warning-COMBDLY: /home/laforest/Octavo/Octavo/Parts/Datapath/Datapath_Memory.v:195: Delayed assignments (<=) in non-clocked (non flop or latch) block; suggest blocking assignments (=).
+%Warning-COMBDLY: /home/laforest/Octavo/Octavo/Parts/Datapath/Datapath_Memory.v:196: Delayed assignments (<=) in non-clocked (non flop or latch) block; suggest blocking assignments (=).
+%Warning-COMBDLY: /home/laforest/Octavo/Octavo/Parts/Datapath/Datapath_Memory.v:197: Delayed assignments (<=) in non-clocked (non flop or latch) block; suggest blocking assignments (=).
+%Warning-COMBDLY: /home/laforest/Octavo/Octavo/Parts/Datapath/Datapath_Memory.v:198: Delayed assignments (<=) in non-clocked (non flop or latch) block; suggest blocking assignments (=).
+%Warning-COMBDLY: /home/laforest/Octavo/Octavo/Parts/Memory/Data_Memory.v:137: Delayed assignments (<=) in non-clocked (non flop or latch) block; suggest blocking assignments (=).
+%Warning-COMBDLY: /home/laforest/Octavo/Octavo/Parts/Memory/Data_Memory.v:166: Delayed assignments (<=) in non-clocked (non flop or latch) block; suggest blocking assignments (=).
+%Warning-COMBDLY: /home/laforest/Octavo/Octavo/Parts/Memory/Data_Memory.v:203: Delayed assignments (<=) in non-clocked (non flop or latch) block; suggest blocking assignments (=).
+%Warning-INITIALDLY: /home/laforest/Octavo/Octavo/Parts/Misc/Register_Array.v:24: Delayed assignments (<=) in initial or final block; suggest blocking assignments (=).
+%Warning-BLKSEQ: /home/laforest/Octavo/Octavo/Parts/Misc/Register_Array.v:31: Blocking assignments (=) in sequential (flop or latch) block; suggest delayed assignments (<=).
+%Warning-INITIALDLY: /home/laforest/Octavo/Octavo/Parts/ALU/Triadic_ALU_Forward_Path.v:83: Delayed assignments (<=) in initial or final block; suggest blocking assignments (=).
+%Warning-COMBDLY: /home/laforest/Octavo/Octavo/Parts/ALU/Triadic_ALU_Forward_Path.v:135: Delayed assignments (<=) in non-clocked (non flop or latch) block; suggest blocking assignments (=).
+%Warning-COMBDLY: /home/laforest/Octavo/Octavo/Parts/ALU/Triadic_ALU_Forward_Path.v:136: Delayed assignments (<=) in non-clocked (non flop or latch) block; suggest blocking assignments (=).
+%Warning-COMBDLY: /home/laforest/Octavo/Octavo/Parts/ALU/AddSub_Ripple_Carry_NoCarry.v:54: Delayed assignments (<=) in non-clocked (non flop or latch) block; suggest blocking assignments (=).
+%Warning-COMBDLY: /home/laforest/Octavo/Octavo/Parts/Misc/Inverter.v:19: Delayed assignments (<=) in non-clocked (non flop or latch) block; suggest blocking assignments (=).
+%Warning-COMBDLY: /home/laforest/Octavo/Octavo/Parts/ALU/Triadic_ALU_Feedback_Path.v:75: Delayed assignments (<=) in non-clocked (non flop or latch) block; suggest blocking assignments (=).
+%Warning-COMBDLY: /home/laforest/Octavo/Octavo/Parts/ALU/R_Flags.v:26: Delayed assignments (<=) in non-clocked (non flop or latch) block; suggest blocking assignments (=).
+%Warning-COMBDLY: /home/laforest/Octavo/Octavo/Parts/ALU/R_Flags.v:27: Delayed assignments (<=) in non-clocked (non flop or latch) block; suggest blocking assignments (=).
+%Warning-COMBDLY: /home/laforest/Octavo/Octavo/Parts/Controlpath/Controlpath.v:100: Delayed assignments (<=) in non-clocked (non flop or latch) block; suggest blocking assignments (=).
+%Warning-COMBDLY: /home/laforest/Octavo/Octavo/Parts/Branching/Flow_Control.v:56: Delayed assignments (<=) in non-clocked (non flop or latch) block; suggest blocking assignments (=).
+%Warning-COMBDLY: /home/laforest/Octavo/Octavo/Parts/Branching/Branch_Arbiter.v:86: Delayed assignments (<=) in non-clocked (non flop or latch) block; suggest blocking assignments (=).
+%Warning-COMBDLY: /home/laforest/Octavo/Octavo/Parts/Branching/Branch_Arbiter.v:87: Delayed assignments (<=) in non-clocked (non flop or latch) block; suggest blocking assignments (=).
+%Warning-COMBDLY: /home/laforest/Octavo/Octavo/Parts/Branching/Controller.v:166: Delayed assignments (<=) in non-clocked (non flop or latch) block; suggest blocking assignments (=).
+%Warning-COMBDLY: /home/laforest/Octavo/Octavo/Parts/Branching/Controller.v:167: Delayed assignments (<=) in non-clocked (non flop or latch) block; suggest blocking assignments (=).
+%Warning-COMBDLY: /home/laforest/Octavo/Octavo/Parts/Branching/Controller.v:180: Delayed assignments (<=) in non-clocked (non flop or latch) block; suggest blocking assignments (=).
+%Warning-COMBDLY: /home/laforest/Octavo/Octavo/Parts/Controlpath/Instruction_Fetch_Decode_Mapped.v:95: Delayed assignments (<=) in non-clocked (non flop or latch) block; suggest blocking assignments (=).
+%Warning-COMBDLY: /home/laforest/Octavo/Octavo/Parts/Memory/RAM_SDP_Multithreaded.v:87: Delayed assignments (<=) in non-clocked (non flop or latch) block; suggest blocking assignments (=).
+%Warning-COMBDLY: /home/laforest/Octavo/Octavo/Parts/Memory/RAM_SDP_Multithreaded.v:88: Delayed assignments (<=) in non-clocked (non flop or latch) block; suggest blocking assignments (=).
+%Warning-INITIALDLY: /home/laforest/Octavo/Octavo/Parts/Misc/Split_Extractor.v:24: Delayed assignments (<=) in initial or final block; suggest blocking assignments (=).
+%Warning-COMBDLY: /home/laforest/Octavo/Octavo/Parts/Misc/Split_Extractor.v:28: Delayed assignments (<=) in non-clocked (non flop or latch) block; suggest blocking assignments (=).
+%Warning-COMBDLY: /home/laforest/Octavo/Octavo/Parts/Address_Decode/Address_Splitter.v:55: Delayed assignments (<=) in non-clocked (non flop or latch) block; suggest blocking assignments (=).
+%Warning-COMBDLY: /home/laforest/Octavo/Octavo/Parts/Branching/Branch_Sentinel.v:58: Delayed assignments (<=) in non-clocked (non flop or latch) block; suggest blocking assignments (=).
+%Warning-COMBDLY: /home/laforest/Octavo/Octavo/Parts/Branching/Branch_Sentinel.v:90: Delayed assignments (<=) in non-clocked (non flop or latch) block; suggest blocking assignments (=).
+%Warning-COMBDLY: /home/laforest/Octavo/Octavo/Parts/Branching/Branch_Sentinel.v:124: Delayed assignments (<=) in non-clocked (non flop or latch) block; suggest blocking assignments (=).
+%Warning-COMBDLY: /home/laforest/Octavo/Octavo/Parts/Branching/Branch_Detector.v:123: Delayed assignments (<=) in non-clocked (non flop or latch) block; suggest blocking assignments (=).
+%Warning-COMBDLY: /home/laforest/Octavo/Octavo/Parts/Branching/Branch_Detector.v:133: Delayed assignments (<=) in non-clocked (non flop or latch) block; suggest blocking assignments (=).
+%Warning-COMBDLY: /home/laforest/Octavo/Octavo/Parts/Branching/Branch_Detector.v:155: Delayed assignments (<=) in non-clocked (non flop or latch) block; suggest blocking assignments (=).
+%Warning-BLKSEQ: /home/laforest/Octavo/Octavo/Parts/Branching/Branch_Detector.v:200: Blocking assignments (=) in sequential (flop or latch) block; suggest delayed assignments (<=).
+%Warning-COMBDLY: /home/laforest/Octavo/Octavo/Parts/Branching/Branch_Counter.v:125: Delayed assignments (<=) in non-clocked (non flop or latch) block; suggest blocking assignments (=).
+%Warning-COMBDLY: /home/laforest/Octavo/Octavo/Parts/Branching/Branch_Counter.v:214: Delayed assignments (<=) in non-clocked (non flop or latch) block; suggest blocking assignments (=).
+%Warning-COMBDLY: /home/laforest/Octavo/Octavo/Parts/ALU/AddSub_Ripple_Carry_2stages.v:122: Delayed assignments (<=) in non-clocked (non flop or latch) block; suggest blocking assignments (=).
+%Warning-COMBDLY: /home/laforest/Octavo/Octavo/Parts/ALU/AddSub_Ripple_Carry_2stages.v:123: Delayed assignments (<=) in non-clocked (non flop or latch) block; suggest blocking assignments (=).
+%Warning-COMBDLY: /home/laforest/Octavo/Octavo/Parts/ALU/AddSub_Ripple_Carry.v:21: Delayed assignments (<=) in non-clocked (non flop or latch) block; suggest blocking assignments (=).
+%Error: Exiting due to 92 warning(s)
+%Error: Command Failed /usr/local/bin/verilator_bin -F verilator_parameters --lint-only -cc DUT.v
