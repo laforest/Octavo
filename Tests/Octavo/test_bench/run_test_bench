@@ -31,7 +31,7 @@ cp ${MEMS}/* ${RUNS}/
 cp obj_dir/${EXEC} ${RUNS}/
 
 pushd ${RUNS}
-    time ./${EXEC} 
+    time ./${EXEC} 2>&1 | tee ${LOGS}/LOG.output
 popd
 
 

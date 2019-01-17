@@ -67,7 +67,15 @@ main
 //        {
 //            DUT->io_write_EF_A = 0;
 //        }
-        
+
+        // When writing to port A, print the least-significant word (cut to 32 bits).
+        // For the hailstone test, this record allows to check that a different binary
+        // either creates the exact same output, or at least the same output at different
+        // clock cycles.
+ 
+        if (DUT->io_wren_A != 0) {
+            printf("%u: %u\n", cycles_executed, DUT->io_write_data_A[0]);
+        }
 
 	    if ( (cycles_executed == cycles_to_run) || (Verilated::gotFinish() == true) )
         {
