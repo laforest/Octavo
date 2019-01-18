@@ -94,14 +94,12 @@ class Private_Variable (Variable):
 class Pointer_Variable (Variable):
     """Describes pointer initialization data, which indirect memory slot it refers to, and in which threads is it used. Has no value."""
 
-    def __init__ (self, label = None, address = None, memory = None, read_base = None, read_incr = None, write_base = None, write_incr = None, slot = None, threads = None):
+    def __init__ (self, label = None, address = None, memory = None, base = None, incr = None, slot = None, threads = None):
         Variable.__init__(self, label = label, address = address, memory = memory)
-        self.read_base  = read_base
-        self.read_incr  = read_incr
-        self.write_base = write_base
-        self.write_incr = write_incr
+        self.base  = base
+        self.incr  = incr
         # The slot indexes into the access address list and the configuration address list
-        self.slot       = slot
+        self.slot  = slot
         # Set at Resolution, as the code and data haven't been generated yet!
         self.init_load  = None
         self.threads    = threads
@@ -248,28 +246,27 @@ class Data (Utility, Debug):
             max_slot = max(slot, max_slot)
         return max_slot + 1
 
-    def allocate_pointer (self, label, read_base = None, read_incr = None, write_base = None, write_incr = None):
+    def allocate_pointer (self, label, base = None, incr = None):
         """Allocate a pointer. If it already exists, and the type and initial parameters matches, only add the threads."""
         # We can't determine the init data value until we know which Data Memory it's read from.
         # This also affects the placement of the referred-to pointer/array.
         # The bases are labels until resolved to addresses
         if label is None:
-            print("Pointer cannot have a None name! Read/Write bases: {0}, {1}".format(read_base, write_base))
+            print("Pointer cannot have a None name! Base address: {0}".format(base))
             self.ask_for_debugger()
-        read_incr   = self.try_int(read_incr)
-        write_incr  = self.try_int(write_incr)
+        incr    = self.try_int(incr)
         pointer = self.lookup_variable_name(label)
         if pointer is not None:
             if type(pointer) is not Pointer_Variable:
                 print("A non-pointer variable named {0} of type {1} already exists!".format(label, type(pointer)))
                 self.ask_for_debugger()
-            if pointer.read_incr != read_incr or pointer.write_incr != write_incr or pointer.read_base != read_base or pointer.write_base != write_base:
+            if pointer.incr != incr or pointer.base != base:
                 print("A pointer named {0} already exists, but with a different configuration. This is not allowed.".format(label))
                 self.ask_for_debugger()
             pointer.add_threads(self.current_threads)
         else:
             # Can't set slot here, as we don't know which Data Memory we will end up in. This is done at Resolution.
-            pointer = Pointer_Variable(label = label, read_base = read_base, read_incr = read_incr, write_base = write_base, write_incr = write_incr, threads = self.current_threads)
+            pointer = Pointer_Variable(label = label, base = base, incr = incr, threads = self.current_threads)
             self.pointers.append(pointer)
         return pointer
 
