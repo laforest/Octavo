@@ -60,7 +60,6 @@ Names and other references go through the follwing sequence of value types as th
 
 TODO
 
-Split pointers into read and write cases, which will fit better with resolving read and write operands and avoid the "Write before read" problem.
 Need code and data de-allocation words to allow loading code/data at runtime.
 Pointers must be manually unloaded to free an indirect memory location.
 There needs also drop_branch and drop_pointers to free up the used branch detector and indirect memory entries.
