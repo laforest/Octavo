@@ -1,5 +1,6 @@
 
 # Assembly code for Hailstone benchmark and initial test
+# If x is odd, x = (3x+1)/2, else x = x / 2
 
 # Rough syntax: if the first word is not a recognized command, it's a label for
 # the next word, which is a command, followed by its arguments.
@@ -19,8 +20,9 @@ seed_out    port        A 0
 threads 0 1 2 3 4 5 6 7
 seed        private     0
 newseed     private     0
-#                       base_addr   read_increment  base_addr   write_increment
-seeds_ptr   pointer     seeds       1               seeds       1
+#                       base_addr   increment
+seeds_rd    pointer     seeds       1
+seeds_wr    pointer     seeds       1
 
 # Private to each thread as separate data memory copies
 
@@ -67,9 +69,10 @@ start       load sub
             init    even                                # Init branch
             init    output                              # Init branch
             init    next_seed                           # Init branch
-hailstone   init    seeds_ptr                           # Init pointer to start of array
+hailstone   init    seeds_rd                            # Init read pointer to start of array
+            init    seeds_wr                            # Init write pointer to start of array
             init    hailstone                           # Init loop counter branch to length of array
-next_seed   add     seed        seeds_ptr   0           # Load x
+next_seed   add     seed        seeds_rd    0           # Load x
                                                         # Odd case: y = (3x+1)/2
             add*2   newseed     seed        0           # y = (x+0)*2 (2x)
             bsa not_taken 0 lsb_mask even               # Branch and cancel add*2 if loaded x (seed) was an even number (LSB == 0)
@@ -79,7 +82,7 @@ next_seed   add     seed        seeds_ptr   0           # Load x
                                                         # Even case: y = x/2
 even        add/2u  newseed     seed        0           # y = (x+0)/2 (x/2)
             nop     0           0           0           # even out cycle count of even/odd cases (to keep thread output in order)
-output      add     seeds_ptr   0           newseed     # x = 0+y
+output      add     seeds_wr    0           newseed     # x = 0+y
             add     seed_out    0           newseed     # output port = 0+x
             ctz unpredicted seeds_len hailstone         # Start over if we've processed whole array
             jmp unpredicted next_seed                   # else, process the next array element
