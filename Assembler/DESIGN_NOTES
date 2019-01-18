@@ -26,7 +26,6 @@ If a variable is only written to, then the memory bank inference is arbitrary (u
 Pointers are like shared variables but multi-threaded values (unique to each thread, but at same address), always named, and also referred by name only.
 Pointers point to a named variable.
 The memory bank of a pointer is inferred to be the same as that of the pointed-to variable.
-Pointers are dual, with both read and write entries.
 
 Ports are like pointers, with the memory bank pre-specified instead of inferred (since anything wired to it pre-exists any instruction).
 
@@ -60,7 +59,6 @@ Names and other references go through the follwing sequence of value types as th
 
 TODO
 
-Split pointers into read and write cases, which will fit better with resolving read and write operands and avoid the "Write before read" problem.
 Need code and data de-allocation words to allow loading code/data at runtime.
 Pointers must be manually unloaded to free an indirect memory location.
 There needs also drop_branch and drop_pointers to free up the used branch detector and indirect memory entries.
