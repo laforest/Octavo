@@ -6,6 +6,7 @@
 from bitstring      import pack, BitArray
 from sys            import exit
 from Debug          import Debug
+from Data           import Private_Variable
 
 # ---------------------------------------------------------------------------
 
@@ -295,8 +296,7 @@ class Programmed_Offset (Base_Memory):
             return 1
 
     def pointer_to_binary (self, pointer, configuration, thread = None):
-        """Convert a Pointer object to the binary init load values 
-           for a read/write pair of Programmed Offset entries."""
+        """Convert a Pointer object to the binary init load value for a Programmed Offset entry."""
         # Add the Default Offset for each thread, so we point to the correct per-thread instance of the pointed-to variable
         # None thread means a shared variable holds the init data, or other unique location identical to all threads.
         if thread is not None:
@@ -305,43 +305,39 @@ class Programmed_Offset (Base_Memory):
             default_offset = 0
         # Addresses wrap around when the offset is added, 
         # so express negative values as the modular sum value
-        read_offset  = (pointer.read_base  - pointer.address + default_offset) % configuration.memory_depth_words
-        write_offset = (pointer.write_base - pointer.address + default_offset) % configuration.memory_depth_words_write
-        read_offset  = BitArray(uint=read_offset,  length=configuration.po_read_offset_bit_width) 
-        write_offset = BitArray(uint=write_offset, length=configuration.po_write_offset_bit_width) 
-        # The increments are signed magnitude numbers
-        read_increment  = BitArray(uint=pointer.read_incr,  length=configuration.po_increment_bits)
-        write_increment = BitArray(uint=pointer.write_incr, length=configuration.po_increment_bits)
-        # And the sign bit...
-        read_increment_sign  = self.to_sign_bit(pointer.read_incr)
-        write_increment_sign = self.to_sign_bit(pointer.write_incr)
-        read_increment_sign  = BitArray(uint=read_increment_sign,  length=configuration.po_increment_sign_bits)
-        write_increment_sign = BitArray(uint=write_increment_sign, length=configuration.po_increment_sign_bits)
+        # Read and write pointers have different address ranges and offset bit widths
+        if "D" in pointer.memory:
+            # write pointer
+            offset = (pointer.base - pointer.address + default_offset) % configuration.memory_depth_words_write
+            offset = BitArray(uint=offset, length=configuration.po_write_offset_bit_width) 
+        else:
+            # read pointer
+            offset = (pointer.base - pointer.address + default_offset) % configuration.memory_depth_words
+            offset = BitArray(uint=offset,  length=configuration.po_read_offset_bit_width) 
+        # The increment is a signed magnitude number (absolute value and sign bit)
+        increment      = BitArray(uint=pointer.incr, length=configuration.po_increment_bits)
+        increment_sign = self.to_sign_bit(pointer.incr)
+        increment_sign = BitArray(uint=increment_sign, length=configuration.po_increment_sign_bits)
         # Now pack them into the Programmed Offset entry binary configurations
-        read_pointer_bits = BitArray()
-        for entry in [read_increment_sign, read_increment, read_offset]:
-            read_pointer_bits.append(entry)
-        write_pointer_bits = BitArray()
-        for entry in [write_increment_sign, write_increment, write_offset]:
-            write_pointer_bits.append(entry)
-        return (read_pointer_bits, write_pointer_bits)
+        pointer_bits = BitArray()
+        for entry in [increment_sign, increment, offset]:
+            pointer_bits.append(entry)
+        return pointer_bits
 
     def load_init_data (self, pointer, configuration):
-        # Assumes creation order for init data: read, then write. FIXME need a better way.
-        read_init_data_variable  = pointer.init_load.init_data[0]
-        write_init_data_variable = pointer.init_load.init_data[1]
-        if type(read_init_data_variable) != type(write_init_data_variable):
-            print("Mismatched pointer init data variable types. Read: {0}, Write: {1}".format(read_init_data_variable, write_init_data_variable))
-            self.ask_for_debugger()
+        # Only one data item to init a pointer
+        init_data_variable  = pointer.init_load.init_data[0]
         # ECL FIXME we assume a Private Variable type holding init data per thread.
         # Not sure what holding init data in a shared variable means yet.
-        if pointer.threads != read_init_data_variable.threads() or pointer.threads != write_init_data_variable.threads():
-            print("Pointer {0} and its init data variables don't all exist in the same threads".format(pointer.label))
+        if type(init_data_variable) is not Private_Variable:
+            print("init data variable for pointer {0} is not Private: {1}. This is not yet supported.".format(pointer.label, init_data_variable))
+            self.ask_for_debugger()
+        if pointer.threads != init_data_variable.threads():
+            print("Pointer {0} and its init data variable {0} don't exist in all the same threads".format(pointer.label, init_data_variable))
             self.ask_for_debugger()
         for thread in pointer.threads:
-            read_pointer_bits, write_pointer_bits  = self.pointer_to_binary(pointer, configuration, thread)
-            read_init_data_variable.value[thread]  = read_pointer_bits
-            write_init_data_variable.value[thread] = write_pointer_bits
+            pointer_bits = self.pointer_to_binary(pointer, configuration, thread)
+            init_data_variable.value[thread] = pointer_bits
 
     def __init__(self, data, configuration):
         for pointer in data.pointers:
