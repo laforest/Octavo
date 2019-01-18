@@ -62,6 +62,11 @@ class MemoryMap (Debug):
         self.od             = [3200,3201,3202,3203,3204,3205,3206,3207,3208,3209,3210,3211,3212,3213,3214,3215]
 
     def read_to_write_address (self, read_address, memory):
+        # Special case, for write pointers: convert back to pointed-to variable memory name
+        if memory == "DA":
+            memory = "A"
+        if memory == "DB":
+            memory = "B"
         if memory == "A" or memory == "B":
             return read_address + self.write_bases[memory]
         print("Memory range {0} is not not readable, so no read address conversion is possible (absolute write address)".format(memory))
