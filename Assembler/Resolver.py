@@ -3,6 +3,7 @@
 from sys import exit
 from Utility import Utility
 from Debug import Debug
+from Data import Pointer_Variable
 
 class Resolver (Utility, Debug):
     """Takes the allocated intermediate structures and resolves names, addresses, and code. The final result gets used for binary image generation."""
@@ -79,6 +80,22 @@ class Resolver (Utility, Debug):
                 print("Unknown variable {0} used as write operand.".format(converted_value))
                 print(instruction)
                 self.ask_for_debugger()
+            # But if it's a pointer, instead find another resolved pointer which points to the
+            # same variable and use that memory name, converted to its equivalent write name.
+            # At a minimum, this will be a previously resolved read pointer.
+            if type(variable) is Pointer_Variable:
+                for pointer in self.data.pointers:
+                    if pointer.address is None:
+                        continue
+                    if variable == pointer:
+                        continue
+                    if variable.base == pointer.base:
+                        if "D" not in pointer.memory:
+                            variable.memory = "D" + pointer.memory
+                        break
+                if variable.memory is None:
+                    print("Could not find a corresponding pointer for write pointer {0}".format(variable.label))
+                    self.ask_for_debugger()
             variable      = self.data.resolve_named(converted_value, variable.memory)
             write_address = self.configuration.memory_map.read_to_write_address(variable.address, variable.memory)
             setattr(instruction, operand, write_address)
@@ -93,45 +110,35 @@ class Resolver (Utility, Debug):
             self.resolve_pointer(pointer)
 
     def resolve_pointer (self, pointer):
-        # Lookup pointed-to variables
-        read_variable  = self.data.lookup_variable_name(pointer.read_base)
-        write_variable = self.data.lookup_variable_name(pointer.write_base)
-        # A pointer only refers to locations in the same memory as it.
-        # The pointer memory should have already been set by resolving an
-        # instruction which reads it.
-        if read_variable.memory is not None and read_variable.memory != pointer.memory:
-            print("Variable {0} already assigned to memory {1} but read pointer {2} is in memory {3}".format(read_variable.label, read_variable.memory, pointer.label, pointer.memory))
-            self.ask_for_debugger()
-        if write_variable.memory is not None and write_variable.memory != pointer.memory:
-            print("Variable {0} already assigned to memory {1} but write pointer {2} is in memory {3}".format(write_variable.label, write_variable.memory, pointer.label, pointer.memory))
-            self.ask_for_debugger()
-        # Now resolve the pointed-to variable
-        read_variable.memory    = pointer.memory
-        write_variable.memory   = pointer.memory
-        read_variable.address   = self.data.next_variable_address(read_variable,  read_variable.memory)
-        # Don't allocate twice if read/write are the same variable
-        if write_variable != read_variable:
-            write_variable.address  = self.data.next_variable_address(write_variable, write_variable.memory)
-        # Resolve the pointer addresses
-        pointer.read_base       = read_variable.address
-        pointer.write_base      = write_variable.address
+        # Lookup pointed-to variable
+        variable = self.data.lookup_variable_name(pointer.base)
+        # Now resolve the pointed-to variable, if necessary
+        if variable.memory is not None:
+            # Special case: variables are in memory A or B, pointers in A, B, DA, DB so a substring search suffices.
+            if variable.memory not in pointer.memory:
+                print("Variable {0} already assigned to memory {1} but pointer {2} is in memory {3}".format(variable.label, variable.memory, pointer.label, pointer.memory))
+                self.ask_for_debugger()
+        else:
+            variable.memory = pointer.memory
+            # But use the read name of the memory for the variable
+            if variable.memory == "DA":
+                variable.memory == "A"
+            if variable.memory == "DB":
+                variable.memory == "B"
+        if variable.address is None:
+            variable.address  = self.data.next_variable_address(variable, variable.memory)
+        # Resolve the pointer base address
+        pointer.base = variable.address
         # Now construct the init load for this pointer
         init_load = self.code.lookup_init_load(pointer.label)
         # Used later to resolve the init load data for this pointer
         pointer.init_load = init_load
-        init_label_read  = pointer.label + "_read_init"
-        init_label_write = pointer.label + "_write_init"
-        init_load.add_private(init_label_read,  pointer.threads)
-        init_load.add_private(init_label_write, pointer.threads)
-        init_address_read  = self.configuration.memory_map.po[pointer.memory][pointer.slot]
-        init_address_write = self.configuration.memory_map.po["D" + pointer.memory][pointer.slot]
+        init_label = pointer.label + "_init"
+        init_load.add_private(init_label, pointer.threads)
+        init_address = self.configuration.memory_map.po[pointer.memory][pointer.slot]
         self.code.usage.allocate_po(pointer.label, pointer.memory)
-        self.code.usage.allocate_po(pointer.label, "D" + pointer.memory)
-        # Only apply label to first init load instruction
-        read_instr  = init_load.add_instruction(init_load.label, init_address_read, init_label_read)
-        write_instr = init_load.add_instruction(None, init_address_write, init_label_write)
-        self.resolve_read_operands([read_instr])
-        self.resolve_read_operands([write_instr])
+        instr  = init_load.add_instruction(init_load.label, init_address, init_label)
+        self.resolve_read_operands([instr])
         # Put the next pointer init data in the other memory (evens out storage)
         init_load.toggle_memory()
 
