@@ -6,8 +6,8 @@
 # the next word, which is a command, followed by its arguments.
 
 # Common library of definitions
-include opcodes.asm
-include conditions.asm
+include ../common/opcodes.asm
+include ../common/conditions.asm
 
 # Shared variables across all threads
 lsb_mask    shared      0xFFFFFFFFE
