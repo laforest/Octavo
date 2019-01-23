@@ -1,0 +1,32 @@
+#! /bin/bash
+
+set -x
+
+TOP=DUT
+EXEC=V${TOP}
+LOGS=${PWD}/LOG
+RUNS=RUN
+
+# Clean up
+rm -rf obj_dir
+rm ${LOGS}/*
+
+# Check the code. A different number of warnings is a flag to check things.
+verilator -F verilator_parameters --lint-only -cc ${TOP}.v &> ${LOGS}/LOG.lint
+
+# Verilate the design and compile design library. Logfile should be empty!
+verilator -F verilator_parameters -F suppressed_warnings -cc ${TOP}.v --exe test_bench.cpp 2>&1 | tee ${LOGS}/LOG.verilate
+
+# Compile into a test bench executable
+pushd obj_dir
+    make -j 4 -f ${EXEC}.mk 2>&1 | tee ${LOGS}/LOG.compile
+popd
+
+# Copy executable over, and run it
+cp obj_dir/${EXEC} ${RUNS}/
+
+pushd ${RUNS}
+    time ./${EXEC} 2>&1 | tee ${LOGS}/LOG.output
+popd
+
+

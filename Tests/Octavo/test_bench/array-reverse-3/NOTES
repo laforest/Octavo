@@ -1,0 +1,6 @@
+Simulation cycles from gtkwave, from first write to output to the next: 1246 / 8 = 155.75
+Cycles, as output by test bench: 1280 - 24 = 1256 / 8 = 157
+Cycles, calculated (3 per swap, times 49 swaps, plus 6 init = 153
+
+Divided by 100 array items: 1.56, 1.56, and 1.53 cycles/item
+
