@@ -94,10 +94,12 @@ class Private_Variable (Variable):
 class Pointer_Variable (Variable):
     """Describes pointer initialization data, which indirect memory slot it refers to, and in which threads is it used. Has no value."""
 
-    def __init__ (self, label = None, address = None, memory = None, base = None, incr = None, slot = None, threads = None):
+    def __init__ (self, label = None, address = None, memory = None, base = None, incr = None, offset = None, slot = None, threads = None):
         Variable.__init__(self, label = label, address = address, memory = memory)
         self.base  = base
         self.incr  = incr
+        # initial offset from location of pointed-to variable
+        self.offset = offset
         # The slot indexes into the access address list and the configuration address list
         self.slot  = slot
         # Set at Resolution, as the code and data haven't been generated yet!
@@ -246,7 +248,7 @@ class Data (Utility, Debug):
             max_slot = max(slot, max_slot)
         return max_slot + 1
 
-    def allocate_pointer (self, label, base = None, incr = None):
+    def allocate_pointer (self, label, base = None, incr = None, offset = None):
         """Allocate a pointer. If it already exists, and the type and initial parameters matches, only add the threads."""
         # We can't determine the init data value until we know which Data Memory it's read from.
         # This also affects the placement of the referred-to pointer/array.
@@ -266,7 +268,7 @@ class Data (Utility, Debug):
             pointer.add_threads(self.current_threads)
         else:
             # Can't set slot here, as we don't know which Data Memory we will end up in. This is done at Resolution.
-            pointer = Pointer_Variable(label = label, base = base, incr = incr, threads = self.current_threads)
+            pointer = Pointer_Variable(label = label, base = base, incr = incr, offset = offset, threads = self.current_threads)
             self.pointers.append(pointer)
         return pointer
 

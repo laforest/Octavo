@@ -127,8 +127,9 @@ class Resolver (Utility, Debug):
                 variable.memory == "B"
         if variable.address is None:
             variable.address  = self.data.next_variable_address(variable, variable.memory)
-        # Resolve the pointer base address
+        # Resolve the pointer base address and initial offset
         pointer.base = variable.address
+        pointer.offset = self.try_int(pointer.offset)
         # Now construct the init load for this pointer
         init_load = self.code.lookup_init_load(pointer.label)
         # Used later to resolve the init load data for this pointer

@@ -76,7 +76,7 @@ class Data_Memory (Base_Memory):
                 if value is None:
                     value = 0xDEADBEEF
                 if type(value) != type(BitArray()):
-                    value  = BitArray(uint=value, length=self.width)
+                    value  = BitArray(int=value, length=self.width)
                 self.write_bits(address, value)
 
     def __init__(self, filename, memory, data, code, configuration):
@@ -174,6 +174,9 @@ class Program_Counter (Base_Memory):
         width           = configuration.pc_width
         Base_Memory.__init__(self, depth, width, filename)
         pc_format = "uint:{0}".format(configuration.pc_width)
+        if len(code.initial_pc) != depth:
+            print("The number of given Program Counter values ({0}) does not match the number of threads ({1}).".format(len(code.initial_pc), depth))
+            self.ask_for_debugger()
         for thread_number in range(depth):
             pc = code.initial_pc[thread_number]
             pc = pack(pc_format, pc)
@@ -308,14 +311,14 @@ class Programmed_Offset (Base_Memory):
         # Read and write pointers have different address ranges and offset bit widths
         if "D" in pointer.memory:
             # write pointer
-            offset = (pointer.base - pointer.address + default_offset) % configuration.memory_depth_words_write
+            offset = (pointer.base + pointer.offset - pointer.address + default_offset) % configuration.memory_depth_words_write
             offset = BitArray(uint=offset, length=configuration.po_write_offset_bit_width) 
         else:
             # read pointer
-            offset = (pointer.base - pointer.address + default_offset) % configuration.memory_depth_words
+            offset = (pointer.base + pointer.offset - pointer.address + default_offset) % configuration.memory_depth_words
             offset = BitArray(uint=offset,  length=configuration.po_read_offset_bit_width) 
         # The increment is a signed magnitude number (absolute value and sign bit)
-        increment      = BitArray(uint=pointer.incr, length=configuration.po_increment_bits)
+        increment      = BitArray(uint=abs(pointer.incr), length=configuration.po_increment_bits)
         increment_sign = self.to_sign_bit(pointer.incr)
         increment_sign = BitArray(uint=increment_sign, length=configuration.po_increment_sign_bits)
         # Now pack them into the Programmed Offset entry binary configurations
