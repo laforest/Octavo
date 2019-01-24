@@ -76,7 +76,12 @@ class Data_Memory (Base_Memory):
                 if value is None:
                     value = 0xDEADBEEF
                 if type(value) != type(BitArray()):
-                    value  = BitArray(int=value, length=self.width)
+                    # The try_int() function in Utility considers numbers unsigned unless
+                    # specified explicitly as negative numbers. So convert to BitArray as needed.
+                    if value < 0:
+                        value  = BitArray(int=value, length=self.width)
+                    else:
+                        value  = BitArray(uint=value, length=self.width)
                 self.write_bits(address, value)
 
     def __init__(self, filename, memory, data, code, configuration):
