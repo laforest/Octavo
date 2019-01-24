@@ -20,9 +20,9 @@ seed_out    port        A 0
 threads 0 1 2 3 4 5 6 7
 seed        private     0
 newseed     private     0
-#                       base_addr   increment
-seeds_rd    pointer     seeds       1
-seeds_wr    pointer     seeds       1
+#                       base_addr   increment   offset
+seeds_rd    pointer     seeds       1           0
+seeds_wr    pointer     seeds       1           0
 
 # Private to each thread as separate data memory copies
 
