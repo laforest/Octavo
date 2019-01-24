@@ -110,7 +110,7 @@ class Commands (Debug):
         if label is None:
             print("No label found. Pointer variables MUST be named. Variable value(s) in declaration: {0}".format(values))
             self.ask_for_debugger()
-        self.data.allocate_pointer(*arguments)
+        self.data.allocate_pointer(label, *values)
 
     def port (self, arguments):
         """Declare an I/O port. Must be named."""

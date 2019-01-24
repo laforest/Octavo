@@ -256,6 +256,15 @@ class Data (Utility, Debug):
         if label is None:
             print("Pointer cannot have a None name! Base address: {0}".format(base))
             self.ask_for_debugger()
+        if base is None:
+            print("Pointer {0} cannot have a None base address!".format(label))
+            self.ask_for_debugger()
+        if incr is None:
+            print("Pointer {0} cannot have a None increment! Base address: {1}".format(label, base))
+            self.ask_for_debugger()
+        if offset is None:
+            print("Pointer {0} cannot have a None offset! Base address: {1}".format(label, base))
+            self.ask_for_debugger()
         incr    = self.try_int(incr)
         pointer = self.lookup_variable_name(label)
         if pointer is not None:
