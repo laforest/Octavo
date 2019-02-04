@@ -32,6 +32,9 @@ module Master_AXI_Transactor
     input   wire                        ar_system_count_wren,
     input   wire    [AXBURST_WIDTH-1:0] ar_system_type,
     input   wire                        ar_system_type_wren,
+    input   wire                        ar_system_start,
+    output  reg                         ar_system_ready,
+
 
     // AXI interface
     output  wire    [ADDR_WIDTH-1:0]    araddr,
@@ -51,6 +54,8 @@ module Master_AXI_Transactor
     input   wire                        aw_system_count_wren,
     input   wire    [AXBURST_WIDTH-1:0] aw_system_type,
     input   wire                        aw_system_type_wren,
+    input   wire                        aw_system_start,
+    output  reg                         aw_system_ready,
 
     // AXI interface
     output  wire    [ADDR_WIDTH-1:0]    awaddr,
@@ -64,10 +69,10 @@ module Master_AXI_Transactor
 
     // Read Data Channel
     // System interface
-    input   wire                        r_system_ready,
     output  wire    [WORD_WIDTH-1:0]    r_system_data,
-    output  wire                        r_system_valid,
     output  wire                        r_system_error,
+    output  wire                        r_system_valid,
+    input   wire                        r_system_ready,
 
     // AXI interface
     input   wire    [WORD_WIDTH-1:0]    rdata,
@@ -80,9 +85,9 @@ module Master_AXI_Transactor
 
     // Write Data Channel
     // System interface
-    output  wire                        w_system_ready,
     input   wire    [WORD_WIDTH-1:0]    w_system_data,
     input   wire                        w_system_valid,
+    output  wire                        w_system_ready,
 
     // AXI interface
     output  wire    [WORD_WIDTH-1:0]    wdata,
@@ -95,8 +100,8 @@ module Master_AXI_Transactor
 
     // Write Response Channel
     // System interface
-    input   wire                        b_system_ready,
     output  wire    [BRESP_WIDTH-1:0]   b_system_response,
+    input   wire                        b_system_ready,
     output  wire                        b_system_valid,
 
     // AXI interface
@@ -127,10 +132,12 @@ module Master_AXI_Transactor
         .system_count_wren      (ar_system_count_wren),
         .system_type            (ar_system_type),
         .system_type_wren       (ar_system_type_wren),
+        .system_start           (ar_system_start),
+        .system_ready           (ar_system_ready),
 
         // Control interface
-        .control_start          (ar_control_start),
-        .control_busy           (ar_control_busy),
+        .control_enable         (ar_control_enable),
+        .control_done           (ar_control_done),
 
         // AXI interface        
         .axaddr                 (araddr),
@@ -162,10 +169,12 @@ module Master_AXI_Transactor
         .system_count_wren      (aw_system_count_wren),
         .system_type            (aw_system_type),
         .system_type_wren       (aw_system_type_wren),
+        .system_start           (aw_system_start),
+        .system_ready           (aw_system_ready),
 
         // Control interface
-        .control_start          (aw_control_start),
-        .control_busy           (aw_control_busy),
+        .control_enable         (aw_control_enable),
+        .control_done           (aw_control_done),
 
         // AXI interface        
         .axaddr                 (awaddr),
@@ -190,14 +199,14 @@ module Master_AXI_Transactor
         .clock          (clock),
 
         // System interface
-        .system_ready   (r_system_ready),
         .system_data    (r_system_data),
-        .system_valid   (r_system_valid),
         .system_error   (r_system_error),
+        .system_valid   (r_system_valid),
+        .system_ready   (r_system_ready),
 
         // Control interface
-        .control_start  (r_control_start),
-        .control_busy   (r_control_busy),
+        .control_enable (r_control_enable),
+        .control_done   (r_control_done),
 
         // AXI interface
         .rdata          (rdata),
@@ -222,13 +231,13 @@ module Master_AXI_Transactor
         .clock          (clock),
 
         // System interface
-        .system_ready   (w_system_ready),
         .system_data    (w_system_data),
         .system_valid   (w_system_valid),
+        .system_ready   (w_system_ready),
 
         // Control interface
-        .control_start  (w_control_start),
-        .control_busy   (w_control_busy),
+        .control_enable (w_control_start),
+        .control_done   (w_control_done),
 
         // Internal
         .axlen          (arlen),
@@ -253,13 +262,13 @@ module Master_AXI_Transactor
         .clock              (clock),
 
         // System interface
-        .system_ready       (b_system_ready),
         .system_response    (b_system_response),
+        .system_ready       (b_system_ready),
         .system_valid       (b_system_valid),
 
         // Control interface
-        .control_start      (b_control_start),
-        .control_busy       (b_control_busy),
+        .control_enable     (b_control_enable),
+        .control_done       (b_control_done),
 
         // AXI interface
         .bresp              (bresp),
@@ -275,11 +284,11 @@ module Master_AXI_Transactor
     (
         .clock              (clock),
 
-        .ar_control_start   (ar_control_start),
-        .ar_control_busy    (ar_control_busy),
+        .ar_control_enable  (ar_control_start),
+        .ar_control_done    (ar_control_busy),
 
-        .r_control_start    (r_control_start),
-        .r_control_busy     (r_control_busy)
+        .r_control_enable   (r_control_start),
+        .r_control_done     (r_control_busy)
     );
 
 // --------------------------------------------------------------------------
@@ -290,14 +299,14 @@ module Master_AXI_Transactor
     (
         .clock              (clock),
 
-        .aw_control_start   (aw_control_start),
-        .aw_control_busy    (aw_control_busy),
+        .aw_control_enable  (aw_control_enable),
+        .aw_control_done    (aw_control_done),
 
-        .w_control_start    (w_control_start),
-        .w_control_busy     (w_control_busy),
+        .w_control_enable   (w_control_enable),
+        .w_control_done     (w_control_done),
 
-        .b_control_start    (b_control_start),
-        .b_control_busy     (b_control_busy)
+        .b_control_enable   (b_control_enable),
+        .b_control_done     (b_control_done)
     );
 
 endmodule

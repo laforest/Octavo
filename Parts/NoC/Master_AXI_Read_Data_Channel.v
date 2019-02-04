@@ -4,11 +4,10 @@
 // A read channel which connects an AXI data read to a system register read.
 
 // The control interface enables the start of a read data transaction by
-// pulsing control_start for one cycle, else there is a chance that a second
-// transaction will be started if the current transaction finishes before the
-// control_start is released. The control_busy signal then stays high until
-// all AXI data has been received and read out (or dumped). The control
-// interface will not respond to control_start until control_busy goes low.
+// raising and holding control_enable until control_done also goes high (the
+// usual ready/valid handshake) when all AXI data has been received and read
+// either read out through the system interface or dumped in the case of an
+// error. It is an error to drop control_enable before control_done goes high.
 
 // Once started, the read channel accepts one AXI data word (and possibly
 // a second internally in the skid buffer), and raises system_valid.  Once
@@ -47,14 +46,14 @@ module Master_AXI_Read_Data_Channel
     input   wire                        clock,
 
     // System interface
-    input   wire                        system_ready,
     output  wire    [WORD_WIDTH-1:0]    system_data,
-    output  wire                        system_valid,
     output  wire                        system_error,
+    output  wire                        system_valid,
+    input   wire                        system_ready,
 
     // Control interface
-    input   wire                        control_start,
-    output  wire                        control_busy,
+    input   wire                        control_enable,
+    output  wire                        control_done,
 
     // AXI interface
     input   wire    [WORD_WIDTH-1:0]    rdata,
@@ -164,26 +163,39 @@ module Master_AXI_Read_Data_Channel
 
 
 // --------------------------------------------------------------------------
-// Latch the start of the transaction until all data received.
+// When the system (or the short-circuited dump, if error) reads the last data
+// word from the skid buffer, signal the transaction done.
 
-    reg transaction_start = 1'b0;
+// There a subtlety here: we depend on the skid buffer dropping valid after
+// the last read which empties it out, even though the output remains the
+// same. Thus, m_rlast will stay high until the first data item is buffered in
+// the next transaction.
+
+    reg system_read     = 1'b0;
 
     always @(*) begin
-        transaction_start <= (control_start == 1'b1) && (control_busy == 1'b0);
+        system_read  = (m_valid == 1'b1) && (m_ready_gated == 1'b1);
+        control_done = (m_rlast == 1'b1) && (system_read == 1'b1);
     end
-
-    pulse_to_level
-    transaction_busy
-    (
-        .clock      (clock),
-        .clear      (m_rlast),
-        .pulse_in   (transaction_start),
-        .level_out  (control_busy)
-    );
 
 // --------------------------------------------------------------------------
 // Latch a read error condition until this transaction ends and the next
 // transaction starts.
+
+    wire transaction_start;
+
+    posedge_pulse_generator
+    #(
+        .PULSE_LENGTH   (1)
+    )
+    transaction
+    (
+        .clock          (clock),
+        .level_in       (control_enable),
+        .pulse_out      (transaction_start)
+    );
+
+// --
 
     reg error = 1'b0;
 
@@ -206,8 +218,8 @@ module Master_AXI_Read_Data_Channel
 // all the data has been read and dumped.
 
     always @(*) begin
-        enable_axi      = (control_busy == 1'b1);
-        enable_system   = (control_busy == 1'b1) && (system_error == 1'b0);
+        enable_axi      = (control_enable == 1'b1);
+        enable_system   = (control_enable == 1'b1) && (system_error == 1'b0);
         m_ready_gated   = (system_error == 1'b1) ? 1'b1 : system_ready_gated;
     end
 

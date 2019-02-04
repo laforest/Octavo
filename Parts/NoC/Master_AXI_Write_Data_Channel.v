@@ -4,20 +4,18 @@
 // A write channel which connects a system register write to an AXI data write
 
 // The control interface enables the start of a write data transaction by
-// pulsing control_start for one cycle, else there is a chance that a second
-// transaction will be started if the current transaction finishes before the
-// control_start is released. The control_busy signal then stays high until
-// all AXI data has been written out, based on the provided write count from
-// a preceeding AXI write address transaction. The control interface will not
-// respond to control_start until control_busy goes low.
+// raising and holding control_enable until control_done is also raised (AXI
+// ready/valid handshake). The control_done signal goes high when all the AXI
+// data has been written out, based on the provided write count from
+// a preceeding AXI write address transaction.
 
-// Once started the write channel raises system_ready and accepts a data word
+// Once started, the write channel raises system_ready and accepts a data word
 // from the system when it raises system_valid for one cycle. For each
 // consecutive cycle that system_valid and system_ready are high, a word of
 // data is transfered.
 
 // Writing to the system interface (raising system_valid) while system_ready
-// is low (and not holding the system_data until system_ready goes high) will
+// is low and not holding the system_data until system_ready goes high will
 // lose the written data. This works just like an AXI valid/ready handshake.
 
 // Once the skid buffer in the write channel has accepted a data word it will
@@ -26,8 +24,9 @@
 // cycles.
 
 // The write channel asserts wlast on the last AXI data word sent out, which
-// is calculated based on the axlen input previous set by an AXI write
-// address transaction. The counter is initialized by control_start.
+// is calculated based on the axlen input previous set by an AXI write address
+// transaction. The counter is initialized by the rising edge of
+// control_enable.
 
 // There is no error handling as any write errors are reported on the AXI
 // write response interface after the write channel has completed all
@@ -48,13 +47,13 @@ module Master_AXI_Write_Data_Channel
     input   wire                        clock,
 
     // System interface
-    output  wire                        system_ready,
     input   wire    [WORD_WIDTH-1:0]    system_data,
     input   wire                        system_valid,
+    output  wire                        system_ready,
 
     // Control interface
-    input   wire                        control_start,
-    output  wire                        control_busy,
+    input   wire                        control_enable,
+    output  reg                         control_done,
 
     // Internal, from write address channel
     input   wire    [AXLEN_WIDTH-1:0]   axlen,
@@ -77,32 +76,62 @@ module Master_AXI_Write_Data_Channel
     end
 
 // --------------------------------------------------------------------------
-// Latch the start of the transaction until all system data written to skid buffer.
+// Signal start of new transaction after end of previous one.
 
-    reg transaction_start = 1'b0;
+    wire transaction_start;
 
-    always @(*) begin
-        transaction_start <= (control_start == 1'b1) && (control_busy == 1'b0);
-    end
-
-    wire last_word;
-
-    pulse_to_level
-    transaction_busy
+    posedge_pulse_generator
+    #(
+        .PULSE_LENGTH   (1)
+    )
+    transaction
     (
-        .clock      (clock),
-        .clear      (last_word),
-        .pulse_in   (transaction_start),
-        .level_out  (control_busy)
+        .clock          (clock),
+        .level_in       (control_enable),
+        .pulse_out      (transaction_start)
+    );
+
+
+// --------------------------------------------------------------------------
+// When idle or done, disconnect the system interface from the skid buffer, so
+// the system does not initialize a transfer by accident and store data in the
+// skid buffer, forever corrupting future data write counts.
+
+// Unlike the read data channel, we don't disconnect the AXI interface as it
+// will stop signaling valid data once it empties itself.
+
+    wire system_valid_internal;
+    wire system_ready_internal;
+
+    Annuller
+    #(
+        .WORD_WIDTH (1)
+    )
+    master_valid
+    (
+        .annul      (control_enable == 1'b0),
+        .in         (system_valid),
+        .out        (system_valid_internal)
+    );
+
+    Annuller
+    #(
+        .WORD_WIDTH (1)
+    )
+    master_ready
+    (
+        .annul      (control_enable == 1'b0),
+        .in         (system_ready_internal),
+        .out        (system_ready)
     );
 
 // --------------------------------------------------------------------------
-// Signal each system data write
+// Signal each system data write (if not disconnected).
 
     reg system_write_accepted = 1'b0;
 
     always @(*) begin
-        system_write_accepted <= (system_ready == 1'b1) && (system_valid == 1'b1);
+        system_write_accepted <= (system_ready == 1'b1) && (system_valid_internal == 1'b1);
     end
 
 // --------------------------------------------------------------------------
@@ -114,6 +143,7 @@ module Master_AXI_Write_Data_Channel
 
     wire [AXLEN_WIDTH-1:0] count_out;
     wire                   count_out_wren;
+    wire                   last_word;
 
     Down_Counter_Zero
     #(
@@ -130,6 +160,7 @@ module Master_AXI_Write_Data_Channel
         .count_zero     (last_word)
     );
 
+    // Storage for counter logic
     always @(posedge clock) begin
         remaining_writes <= (count_out_wren == 1'b1) ? count_out : remaining_writes;
     end
@@ -137,9 +168,6 @@ module Master_AXI_Write_Data_Channel
 // --------------------------------------------------------------------------
 // Receive and buffer the system write data and last data word flag to the AXI
 // interface.
-
-    wire system_valid_internal;
-    wire system_ready_internal;
 
     localparam BUFFER_WIDTH = WORD_WIDTH + 1;
 
@@ -161,35 +189,16 @@ module Master_AXI_Write_Data_Channel
     );
 
 // --------------------------------------------------------------------------
-// When idle or done, disconnect the system interface from the skid buffer, so
-// the system does not initialize a transfer by accident and store data in the
-// skid buffer, forever corrupting future data write counts.
+// Finally, signal the control interface that the transaction is done once the
+// last data word has entered the skid buffer.
 
-// Unlike the read data channel, we don't disconnect the AXI interface as it
-// will stop signaling valid data once it empties itself.
+// It would seem neater to do so with the output signals of the skid buffer,
+// but then that's a combinational path back from its output, which will limit
+// the effectiveness of its pipelining.
 
-    Annuller
-    #(
-        .WORD_WIDTH (1)
-    )
-    master_valid
-    (
-        .annul      (control_busy == 1'b0),
-        .in         (system_valid),
-        .out        (system_valid_internal)
-    );
-
-    Annuller
-    #(
-        .WORD_WIDTH (1)
-    )
-    master_ready
-    (
-        .annul      (control_busy == 1'b0),
-        .in         (system_ready_internal),
-        .out        (system_ready)
-    );
-
+    always @(*) begin
+        control_done = (last_word == 1'b1) && (system_valid_internal == 1'b1);
+    end
 
 endmodule
 

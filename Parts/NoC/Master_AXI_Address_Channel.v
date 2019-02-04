@@ -9,15 +9,22 @@
 
 // The System interface is where the host system sets the parameters for the
 // transaction. The address, burst length, and burst type are all set by
-// pulsing their _wren signal for one cycle.
- 
-// The Control interface is internal to the AXI sub-system and is controlled by
-// another AXI sequencer, which allows the channel to begin operating by
-// pulsing control_busy.
+// pulsing their _wren signal for one cycle. These parameters are persistent.
+// Then system_start must be pulsed high for one cycle. The system_ready flag
+// will go high when the transaction is done and stay high until a new
+// transaction is started.
 
-// Once both the System and Control interfaces have been set, the address
-// transaction begins and control_busy is raised during.  Any signalling on
-// the interfaces is ignored while busy.
+// The Control interface is internal to the AXI transactor and is controlled
+// by another AXI sequencer, which allows the channel to begin operating by
+// raising and holding control_enable high, until control_done also goes high
+// to signal completion, then both go low. It functions just like
+// a valid/ready handshake, thus it is an error to drop control_enable before
+// control_done is asserted.
+
+// Once both the System and Control interfaces are active, the address
+// transaction begins and any signaling on the system interface is ignored
+// until system_ready is raised. Thus, system_ready must be initialized high
+// before the first system transaction to avoid a special case.
 
 `default_nettype none
 
@@ -41,10 +48,12 @@ module Master_AXI_Address_Channel
     input   wire                        system_count_wren,
     input   wire    [AXBURST_WIDTH-1:0] system_type,
     input   wire                        system_type_wren,
+    input   wire                        system_start,
+    output  reg                         system_ready,
 
     // Control interface
-    input   wire                        control_start,
-    output  reg                         control_busy,
+    input   wire                        control_enable,
+    output  reg                         control_done,
 
     // AXI interface
     output  reg     [ADDR_WIDTH-1:0]    axaddr,
@@ -65,7 +74,8 @@ module Master_AXI_Address_Channel
     localparam [AXSIZE_WIDTH-1:0] AXSIZE_INIT = AXSIZE;
 
     initial begin
-        control_busy    = 1'b0;
+        system_ready    = 1'b0;
+        control_done    = 1'b0;
         axaddr          = AXADDR_ZERO;
         axlen           = AXLEN_ZERO;
         axsize          = AXSIZE_INIT;
@@ -78,50 +88,43 @@ module Master_AXI_Address_Channel
     reg transaction_complete = 1'b0;
 
     always @(*) begin
-        transaction_complete <= (axvalid == 1'b1) && (axready == 1'b1);
+        transaction_complete = (axvalid == 1'b1) && (axready == 1'b1);
+        control_done         = transaction_complete;
     end
 
 // --------------------------------------------------------------------------
-// Latch activation of each interface. Hold until transaction complete.
+// Latch activation of system interface. Hold until transaction complete.
 
-    wire control_start_set;
-
-    pulse_to_level
-    control_enable
-    (
-        .clock      (clock),
-        .clear      (transaction_complete),
-        .pulse_in   (control_start),
-        .level_out  (control_start_set)
-    );
-
-    wire system_wren_set;
+    wire system_start_set;
 
     pulse_to_level
     system_enable
     (
         .clock      (clock),
         .clear      (transaction_complete),
-        .pulse_in   (system_wren),
-        .level_out  (system_wren_set)
+        .pulse_in   (system_start),
+        .level_out  (system_start_set)
     );
+
+    always @(*) begin
+        system_ready = (system_start_set == 1'b0);
+    end
 
 // --------------------------------------------------------------------------
 // Once both interfaces are set, start the transaction.
 
     always @(*) begin
-        control_busy    = (control_start_set == 1'b1) && (system_wren_set == 1'b1);
-        axvalid         = control_busy;
+        axvalid = (control_enable == 1'b1) && (system_start_set == 1'b1);
     end
 
 // --------------------------------------------------------------------------
-// If we are not in the middle of a transaction, update the AXI ports on
-// a system write.
+// If the system interface has not signaled to start a transaction, update the
+// AXI ports on a system write.
 
     always @(posedge clock) begin
-        axaddr  <= (system_address_wren == 1'b1) && (control_busy == 1'b0) ? system_address : axaddr;
-        axlen   <= (system_count_wren   == 1'b1) && (control_busy == 1'b0) ? system_count   : axlen;
-        axburst <= (system_type_wren    == 1'b1) && (control_busy == 1'b0) ? system_type    : axburst;
+        axaddr  <= (system_address_wren == 1'b1) && (system_start_set == 1'b0) ? system_address : axaddr;
+        axlen   <= (system_count_wren   == 1'b1) && (system_start_set == 1'b0) ? system_count   : axlen;
+        axburst <= (system_type_wren    == 1'b1) && (system_start_set == 1'b0) ? system_type    : axburst;
     end
 
 endmodule
