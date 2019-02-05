@@ -34,7 +34,7 @@ module Master_AXI_Write_Response_Channel
 
     // Control interface
     input   wire                        control_enable,
-    output  wire                        control_done,
+    output  reg                         control_done,
 
     // AXI interface
     input   wire    [BRESP_WIDTH-1:0]   bresp,
@@ -77,6 +77,7 @@ module Master_AXI_Write_Response_Channel
 // ---- Master interface to system
 
     wire m_ready;
+    wire m_valid;
 
     Annuller
     #(
@@ -124,7 +125,7 @@ module Master_AXI_Write_Response_Channel
 // --------------------------------------------------------------------------
 // Signal that the transaction is done once a single response is read out.
 
-    wire system_read;
+    reg system_read = 1'b0;
 
     always @(*) begin
         system_read  = (m_valid == 1'b1) && (m_ready == 1'b1);
