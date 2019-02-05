@@ -17,7 +17,14 @@ module Master_AXI_Transactor
     parameter ADDR_WIDTH    = 0,
     // Bytes per transfer
     // set to clog2(BYTE_COUNT)
-    parameter AXSIZE        = 0
+    parameter AXSIZE        = 0,
+
+    // Do not alter at instantiation. Set by AXI4 spec.
+    parameter AXLEN_WIDTH   = 8,
+    parameter AXSIZE_WIDTH  = 3,
+    parameter AXBURST_WIDTH = 2,
+    parameter BRESP_WIDTH   = 2,
+    parameter RRESP_WIDTH   = 2
 )
 (
     input   wire                        clock,
@@ -33,7 +40,7 @@ module Master_AXI_Transactor
     input   wire    [AXBURST_WIDTH-1:0] ar_system_type,
     input   wire                        ar_system_type_wren,
     input   wire                        ar_system_start,
-    output  reg                         ar_system_ready,
+    output  wire                        ar_system_ready,
 
 
     // AXI interface
@@ -42,7 +49,7 @@ module Master_AXI_Transactor
     output  wire    [AXSIZE_WIDTH-1:0]  arsize,
     output  wire    [AXBURST_WIDTH-1:0] arburst,
     output  wire                        arvalid,
-    input   wire                        arready
+    input   wire                        arready,
 
 // --
 
@@ -55,7 +62,7 @@ module Master_AXI_Transactor
     input   wire    [AXBURST_WIDTH-1:0] aw_system_type,
     input   wire                        aw_system_type_wren,
     input   wire                        aw_system_start,
-    output  reg                         aw_system_ready,
+    output  wire                        aw_system_ready,
 
     // AXI interface
     output  wire    [ADDR_WIDTH-1:0]    awaddr,
@@ -63,7 +70,7 @@ module Master_AXI_Transactor
     output  wire    [AXSIZE_WIDTH-1:0]  awsize,
     output  wire    [AXBURST_WIDTH-1:0] awburst,
     output  wire                        awvalid,
-    input   wire                        awready
+    input   wire                        awready,
 
 // --
 
@@ -79,7 +86,7 @@ module Master_AXI_Transactor
     input   wire    [RRESP_WIDTH-1:0]   rresp,
     input   wire                        rlast,
     input   wire                        rvalid,
-    output  wire                        rready
+    output  wire                        rready,
 
 // --
 
@@ -94,7 +101,7 @@ module Master_AXI_Transactor
     output  wire    [BYTE_COUNT-1:0]    wstrb,
     output  wire                        wlast,
     output  wire                        wvalid,
-    input   wire                        wready
+    input   wire                        wready,
 
 // --
 
@@ -113,8 +120,8 @@ module Master_AXI_Transactor
 // --------------------------------------------------------------------------
 // --------------------------------------------------------------------------
 
-    wire ar_control_start;
-    wire ar_control_busy;
+    wire ar_control_enable;
+    wire ar_control_done;
 
     Master_AXI_Address_Channel
     #(
@@ -150,8 +157,8 @@ module Master_AXI_Transactor
 
 // --------------------------------------------------------------------------
 
-    wire aw_control_start;
-    wire aw_control_busy;
+    wire aw_control_enable;
+    wire aw_control_done;
 
     Master_AXI_Address_Channel
     #(
@@ -187,8 +194,8 @@ module Master_AXI_Transactor
 
 // --------------------------------------------------------------------------
 
-    wire r_control_start;
-    wire r_control_busy;
+    wire r_control_enable;
+    wire r_control_done;
 
     Master_AXI_Read_Data_Channel
     #(
@@ -218,8 +225,8 @@ module Master_AXI_Transactor
 
 // --------------------------------------------------------------------------
 
-    wire w_control_start;
-    wire w_control_busy;
+    wire w_control_enable;
+    wire w_control_done;
 
     Master_AXI_Write_Data_Channel
     #(
@@ -236,7 +243,7 @@ module Master_AXI_Transactor
         .system_ready   (w_system_ready),
 
         // Control interface
-        .control_enable (w_control_start),
+        .control_enable (w_control_enable),
         .control_done   (w_control_done),
 
         // Internal
@@ -252,8 +259,8 @@ module Master_AXI_Transactor
 
 // --------------------------------------------------------------------------
 
-    wire b_control_start;
-    wire b_control_busy;
+    wire b_control_enable;
+    wire b_control_done;
 
     Master_AXI_Write_Response_Channel
     // No user-settable parameters
@@ -284,11 +291,11 @@ module Master_AXI_Transactor
     (
         .clock              (clock),
 
-        .ar_control_enable  (ar_control_start),
-        .ar_control_done    (ar_control_busy),
+        .ar_control_enable  (ar_control_enable),
+        .ar_control_done    (ar_control_done),
 
-        .r_control_enable   (r_control_start),
-        .r_control_done     (r_control_busy)
+        .r_control_enable   (r_control_enable),
+        .r_control_done     (r_control_done)
     );
 
 // --------------------------------------------------------------------------
