@@ -53,7 +53,7 @@ module Master_AXI_Read_Data_Channel
 
     // Control interface
     input   wire                        control_enable,
-    output  wire                        control_done,
+    output  reg                         control_done,
 
     // AXI interface
     input   wire    [WORD_WIDTH-1:0]    rdata,
@@ -110,6 +110,7 @@ module Master_AXI_Read_Data_Channel
 // ---- Master interface to system
 
     wire system_ready_gated;
+    wire m_valid;
 
     Annuller
     #(
@@ -171,7 +172,7 @@ module Master_AXI_Read_Data_Channel
 // same. Thus, m_rlast will stay high until the first data item is buffered in
 // the next transaction.
 
-    reg system_read     = 1'b0;
+    reg system_read = 1'b0;
 
     always @(*) begin
         system_read  = (m_valid == 1'b1) && (m_ready_gated == 1'b1);
