@@ -71,7 +71,7 @@ module Master_AXI_Address_Channel
     localparam AXBURST_ZERO = {AXBURST_WIDTH{1'b0}};
 
     // AXI word-wide transfers, so this never changes.
-    localparam [AXSIZE_WIDTH-1:0] AXSIZE_INIT = AXSIZE;
+    localparam [AXSIZE_WIDTH-1:0] AXSIZE_INIT = AXSIZE [AXSIZE_WIDTH-1:0];
 
     initial begin
         system_ready    = 1'b0;
