@@ -11,15 +11,15 @@
 module Master_AXI_Sequencer_Read
 // No parameters
 (
-    wire    input       clock,
+    input   wire        clock,
 
     // AXI Address Read
-    reg     output      ar_control_enable,
-    wire    input       ar_control_done,
+    output  reg         ar_control_enable,
+    input   wire        ar_control_done,
 
     // AXI Data Read
-    reg     output      r_control_enable,
-    wire    input       r_control_done
+    output  reg        r_control_enable,
+    input   wire       r_control_done
 );
 
 // --------------------------------------------------------------------------
