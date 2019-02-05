@@ -12,19 +12,19 @@
 module Master_AXI_Sequencer_Write
 // No parameters
 (
-    wire    input       clock,
+    input   wire        clock,
 
     // AXI Address Write
-    reg     output      aw_control_enable,
-    wire    input       aw_control_done,
+    output  reg         aw_control_enable,
+    input   wire        aw_control_done,
 
     // AXI Data Write
-    reg     output      w_control_enable,
-    wire    input       w_control_done,
+    output  reg         w_control_enable,
+    input   wire        w_control_done,
 
     // AXI Write Response
-    reg     output      b_control_enable,
-    wire    input       b_control_done
+    output  reg         b_control_enable,
+    input   wire        b_control_done
 );
 
 // --------------------------------------------------------------------------
