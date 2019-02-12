@@ -1,12 +1,17 @@
 
 // Multiplier accelerator pipeline for Octavo.
+
 // A simple full-word multiplier with pipeline registers before and after it
 // to make it 8 threads deep, and to give retiming and placement flexibility.
 
 // Each thread must first set a bit to define if the multiplication will be
 // signed or unsigned, which takes effect next time the thread comes around.
-// This configuration bit is persistent until updated.
-// Default is unsigned.
+// This configuration bit is persistent until updated.  Default is unsigned.
+
+// Operand inputs are latched and persistent for each thread.  This allows
+// code to update the data one word at a time if necessary, or to set one
+// "constant" and update only the other operand.  This can maybe save power by
+// setting both A/B to zero if multiple threads are not using the multiplier.
 
 `default_nettype none
 
@@ -14,7 +19,8 @@ module Multiplier_Pipeline
 #(
     parameter WORD_WIDTH                    = 0,
     parameter CONFIG_ADDR                   = 0,
-    parameter CONFIG_ADDR_WIDTH             = 0
+    parameter CONFIG_ADDR_WIDTH             = 0,
+    parameter THREAD_COUNT                  = 0
 )
 (
     input   wire                            clock,
@@ -35,8 +41,9 @@ module Multiplier_Pipeline
 // --------------------------------------------------------------------------
 // Some global constants
 
-    localparam THREAD_COUNT         = 8;
-    localparam THREAD_COUNT_WIDTH   = 3;
+    `include "clog2_function.vh"
+
+    localparam THREAD_COUNT_WIDTH   = clog2(THREAD_COUNT);
     localparam WORD_ZERO            = {WORD_WIDTH{1'b0}};
     localparam DELAY_DEPTH          = THREAD_COUNT / 2;     // Assumes even thread count
 
@@ -98,20 +105,67 @@ module Multiplier_Pipeline
     );
 
 // --------------------------------------------------------------------------
-// Pipeline the input operands and control signals.
-// Here we have one manual stage first to latch operands conditionally.
-// This allows code to update the data one word at a time if necessary, 
-// or to set one "constant" and update only the other operand.
-// This can maybe save power by setting both A/B to zero if multiple
-// threads are not using the multiplier.
+// Pipeline the input operands.
+// Here we have one stage first to latch operands conditionally.
 
-    reg [WORD_WIDTH-1:0] A_latched = WORD_ZERO;
-    reg [WORD_WIDTH-1:0] B_latched = WORD_ZERO;
+    wire [WORD_WIDTH-1:0] A_latched;
 
-    always @(posedge clock) begin
-        A_latched <= (A_wren == 1'b1) ? A : A_latched;
-        B_latched <= (B_wren == 1'b1) ? B : B_latched;
-    end
+    RAM_SDP_Multithreaded
+    #(
+        .WORD_WIDTH             (WORD_WIDTH),
+        .ADDR_WIDTH             (1),
+        .THREAD_DEPTH           (1),
+        .RAMSTYLE               ("logic"),
+        .READ_NEW_DATA          (0),
+        .USE_INIT_FILE          (0),
+        .INIT_FILE              (),
+        .THREAD_COUNT           (THREAD_COUNT),
+        .THREAD_COUNT_WIDTH     (THREAD_COUNT_WIDTH),
+        .INITIAL_THREAD_READ    (0),
+        .INITIAL_THREAD_WRITE   (0)
+    )
+    A_Latch
+    (
+        .clock                  (clock),
+        .wren                   (A_wren),
+        .write_addr             (1'b0),
+        .write_data             (A),
+        .rden                   (1'b1),
+        .read_addr              (1'b0),
+        .read_data              (A_latched)
+    );
+
+// --
+
+    wire [WORD_WIDTH-1:0] B_latched;
+
+    RAM_SDP_Multithreaded
+    #(
+        .WORD_WIDTH             (WORD_WIDTH),
+        .ADDR_WIDTH             (1),
+        .THREAD_DEPTH           (1),
+        .RAMSTYLE               ("logic"),
+        .READ_NEW_DATA          (0),
+        .USE_INIT_FILE          (0),
+        .INIT_FILE              (),
+        .THREAD_COUNT           (THREAD_COUNT),
+        .THREAD_COUNT_WIDTH     (THREAD_COUNT_WIDTH),
+        .INITIAL_THREAD_READ    (0),
+        .INITIAL_THREAD_WRITE   (0)
+    )
+    B_Latch
+    (
+        .clock                  (clock),
+        .wren                   (B_wren),
+        .write_addr             (1'b0),
+        .write_data             (B),
+        .rden                   (1'b1),
+        .read_addr              (1'b0),
+        .read_data              (B_latched)
+    );
+
+// --------------------------------------------------------------------------
+// And now do the rest of the input pipeline, minus one stage
 
     localparam INPUT_DELAY_DEPTH = DELAY_DEPTH - 1;
     localparam INPUT_DELAY_WIDTH = WORD_WIDTH + WORD_WIDTH + 1;
@@ -134,7 +188,9 @@ module Multiplier_Pipeline
 
 // --------------------------------------------------------------------------
 // The multiplier itself. Likely composed of multiple DSP Blocks and adders,
-// depending on word width and target device.
+// depending on word width and target device. Fed a clock even though it's
+// defined without registers, as the input/output pipeline stages will get
+// retimed into the multiplier as necessary.
 
     wire [WORD_WIDTH-1:0] R_low_internal;
     wire [WORD_WIDTH-1:0] R_high_internal;
