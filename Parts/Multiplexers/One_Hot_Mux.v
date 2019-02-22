@@ -9,13 +9,16 @@
 
 module One_Hot_Mux
 #(
-    parameter       WORD_WIDTH                      = 0,
-    parameter       WORD_COUNT                      = 0
+    parameter       WORD_WIDTH          = 0,
+    parameter       WORD_COUNT          = 0,
+
+    // Not for instantiation
+    parameter   TOTAL_WIDTH = WORD_COUNT * WORD_WIDTH
 )
 (
-    input   wire    [WORD_COUNT-1:0]                selectors,
-    input   wire    [(WORD_COUNT*WORD_WIDTH)-1:0]   in,
-    output  wire    [WORD_WIDTH-1:0]                out
+    input   wire    [WORD_COUNT-1:0]    selectors,
+    input   wire    [TOTAL_WIDTH-1:0]   in,
+    output  wire    [WORD_WIDTH-1:0]    out
 );
 
 // --------------------------------------------------------------------

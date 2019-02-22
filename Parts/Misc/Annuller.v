@@ -38,12 +38,14 @@ module Annuller
     output  reg     [WORD_WIDTH-1:0]   out
 );
 
+    localparam ZERO = {WORD_WIDTH{1'b0}};
+
     initial begin
-        out = 0;
+        out = ZERO;
     end
 
     always @(*) begin
-        out <= (annul == 1'b1) ? {WORD_WIDTH{1'b0}} : in;
+        out = (annul == 1'b1) ? ZERO : in;
     end
 
 endmodule

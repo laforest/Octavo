@@ -13,8 +13,10 @@ module Word_OR_Reducer
     output  reg     [ WORD_WIDTH            -1:0]   out
 );
 
+    localparam ZERO = {WORD_WIDTH{1'b0}};
+
     initial begin
-        out = 0;
+        out = ZERO;
     end
 
 // --------------------------------------------------------------------
@@ -29,7 +31,7 @@ module Word_OR_Reducer
 
     initial begin
         for(i=0; i < WORD_COUNT; i=i+1) begin
-            out_reduction[i] = 0;
+            out_reduction[i] = ZERO;
         end
     end
 
