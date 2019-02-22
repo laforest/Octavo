@@ -7,17 +7,26 @@
 
 module Translated_Addressed_Mux
 #(
-    parameter       WORD_WIDTH                          = 0,
-    parameter       ADDR_WIDTH                          = 0,
-    parameter       INPUT_COUNT                         = 0,
-    parameter       INPUT_BASE_ADDR                     = 0,
-    parameter       INPUT_ADDR_WIDTH                    = 0
+    parameter       WORD_WIDTH          = 0,
+    parameter       ADDR_WIDTH          = 0, // Full address width
+    parameter       INPUT_COUNT         = 0,
+    parameter       INPUT_BASE_ADDR     = 0,
+    parameter       INPUT_ADDR_WIDTH    = 0, // clog2(INPUT_COUNT)
+
+    // Not for instantiation
+    parameter       TOTAL_WIDTH = INPUT_COUNT * WORD_WIDTH
 )
 (
-    input   wire    [ADDR_WIDTH-1:0]                    addr,
-    input   wire    [(INPUT_COUNT * WORD_WIDTH)-1:0]    in, 
-    output  wire    [WORD_WIDTH-1:0]                    out
+    // Only LSB used, but full width here for easy system integration
+    // verilator lint_off UNUSED
+    input   wire    [ADDR_WIDTH-1:0]    addr,
+    // verilator lint_on  UNUSED
+    input   wire    [TOTAL_WIDTH-1:0]   in, 
+    output  wire    [WORD_WIDTH-1:0]    out
 );
+
+// --------------------------------------------------------------------------
+
     wire [INPUT_ADDR_WIDTH-1:0]  addr_translated;
 
     Address_Range_Translator 
@@ -46,5 +55,6 @@ module Translated_Addressed_Mux
         .in             (in),
         .out            (out)
     );
+
 endmodule
 
