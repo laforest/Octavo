@@ -117,6 +117,8 @@ module RAM_TDP
             end
         end
         // Returns NEW data
+        // This isn't proper, but the CAD tool expects it for inference.
+        // verilator lint_off BLKSEQ
         else begin
             always @(posedge clock) begin
                 if(wren_A == 1) begin
@@ -132,6 +134,7 @@ module RAM_TDP
                 read_data_B = ram[addr_B];
             end
         end
+        // verilator lint_on BLKSEQ
     endgenerate
 
 // --------------------------------------------------------------------

@@ -17,7 +17,7 @@ module RAM_SDP_Composite
     parameter       USE_INIT_FILE       = 0,
     // Parameters for the individual sub-RAMs
     parameter       SUB_INIT_FILE       = "",
-    parameter       SUB_ADDR_WIDTH      = 0,
+    parameter       SUB_ADDR_WIDTH      = 0, // clog2(SUB_DEPTH)
     parameter       SUB_DEPTH           = 0
 )
 (

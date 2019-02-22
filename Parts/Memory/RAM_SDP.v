@@ -58,8 +58,10 @@ module RAM_SDP
 
 // --------------------------------------------------------------------
 
+    localparam ZERO = {WORD_WIDTH{1'b0}};
+
     initial begin
-        read_data = 0;
+        read_data = ZERO;
     end
 
 // --------------------------------------------------------------------
@@ -92,25 +94,28 @@ module RAM_SDP
         // Returns OLD data
         if (READ_NEW_DATA == 0) begin
             always @(posedge clock) begin
-                if(wren == 1) begin
+                if(wren == 1'b1) begin
                     ram[write_addr] <= write_data;
                 end
-                if(rden == 1) begin
+                if(rden == 1'b1) begin
                     read_data <= ram[read_addr];
                 end
             end
         end
         // Returns NEW data
+        // This isn't proper, but that's what the CAD tool expects for inference.
+        // verilator lint_off BLKSEQ
         else begin
             always @(posedge clock) begin
-                if(wren == 1) begin
+                if(wren == 1'b1) begin
                     ram[write_addr] = write_data;
                 end
-                if(rden == 1) begin
+                if(rden == 1'b1) begin
                     read_data = ram[read_addr];
                 end
             end
         end
+        // verilator lint_on BLKSEQ
     endgenerate
 
 // --------------------------------------------------------------------
@@ -126,7 +131,7 @@ module RAM_SDP
             integer i;
             initial begin
                 for (i = 0; i < DEPTH; i = i + 1) begin
-                    ram[i] = 0;
+                    ram[i] = ZERO;
                 end
             end
         end
