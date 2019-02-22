@@ -11,26 +11,34 @@
 
 module Register_Array 
 #(
-    parameter       COUNT                   = 0, 
-    parameter       WIDTH                   = 0
+    parameter       COUNT               = 0, 
+    parameter       WIDTH               = 0,
+
+    // Not for instantiation
+    parameter   TOTAL_WIDTH = COUNT * WIDTH
 ) 
 (
-    input   wire                            clock,
-    input   wire    [COUNT-1:0]             wren,
-    input   wire    [(COUNT*WIDTH)-1:0]     in,
-    output  reg     [(COUNT*WIDTH)-1:0]     out
+    input   wire                        clock,
+    input   wire    [COUNT-1:0]         wren,
+    input   wire    [TOTAL_WIDTH-1:0]   in,
+    output  reg     [TOTAL_WIDTH-1:0]   out
 );
+
+// --------------------------------------------------------------------------
+
     initial begin
-        out <= {(COUNT*WIDTH){1'b0}};
+        out <= {TOTAL_WIDTH{1'b0}};
     end
 
-    integer i, j;
+    integer i;
+    integer j;
 
     always @(posedge clock) begin
         for(i = 0; i < COUNT; i = i+1) begin
-            j               = i * WIDTH;
+            j = i * WIDTH;
             out[j +: WIDTH] = (wren[i] == 1'b1) ? in[j +: WIDTH] : out[j +: WIDTH];
         end
     end
+
 endmodule
 

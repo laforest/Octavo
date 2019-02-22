@@ -24,11 +24,15 @@ module Sentinel_Value_Check
     output  reg                         match
 );
 
+// --------------------------------------------------------------------------
+
+    localparam ZERO = {WORD_WIDTH{1'b0}};
+
     initial begin
-        match = 0;
+        match = ZERO;
     end
 
-    reg [WORD_WIDTH-1:0] data_in_masked = 0;
+    reg [WORD_WIDTH-1:0] data_in_masked = ZERO;
 
     always @(*) begin
         data_in_masked  = data_in & ~mask;

@@ -15,8 +15,10 @@ module Inverter
     input   wire    [WORD_WIDTH-1:0]   in,
     output  reg     [WORD_WIDTH-1:0]   out
 );
+
     always @(*) begin
-        out <= (invert == 1'b1) ? ~in : in;
+        out = (invert == 1'b1) ? ~in : in;
     end
+
 endmodule
 
