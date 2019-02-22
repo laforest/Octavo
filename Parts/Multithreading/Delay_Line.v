@@ -11,23 +11,38 @@ module Delay_Line
     parameter       WIDTH           = 0
 ) 
 (
+    // Not used if DEPTH is zero
+    // verilator lint_off UNUSED
     input   wire                    clock,
+    // verilator lint_on  UNUSED
     input   wire    [WIDTH-1:0]     in,
     output  reg     [WIDTH-1:0]     out
 );
+
+// --------------------------------------------------------------------------
+
+    localparam ZERO = {WIDTH{1'b0}};
+
+    initial begin
+        out = ZERO;
+    end
+
+// --------------------------------------------------------------------------
+
     generate
         if (DEPTH == 0) begin
             always @(*) begin
-                out <= in;
+                out = in;
             end
         end
         else begin
             integer i;
+
             reg [WIDTH-1:0] stage [DEPTH-1:0];
 
             initial begin
                 for(i = 0; i < DEPTH; i = i + 1) begin
-                    stage[i] = 0;
+                    stage[i] = ZERO;
                 end
             end 
 
@@ -39,9 +54,10 @@ module Delay_Line
             end
 
             always @(*) begin
-                out <= stage[DEPTH-1];
+                out = stage[DEPTH-1];
             end
         end
     endgenerate
+
 endmodule
 
