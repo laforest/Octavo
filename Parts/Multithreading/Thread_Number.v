@@ -15,7 +15,7 @@ module Thread_Number
 #(
     parameter   INITIAL_THREAD                  = 0,
     parameter   THREAD_COUNT                    = 0,
-    parameter   THREAD_COUNT_WIDTH              = 0
+    parameter   THREAD_COUNT_WIDTH              = 0 // clog2(THREAD_COUNT)
 )
 (
     input   wire                                clock,
@@ -23,17 +23,19 @@ module Thread_Number
     output  wire    [THREAD_COUNT_WIDTH-1:0]    next_thread
 );
 
-    // Avoids width-mismatch warnings
-    localparam ZERO = {THREAD_COUNT_WIDTH{1'b0}};
+// --------------------------------------------------------------------------
 
-    reg last_thread = 0;
+    localparam ZERO        = {THREAD_COUNT_WIDTH{1'b0}};
+    localparam LAST_THREAD = THREAD_COUNT - 1;
+
+    reg last_thread = 1'b0;
 
     always @(*) begin
         // Doing it this way to avoid an adder/subtracter comparator.
-        last_thread = (current_thread == (THREAD_COUNT-1));
+        last_thread = (current_thread == LAST_THREAD [THREAD_COUNT_WIDTH-1:0]);
     end
 
-// --------------------------------------------------------------------
+// --------------------------------------------------------------------------
 
     UpDown_Counter
     #(
