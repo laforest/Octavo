@@ -34,7 +34,7 @@ module posedge_pulse_generator
     );
 
     always @(*) begin
-        pulse_out <= level_in & ~level_delayed;
+        pulse_out = (level_in == 1'b1) && (level_delayed == 1'b0);
     end
 
 endmodule

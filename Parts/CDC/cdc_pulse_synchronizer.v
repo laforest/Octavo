@@ -25,7 +25,8 @@
 
 module cdc_pulse_synchronizer
 #(
-    parameter PULSE_LENGTH = 0
+    parameter PULSE_LENGTH = 0,
+    parameter EXTRA_DEPTH  = 0
 )
 (
     input   wire    clock_from,
@@ -34,41 +35,59 @@ module cdc_pulse_synchronizer
     output  wire    pulse_to
 );
 
+// --------------------------------------------------------------------------
+
     // Latch the incoming fast pulse then wait for the ack to come back,
     // to show it was captured in the slow clock domain, to clear the latch.
     // We then convert the level to a single pulse in the slow domain.
 
-    reg  pulse_from_level = 0;
+    wire level_from;
     wire clear_latch;
     
-    // Hopefully, this will synth to a sync reset on the register
+    pulse_to_level
+    pulse_latch
+    // No parameters
+    (
+        .clock      (clock_from),
+        .clear      (clear_latch),
+        .pulse_in   (pulse_from),
+        .level_out  (level_from)
+    );
 
-    always @(posedge clock_from) begin
-        pulse_from_level <= (clear_latch == 1'b1) ? 1'b0 : (pulse_from | pulse_from_level);
-    end
+// --------------------------------------------------------------------------
 
     // Pass the latched pulse to the slow clock domain
 
-    wire pulse_to_level;
+    wire level_to;
 
     cdc_synchronizer
+    #(
+        .EXTRA_DEPTH    (EXTRA_DEPTH)
+    )
     sync_to
     (
-        .data_from  (pulse_from_level),
-        .clock_to   (clock_to),
-        .data_to    (pulse_to_level)
+        .sync_bit_from  (level_from),
+        .clock_to       (clock_to),
+        .sync_bit_to    (level_to)
     );
+
+// --------------------------------------------------------------------------
 
     // Now pass the sync'ed level back to the fast clock domain to signal
     // that the CDC is complete, and clear the latch.
 
     cdc_synchronizer
+    #(
+        .EXTRA_DEPTH    (EXTRA_DEPTH)
+    )
     sync_from
     (
-        .data_from  (pulse_to_level),
-        .clock_to   (clock_from),
-        .data_to    (clear_latch)
+        .sync_bit_from  (level_to),
+        .clock_to       (clock_from),
+        .sync_bit_to    (clear_latch)
     );
+
+// --------------------------------------------------------------------------
 
     // Convert the level to a pulse in the slow clock domain
 
@@ -79,7 +98,7 @@ module cdc_pulse_synchronizer
     pulse_to_generator
     (
         .clock          (clock_to),
-        .level_in       (pulse_to_level),
+        .level_in       (level_to),
         .pulse_out      (pulse_to)
     );
 
