@@ -5,8 +5,8 @@
 
 module UpDown_Counter
 #(
-    parameter WORD_WIDTH                = 0,
-    parameter INITIAL_COUNT             = 0
+    parameter                   WORD_WIDTH      = 0,
+    parameter [WORD_WIDTH-1:0]  INITIAL_COUNT   = 0  // Since WORD_WIDTH can be > 32 bits
 )
 (
     input   wire                        clock,
@@ -18,20 +18,23 @@ module UpDown_Counter
     output  reg     [WORD_WIDTH-1:0]    next_count      // sometimes handy
 );
 
+// --------------------------------------------------------------------------
+
+    localparam ZERO         = {WORD_WIDTH{1'b0}};
+    localparam ONE          = {{WORD_WIDTH-1{1'b0}},1'b1};
+    localparam MINUS_ONE    = ~ZERO;
+
     initial begin
-        count       = INITIAL_COUNT [WORD_WIDTH-1:0];
-        next_count  = 0;
+        count       = INITIAL_COUNT;
+        next_count  = ZERO;
     end
 
-    localparam one          = {{WORD_WIDTH-1{1'b0}},1'b1};
-    localparam minus_one    = {WORD_WIDTH{1'b1}};
+// --------------------------------------------------------------------------
 
-// --------------------------------------------------------------------
-
-    reg [WORD_WIDTH-1:0] increment;
+    reg [WORD_WIDTH-1:0] increment = ZERO;
 
     always @(*) begin
-        increment   = (up_down == 1'b1) ? one : minus_one;
+        increment   = (up_down == 1'b1) ? ONE : MINUS_ONE;
         next_count  = (wren    == 1'b1) ? write_data : (count + increment);
     end
 
