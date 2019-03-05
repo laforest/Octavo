@@ -15,7 +15,12 @@ module IO_Active
 )
 (
     input   wire                        enable,
+    // Interface is ADDR_WIDTH to avoid having the
+    // enclosing module have to care about the I/O
+    // address range.
+    // verilator lint_off UNUSED
     input   wire    [ADDR_WIDTH-1:0]    addr,
+    // verilator lint_on  UNUSED
     output  wire    [PORT_COUNT-1:0]    active
 );
 

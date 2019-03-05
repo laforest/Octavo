@@ -89,7 +89,7 @@ module IO_Check
     // always "ready".
 
     always @(*) begin
-        port_EF_masked <= (addr_is_IO == 1) ? port_EF_selected : READY_STATE;
+        port_EF_masked = (addr_is_IO == 1) ? port_EF_selected : READY_STATE;
     end
 
 endmodule
