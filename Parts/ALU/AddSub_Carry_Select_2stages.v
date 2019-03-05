@@ -18,115 +18,126 @@ module AddSub_Carry_Select_2stages
 )
 (
     input   wire                                clock,
-	input   wire                                add_sub,
-	input   wire                                cin,
-	input   wire    signed  [WORD_WIDTH-1:0]    dataa,
-	input   wire    signed  [WORD_WIDTH-1:0]    datab,
-	output  reg                                 cout,
-	output  reg     signed  [WORD_WIDTH-1:0]    result
+	input   wire                                sub_add, // 1/0 -> A-B/A+B
+	input   wire                                carry_in,
+	input   wire    signed  [WORD_WIDTH-1:0]    A,
+	input   wire    signed  [WORD_WIDTH-1:0]    B,
+	output  reg     signed  [WORD_WIDTH-1:0]    sum,
+	output  reg                                 carry_out
 );
 
-    function [(WORD_WIDTH/2)-1:0] lower_half_word
-    (
-        input reg [WORD_WIDTH-1:0] word     
-    ); 
-        lower_half_word = word[(WORD_WIDTH/2)-1:0];
-    endfunction
+// --------------------------------------------------------------------------
 
+    localparam HALF_WIDTH   = WORD_WIDTH / 2;
+    localparam ZERO         = {WORD_WIDTH{1'b0}};
+    localparam ZERO_HALF    = {HALF_WIDTH{1'b0}};
 
-    function [(WORD_WIDTH/2)-1:0] upper_half_word
-    (
-        input reg [WORD_WIDTH-1:0] word     
-    ); 
-        upper_half_word = word[WORD_WIDTH-1:(WORD_WIDTH/2)];
-    endfunction
+    initial begin
+        sum         = ZERO;
+        carry_out   = 1'b0;
+    end
+
+// --------------------------------------------------------------------------
+
+    reg [HALF_WIDTH-1:0] A_lower_half = ZERO_HALF;
+    reg [HALF_WIDTH-1:0] A_upper_half = ZERO_HALF;
+    reg [HALF_WIDTH-1:0] B_lower_half = ZERO_HALF;
+    reg [HALF_WIDTH-1:0] B_upper_half = ZERO_HALF;
+
+    always @(*) begin
+        A_lower_half = A[HALF_WIDTH-1:0];
+        A_upper_half = A[WORD_WIDTH-1:HALF_WIDTH];
+        B_lower_half = B[HALF_WIDTH-1:0];
+        B_upper_half = B[WORD_WIDTH-1:HALF_WIDTH];
+    end
 
 // --------------------------------------------------------------------
 
-    wire                            cout_lower;     /* synthesis keep */
-    wire    [(WORD_WIDTH/2)-1:0]    result_lower;   /* synthesis keep */
+    wire                        carry_out_lower;    /* synthesis keep */
+    wire    [HALF_WIDTH-1:0]    sum_lower;          /* synthesis keep */
 
     AddSub_Ripple_Carry 
     #(
-        .WORD_WIDTH     (WORD_WIDTH/2)
+        .WORD_WIDTH     (HALF_WIDTH)
     )
     alu_lower
     (
-        .add_sub        (add_sub),
-        .cin            (cin),
-        .dataa          (lower_half_word(dataa)),
-        .datab          (lower_half_word(datab)),
-        .cout           (cout_lower),
-        .result         (result_lower)
+        .sub_add        (sub_add),
+        .carry_in       (carry_in),
+        .A              (A_lower_half),
+        .B              (B_lower_half),
+        .carry_out      (carry_out_lower),
+        .sum            (sum_lower)
     );
 
-    reg                             cout_lower_reg;
-    reg     [(WORD_WIDTH/2)-1:0]    result_lower_reg;
+    reg                         carry_out_lower_reg;
+    reg     [HALF_WIDTH-1:0]    sum_lower_reg;
 
     always @(posedge clock) begin
-        cout_lower_reg      <=  cout_lower;
-        result_lower_reg    <=  result_lower;
+        carry_out_lower_reg <=  carry_out_lower;
+        sum_lower_reg       <=  sum_lower;
     end
 
 // --------------------------------------------------------------------
 
-    wire                            cout_upper_0;   /* synthesis keep */
-    wire    [(WORD_WIDTH/2)-1:0]    result_upper_0; /* synthesis keep */
+    wire                        carry_out_upper_0;  /* synthesis keep */
+    wire    [HALF_WIDTH-1:0]    sum_upper_0;        /* synthesis keep */
 
     AddSub_Ripple_Carry 
     #(
-        .WORD_WIDTH     (WORD_WIDTH/2)
+        .WORD_WIDTH     (HALF_WIDTH)
     )
     alu_upper_0
     (
-        .add_sub        (add_sub),
-        .cin            (`LOW),
-        .dataa          (upper_half_word(dataa)),
-        .datab          (upper_half_word(datab)),
-        .cout           (cout_upper_0),
-        .result         (result_upper_0)
+        .sub_add        (sub_add),
+        .carry_in       (1'b0),
+        .A              (A_upper_half),
+        .B              (B_upper_half),
+        .carry_out      (carry_out_upper_0),
+        .sum            (sum_upper_0)
     );
 
-    reg                             cout_upper_0_reg;
-    reg     [(WORD_WIDTH/2)-1:0]    result_upper_0_reg;
+    reg                         carry_out_upper_0_reg;
+    reg     [HALF_WIDTH-1:0]    sum_upper_0_reg;
 
     always @(posedge clock) begin
-        cout_upper_0_reg      <=  cout_upper_0;
-        result_upper_0_reg    <=  result_upper_0;
+        carry_out_upper_0_reg   <=  carry_out_upper_0;
+        sum_upper_0_reg         <=  sum_upper_0;
     end
 
 // --------------------------------------------------------------------
 
-    wire                            cout_upper_1;   /* synthesis keep */
-    wire    [(WORD_WIDTH/2)-1:0]    result_upper_1; /* synthesis keep */
+    wire                        carry_out_upper_1;  /* synthesis keep */
+    wire    [HALF_WIDTH-1:0]    sum_upper_1;        /* synthesis keep */
 
     AddSub_Ripple_Carry 
     #(
-        .WORD_WIDTH     (WORD_WIDTH/2)
+        .WORD_WIDTH     (HALF_WIDTH)
     )
     alu_upper_1
     (
-        .add_sub        (add_sub),
-        .cin            (`HIGH),
-        .dataa          (upper_half_word(dataa)),
-        .datab          (upper_half_word(datab)),
-        .cout           (cout_upper_1),
-        .result         (result_upper_1)
+        .sub_add        (sub_add),
+        .carry_in       (1'b1),
+        .A              (A_upper_half),
+        .B              (B_upper_half),
+        .carry_out      (carry_out_upper_1),
+        .sum            (sum_upper_1)
     );
 
-    reg                             cout_upper_1_reg;
-    reg     [(WORD_WIDTH/2)-1:0]    result_upper_1_reg;
+    reg                         carry_out_upper_1_reg;
+    reg     [HALF_WIDTH-1:0]    sum_upper_1_reg;
 
     always @(posedge clock) begin
-        cout_upper_1_reg      <=  cout_upper_1;
-        result_upper_1_reg    <=  result_upper_1;
+        carry_out_upper_1_reg   <=  carry_out_upper_1;
+        sum_upper_1_reg         <=  sum_upper_1;
     end
 
 // --------------------------------------------------------------------
 
     always @(posedge clock) begin
-        cout   <= (cout_lower_reg == 1'b1) ? cout_upper_1_reg                       : cout_upper_0_reg;
-        result <= (cout_lower_reg == 1'b1) ? {result_upper_1_reg, result_lower_reg} : {result_upper_0_reg, result_lower_reg};
+        carry_out   <= (carry_out_lower_reg == 1'b1) ? carry_out_upper_1_reg            : carry_out_upper_0_reg;
+        sum         <= (carry_out_lower_reg == 1'b1) ? {sum_upper_1_reg, sum_lower_reg} : {sum_upper_0_reg, sum_lower_reg};
     end
+
 endmodule
 

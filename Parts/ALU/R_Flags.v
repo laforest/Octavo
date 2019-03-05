@@ -18,13 +18,13 @@ module R_Flags
 );
 
     initial begin
-        R_zero     = 0;
-        R_negative = 0;
+        R_zero     = 1'b0;
+        R_negative = 1'b0;
     end
 
     always @(*) begin
-        R_zero     <= ~|R;
-        R_negative <= R[WORD_WIDTH-1];
+        R_zero     = ~|R;
+        R_negative = R[WORD_WIDTH-1];
     end
 
 endmodule

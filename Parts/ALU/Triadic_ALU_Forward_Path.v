@@ -80,7 +80,7 @@ module Triadic_ALU_Forward_Path
 
     initial begin
         for(i = 0; i < PIPELINE_STAGES; i = i+1) begin
-            control_pipeline[i] <= 0;
+            control_pipeline[i] = 0;
         end
     end
 
@@ -132,8 +132,8 @@ module Triadic_ALU_Forward_Path
     reg [WORD_WIDTH-1:0] R_negative_mask;
 
     always @(*) begin
-        R_zero_mask     <= {WORD_WIDTH{R_zero}};
-        R_negative_mask <= {WORD_WIDTH{R_negative}};
+        R_zero_mask     = {WORD_WIDTH{R_zero}};
+        R_negative_mask = {WORD_WIDTH{R_negative}};
     end
 
     wire [WORD_WIDTH-1:0] selected_R_raw;

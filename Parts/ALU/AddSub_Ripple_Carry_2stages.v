@@ -14,113 +14,106 @@ module AddSub_Ripple_Carry_2stages
 )
 (
     input   wire                                clock,
-	input   wire                                add_sub,
-	input   wire                                cin,
-	input   wire    signed  [WORD_WIDTH-1:0]    dataa,
-	input   wire    signed  [WORD_WIDTH-1:0]    datab,
-	output  reg                                 cout,
-	output  reg     signed  [WORD_WIDTH-1:0]    result
+	input   wire                                sub_add, // 1/0 -> A-B/A+B
+	input   wire                                carry_in,
+	input   wire    signed  [WORD_WIDTH-1:0]    A,
+	input   wire    signed  [WORD_WIDTH-1:0]    B,
+	output  reg     signed  [WORD_WIDTH-1:0]    sum,
+	output  reg                                 carry_out
 );
 
 // --------------------------------------------------------------------
 
-    function [(WORD_WIDTH/2)-1:0] lower_half_word
-    (
-        input reg [WORD_WIDTH-1:0] word     
-    ); 
-        lower_half_word = word[(WORD_WIDTH/2)-1:0];
-    endfunction
+    localparam HALF_WIDTH   = WORD_WIDTH / 2;
+    localparam ZERO         = {WORD_WIDTH{1'b0}};
+    localparam ZERO_HALF    = {HALF_WIDTH{1'b0}};
 
+    initial begin
+        sum         = ZERO;
+        carry_out   = 1'b0;
+    end
 
-    function [(WORD_WIDTH/2)-1:0] upper_half_word
-    (
-        input reg [WORD_WIDTH-1:0] word     
-    ); 
-        upper_half_word = word[WORD_WIDTH-1:(WORD_WIDTH/2)];
-    endfunction
+// --------------------------------------------------------------------------
+
+    reg [HALF_WIDTH-1:0] A_lower_half = ZERO_HALF;
+    reg [HALF_WIDTH-1:0] A_upper_half = ZERO_HALF;
+    reg [HALF_WIDTH-1:0] B_lower_half = ZERO_HALF;
+    reg [HALF_WIDTH-1:0] B_upper_half = ZERO_HALF;
+
+    always @(*) begin
+        A_lower_half = A[HALF_WIDTH-1:0];
+        A_upper_half = A[WORD_WIDTH-1:HALF_WIDTH];
+        B_lower_half = B[HALF_WIDTH-1:0];
+        B_upper_half = B[WORD_WIDTH-1:HALF_WIDTH];
+    end
 
 // --------------------------------------------------------------------
 
-    wire                            cout_lower;
-    wire    [(WORD_WIDTH/2)-1:0]    result_lower;
+    wire                        carry_out_lower;
+    wire    [HALF_WIDTH-1:0]    sum_lower;
 
     AddSub_Ripple_Carry 
     #(
-        .WORD_WIDTH     (WORD_WIDTH/2)
+        .WORD_WIDTH     (HALF_WIDTH)
     )
     addsub_lower
     (
-        .sub_add        (add_sub),
-        .carry_in       (cin),
-        .A              (lower_half_word(dataa)),
-        .B              (lower_half_word(datab)),
-        .carry_out      (cout_lower),
-        .sum         (result_lower)
+        .sub_add        (sub_add),
+        .carry_in       (carry_in),
+        .A              (A_lower_half),
+        .B              (B_lower_half),
+        .carry_out      (carry_out_lower),
+        .sum            (sum_lower)
     );
 
-    reg                             cout_lower_reg;
-    reg     [(WORD_WIDTH/2)-1:0]    result_lower_reg;
-    reg                             add_sub_upper;
-    reg     [(WORD_WIDTH/2)-1:0]    dataa_upper;
-    reg     [(WORD_WIDTH/2)-1:0]    datab_upper;
+    reg                         carry_out_lower_reg = 1'b0;
+    reg     [HALF_WIDTH-1:0]    sum_lower_reg       = ZERO_HALF;
+    reg                         sub_add_upper       = 1'b0;
+    reg     [HALF_WIDTH-1:0]    A_upper             = ZERO_HALF;
+    reg     [HALF_WIDTH-1:0]    B_upper             = ZERO_HALF;
 
     always @(posedge clock) begin
-        cout_lower_reg   <= cout_lower;
-        result_lower_reg <= result_lower;
-        add_sub_upper    <= add_sub;
-        dataa_upper      <= upper_half_word(dataa);
-        datab_upper      <= upper_half_word(datab);
-    end
-
-    initial begin
-        cout_lower_reg   = 0;
-        result_lower_reg = 0;
-        add_sub_upper    = 0;
-        dataa_upper      = 0;
-        datab_upper      = 0;
+        carry_out_lower_reg <= carry_out_lower;
+        sum_lower_reg       <= sum_lower;
+        sub_add_upper       <= sub_add;
+        A_upper             <= A_upper_half;
+        B_upper             <= B_upper_half;
     end
 
 // --------------------------------------------------------------------
 
-
-    wire                            cout_upper;
-    wire    [(WORD_WIDTH/2)-1:0]    result_upper;
+    wire                        carry_out_upper;
+    wire    [HALF_WIDTH-1:0]    sum_upper;
 
     AddSub_Ripple_Carry 
     #(
-        .WORD_WIDTH     (WORD_WIDTH/2)
+        .WORD_WIDTH     (HALF_WIDTH)
     )
     addsub_upper
     (
-        .sub_add        (add_sub_upper),
-        .carry_in       (cout_lower_reg),
-        .A              (dataa_upper),
-        .B              (datab_upper),
-        .carry_out      (cout_upper),
-        .sum            (result_upper)
+        .sub_add        (sub_add_upper),
+        .carry_in       (carry_out_lower_reg),
+        .A              (A_upper),
+        .B              (B_upper),
+        .carry_out      (carry_out_upper),
+        .sum            (sum_upper)
     );
 
-    reg                           cout_upper_reg;
-    reg     [(WORD_WIDTH/2)-1:0]  result_upper_reg;
-    reg     [(WORD_WIDTH/2)-1:0]  result_lower_reg_1;    
+    reg                       carry_out_upper_reg   = 1'b0;
+    reg     [HALF_WIDTH-1:0]  sum_upper_reg         = ZERO_HALF;
+    reg     [HALF_WIDTH-1:0]  sum_lower_reg_1       = ZERO_HALF;    
 
     always @(posedge clock) begin
-        cout_upper_reg     <= cout_upper;
-        result_upper_reg   <= result_upper;
-        result_lower_reg_1 <= result_lower_reg;
-    end
-
-    initial begin
-        cout_upper_reg     = 0;
-        result_upper_reg   = 0;
-        result_lower_reg_1 = 0;
+        carry_out_upper_reg <= carry_out_upper;
+        sum_upper_reg       <= sum_upper;
+        sum_lower_reg_1     <= sum_lower_reg;
     end
 
 // --------------------------------------------------------------------
 
     always @(*) begin
-        cout   <= cout_upper_reg;
-        result <= {result_upper_reg, result_lower_reg_1};
+        carry_out   = carry_out_upper_reg;
+        sum         = {sum_upper_reg, sum_lower_reg_1};
     end
 endmodule
 

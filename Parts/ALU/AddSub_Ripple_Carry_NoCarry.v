@@ -1,6 +1,6 @@
 
 // Adder/subtractor without carry-in/out. 
-// This allows us to compute +/-A+/-B.
+// This allows us to compute +/-A + +/-B without extra logic.
 // Should infer to the usual LUT and carry-chain logic.
 
 // Also generates addition-specific predicates for later comparisons
@@ -20,6 +20,8 @@ module AddSub_Ripple_Carry_NoCarry
     output  reg                                 carry_out,
     output  reg                                 overflow
 );
+
+    localparam ZERO = {WORD_WIDTH{1'b0}};
 
 // --------------------------------------------------------------------
 
@@ -48,10 +50,20 @@ module AddSub_Ripple_Carry_NoCarry
         .out        (B_signed)
     );
 
+// --------------------------------------------------------------------
+
+    reg [WORD_WIDTH-1:0] A_negative_ext = ZERO;
+    reg [WORD_WIDTH-1:0] B_negative_ext = ZERO;
+
+    always @(*) begin
+        A_negative_ext = {{WORD_WIDTH-1{1'b0}},A_negative};
+        B_negative_ext = {{WORD_WIDTH-1{1'b0}},B_negative};
+    end
+
     // -X = (~X)+1
 
     always @(*) begin
-        {carry_out,sum} <= A_signed + B_signed + A_negative + B_negative;
+        {carry_out,sum} = A_signed + B_signed + A_negative_ext + B_negative_ext;
     end
 
 // --------------------------------------------------------------------

@@ -72,7 +72,7 @@ module Triadic_ALU_Feedback_Path
     reg not_nop = 0;
 
     always @(*) begin
-        not_nop <= (IO_Ready_stage2 == 1'b1) & (Cancel_stage2 == 1'b0);
+        not_nop = (IO_Ready_stage2 == 1'b1) & (Cancel_stage2 == 1'b0);
     end
 
 // --------------------------------------------------------------------
