@@ -64,7 +64,7 @@ module Datapath_IO_Predication
     reg stop_rden = 0;
 
     always @(*) begin
-        stop_rden <= (IO_ready == 1'b0) | (cancel == 1'b1);
+        stop_rden = (IO_ready == 1'b0) | (cancel == 1'b1);
     end 
 
 // --------------------------------------------------------------------

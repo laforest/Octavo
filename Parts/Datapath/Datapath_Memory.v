@@ -192,10 +192,10 @@ module Datapath_Memory
     reg [MEM_ADDR_WIDTH-1:0] write_addr_B_local = 0;
 
     always @(*) begin
-        read_addr_A_local  <= read_addr_A           [MEM_ADDR_WIDTH-1:0];
-        read_addr_B_local  <= read_addr_B           [MEM_ADDR_WIDTH-1:0];
-        write_addr_A_local <= write_addr_A_retimed  [MEM_ADDR_WIDTH-1:0];
-        write_addr_B_local <= write_addr_B_retimed  [MEM_ADDR_WIDTH-1:0];
+        read_addr_A_local  = read_addr_A           [MEM_ADDR_WIDTH-1:0];
+        read_addr_B_local  = read_addr_B           [MEM_ADDR_WIDTH-1:0];
+        write_addr_A_local = write_addr_A_retimed  [MEM_ADDR_WIDTH-1:0];
+        write_addr_B_local = write_addr_B_retimed  [MEM_ADDR_WIDTH-1:0];
     end
 
 // --------------------------------------------------------------------
