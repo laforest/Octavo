@@ -15,7 +15,11 @@ module Round_Robin_Arbiter
     output  reg     [WORD_WIDTH-1:0]    grant
 );
 
-    localparam zero = {WORD_WIDTH{1'b0}};
+    localparam ZERO = {WORD_WIDTH{1'b0}};
+
+    initial begin
+        grant = ZERO;
+    end
 
 // --------------------------------------------------------------------
 
@@ -80,7 +84,7 @@ module Round_Robin_Arbiter
     // priority. This also resets the mask. And the process begins again.
 
     always @(posedge clock) begin
-        grant <= (grant_masked == zero) ? grant_raw : grant_masked; 
+        grant <= (grant_masked == ZERO) ? grant_raw : grant_masked; 
     end
 
 endmodule

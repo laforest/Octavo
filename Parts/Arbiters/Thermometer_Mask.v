@@ -22,7 +22,11 @@ module Thermometer_Mask
     output  reg     [WORD_WIDTH-1:0]    mask
 );
 
-    localparam zero = {WORD_WIDTH{1'b0}};
+    localparam ZERO = {WORD_WIDTH{1'b0}};
+
+    initial begin
+        mask = ZERO;
+    end
 
     always @(*) begin
         // Outputs 1 at the first set bit and all trailing (less significant) bits.
@@ -31,7 +35,7 @@ module Thermometer_Mask
         mask = bitvector ^ (bitvector - 1);
         // Invert mask to instead mask-off the set bit and the trailing bits
         // Don't invert mask if no bit set (don't want an all-zero mask)
-        mask = (bitvector == zero) ? mask : ~mask;
+        mask = (bitvector == ZERO) ? mask : ~mask;
         // Re-add set bit, so it and leading (more significant) bits pass through.
         mask = mask | bitvector;
     end

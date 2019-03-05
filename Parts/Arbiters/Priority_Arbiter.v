@@ -14,6 +14,12 @@ module Priority_Arbiter
     output  reg     [WORD_WIDTH-1:0]    grant
 );
 
+    localparam ZERO = {WORD_WIDTH{1'b0}};
+
+    initial begin
+        grant = ZERO;
+    end
+
     always @(*) begin
         grant = requests & -requests;
     end
