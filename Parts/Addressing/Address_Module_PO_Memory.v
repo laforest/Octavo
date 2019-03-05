@@ -27,7 +27,11 @@ module Address_Module_PO_Memory
     input   wire                                clock,
     input   wire    [THREAD_COUNT_WIDTH-1:0]    read_thread,
     input   wire    [THREAD_COUNT_WIDTH-1:0]    write_thread,
+    // Interface is ADDR_WIDTH to avoid enclosing module
+    // having to care about Programmed Offset addr width.
+    // verilator lint_off UNUSED
     input   wire    [ADDR_WIDTH-1:0]            raw_addr,
+    // verilator lint_on  UNUSED
     input   wire                                IO_Ready_current,
     input   wire                                Cancel_current,
     input   wire                                IO_Ready_previous,
@@ -181,7 +185,7 @@ module Address_Module_PO_Memory
     reg [PO_MEM_ADDR_WIDTH-1:0] po_mem_write_addr = 0;
 
     always @(*) begin
-        po_mem_write_addr <= {write_thread, po_mem_write_addr_base};
+        po_mem_write_addr = {write_thread, po_mem_write_addr_base};
     end
 
 // ----
@@ -243,15 +247,18 @@ module Address_Module_PO_Memory
     reg [ADDR_WIDTH-1:0]        po_post_inc     = 0;
     reg                         pi_sign         = 0;
     reg [PO_INCR_WIDTH-1:0]     pi              = 0;
+    reg [ADDR_WIDTH-1:0]        pi_extended     = 0;
+
+    // Always zero-padding since pi is signed-magnitude.
+    localparam PAD_WIDTH  = ADDR_WIDTH - PO_INCR_WIDTH;
+    localparam PI_PADDING = {PAD_WIDTH{1'b0}};
 
     always @(*) begin
         {pi_sign, pi, po_raw}   = po_mem_read_data;
-        po_post_inc             = (pi_sign == 1'b0) ? (po_raw + pi) : (po_raw - pi);
+        pi_extended             = {PI_PADDING, pi};
+        po_post_inc             = (pi_sign == 1'b0) ? (po_raw + pi_extended) : (po_raw - pi_extended);
         new_po_entry            = {pi_sign, pi, po_post_inc};
-    end
-
-    always @(*) begin
-        programmed_offset <= po_raw;
+        programmed_offset       = po_raw;
     end
 
 endmodule

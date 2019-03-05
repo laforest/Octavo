@@ -59,7 +59,11 @@ module Address_Module_Mapped
     // External write port for previous instruction to update Programmed or
     // Default Offset
     input   wire    [WRITE_ADDR_WIDTH-1:0]      write_addr,
+    // Data is word-wide to simplify enclosing code inteface:
+    // it won't have to worry about internal widths in this module.
+    // verilator lint_off UNUSED
     input   wire    [WRITE_WORD_WIDTH-1:0]      write_data,
+    // verilator lint_on  UNUSED
 
     output  wire    [ADDR_WIDTH-1:0]            offset_addr
 );
@@ -106,7 +110,7 @@ module Address_Module_Mapped
     reg shared = 0;
 
     always @(*) begin
-        shared <= (first_shared == 1'b1) | (second_shared == 1'b1);
+        shared = (first_shared == 1'b1) | (second_shared == 1'b1);
     end
 
 // --------------------------------------------------------------------

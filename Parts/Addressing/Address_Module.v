@@ -133,7 +133,9 @@ module Address_Module
     (
         .clock              (clock),
         .current_thread     (read_thread),
+        // verilator lint_off PINCONNECTEMPTY
         .next_thread        ()
+        // verilator lint_on  PINCONNECTEMPTY
     );
 
 // For PO, since it must be sync'ed to the output and both internal and
@@ -157,7 +159,9 @@ module Address_Module
     (
         .clock              (clock),
         .current_thread     (write_thread),
+        // verilator lint_off PINCONNECTEMPTY
         .next_thread        ()
+        // verilator lint_on  PINCONNECTEMPTY
     );
 
 // ---------------------------------------------------------------------
@@ -203,7 +207,7 @@ module Address_Module
     reg do_wren_local = 0;
 
     always @(*) begin
-        do_wren_local <= do_wren_sync & (IO_Ready_previous_sync == 1'b1) & (Cancel_previous_sync == 1'b0);
+        do_wren_local = do_wren_sync & (IO_Ready_previous_sync == 1'b1) & (Cancel_previous_sync == 1'b0);
     end
 
 // ---------------------------------------------------------------------
