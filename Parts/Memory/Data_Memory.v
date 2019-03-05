@@ -134,7 +134,7 @@ module Data_Memory
     // Disable RAM read enable if reading from IO port. 
 
     always @(*) begin
-        mem_rden <= (read_addr_is_IO == 0);
+        mem_rden = (read_addr_is_IO == 0);
     end
 
 // -----------------------------------------------------------
@@ -163,7 +163,7 @@ module Data_Memory
     reg [WORD_WIDTH-1:0] read_data_raw = 0;
 
     always @(*) begin
-        read_data_raw <= (read_addr_is_IO_stage2 == 1'b1) ? io_read_data_selected : mem_read_data;
+        read_data_raw = (read_addr_is_IO_stage2 == 1'b1) ? io_read_data_selected : mem_read_data;
     end
 
 // -----------------------------------------------------------
@@ -200,7 +200,7 @@ module Data_Memory
     reg     write_enable_io = 0;
 
     always @(*) begin
-        write_enable_io <= (write_addr_is_IO == 1) & (write_enable == 1) & (IOR_previous == 1'b1) & (cancel_previous == 1'b0);
+        write_enable_io = (write_addr_is_IO == 1) & (write_enable == 1) & (IOR_previous == 1'b1) & (cancel_previous == 1'b0);
     end
 
 // -----------------------------------------------------------

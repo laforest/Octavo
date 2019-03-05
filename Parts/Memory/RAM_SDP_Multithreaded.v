@@ -60,7 +60,9 @@ module RAM_SDP_Multithreaded
     (
         .clock              (clock),
         .current_thread     (read_thread),
+        // verilator lint_off PINCONNECTEMPTY
         .next_thread        ()
+        // verilator lint_on  PINCONNECTEMPTY
     );
 
     wire [THREAD_COUNT_WIDTH-1:0] write_thread;
@@ -75,7 +77,9 @@ module RAM_SDP_Multithreaded
     (
         .clock              (clock),
         .current_thread     (write_thread),
+        // verilator lint_off PINCONNECTEMPTY
         .next_thread        ()
+        // verilator lint_on  PINCONNECTEMPTY
     );
 
 // --------------------------------------------------------------------
@@ -84,8 +88,8 @@ module RAM_SDP_Multithreaded
     reg [RAM_ADDR_WIDTH-1:0] ram_write_addr = 0;
 
     always @(*) begin
-        ram_read_addr   <= {read_thread,  read_addr};
-        ram_write_addr  <= {write_thread, write_addr};
+        ram_read_addr   = {read_thread,  read_addr};
+        ram_write_addr  = {write_thread, write_addr};
     end
 
 // --------------------------------------------------------------------
