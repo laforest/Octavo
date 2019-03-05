@@ -39,16 +39,21 @@ module Address_Range_Decoder_Static
 );
 
     localparam ADDR_COUNT = ADDR_BOUND - ADDR_BASE + 1;
+    localparam COUNT_ZERO = {ADDR_COUNT{1'b0}};
+
+    initial begin
+        hit = 1'b0;
+    end
 
 // --------------------------------------------------------------------
 
     integer                     i;
-    reg     [ADDR_COUNT-1:0]    per_addr_match = 0;
+    reg     [ADDR_COUNT-1:0]    per_addr_match = COUNT_ZERO;
 
     // Check each address in base/bound range for match
     always @(*) begin
         for(i = ADDR_BASE; i <= ADDR_BOUND; i = i + 1) begin : addr_decode
-            per_addr_match[i-ADDR_BASE] <= (addr == i[ADDR_WIDTH-1:0]);
+            per_addr_match[i-ADDR_BASE] = (addr == i[ADDR_WIDTH-1:0]);
         end
     end
 

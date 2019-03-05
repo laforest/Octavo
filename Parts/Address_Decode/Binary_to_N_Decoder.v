@@ -21,14 +21,14 @@ module Binary_to_N_Decoder
 );
 
     initial begin
-        out = 0;
+        out = {OUTPUT_WIDTH{1'b0}};
     end
 
     integer count;
 
     always @(*) begin
         for(count = 0; count < OUTPUT_WIDTH; count = count + 1) begin
-            out[count +: 1] <= (count == in);
+            out[count +: 1] = (count[BINARY_WIDTH-1:0] == in);
         end 
     end
 

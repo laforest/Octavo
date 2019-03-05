@@ -22,13 +22,17 @@ module Address_Range_Decoder_Arithmetic
     output  reg                         hit 
 );
 
-    reg base_or_higher;
-    reg bound_or_lower;
+    initial begin
+        hit = 1'b0;
+    end
+
+    reg base_or_higher = 1'b0;
+    reg bound_or_lower = 1'b0;
 
     always @(*) begin
         base_or_higher = (addr >= base_addr);
         bound_or_lower = (addr <= bound_addr);
-        hit            = (base_or_higher && bound_or_lower);
+        hit            = (base_or_higher == 1'b1) && (bound_or_lower == 1'b1);
     end
 
 endmodule

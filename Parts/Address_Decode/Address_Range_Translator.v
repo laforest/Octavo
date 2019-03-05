@@ -65,8 +65,17 @@ module Address_Range_Translator
     (* ramstyle = "logic" *) 
     reg     [ADDR_WIDTH-1:0]    translation_table [ADDR_DEPTH-1:0];
 
-    integer i;
+    // Translation table entry index.
+    // When initializing j, we must zero-pad the narrow address 
+    // up to integer width.
+
     integer j;
+    localparam                  INTEGER_WIDTH   = 32;
+    localparam                  PADSIZE         = INTEGER_WIDTH - ADDR_WIDTH;
+    localparam [PADSIZE-1:0]    J_PADDING       = {PADSIZE{1'b0}};
+
+    // Just a loop counter, over the number of addresses to translate.
+    integer i;
 
     initial begin
         // In the case where ADDR_COUNT < ADDR_DEPTH, make sure all entries are defined
@@ -77,9 +86,9 @@ module Address_Range_Translator
 
         // In the case of a single entry, the LSB (j) will be either 1 or zero,
         // but always translates to 0, thus this should optimize away.
-        j = ADDR_BASE;
+        j = {J_PADDING, ADDR_BASE[ADDR_WIDTH-1:0]};
         for(i = 0; i < ADDR_COUNT; i = i + 1) begin
-            translation_table[j[ADDR_WIDTH-1:0]] = i[ADDR_WIDTH-1:0];
+            translation_table[j] = i[ADDR_WIDTH-1:0];
             j = (j + 1) % ADDR_DEPTH; // Force wrap-around
         end
     end

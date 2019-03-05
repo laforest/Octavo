@@ -36,7 +36,7 @@ module Memory_Mapper
 // -----------------------------------------------------------
 
     initial begin
-        addr_valid = 0;
+        addr_valid = 1'b0;
     end
 
 // -----------------------------------------------------------
@@ -93,7 +93,7 @@ module Memory_Mapper
         end
         else begin
             always @(*) begin
-                addr_valid <= addr_valid_raw;
+                addr_valid = addr_valid_raw;
             end
         end
     endgenerate

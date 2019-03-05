@@ -52,7 +52,7 @@ module Address_Splitter
     reg [ADDR_WIDTH_SPLIT-1:0] DB_LOWER_BITS = 0;
 
     always @(*) begin
-        {DA_LOWER_BITS,DB_LOWER_BITS} <= D;
+        {DA_LOWER_BITS,DB_LOWER_BITS} = D;
     end
 
 // --------------------------------------------------------------------
