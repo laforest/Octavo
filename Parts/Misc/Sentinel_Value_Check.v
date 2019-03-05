@@ -29,7 +29,7 @@ module Sentinel_Value_Check
     localparam ZERO = {WORD_WIDTH{1'b0}};
 
     initial begin
-        match = ZERO;
+        match = 1'b0;
     end
 
     reg [WORD_WIDTH-1:0] data_in_masked = ZERO;

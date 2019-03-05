@@ -27,16 +27,23 @@ module Register_Array
 // --------------------------------------------------------------------------
 
     initial begin
-        out <= {TOTAL_WIDTH{1'b0}};
+        out = {TOTAL_WIDTH{1'b0}};
     end
 
     integer i;
+    // Not all bits of j are used, depending on
+    // enclosing address decoding?
+    // verilator lint_off UNUSED
     integer j;
+    // verilator lint_on  UNUSED
+
+    always @(*) begin
+        j = i * WIDTH;
+    end
 
     always @(posedge clock) begin
         for(i = 0; i < COUNT; i = i+1) begin
-            j = i * WIDTH;
-            out[j +: WIDTH] = (wren[i] == 1'b1) ? in[j +: WIDTH] : out[j +: WIDTH];
+            out[j +: WIDTH] <= (wren[i] == 1'b1) ? in[j +: WIDTH] : out[j +: WIDTH];
         end
     end
 

@@ -20,10 +20,8 @@ module Split_Extractor
     output  reg                         split
 );
 
-    localparam ZERO = {WORD_WIDTH{1'b0}};
-
     initial begin
-        split <= ZERO;
+        split = 1'b0;
     end
 
     always @(*) begin
