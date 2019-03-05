@@ -32,7 +32,11 @@ module Branch_Detector
     input   wire                            B_external,
     input   wire                            IO_Ready_previous,
     input   wire                            branch_config_wren,
+    // Interface is WORD_WIDTH so enclosing module does not
+    // have to care about size of config data.
+    // verilator lint_off UNUSED
     input   wire    [WORD_WIDTH-1:0]        branch_config_data,
+    // verilator lint_on  UNUSED
     output  reg                             reached,
     output  reg     [PC_WIDTH-1:0]          destination,
     output  reg                             jump,
@@ -120,7 +124,7 @@ module Branch_Detector
     // Break-out the branch configuration signals
 
     always @(*) begin
-        {branch_origin,branch_origin_enable,branch_destination,branch_predict_taken,branch_predict_enable,branch_condition} <= branch_config;
+        {branch_origin,branch_origin_enable,branch_destination,branch_predict_taken,branch_predict_enable,branch_condition} = branch_config;
     end
 
 // --------------------------------------------------------------------
@@ -130,7 +134,7 @@ module Branch_Detector
     reg branch_origin_match = 0;
 
     always @(*) begin
-        branch_origin_match <= (PC == branch_origin) | (branch_origin_enable == 0);
+        branch_origin_match = (PC == branch_origin) | (branch_origin_enable == 0);
     end
 
 // --------------------------------------------------------------------
@@ -152,7 +156,7 @@ module Branch_Detector
     wire                                    predicate;
 
     always @(*) begin
-        {A_selector, B_selector, AB_operator} <= branch_condition;
+        {A_selector, B_selector, AB_operator} = branch_condition;
     end
 
     Condition_Predicate
@@ -196,10 +200,16 @@ module Branch_Detector
         .out    (jump_saved)
     );
 
+    reg jump_internal = 1'b0;
+
+    always @(*) begin
+        jump_internal = (predicate == 1'b1);
+        jump_internal = (IO_Ready_previous == 1'b0) ? jump_saved : jump_internal;
+        jump_internal = (branch_origin_match == 1'b1) & (jump_internal == 1'b1);
+    end
+
     always @(posedge clock) begin
-        jump = (predicate == 1'b1);
-        jump = (IO_Ready_previous == 1'b0) ? jump_saved : jump;
-        jump = (branch_origin_match == 1'b1) & (jump == 1'b1);
+        jump <= jump_internal;
     end
 
 // --------------------------------------------------------------------

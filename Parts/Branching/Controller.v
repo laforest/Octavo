@@ -48,7 +48,9 @@ module Controller
     (
         .clock              (clock),
         .current_thread     (read_thread),
+        // verilator lint_off PINCONNECTEMPTY
         .next_thread        ()
+        // verilator lint_on  PINCONNECTEMPTY
     );
 
 // ---------------------------------------------------------------------
@@ -69,7 +71,9 @@ module Controller
     (
         .clock              (clock),
         .current_thread     (write_thread),
+        // verilator lint_off PINCONNECTEMPTY
         .next_thread        ()
+        // verilator lint_on  PINCONNECTEMPTY
     );
 
 // ---------------------------------------------------------------------
@@ -163,8 +167,8 @@ module Controller
 
     // Cancelling an instruction overrides re-issuing it if IO is not ready.
     always @(*) begin
-        pc_new  <= (jump_stage1 == 1'b1) ? jump_destination_stage1 : pc_current;
-        reissue <= (IO_ready_stage1 == 1'b0) & (cancel_stage1 == 1'b0);
+        pc_new  = (jump_stage1 == 1'b1) ? jump_destination_stage1 : pc_current;
+        reissue = (IO_ready_stage1 == 1'b0) & (cancel_stage1 == 1'b0);
     end
 
     always @(posedge clock) begin
@@ -177,7 +181,7 @@ module Controller
     localparam PC_ONE = {{PC_WIDTH-1{1'b0}},1'b1};
 
     always @(*) begin
-        pc_next <= pc + PC_ONE;
+        pc_next = pc + PC_ONE;
     end
 
 endmodule

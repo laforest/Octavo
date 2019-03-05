@@ -122,7 +122,7 @@ module Branch_Counter
     wire [WORD_WIDTH-1:0] decremented_count;
 
     always @(*) begin
-        new_value <= (load_sync == 1'b1) ? load_value_sync : decremented_count;
+        new_value = (load_sync == 1'b1) ? load_value_sync : decremented_count;
     end
 
 // --------------------------------------------------------------------
@@ -141,7 +141,9 @@ module Branch_Counter
     (
         .clock              (clock),
         .current_thread     (thread_number_read),
+        // verilator lint_off PINCONNECTEMPTY
         .next_thread        ()
+        // verilator lint_on  PINCONNECTEMPTY
     );
 
     // Write back (to same thread) the output value generated later.
@@ -158,7 +160,9 @@ module Branch_Counter
     (
         .clock              (clock),
         .current_thread     (thread_number_write),
+        // verilator lint_off PINCONNECTEMPTY
         .next_thread        ()
+        // verilator lint_on  PINCONNECTEMPTY
     );
 
 // --------------------------------------------------------------------
@@ -211,7 +215,7 @@ module Branch_Counter
     reg running_internal = 0;
 
     always @(*) begin
-        running_internal <= |count_internal;
+        running_internal = |count_internal;
     end
 
 // --------------------------------------------------------------------
@@ -241,12 +245,14 @@ module Branch_Counter
     BC_DECREMENT
     (
         .clock      (clock),
-        .add_sub    (SUBTRACT),
-        .cin        (1'b0),
-        .dataa      (count),
-        .datab      (COUNTER_ONE),
-        .cout       (),
-        .result     (decremented_count)
+        .sub_add    (SUBTRACT),
+        .carry_in   (1'b0),
+        .A          (count),
+        .B          (COUNTER_ONE),
+        // verilator lint_off PINCONNECTEMPTY
+        .carry_out  (),
+        // verilator lint_on  PINCONNECTEMPTY
+        .sum        (decremented_count)
     );
 
 endmodule

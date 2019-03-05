@@ -83,8 +83,8 @@ module Branch_Arbiter
     reg                         jump_raw = 0;
 
     always @(*) begin
-        jump_raw                <= jumps_any;
-        jumps_granted_stage1    <= jumps_granted;
+        jump_raw                = jumps_any;
+        jumps_granted_stage1    = jumps_granted;
     end
 
 // ---------------------------------------------------------------------

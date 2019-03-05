@@ -53,7 +53,7 @@ module Flow_Control
     reg config_write_ok = 0;
 
     always @(*) begin
-        config_write_ok <= (IOR_previous == 1'b1) & (cancel_previous == 1'b0);
+        config_write_ok = (IOR_previous == 1'b1) & (cancel_previous == 1'b0);
     end
 
 // --------------------------------------------------------------------

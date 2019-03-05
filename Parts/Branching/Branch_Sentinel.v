@@ -42,7 +42,9 @@ module Branch_Sentinel
     (
         .clock              (clock),
         .current_thread     (thread_addr),
+        // verilator lint_off PINCONNECTEMPTY
         .next_thread        ()
+        // verilator lint_on  PINCONNECTEMPTY
     );
 
 // ---------------------------------------------------------------------
@@ -55,7 +57,7 @@ module Branch_Sentinel
     reg                         sentinel_wren   = 0;
 
     always @(*) begin
-        sentinel_wren <= (configuration_addr == 1'b0) & (configuration_wren == 1'b1);
+        sentinel_wren = (configuration_addr == 1'b0) & (configuration_wren == 1'b1);
     end
 
     RAM_SDP
@@ -87,7 +89,7 @@ module Branch_Sentinel
     reg                         mask_wren   = 0;
 
     always @(*) begin
-        mask_wren <= (configuration_addr == 1'b1) & (configuration_wren == 1'b1);
+        mask_wren = (configuration_addr == 1'b1) & (configuration_wren == 1'b1);
     end
 
     RAM_SDP
@@ -121,7 +123,7 @@ module Branch_Sentinel
     reg [WORD_WIDTH-1:0] sentinel_masked = 0;
 
     always @(*) begin
-        sentinel_masked <= sentinel & ~mask;
+        sentinel_masked = sentinel & ~mask;
     end
 
 // ---------------------------------------------------------------------
