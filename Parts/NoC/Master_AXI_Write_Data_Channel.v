@@ -131,7 +131,7 @@ module Master_AXI_Write_Data_Channel
     reg system_write_accepted = 1'b0;
 
     always @(*) begin
-        system_write_accepted <= (system_ready == 1'b1) && (system_valid_internal == 1'b1);
+        system_write_accepted = (system_ready == 1'b1) && (system_valid_internal == 1'b1);
     end
 
 // --------------------------------------------------------------------------
@@ -143,7 +143,11 @@ module Master_AXI_Write_Data_Channel
 
     wire [AXLEN_WIDTH-1:0] count_out;
     wire                   count_out_wren;
+    // Incorrect detection of circular logic,
+    // possibly because the clocked storage is outside this module.
+    // verilator lint_off UNOPTFLAT
     wire                   last_word;
+    // verilator lint_on  UNOPTFLAT
 
     Down_Counter_Zero
     #(
@@ -157,7 +161,11 @@ module Master_AXI_Write_Data_Channel
         .load_value     (axlen),
         .count_out_wren (count_out_wren),
         .count_out      (count_out),
+        // Incorrect detection of circular logic,
+        // possibly because the clocked storage is outside this module.
+        // verilator lint_off UNOPTFLAT
         .count_zero     (last_word)
+        // verilator lint_on  UNOPTFLAT
     );
 
     // Storage for counter logic

@@ -201,7 +201,7 @@ module Master_AXI_Read_Data_Channel
     reg error = 1'b0;
 
     always @(*) begin
-        error <= (m_rresp == SLVERR) || (m_rresp == DECERR);
+        error = (m_rresp == SLVERR) || (m_rresp == DECERR);
     end
 
     pulse_to_level
