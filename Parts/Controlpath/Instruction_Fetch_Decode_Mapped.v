@@ -92,7 +92,7 @@ module Instruction_Fetch_Decode_Mapped
     reg instruction_ok = 0;
 
     always @(*) begin
-        instruction_ok <= (IOR_previous == 1'b1) & (cancel_previous == 1'b0);
+        instruction_ok = (IOR_previous == 1'b1) & (cancel_previous == 1'b0);
     end
 
 // --------------------------------------------------------------------

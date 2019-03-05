@@ -90,14 +90,16 @@ module Controlpath
     RF_OTHER
     (
         .R          (R_previous),
+        // verilator lint_off PINCONNECTEMPTY
         .R_zero     (),
+        // verilator lint_on  PINCONNECTEMPTY
         .R_negative (negative)
     );
 
     reg lessthan = 0;
 
     always @(*) begin
-        lessthan <= overflow ^ negative;
+        lessthan = overflow ^ negative;
     end
 
 // --------------------------------------------------------------------
