@@ -5,8 +5,8 @@
 
 module UpDown_Counter
 #(
-    parameter                   WORD_WIDTH      = 0,
-    parameter [WORD_WIDTH-1:0]  INITIAL_COUNT   = 0  // Since WORD_WIDTH can be > 32 bits
+    parameter WORD_WIDTH      = 0,
+    parameter INITIAL_COUNT   = 0  // Since WORD_WIDTH can be > 32 bits
 )
 (
     input   wire                        clock,
@@ -25,7 +25,7 @@ module UpDown_Counter
     localparam MINUS_ONE    = ~ZERO;
 
     initial begin
-        count       = INITIAL_COUNT;
+        count       = INITIAL_COUNT[WORD_WIDTH-1:0];
         next_count  = ZERO;
     end
 
