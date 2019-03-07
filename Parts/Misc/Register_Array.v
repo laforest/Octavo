@@ -31,19 +31,10 @@ module Register_Array
     end
 
     integer i;
-    // Not all bits of j are used, depending on
-    // enclosing address decoding?
-    // verilator lint_off UNUSED
-    integer j;
-    // verilator lint_on  UNUSED
-
-    always @(*) begin
-        j = i * WIDTH;
-    end
 
     always @(posedge clock) begin
         for(i = 0; i < COUNT; i = i+1) begin
-            out[j +: WIDTH] <= (wren[i] == 1'b1) ? in[j +: WIDTH] : out[j +: WIDTH];
+            out[(i*WIDTH) +: WIDTH] <= (wren[i] == 1'b1) ? in[(i*WIDTH) +: WIDTH] : out[(i*WIDTH) +: WIDTH];
         end
     end
 
