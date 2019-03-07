@@ -15,7 +15,7 @@ rm ${LOGS}/*
 verilator -F verilator_parameters --lint-only -cc ${TOP}.v &> ${LOGS}/LOG.lint
 
 # Verilate the design and compile design library. Logfile should be empty!
-verilator -F verilator_parameters -F suppressed_warnings -cc ${TOP}.v --exe test_bench.cpp 2>&1 | tee ${LOGS}/LOG.verilate
+verilator -F verilator_parameters -cc ${TOP}.v --exe test_bench.cpp 2>&1 | tee ${LOGS}/LOG.verilate
 
 # Compile into a test bench executable
 pushd obj_dir

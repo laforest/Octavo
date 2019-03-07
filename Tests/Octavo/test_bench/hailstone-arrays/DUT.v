@@ -118,12 +118,16 @@ module DUT
     output  wire    [IO_PORT_COUNT-1:0]                 io_wren_B,
 
     input   wire                                        A_external,
-    input   wire                                        B_external
+    input   wire                                        B_external,
+
+    output  wire    [WORD_WIDTH-1:0]                    Rb,
+    output  wire    [WRITE_ADDR_WIDTH-1:0]              write_addr_Rb
+
 );
 
 // --------------------------------------------------------------------
 
-    Octavo
+    Octavo_Core
     #(
         .WORD_WIDTH                 (WORD_WIDTH),
         .READ_ADDR_WIDTH            (READ_ADDR_WIDTH),
@@ -222,7 +226,10 @@ module DUT
         .io_rden_A                  (io_rden_A),
         .io_rden_B                  (io_rden_B),
         .io_wren_A                  (io_wren_A),
-        .io_wren_B                  (io_wren_B)
+        .io_wren_B                  (io_wren_B),
+
+        .Rb                         (Rb),
+        .write_addr_Rb              (write_addr_Rb)
     );
 
 endmodule

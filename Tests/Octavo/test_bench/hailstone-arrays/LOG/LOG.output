@@ -1,3 +1,4 @@
+- Verilated::debug attempted, but compiled without VL_DEBUG, so messages suppressed.
 168: 62
 169: 83
 170: 110

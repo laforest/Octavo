@@ -9,4 +9,4 @@ g++  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator
 ar r VDUT__ALL.a VDUT__ALLcls.o VDUT__ALLsup.o
 ar: creating VDUT__ALL.a
 ranlib VDUT__ALL.a
-g++    test_bench.o verilated.o verilated_vcd_c.o VDUT__ALL.a    -o VDUT -lm -lstdc++  2>&1 | c++filt
+g++    test_bench.o verilated.o verilated_vcd_c.o VDUT__ALL.a    -o VDUT -lm -lstdc++ 
