@@ -106,7 +106,7 @@ module Generic_test_harness
 // --------------------------------------------------------------------
 
     localparam INPUT_WIDTH  = (IO_PORT_COUNT * 4) + (IO_PORT_COUNT * WORD_WIDTH * 2) + 2;
-    localparam OUTPUT_WIDTH = (IO_PORT_COUNT * 4) + (IO_PORT_COUNT * WORD_WIDTH * 2);
+    localparam OUTPUT_WIDTH = (IO_PORT_COUNT * 4) + (IO_PORT_COUNT * WORD_WIDTH * 2) + WORD_WIDTH + WRITE_ADDR_WIDTH;
 
     wire    [INPUT_WIDTH-1:0]   test_input;
     reg     [OUTPUT_WIDTH-1:0]  test_output;
@@ -130,9 +130,13 @@ module Generic_test_harness
     wire [IO_PORT_COUNT-1:0]                io_wren_A;
     wire [IO_PORT_COUNT-1:0]                io_wren_B;
 
+    wire [WORD_WIDTH-1:0]                   Rb;
+    wire [WRITE_ADDR_WIDTH-1:0]             write_addr_Rb;
+
+
     always @(*) begin
-        {A_external, B_external, io_read_EF_A, io_read_EF_B, io_write_EF_A, io_write_EF_B, io_read_data_A, io_read_data_B} <= test_input;
-        test_output <= {io_write_data_A, io_write_data_B, io_rden_A, io_rden_B, io_wren_A, io_wren_B};
+        {A_external, B_external, io_read_EF_A, io_read_EF_B, io_write_EF_A, io_write_EF_B, io_read_data_A, io_read_data_B} = test_input;
+        test_output = {io_write_data_A, io_write_data_B, io_rden_A, io_rden_B, io_wren_A, io_wren_B, Rb, write_addr_Rb};
     end
 
 // --------------------------------------------------------------------
@@ -164,7 +168,7 @@ module Generic_test_harness
 
 // --------------------------------------------------------------------
 
-    Octavo
+    Octavo_Core
     #(
         .WORD_WIDTH                 (WORD_WIDTH),
         .READ_ADDR_WIDTH            (READ_ADDR_WIDTH),
@@ -263,7 +267,10 @@ module Generic_test_harness
         .io_rden_A                  (io_rden_A),
         .io_rden_B                  (io_rden_B),
         .io_wren_A                  (io_wren_A),
-        .io_wren_B                  (io_wren_B)
+        .io_wren_B                  (io_wren_B),
+
+        .Rb                         (Rb),
+        .write_addr_Rb              (write_addr_Rb)
     );
 
 endmodule
