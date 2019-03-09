@@ -27,7 +27,7 @@ module Multiplier_Pipeline
 
     input   wire    [CONFIG_ADDR_WIDTH-1:0] config_addr,
     input   wire                            config_signed, // 0 is unsigned
-    input   wire                            config_wren,
+    input   wire                            config_enable,
 
     input   wire    [WORD_WIDTH-1:0]        A,
     input   wire                            A_wren,
@@ -68,7 +68,7 @@ module Multiplier_Pipeline
     config_address
     (
         .clock                  (clock),        // Not used.
-        .enable                 (config_wren),
+        .enable                 (config_enable),
         .addr                   (config_addr),
         .addr_translated_lsb    (config_index),
         .addr_valid             (config_valid)
@@ -83,7 +83,7 @@ module Multiplier_Pipeline
     #(
         .WORD_WIDTH             (1),
         .ADDR_WIDTH             (1),
-        .THREAD_DEPTH           (1),
+        .THREAD_DEPTH           (2),
         .RAMSTYLE               ("logic"),
         .READ_NEW_DATA          (0),
         .USE_INIT_FILE          (0),
@@ -114,7 +114,7 @@ module Multiplier_Pipeline
     #(
         .WORD_WIDTH             (WORD_WIDTH),
         .ADDR_WIDTH             (1),
-        .THREAD_DEPTH           (1),
+        .THREAD_DEPTH           (2),
         .RAMSTYLE               ("logic"),
         .READ_NEW_DATA          (0),
         .USE_INIT_FILE          (0),
@@ -143,7 +143,7 @@ module Multiplier_Pipeline
     #(
         .WORD_WIDTH             (WORD_WIDTH),
         .ADDR_WIDTH             (1),
-        .THREAD_DEPTH           (1),
+        .THREAD_DEPTH           (2),
         .RAMSTYLE               ("logic"),
         .READ_NEW_DATA          (0),
         .USE_INIT_FILE          (0),
@@ -195,23 +195,41 @@ module Multiplier_Pipeline
     wire [WORD_WIDTH-1:0] R_low_internal;
     wire [WORD_WIDTH-1:0] R_high_internal;
 
-    Multiplier_Intel
-    #(
-        .WORD_WIDTH             (WORD_WIDTH),
-        .USE_INPUT_REGISTER     (0),
-        .USE_MIDDLE_REGISTER    (0),
-        .USE_OUTPUT_REGISTER    (0),
-        .DEVICE_FAMILY          ("Cyclone V")
-    )
-    Multiplier
-    (
-        .clock                  (clock),
-        .is_signed              (is_signed_input),
-        .A                      (A_input),
-        .B                      (B_input),
-        .R_low                  (R_low_internal),
-        .R_high                 (R_high_internal)
-    );
+    // We can't Verilate the vendor implementations...
+    `ifdef VERILATOR
+        Multiplier_Generic
+        #(
+            .WORD_WIDTH             (WORD_WIDTH),
+            .PIPELINE_DEPTH         (0)
+        )
+        Multiplier
+        (
+            .clock                  (clock),
+            .is_signed              (is_signed_input),
+            .A                      (A_input),
+            .B                      (B_input),
+            .R_low                  (R_low_internal),
+            .R_high                 (R_high_internal)
+        );
+    `else
+        Multiplier_Intel
+        #(
+            .WORD_WIDTH             (WORD_WIDTH),
+            .USE_INPUT_REGISTER     (0),
+            .USE_MIDDLE_REGISTER    (0),
+            .USE_OUTPUT_REGISTER    (0),
+            .DEVICE_FAMILY          ("Cyclone V")
+        )
+        Multiplier
+        (
+            .clock                  (clock),
+            .is_signed              (is_signed_input),
+            .A                      (A_input),
+            .B                      (B_input),
+            .R_low                  (R_low_internal),
+            .R_high                 (R_high_internal)
+        );
+    `endif
 
 // --------------------------------------------------------------------------
 // Then add the last four pipeline stages.
