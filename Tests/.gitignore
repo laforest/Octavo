@@ -1,4 +1,5 @@
 # Quartus output files
+**/dse/**
 **/db/**
 **/incremental_db/**
 *.rpt
@@ -6,4 +7,6 @@
 *.smsg
 *.done
 *.pin
-
+*.dse
+*.qws
+*.log
