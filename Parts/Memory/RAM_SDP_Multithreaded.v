@@ -20,7 +20,7 @@ module RAM_SDP_Multithreaded
 #(
     parameter       WORD_WIDTH              = 0,
     parameter       ADDR_WIDTH              = 0,
-    parameter       THREAD_DEPTH            = 0,
+    parameter       THREAD_DEPTH            = 0, // Must be 2**ADDR_WIDTH
     parameter       RAMSTYLE                = "",
     parameter       READ_NEW_DATA           = 0,
     parameter       USE_INIT_FILE           = 0,
