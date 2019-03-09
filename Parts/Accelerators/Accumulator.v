@@ -163,19 +163,22 @@ module Accumulator
 
     wire    [WORD_WIDTH-1:0]    total_raw;
 
-    AddSub_Ripple_Carry 
+    AddSub_Ripple_Carry_2stages 
     #(
         .WORD_WIDTH (WORD_WIDTH)
     )
     Adder
     (
         .clock      (clock),
-        .add_sub    (`HIGH),
-        .cin        (`LOW),
-        .dataa      (masked_addend_delayed),
-        .datab      (masked_total_delayed),
-        .cout       (),
-        .result     (total_raw)
+        .sub_add    (1'b0),
+        .carry_in   (1'b0),
+        .A          (masked_addend_delayed),
+        .B          (masked_total_delayed),
+        .sum        (total_raw),
+        //  Not dealing with overflow or multi-precision here.
+        //  verilator lint_off PINCONNECTEMPTY
+        .carry_out  ()
+        //  verilator lint_on  PINCONNECTEMPTY
     );
 
 // --------------------------------------------------------------------------
