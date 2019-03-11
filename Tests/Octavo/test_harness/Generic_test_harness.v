@@ -95,7 +95,17 @@ module Generic_test_harness
     parameter   THREAD_COUNT                            = `OCTAVO_THREAD_COUNT,
     parameter   THREAD_COUNT_WIDTH                      = `OCTAVO_THREAD_COUNT_WIDTH,
     // Retiming (write addresses of ALU results)
-    parameter   WRITE_RETIME_STAGES                     = 3
+    parameter   WRITE_RETIME_STAGES                     = 3,
+
+    // How many ports used-up by accelerators
+    parameter   ACCELERATOR_READ_PORTS_A                = 2,
+    parameter   ACCELERATOR_READ_PORTS_B                = 1,
+    parameter   ACCELERATOR_WRITE_PORTS_A               = 2,
+    parameter   ACCELERATOR_WRITE_PORTS_B               = 1,
+
+    // Write address to set multiplier signed-ness
+    parameter   MULTIPLIER_CONFIG_ADDR                  = 4000,
+    parameter   MULTIPLIER_RAMSTYLE                     = "MLAB"
 )
 (
     input   wire    clock,
@@ -105,34 +115,46 @@ module Generic_test_harness
 
 // --------------------------------------------------------------------
 
-    localparam INPUT_WIDTH  = (IO_PORT_COUNT * 4) + (IO_PORT_COUNT * WORD_WIDTH * 2) + 2;
-    localparam OUTPUT_WIDTH = (IO_PORT_COUNT * 4) + (IO_PORT_COUNT * WORD_WIDTH * 2) + WORD_WIDTH + WRITE_ADDR_WIDTH;
+    // Top-level I/O port parameters, with resources used by accelerators subtracted.
+    localparam  FREE_READ_PORT_COUNT_A  = IO_PORT_COUNT - ACCELERATOR_READ_PORTS_A;
+    localparam  FREE_READ_PORT_COUNT_B  = IO_PORT_COUNT - ACCELERATOR_READ_PORTS_B;
+    localparam  FREE_WRITE_PORT_COUNT_A = IO_PORT_COUNT - ACCELERATOR_WRITE_PORTS_A;
+    localparam  FREE_WRITE_PORT_COUNT_B = IO_PORT_COUNT - ACCELERATOR_WRITE_PORTS_B;
+    localparam  FREE_IO_READ_WIDTH_A    = FREE_READ_PORT_COUNT_A  * WORD_WIDTH;
+    localparam  FREE_IO_READ_WIDTH_B    = FREE_READ_PORT_COUNT_B  * WORD_WIDTH;
+    localparam  FREE_IO_WRITE_WIDTH_A   = FREE_WRITE_PORT_COUNT_A * WORD_WIDTH;
+    localparam  FREE_IO_WRITE_WIDTH_B   = FREE_WRITE_PORT_COUNT_B * WORD_WIDTH;
+
+    // The widths match the port order below for clarity.
+    // "* 2" refers to the empty/full bits for both read and write.
+    localparam INPUT_WIDTH  = 2 + (FREE_READ_PORT_COUNT_A * 2) + (FREE_READ_PORT_COUNT_B * 2) + FREE_IO_READ_WIDTH_A + FREE_IO_READ_WIDTH_B;
+    // "* 2" refers to the enable bits for both read and write.
+    localparam OUTPUT_WIDTH = FREE_IO_WRITE_WIDTH_A + FREE_IO_WRITE_WIDTH_B + (FREE_WRITE_PORT_COUNT_A * 2) + (FREE_WRITE_PORT_COUNT_B * 2) + WORD_WIDTH + WRITE_ADDR_WIDTH;
 
     wire    [INPUT_WIDTH-1:0]   test_input;
     reg     [OUTPUT_WIDTH-1:0]  test_output;
 
 // --------------------------------------------------------------------
 
-    reg                                     A_external      = 0;
-    reg                                     B_external      = 0;
-    reg  [IO_PORT_COUNT-1:0]                io_read_EF_A    = 0;
-    reg  [IO_PORT_COUNT-1:0]                io_read_EF_B    = 0;
-    reg  [IO_PORT_COUNT-1:0]                io_write_EF_A   = 0;
-    reg  [IO_PORT_COUNT-1:0]                io_write_EF_B   = 0;
-    reg  [(IO_PORT_COUNT*WORD_WIDTH)-1:0]   io_read_data_A  = 0;
-    reg  [(IO_PORT_COUNT*WORD_WIDTH)-1:0]   io_read_data_B  = 0;
+    reg                                 A_external      = 0;
+    reg                                 B_external      = 0;
+    reg  [FREE_READ_PORT_COUNT_A-1:0]   io_read_EF_A    = 0;
+    reg  [FREE_READ_PORT_COUNT_B-1:0]   io_read_EF_B    = 0;
+    reg  [FREE_READ_PORT_COUNT_A-1:0]   io_write_EF_A   = 0;
+    reg  [FREE_READ_PORT_COUNT_B-1:0]   io_write_EF_B   = 0;
 
-    wire [(IO_PORT_COUNT*WORD_WIDTH)-1:0]   io_write_data_A;
-    wire [(IO_PORT_COUNT*WORD_WIDTH)-1:0]   io_write_data_B;
+    reg  [FREE_IO_WRITE_WIDTH_A-1:0]    io_read_data_A  = 0;
+    reg  [FREE_IO_WRITE_WIDTH_B-1:0]    io_read_data_B  = 0;
+    wire [FREE_IO_WRITE_WIDTH_A-1:0]    io_write_data_A;
+    wire [FREE_IO_WRITE_WIDTH_B-1:0]    io_write_data_B;
 
-    wire [IO_PORT_COUNT-1:0]                io_rden_A;
-    wire [IO_PORT_COUNT-1:0]                io_rden_B;
-    wire [IO_PORT_COUNT-1:0]                io_wren_A;
-    wire [IO_PORT_COUNT-1:0]                io_wren_B;
+    wire [FREE_READ_PORT_COUNT_A-1:0]   io_rden_A;
+    wire [FREE_READ_PORT_COUNT_B-1:0]   io_rden_B;
+    wire [FREE_READ_PORT_COUNT_A-1:0]   io_wren_A;
+    wire [FREE_READ_PORT_COUNT_B-1:0]   io_wren_B;
 
     wire [WORD_WIDTH-1:0]                   Rb;
     wire [WRITE_ADDR_WIDTH-1:0]             write_addr_Rb;
-
 
     always @(*) begin
         {A_external, B_external, io_read_EF_A, io_read_EF_B, io_write_EF_A, io_write_EF_B, io_read_data_A, io_read_data_B} = test_input;
@@ -168,7 +190,7 @@ module Generic_test_harness
 
 // --------------------------------------------------------------------
 
-    Octavo_Core
+    Octavo
     #(
         .WORD_WIDTH                 (WORD_WIDTH),
         .READ_ADDR_WIDTH            (READ_ADDR_WIDTH),
@@ -245,14 +267,17 @@ module Generic_test_harness
         .OD_BASE_ADDR_WRITE         (OD_BASE_ADDR_WRITE),
         .THREAD_COUNT               (THREAD_COUNT),
         .THREAD_COUNT_WIDTH         (THREAD_COUNT_WIDTH),
-        .WRITE_RETIME_STAGES        (WRITE_RETIME_STAGES)
+        .WRITE_RETIME_STAGES        (WRITE_RETIME_STAGES),
+        .ACCELERATOR_READ_PORTS_A   (ACCELERATOR_READ_PORTS_A),
+        .ACCELERATOR_READ_PORTS_B   (ACCELERATOR_READ_PORTS_B),
+        .ACCELERATOR_WRITE_PORTS_A  (ACCELERATOR_WRITE_PORTS_A),
+        .ACCELERATOR_WRITE_PORTS_B  (ACCELERATOR_WRITE_PORTS_B),
+        .MULTIPLIER_CONFIG_ADDR     (MULTIPLIER_CONFIG_ADDR),
+        .MULTIPLIER_RAMSTYLE        (MULTIPLIER_RAMSTYLE)
     )
-    CPU
+    DUT
     (
         .clock                      (clock),
-
-        .A_external                 (A_external),
-        .B_external                 (B_external),
 
         .io_read_EF_A               (io_read_EF_A),
         .io_read_EF_B               (io_read_EF_B),
@@ -268,6 +293,9 @@ module Generic_test_harness
         .io_rden_B                  (io_rden_B),
         .io_wren_A                  (io_wren_A),
         .io_wren_B                  (io_wren_B),
+
+        .A_external                 (A_external),
+        .B_external                 (B_external),
 
         .Rb                         (Rb),
         .write_addr_Rb              (write_addr_Rb)

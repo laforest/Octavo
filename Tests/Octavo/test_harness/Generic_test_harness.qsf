@@ -70,6 +70,10 @@ set_global_assignment -name VERILOG_FILE Translated_Addressed_Mux.v
 set_global_assignment -name VERILOG_FILE Delay_Line.v
 set_global_assignment -name VERILOG_FILE Thread_Number.v
 set_global_assignment -name VERILOG_FILE Octavo_Core.v
+set_global_assignment -name VERILOG_FILE Multiplier_Intel.v
+set_global_assignment -name VERILOG_FILE Multiplier_Pipeline.v
+set_global_assignment -name VERILOG_FILE Accumulator.v
+set_global_assignment -name VERILOG_FILE Octavo.v
 set_global_assignment -name VERILOG_FILE Generic_test_harness.v
 set_global_assignment -name FLOW_ENABLE_RTL_VIEWER ON
 
@@ -102,6 +106,7 @@ set_global_assignment -name SEARCH_PATH /home/laforest/Octavo/Octavo/Parts/IO_Pr
 set_global_assignment -name SEARCH_PATH /home/laforest/Octavo/Octavo/Parts/Misc
 set_global_assignment -name SEARCH_PATH /home/laforest/Octavo/Octavo/Parts/Memory
 set_global_assignment -name SEARCH_PATH /home/laforest/Octavo/Octavo/Parts/Multiplexers
+set_global_assignment -name SEARCH_PATH /home/laforest/Octavo/Octavo/Parts/Multipliers
 set_global_assignment -name SEARCH_PATH /home/laforest/Octavo/Octavo/Parts/Multithreading
 set_global_assignment -name SEARCH_PATH /home/laforest/Octavo/Octavo/Parts/Octavo
 set_global_assignment -name SEARCH_PATH /home/laforest/Octavo/Octavo/Parts/SimSynth
@@ -201,6 +206,9 @@ set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
 
 # end ENTITY(Generic_test_harness)
 # --------------------------------
+
+
+
 
 
 
