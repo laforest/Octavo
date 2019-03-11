@@ -20,7 +20,8 @@ module Multiplier_Pipeline
     parameter WORD_WIDTH                    = 0,
     parameter CONFIG_ADDR                   = 0,
     parameter CONFIG_ADDR_WIDTH             = 0,
-    parameter THREAD_COUNT                  = 0
+    parameter THREAD_COUNT                  = 0,
+    parameter RAMSTYLE                      = ""
 )
 (
     input   wire                            clock,
@@ -84,6 +85,7 @@ module Multiplier_Pipeline
         .WORD_WIDTH             (1),
         .ADDR_WIDTH             (1),
         .THREAD_DEPTH           (2),
+        // Too small to warrant other than registers
         .RAMSTYLE               ("logic"),
         .READ_NEW_DATA          (0),
         .USE_INIT_FILE          (0),
@@ -115,7 +117,7 @@ module Multiplier_Pipeline
         .WORD_WIDTH             (WORD_WIDTH),
         .ADDR_WIDTH             (1),
         .THREAD_DEPTH           (2),
-        .RAMSTYLE               ("logic"),
+        .RAMSTYLE               (RAMSTYLE),
         .READ_NEW_DATA          (0),
         .USE_INIT_FILE          (0),
         .INIT_FILE              (),
@@ -144,7 +146,7 @@ module Multiplier_Pipeline
         .WORD_WIDTH             (WORD_WIDTH),
         .ADDR_WIDTH             (1),
         .THREAD_DEPTH           (2),
-        .RAMSTYLE               ("logic"),
+        .RAMSTYLE               (RAMSTYLE),
         .READ_NEW_DATA          (0),
         .USE_INIT_FILE          (0),
         .INIT_FILE              (),
