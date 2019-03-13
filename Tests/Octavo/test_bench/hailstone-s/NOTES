@@ -1,0 +1,7 @@
+gtkwave cycles: 8979ns / 2 ns/cycle = 4489 cycles
+cycles per thread : 4489 / 8 = 561.1 cycles
+cycles per result: 561.1 / 100 = 5.611 cycles
+(Fmax 222 MHz)
+One cycle slower than in thesis due to NOP waiting for Multiplier accelerator.
+Ratio: 5.611 / 4.55 = 1.23x slower. (ouch)
+
