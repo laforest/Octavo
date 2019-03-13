@@ -92,7 +92,7 @@ module Multiplier_Pipeline
         .INIT_FILE              (),
         .THREAD_COUNT           (THREAD_COUNT),
         .THREAD_COUNT_WIDTH     (THREAD_COUNT_WIDTH),
-        .INITIAL_THREAD_READ    (0),
+        .INITIAL_THREAD_READ    (THREAD_COUNT-1),
         .INITIAL_THREAD_WRITE   (0)
     )
     config_data
@@ -109,6 +109,7 @@ module Multiplier_Pipeline
 // --------------------------------------------------------------------------
 // Pipeline the input operands.
 // Here we have one stage first to latch operands conditionally.
+// One cycle to write, and the next cycle reads the written value.
 
     wire [WORD_WIDTH-1:0] A_latched;
 
@@ -123,7 +124,7 @@ module Multiplier_Pipeline
         .INIT_FILE              (),
         .THREAD_COUNT           (THREAD_COUNT),
         .THREAD_COUNT_WIDTH     (THREAD_COUNT_WIDTH),
-        .INITIAL_THREAD_READ    (0),
+        .INITIAL_THREAD_READ    (THREAD_COUNT-1),
         .INITIAL_THREAD_WRITE   (0)
     )
     A_Latch
@@ -152,7 +153,7 @@ module Multiplier_Pipeline
         .INIT_FILE              (),
         .THREAD_COUNT           (THREAD_COUNT),
         .THREAD_COUNT_WIDTH     (THREAD_COUNT_WIDTH),
-        .INITIAL_THREAD_READ    (0),
+        .INITIAL_THREAD_READ    (THREAD_COUNT-1),
         .INITIAL_THREAD_WRITE   (0)
     )
     B_Latch
@@ -167,9 +168,11 @@ module Multiplier_Pipeline
     );
 
 // --------------------------------------------------------------------------
-// And now do the rest of the input pipeline, minus one stage
+// And now do the rest of the input pipeline
+// minus two stages (A/B_Latch write, then read)
 
-    localparam INPUT_DELAY_DEPTH = DELAY_DEPTH - 1;
+    localparam INPUT_LATCH_DELAY = 2;
+    localparam INPUT_DELAY_DEPTH = DELAY_DEPTH - INPUT_LATCH_DELAY;
     localparam INPUT_DELAY_WIDTH = WORD_WIDTH + WORD_WIDTH + 1;
 
     wire [WORD_WIDTH-1:0] A_input;
