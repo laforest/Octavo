@@ -62,6 +62,8 @@ TODO
 Need code and data de-allocation words to allow loading code/data at runtime.
 Pointers must be manually unloaded to free an indirect memory location.
 There needs also drop_branch and drop_pointers to free up the used branch detector and indirect memory entries.
+Need to name the config address for branches and pointers (<varname>_config) so we can update them (e.g. pointer chasing, table lookups)
+Need to make unique (e.g. append _1, _2, etc...) branch initialization object names so we can have multiple branches go to the same target.
 
 
 
