@@ -1,3 +1,3 @@
 
-Contains simple test bench and test harness. Sub-divide for each FPGA vendor case. Not guaranteed to exist or be current.
+Contains one-off test benches and test harnesses, built as-needed when developing new parts. Not guaranteed to be current.
 
